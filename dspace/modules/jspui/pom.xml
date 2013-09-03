@@ -17,6 +17,7 @@
 	<properties>
         <!-- This is the path to the root [dspace-src] directory. -->
         <root.basedir>${basedir}/../../..</root.basedir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>		
     </properties>
 	
 	<profiles>
