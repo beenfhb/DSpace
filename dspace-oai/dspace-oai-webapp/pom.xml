@@ -14,7 +14,7 @@
    <parent>
       <groupId>org.dspace</groupId>
       <artifactId>dspace-oai</artifactId>
-      <version>CRIS-1.8.4-SNAPSHOT</version>
+      <version>1.8.3.0-CRIS-SNAPSHOT</version>
       <relativePath>..</relativePath>
    </parent>
 
@@ -112,7 +112,7 @@
       <dependency>
          <groupId>org.dspace</groupId>
          <artifactId>dspace-oai-api</artifactId>
-         <version>CRIS-1.8.4-SNAPSHOT</version>
+         <version>1.8.3.0-CRIS-SNAPSHOT</version>
       </dependency>
    </dependencies>
 
