@@ -3,7 +3,7 @@
    <groupId>org.dspace</groupId>
    <artifactId>dspace-parent</artifactId>
    <packaging>pom</packaging>
-   <version>1.8.4-SNAPSHOT</version>
+   <version>CRIS-1.8.4-SNAPSHOT</version>
    <name>DSpace Parent Project</name>
    <url>http://projects.dspace.org</url>
 
@@ -102,14 +102,15 @@
 	  <!-- These plugin settings only apply to this single POM and are not inherited
            to any submodules. -->
          <plugin>
-            <artifactId>maven-release-plugin</artifactId>
-            <version>2.3.2</version>
+            <groupId>org.apache.maven.plugins</groupId>
+        	<artifactId>maven-release-plugin</artifactId>
+        	<version>2.4.1</version>
             <configuration>
                 <!-- During release:perform, enable the "release" profile (see below) -->
                 <releaseProfiles>release</releaseProfiles>
                 <goals>deploy</goals>
                 <!-- Suggest tagging the release in SCM as "dspace-[version]" -->
-                <tagNameFormat>dspace-@{project.version}</tagNameFormat>
+                <tagNameFormat>dspace-cris-1.8.3.0-beta</tagNameFormat>
                 <!-- Auto-Version all modules the same as the parent module -->
                 <autoVersionSubmodules>true</autoVersionSubmodules>
             </configuration>
@@ -958,17 +959,17 @@ Individual Maven projects may choose to override these defaults. -->
 		<dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-api</artifactId>
-			<version>1.8.2</version>
+			<version>CRIS-1.8.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-jspui-api</artifactId>
-			<version>1.8.2</version>
+			<version>CRIS-1.8.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-jspui-webapp</artifactId>
-			<version>1.8.2</version>
+			<version>CRIS-1.8.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.flexjson</groupId>
@@ -1247,11 +1248,12 @@ Individual Maven projects may choose to override these defaults. -->
       snapshots into the snapshot repository below.
    -->
    <scm>
-      <connection>scm:git:git@github.com:DSpace/DSpace.git</connection>
-      <developerConnection>scm:git:git@github.com:DSpace/DSpace.git</developerConnection>
-      <url>git@github.com:DSpace/DSpace.git</url>
-      <tag>HEAD</tag>
+      <connection>scm:git:https://github.com/CILEA/DSpace.git</connection>
+      <developerConnection>scm:git:https://github.com/CILEA/DSpace.git</developerConnection>
+      <url>https://github.com/CILEA/DSpace.git</url>
+      <tag>dspace-3_x_x-cris</tag>
    </scm>
+
 
    <repositories>
       <repository>

@@ -5,12 +5,12 @@
 	<packaging>jar</packaging>
 	<groupId>org.dspace</groupId>
 	<artifactId>pubmed-lookup</artifactId>
-	<version>0.1</version>
+	<version>CRIS-1.8.4-SNAPSHOT</version>
     <name>Article Metrics :: PubMed :: Lookup API</name>
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>article-metrics-pubmed</artifactId>
-        <version>0.1</version>
+        <version>CRIS-1.8.4-SNAPSHOT</version>
    </parent>
 
     <dependencies>
@@ -22,14 +22,13 @@
     
         <dependency>
         	<groupId>org.dspace</groupId>
-        	<artifactId>dspace-jspui-api</artifactId>
-        	<version>1.8.3-SNAPSHOT</version>
+        	<artifactId>dspace-jspui-api</artifactId>        	
         </dependency>
 
 	    <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>pubmed-retrieve</artifactId>
-            <version>0.1</version>
+            <version>CRIS-1.8.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
