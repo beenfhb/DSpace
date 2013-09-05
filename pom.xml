@@ -11,13 +11,7 @@
       <name>DuraSpace</name>
       <url>http://www.dspace.org</url>
    </organization>
-
-    <!-- brings the sonatype snapshot repository and signing requirement on board -->
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
+    
 
     <!--Force UTF-8 encoding during build on all platforms-->
     <properties>
@@ -1256,11 +1250,6 @@ Individual Maven projects may choose to override these defaults. -->
 
 
    <repositories>
-      <repository>
-         <id>sonatype-releases</id>
-         <name>Sonatype Releases Repository</name>
-         <url>http://oss.sonatype.org/content/repositories/releases/</url>
-      </repository>
    
         	<repository>
 			<id>cilea-repo</id>
