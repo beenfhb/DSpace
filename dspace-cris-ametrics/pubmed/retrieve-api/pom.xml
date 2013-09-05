@@ -5,12 +5,12 @@
 	<packaging>jar</packaging>
 	<groupId>org.dspace</groupId>
 	<artifactId>pubmed-retrieve</artifactId>
-	<version>1.8.3.0-CRIS</version>
+	<version>1.8.3.1-CRIS-SNAPSHOT</version>
     <name>Article Metrics :: PubMed :: Retrieve API</name>
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>article-metrics-pubmed</artifactId>
-        <version>1.8.3.0-CRIS</version>
+        <version>1.8.3.1-CRIS-SNAPSHOT</version>
    </parent>
 
     <properties>

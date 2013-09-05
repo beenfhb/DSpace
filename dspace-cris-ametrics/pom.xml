@@ -11,7 +11,7 @@
     <parent>
         <artifactId>dspace-parent</artifactId>
 		<groupId>org.dspace</groupId>
-		<version>1.8.3.0-CRIS</version>
+		<version>1.8.3.1-CRIS-SNAPSHOT</version>
     </parent>
     
     <modules>
@@ -29,17 +29,17 @@
 		  <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-api</artifactId>    
-            <version>1.8.3.0-CRIS</version>      
+            <version>1.8.3.1-CRIS-SNAPSHOT</version>      
         </dependency>
         <dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-stats</artifactId>
-			<version>1.8.3.0-CRIS</version>
+			<version>1.8.3.1-CRIS-SNAPSHOT</version>
 		</dependency>
 		 <dependency>
         	<groupId>org.dspace</groupId>
         	<artifactId>dspace-jspui-api</artifactId>
-        	<version>1.8.3.0-CRIS</version>
+        	<version>1.8.3.1-CRIS-SNAPSHOT</version>
         </dependency>
 		
 		</dependencies>
@@ -69,5 +69,5 @@
 		</developer>
 	</developers>
     
-	<version>1.8.3.0-CRIS</version>
+	<version>1.8.3.1-CRIS-SNAPSHOT</version>
 </project>
