@@ -6,12 +6,12 @@
     <packaging>pom</packaging>
      <groupId>org.dspace</groupId>
     <artifactId>article-metrics-pubmed</artifactId>
-    <version>1.8.3.0-CRIS-SNAPSHOT</version>
+    <version>1.8.3.0-CRIS</version>
     <name>Article Metrics :: PubMed</name>
 
     <parent>
 		<groupId>org.dspace</groupId>
-		<version>1.8.3.0-CRIS-SNAPSHOT</version>
+		<version>1.8.3.0-CRIS</version>
 		<artifactId>dspace-cris-ametrics</artifactId>
     </parent>
     

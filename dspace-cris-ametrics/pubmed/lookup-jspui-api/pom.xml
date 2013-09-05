@@ -5,12 +5,12 @@
 	<packaging>jar</packaging>
 	<groupId>org.dspace</groupId>
 	<artifactId>pubmed-lookup</artifactId>
-	<version>1.8.3.0-CRIS-SNAPSHOT</version>
+	<version>1.8.3.0-CRIS</version>
     <name>Article Metrics :: PubMed :: Lookup API</name>
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>article-metrics-pubmed</artifactId>
-        <version>1.8.3.0-CRIS-SNAPSHOT</version>
+        <version>1.8.3.0-CRIS</version>
    </parent>
     <properties>
          <!-- This is the path to the root [dspace-src] directory. -->
@@ -33,7 +33,7 @@
 	    <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>pubmed-retrieve</artifactId>
-            <version>1.8.3.0-CRIS-SNAPSHOT</version>
+            <version>1.8.3.0-CRIS</version>
         </dependency>
 
         <dependency>

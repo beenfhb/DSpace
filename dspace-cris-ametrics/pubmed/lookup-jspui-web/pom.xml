@@ -6,7 +6,7 @@
   <parent>
     <artifactId>article-metrics-pubmed</artifactId>
     <groupId>org.dspace</groupId>
-    <version>1.8.3.0-CRIS-SNAPSHOT</version>
+    <version>1.8.3.0-CRIS</version>
   </parent>
   
   <properties>
