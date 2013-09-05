@@ -1251,7 +1251,7 @@ Individual Maven projects may choose to override these defaults. -->
       <connection>scm:git:https://github.com/CILEA/DSpace.git</connection>
       <developerConnection>scm:git:https://github.com/CILEA/DSpace.git</developerConnection>
       <url>https://github.com/CILEA/DSpace.git</url>
-      <tag>dspace-3_x_x-cris</tag>
+      <tag>HEAD</tag>
    </scm>
 
 
