@@ -16,14 +16,11 @@ import org.dspace.core.Constants;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Bitstream;
-import org.dspace.content.DCValue;
-import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.statistics.SolrLogger;
 import org.dspace.utils.DSpace;
 
 import java.util.Date;
-import java.util.Map;
 import java.text.SimpleDateFormat;
 
 import com.maxmind.geoip.LookupService;

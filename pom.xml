@@ -4,7 +4,7 @@
    <groupId>org.dspace</groupId>
    <artifactId>dspace-parent</artifactId>
    <packaging>pom</packaging>
-   <version>CRIS-4.1.1-SNAPSHOT</version>
+   <version>CRIS-5.0.0-SNAPSHOT</version>
    <name>DSpace Parent Project</name>
    <url>https://github.com/Cineca/DSpace</url>
    <description>
@@ -25,7 +25,10 @@
         <relativePath />
     </parent> -->
     
-    <!--Force UTF-8 encoding during build on all platforms-->
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+
     <properties>		
 		<!-- Warning hibernate core many pom point to 3.3.2.GA to be compliant with hibernate-annotation 3.4.0.GA (required by spring ORM 3.1.1.RELEASE)-->
 		<!--<org.hibernate.version>3.6.10.Final</org.hibernate.version> -->
@@ -39,7 +42,7 @@
 		<org.jdyna.version>5.0</org.jdyna.version>		
 		<it.cilea.ccommons.version>2.0</it.cilea.ccommons.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.6</java.version> <!-- DSpace requires Java 1.6 or higher -->		
+        <java.version>1.7</java.version>
         <lucene.version>4.4.0</lucene.version>
         <solr.version>4.4.0</solr.version>
         <slf4j.version>1.6.1</slf4j.version>
@@ -105,8 +108,6 @@
 					Enable to debug Maven Surefire tests in remote proces
 					<debugForkedProcess>true</debugForkedProcess>
 					-->
-                    <!-- required when running JMockit under Java 1.5 -->
-                    <argLine>-javaagent:"${settings.localRepository}"/org/dspace/dependencies/jmockit/dspace-jmockit/0.999.4/dspace-jmockit-0.999.4.jar</argLine>
                 </configuration>
              </plugin>
              <plugin>
@@ -620,7 +621,6 @@
 			<version>${project.version}</version>
             <type>war</type>
          </dependency>
-
          <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-jspui</artifactId>
@@ -694,6 +694,33 @@
             <artifactId>dspace-services</artifactId>
 			<version>${project.version}</version>
          </dependency>
+         <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-rest</artifactId>
+            <version>5.0-SNAPSHOT</version>
+            <type>jar</type>
+         </dependency>
+         <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-rest</artifactId>
+            <version>5.0-SNAPSHOT</version>
+            <type>war</type>
+         </dependency>
+         <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-solr</artifactId>
+            <version>5.0-SNAPSHOT</version>
+            <type>jar</type>
+            <classifier>classes</classifier>
+         </dependency>
+         <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-solr</artifactId>
+            <version>5.0-SNAPSHOT</version>
+            <type>war</type>
+            <classifier>skinny</classifier>
+         </dependency>
+
          <!-- DSpace Localization Packages -->
          <dependency>
             <groupId>org.dspace</groupId>
@@ -783,10 +810,10 @@
             <version>${lucene.version}</version>
          </dependency>
          <dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-queryparser</artifactId>
-			<version>${lucene.version}</version>
-		</dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queryparser</artifactId>
+            <version>${lucene.version}</version>
+         </dependency>
          <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>handle</artifactId>
@@ -942,9 +969,9 @@
             <version>3.6</version>
          </dependency>
          <dependency>
-            <groupId>net.java.dev.rome</groupId>
+            <groupId>rome</groupId>
             <artifactId>rome</artifactId>
-            <version>1.0.0</version>
+            <version>1.0</version>
          </dependency>
          <dependency>
             <groupId>rome</groupId>
@@ -1058,6 +1085,12 @@
              <groupId>org.slf4j</groupId>
              <artifactId>slf4j-log4j12</artifactId>
              <version>${slf4j.version}</version>
+         </dependency>
+         <dependency> <!-- Keep jmockit before junit -->
+            <groupId>com.googlecode.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>1.1</version>
+            <scope>test</scope>
          </dependency>
          <dependency>
             <groupId>junit</groupId>
