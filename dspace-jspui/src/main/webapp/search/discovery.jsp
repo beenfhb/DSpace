@@ -32,10 +32,7 @@
   -
   -   admin_button     - If the user is an admin
   --%>
-  
-<%@page import="org.dspace.browse.BrowseInfo"%>
-<%@page import="org.dspace.browse.BrowseDSpaceObject"%>
-<%@page import="org.dspace.core.Utils"%>
+
 <%@page import="org.dspace.core.Utils"%>
 <%@page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
@@ -52,7 +49,6 @@
 <%@page import="org.dspace.content.DSpaceObject"%>
 <%@page import="java.util.List"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@page import="org.dspace.app.cris.model.ACrisObject" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
     prefix="fmt" %>
@@ -71,11 +67,7 @@
 <%
     // Get the attributes
     DSpaceObject scope = (DSpaceObject) request.getAttribute("scope" );
-    String searchScope = (String) request.getParameter("location" );
-    if (searchScope == null)
-    {
-        searchScope = "";
-    }
+    String searchScope = scope!=null?scope.getHandle():"";
     List<DSpaceObject> scopes = (List<DSpaceObject>) request.getAttribute("scopes");
     List<String> sortOptions = (List<String>) request.getAttribute("sortOptions");
 
@@ -90,11 +82,6 @@
     DiscoverQuery qArgs = (DiscoverQuery) request.getAttribute("queryArgs");
     String sortedBy = qArgs.getSortField();
     String order = qArgs.getSortOrder().toString();
-    String sortIdx = null;
-    if (sortedBy != null && sortedBy.startsWith("bi_sort_"))
-    {
-       sortIdx = sortedBy.substring(8,sortedBy.length()-5);
-    }
     String ascSelected = (SortOption.ASCENDING.equalsIgnoreCase(order)   ? "selected=\"selected\"" : "");
     String descSelected = (SortOption.DESCENDING.equalsIgnoreCase(order) ? "selected=\"selected\"" : "");
     String httpFilters ="";
@@ -161,16 +148,6 @@
 					})
 				}
 			});
-        jQ('th.sortable').click(function(){
-            var cls = jQ(this).attr('class');
-            var pos = cls.indexOf('sort_',0);
-            var endPos = cls.indexOf(' ',pos);
-            if (endPos == -1) endPos = cls.length;
-            var sortby = cls.substr(pos+5,endPos-pos-5);
-            jQ('#update-form').find('input[name="order"]').val(jQ(this).hasClass("sorted_asc")?"DESC":"ASC");
-            jQ('#update-form').find('input[name="sort_by"]').val('bi_sort_'+sortby+'_sort');
-            jQ('#update-form').submit();
-   		});
 	});
 	function validateFilters() {
 		return document.getElementById("filterquery").value.length > 0;
@@ -187,7 +164,7 @@
 <div class="discovery-search-form panel panel-default">
     <%-- Controls for a repeat search --%>
 	<div class="discovery-query panel-heading">
-     <form id="update-form" action="simple-search" method="get">
+    <form action="simple-search" method="get">
          <label for="tlocation">
          	<fmt:message key="jsp.search.results.searchin"/>
          </label>
@@ -199,13 +176,12 @@
         // "all of DSpace" and the communities.
 %>
                                     <%-- <option selected value="/">All of DSpace</option> --%>
-                                    <option selected="selected" value="global"><fmt:message key="jsp.general.globalScope"/></option>
+                                    <option selected="selected" value="/"><fmt:message key="jsp.general.genericScope"/></option>
 <%  }
     else
     {
 %>
-									<option value="global"><fmt:message key="jsp.general.globalScope"/></option>
-							        <optgroup label="Repository">
+									<option value="/"><fmt:message key="jsp.general.genericScope"/></option>
 <%  }      
     for (DSpaceObject dso : scopes)
     {
@@ -271,7 +247,7 @@
 		%>
 		</div>
 <% } %>
-<a class="btn btn-default" href="<%= request.getContextPath()+"/global-search" %>"><fmt:message key="jsp.search.general.new-search" /></a>	
+<a class="btn btn-default" href="<%= request.getContextPath()+"/simple-search" %>"><fmt:message key="jsp.search.general.new-search" /></a>	
 		</form>
 		</div>
 <% if (availableFilters.size() > 0) { %>
@@ -434,7 +410,6 @@ DiscoverResult qResults = (DiscoverResult)request.getAttribute("queryresults");
 Item      [] items       = (Item[]      )request.getAttribute("items");
 Community [] communities = (Community[] )request.getAttribute("communities");
 Collection[] collections = (Collection[])request.getAttribute("collections");
-Map<Integer, BrowseDSpaceObject[]> mapOthers = (Map<Integer, BrowseDSpaceObject[]>) request.getAttribute("resultsMapOthers");
 
 if( error )
 {
@@ -463,7 +438,6 @@ else if( qResults != null)
                     + (searchScope != "" ? "/handle/" + searchScope : "")
                     + "/simple-search?query="
                     + URLEncoder.encode(query,"UTF-8")
-                    + "&amp;location="+ searchScope
                     + httpFilters
                     + "&amp;sort_by=" + sortedBy
                     + "&amp;order=" + order
@@ -557,22 +531,6 @@ else if( qResults != null)
 <!-- give a content to the div -->
 </div>
 <div class="discovery-result-results">
-<%
-       Set<Integer> otherTypes = mapOthers.keySet();
-       if (otherTypes != null && otherTypes.size() > 0)
-       {
-           for (Integer otype : otherTypes)
-           {
-               %>
-               <c:set var="typeName"><%= ((ACrisObject) mapOthers.get(otype)[0].getBrowsableDSpaceObject()).getPublicPath() %></c:set>
-               <div class="panel panel-info">
-               <div class="panel-heading"><fmt:message key="jsp.search.results.cris.${typeName}"/></div>
-               <dspace:browselist config="cris${typeName}" items="<%= mapOthers.get(otype) %>"  order="<%= order %>" sortBy="<%= sortIdx %>" />
-               </div>
-           <%
-           }
-       }
-%>
 <% if (communities.length > 0 ) { %>
     <div class="panel panel-info">
     <div class="panel-heading"><fmt:message key="jsp.search.results.comhits"/></div>
@@ -665,39 +623,6 @@ else
 <% } %>
 <% } %>
 <dspace:sidebar>
-
-
-<h3 class="facets"><fmt:message key="jsp.search.facet.refine" /></h3>
-
-<%
-		DiscoverySearchFilterFacet facetGlobalConf = (DiscoverySearchFilterFacet) request.getAttribute("facetGlobalConfig");
-		if(facetGlobalConf!=null) {
-		    String fGlobal = facetGlobalConf.getIndexFieldName();
-			if(qResults!=null) {
-		    List<FacetResult> facetGlobal = qResults.getFacetResult(fGlobal);
-		    String fkeyGlobal = "jsp.search.facet.refine."+fGlobal;
-		    if (facetGlobal != null && facetGlobal.size() > 0) {
-		    %>
-		    <div id="globalFacet" class="facetsBox">
-		    <div id="facet_<%= fkeyGlobal %>" class="panel panel-primary">
-		    <div class="panel-heading"><fmt:message key="<%= fkeyGlobal %>" /></div>
-		    <ul class="list-group"><%
-		    for (FacetResult fvalue : facetGlobal)
-		    { 
-		        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
-	                + "/simple-search?query="
-	                + URLEncoder.encode(query,"UTF-8")                                
-	                + "&amp;location="+URLEncoder.encode(fvalue.getAuthorityKey(),"UTF-8") %>"
-	                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-	                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
-		    }
-		    %></ul></div>
-		    </div><%
-			} 
-			}
-		}
-%>
-
 <%
 	boolean brefine = false;
 	
@@ -734,6 +659,7 @@ else
 	if (brefine) {
 %>
 
+<h3 class="facets"><fmt:message key="jsp.search.facet.refine" /></h3>
 <div id="facets" class="facetsBox">
 
 <%
@@ -764,9 +690,9 @@ else
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
 	        {
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
+                + (searchScope!=""?"/handle/"+searchScope:"")
                 + "/simple-search?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + searchScope
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
@@ -789,9 +715,9 @@ else
 	        %><li class="list-group-item"><span style="visibility: hidden;">.</span>
 	        <% if (currFp > 0) { %>
 	        <a class="pull-left" href="<%= request.getContextPath()
+	            + (searchScope!=""?"/handle/"+searchScope:"")
                 + "/simple-search?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + searchScope
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
@@ -801,9 +727,9 @@ else
             <% } %>
             <% if (idx == limit) { %>
             <a href="<%= request.getContextPath()
+	            + (searchScope!=""?"/handle/"+searchScope:"")
                 + "/simple-search?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + searchScope
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp

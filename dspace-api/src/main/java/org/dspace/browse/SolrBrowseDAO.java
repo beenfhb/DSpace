@@ -12,11 +12,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
@@ -148,19 +147,18 @@ public class SolrBrowseDAO implements BrowseDAO
             DiscoverQuery query = new DiscoverQuery();
             addLocationScopeFilter(query);
             addStatusFilter(query);
-            addExtraFilter(table, query);
             if (distinct)
             {
                 DiscoverFacetField dff = new DiscoverFacetField(facetField,
                         DiscoveryConfigurationParameters.TYPE_TEXT, -1,
-                        DiscoveryConfigurationParameters.SORT.VALUE, false);
+                        DiscoveryConfigurationParameters.SORT.VALUE);
                 query.addFacetField(dff);
                 query.setFacetMinCount(1);
                 query.setMaxResults(0);
             }
             else
             {
-				query.setMaxResults(limit > 0 ? limit : 20);
+                query.setMaxResults(limit/* > 0 ? limit : 20*/);
                 if (offset > 0)
                 {
                     query.setStart(offset);
@@ -182,6 +180,7 @@ public class SolrBrowseDAO implements BrowseDAO
                 }
                 // filter on item to be sure to don't include any other object
                 // indexed in the Discovery Search core
+                query.addFilterQueries("search.resourcetype:" + Constants.ITEM);
                 if (orderField != null)
                 {
                     query.setSortField("bi_" + orderField + "_sort",
@@ -199,15 +198,6 @@ public class SolrBrowseDAO implements BrowseDAO
             }
         }
         return sResponse;
-    }
-
-    private void addExtraFilter(String table, DiscoverQuery query)
-    {
-        String filter = ConfigurationManager.getProperty("browse.solr."+table+".filter");
-        if (StringUtils.isNotBlank(filter))
-        {
-            query.addFilterQueries(filter);
-        }
     }
 
     private void addStatusFilter(DiscoverQuery query)
@@ -305,24 +295,10 @@ public class SolrBrowseDAO implements BrowseDAO
         {
             // FIXME introduce project, don't retrieve Item immediately when
             // processing the query...
-            BrowseItem bitem = null;
-            if (solrDoc instanceof BrowsableDSpaceObject)
-            {
-                if (solrDoc instanceof Item)
-                {
-                    Item item = (Item) solrDoc;
-                    bitem = new BrowseItem(context, item.getID(),
-                            item.isArchived(), item.isWithdrawn(),
-                            item.isDiscoverable());
-                }
-                else
-                {
-                    bitem = new BrowseDSpaceObject(context,
-                            (BrowsableDSpaceObject) solrDoc);             
-                }
-                bitems.add(bitem);
-            }
-            
+            Item item = (Item) solrDoc;
+            BrowseItem bitem = new BrowseItem(context, item.getID(),
+                    item.isArchived(), item.isWithdrawn(), item.isDiscoverable());
+            bitems.add(bitem);
         }
         return bitems;
     }
@@ -333,7 +309,7 @@ public class SolrBrowseDAO implements BrowseDAO
     {
         DiscoverQuery query = new DiscoverQuery();
         query.setQuery("search.resourceid:" + itemID
-                );
+                + " AND search.resourcetype:" + Constants.ITEM);
         query.setMaxResults(1);
         DiscoverResult resp = null;
         try
@@ -361,6 +337,7 @@ public class SolrBrowseDAO implements BrowseDAO
         addLocationScopeFilter(query);
         addStatusFilter(query);
         query.setMaxResults(0);
+        query.addFilterQueries("search.resourcetype:" + Constants.ITEM);
 
         // We need to take into account the fact that we may be in a subset of the items
         if (authority != null)
@@ -722,7 +699,6 @@ public class SolrBrowseDAO implements BrowseDAO
         {
             itemsDiscoverable = false;
         }
-        this.table = table;
         facetField = table;
     }
 

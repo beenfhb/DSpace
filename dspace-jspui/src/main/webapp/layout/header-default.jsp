@@ -83,12 +83,13 @@
         }
 %>
         
-	<script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-1.10.2.min.js"></script>
-	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.10.3.custom.min.js'></script>
-	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/bootstrap/bootstrap.min.js'></script>
-	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
-	<script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
-    <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"> </script>
+        <script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-1.10.2.min.js"></script>
+        <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.10.3.custom.min.js'></script>
+        <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/bootstrap/bootstrap.min.js'></script>
+        <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
+        <script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
+        <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"> </script>
+        <dspace:include page="/layout/google-analytics-snippet.jsp" />
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/jdyna/jdyna.js"></script>
 	<script type='text/javascript'>
 		var j = jQuery.noConflict();
@@ -96,29 +97,12 @@
 		var JQ = j;
 		dspaceContextPath = "<%=request.getContextPath()%>";
 	</script>
-    <%--Gooogle Analytics recording.--%>
     <%
-    if (analyticsKey != null && analyticsKey.length() > 0)
-    {
-    %>
-        <script type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', '<%= analyticsKey %>']);
-            _gaq.push(['_trackPageview']);
-
-            (function() {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
-        </script>
-    <%
-    }
     if (extraHeadDataLast != null)
     { %>
-		<%= extraHeadDataLast %>
-		<%
-		    }
+        <%= extraHeadDataLast %>
+    <%
+    }
     %>
     
 
@@ -145,26 +129,26 @@
     }
     else
     {
-    	%>
+    %>
         <div class="container">
             <dspace:include page="/layout/navbar-minimal.jsp" />
         </div>
-<%    	
+<%
     }
 %>
 </header>
 
 <main id="content" role="main">
 <div class="container banner">
-	<div class="row">
-		<div class="col-md-9 brand">
-		<h1><fmt:message key="jsp.layout.header-default.brand.heading" /></h1>
-        <fmt:message key="jsp.layout.header-default.brand.description" /> 
+    <div class="row">
+        <div class="col-md-9 brand">
+            <h1><fmt:message key="jsp.layout.header-default.brand.heading" /></h1>
+            <fmt:message key="jsp.layout.header-default.brand.description" /> 
         </div>
         <div class="col-md-3"><img class="pull-right" src="<%= request.getContextPath() %>/image/logo.gif" alt="DSpace logo" />
         </div>
-	</div>
-</div>	
+    </div>
+</div>
 <br/>
                 <%-- Location bar --%>
 <%
@@ -172,7 +156,7 @@
     {
 %>
 <div class="container">
-                <dspace:include page="/layout/location-bar.jsp" />
+    <dspace:include page="/layout/location-bar.jsp" />
 </div>                
 <%
     }
@@ -182,6 +166,6 @@
         <%-- Page contents --%>
 <div class="container">
 <% if (request.getAttribute("dspace.layout.sidebar") != null) { %>
-	<div class="row">
-		<div class="col-md-9">
-<% } %>		
+    <div class="row">
+    <div class="col-md-9">
+<% } %>	
