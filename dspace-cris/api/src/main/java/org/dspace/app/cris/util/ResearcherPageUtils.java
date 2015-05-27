@@ -8,9 +8,17 @@
 package org.dspace.app.cris.util;
 
 import it.cilea.osd.jdyna.model.ANestedObject;
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.LinkValue;
+import it.cilea.osd.jdyna.value.TextValue;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -27,17 +35,20 @@ import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.RestrictedField;
 import org.dspace.app.cris.model.VisibilityConstants;
+import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.Choices;
 import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
+
 
 /**
  * This class provides some static utility methods to extract information from
@@ -48,6 +59,13 @@ import org.dspace.utils.DSpace;
  */
 public class ResearcherPageUtils
 {
+	
+	/** Maximum query results*/
+	private static final int MAX_RESULTS = 20;
+	
+	/** Handler dspace service */
+	private static DSpace dspace = new DSpace();
+		
     /** log4j logger */
     @Transient
     private static Logger log = Logger.getLogger(ResearcherPageUtils.class);
@@ -84,7 +102,10 @@ public class ResearcherPageUtils
      */
     public static String getPersistentIdentifier(ACrisObject cris)
     {
-        return formatIdentifier(cris.getId(), cris.getClass());
+		if (cris.getCrisID() != null) {
+			return cris.getCrisID();
+		}
+		return formatIdentifier(cris.getId(), cris.getAuthorityPrefix());
     }
 
     
@@ -92,23 +113,15 @@ public class ResearcherPageUtils
      * Build the cris identifier starting from the db internal primary key
     */
     public static <T extends ACrisObject> String getPersistentIdentifier(
-            Integer crisID, Class<T> clazz)
+            Integer id, Class<T> clazz)
     {
-        T cris = null;
-        try
-        {
-            cris = clazz.newInstance();
-            return formatIdentifier(crisID, clazz);
-        }
-        catch (InstantiationException e)
-        {
-            log.error(e.getMessage());
-        }
-        catch (IllegalAccessException e)
-        {
-            log.error(e.getMessage());
-        }
-        return "";
+		ACrisObject crisObject;
+		try {
+			crisObject = clazz.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
+		return crisObject.getAuthorityPrefix() + persIdentifierFormat.format(id);
     }
     
     
@@ -116,17 +129,9 @@ public class ResearcherPageUtils
      * Format the cris suffix identifier starting from the db internal primary key
      * key
     */
-    private static String formatIdentifier(Integer rp, Class className)
+	private static <T extends ACrisObject> String formatIdentifier(Integer rp, String prefix)
     {
-        ACrisObject crisObject = (ACrisObject) applicationService.get(
-                className, rp);
-        String crisId = crisObject.getCrisID();
-        if (crisId != null && !crisId.isEmpty())
-        {
-            return crisId;    
-        }
-        return crisObject.getAuthorityPrefix()
-                + persIdentifierFormat.format(rp);
+		return prefix + persIdentifierFormat.format(rp);
     }
 
     /**
@@ -148,6 +153,13 @@ public class ResearcherPageUtils
             {
                  return crisObject.getId();
             }
+            else {
+            	crisObject = applicationService.getEntityByUUID(authorityKey);
+                if (crisObject != null)
+                {
+                     return crisObject.getId();
+                }
+            }
             return Integer.parseInt(id); 
         }
         catch (NumberFormatException e)
@@ -168,21 +180,10 @@ public class ResearcherPageUtils
      */
     public static String getLabel(String alternativeName, ResearcherPage rp)
     {
-        if (alternativeName.equals(rp.getFullName()))
-        {
-            RestrictedField translatedName = rp.getTranslatedName();
-            return rp.getFullName()
-                    + (translatedName != null
-                            && translatedName.getValue() != null
-                            && !translatedName.getValue().isEmpty()
-                            && translatedName.getVisibility() == VisibilityConstants.PUBLIC ? " "
-                            + translatedName.getValue()
-                            : "");
-        }
-        else
-        {
-            return alternativeName + " See \"" + rp.getFullName() + "\"";
-        }
+    	IResearcherPageLabelDecorator decorator = dspace
+				  .getServiceManager()
+				  .getServiceByName("org.dspace.app.cris.util.IResearcherPageLabelDecorator", IResearcherPageLabelDecorator.class);
+return decorator.generateDisplayValue(alternativeName, rp);    
     }
 
     /**
@@ -372,12 +373,48 @@ public class ResearcherPageUtils
     	
     	return doGetMatches(field, query, configurationService, searchService);
 	}
+
+	public static void applyCustomFilter(String field, DiscoverQuery discoverQuery,
+			ConfigurationService _configurationService) {
+		String filter = _configurationService.getPropertyAsType("cris." + RPAuthority.RP_AUTHORITY_NAME
+				+ ((field != null && !field.isEmpty()) ? "." + field : "") + ".filter", _configurationService
+				.getPropertyAsType("cris." + RPAuthority.RP_AUTHORITY_NAME + ".filter", String.class));
+		if (filter != null) {
+			discoverQuery.addFilterQueries(filter);
+		}
+	}
+    
+    private static List<Choice> choiceResults(DiscoverResult result){
+    	List<Choice> choiceList = new LinkedList<Choice>();
+		for (DSpaceObject dso : result.getDspaceObjects()) {
+			ResearcherPage rp = (ResearcherPage) dso;
+			choiceList.add(new Choice(getPersistentIdentifier(rp), rp.getFullName(),getLabel(rp.getFullName(), rp)));
+			if (rp.getTranslatedName() != null
+					&& rp.getTranslatedName().getVisibility() == VisibilityConstants.PUBLIC
+					&& rp.getTranslatedName().getValue() != null) {
+				choiceList.add(new Choice(getPersistentIdentifier(rp), rp
+						.getTranslatedName().getValue(),
+						getLabel(rp.getTranslatedName()
+								.getValue(), rp)));
+			}
+			for (RestrictedField variant : rp.getVariants()) {
+				if (variant.getValue() != null
+						&& variant.getVisibility() == VisibilityConstants.PUBLIC) {
+					choiceList.add(new Choice(getPersistentIdentifier(rp), variant
+							.getValue(), getLabel(
+							variant.getValue(), rp)));
+				}
+			}
+	    }
+    	return choiceList;
+    }
+    
     
 	public static Choices doGetMatches(String field, String query, ConfigurationService _configurationService,
 			SearchService _searchService) throws SearchServiceException
 	{
 		Choices choicesResult;
-		if (query != null && query.length() > 2)
+		if (query != null && query.length() > 1)
 		{
 		    DCPersonName tmpPersonName = new DCPersonName(
 		            query.toLowerCase());
@@ -399,56 +436,46 @@ public class ResearcherPageUtils
 		    }
 		    luceneQuery = luceneQuery.replaceAll("\\\\ ", " ");
 		    DiscoverQuery discoverQuery = new DiscoverQuery();
+		    applyCustomFilter(field, discoverQuery,_configurationService);
+		    discoverQuery.setSortField("crisrp.fullName_sort", SORT_ORDER.asc);		    
 		    discoverQuery.setDSpaceObjectFilter(CrisConstants.RP_TYPE_ID);
-		    String filter = _configurationService.getProperty("cris."
-		            + RPAuthority.RP_AUTHORITY_NAME
-		            + ((field != null && !field.isEmpty()) ? "." + field
-		                    : "") + ".filter");
-		    if (filter != null)
-		    {
-		        discoverQuery.addFilterQueries(filter);
+		    String surnameQuery = "{!lucene q.op=AND df=rpsurnames}("
+    			    + luceneQuery
+    			    + ") OR (\""
+    			    + luceneQuery.substring(0,luceneQuery.length() - 1) + "\")";
+		    
+		    discoverQuery.setQuery(surnameQuery);
+		    discoverQuery.setMaxResults(MAX_RESULTS);
+		    
+		    DiscoverResult result = _searchService.search(null, discoverQuery, true);
+			
+			List<Choice> choiceList = choiceResults(result);
+			int surnamesResult = choiceList.size();
+		    
+			if (surnamesResult<MAX_RESULTS){
+		    	int difference = MAX_RESULTS - surnamesResult;
+		    	discoverQuery.setMaxResults(difference);
+		    	String crisauthoritylookup = "{!lucene q.op=AND df=crisauthoritylookup}("
+		    								 + luceneQuery
+		    								 + ") OR (\""
+		    								 + luceneQuery.substring(0,luceneQuery.length() - 1) + "\")";
+		    	
+		    	discoverQuery.setQuery(crisauthoritylookup);
+				String negativeFilters = "-rpsurnames:(" + luceneQuery + ")";
+				String negativeFiltersStar = "-rpsurnames:(" + luceneQuery + "*)";
+				discoverQuery.addFilterQueries(negativeFilters);
+				discoverQuery.addFilterQueries(negativeFiltersStar);
+		    	result = _searchService.search(null, discoverQuery, true);
+		    	List<Choice> authorityLookupList = choiceResults(result);
+		    	if (authorityLookupList.size()>0){
+		    		choiceList.addAll(authorityLookupList);
+		    	}
 		    }
-	
-		    discoverQuery
-		            .setQuery("{!lucene q.op=AND df=crisauthoritylookup}("
-		                    + luceneQuery
-		                    + ") OR (\""
-		                    + luceneQuery.substring(0,
-		                            luceneQuery.length() - 1) + "\")");
-		    discoverQuery.setMaxResults(50);
-		    DiscoverResult result = _searchService.search(null,
-		            discoverQuery, true);
-	
-			List<Choice> choiceList = new ArrayList<Choice>();
-	
-			for (DSpaceObject dso : result.getDspaceObjects()) {
-				ResearcherPage rp = (ResearcherPage) dso;
-				choiceList.add(new Choice(getPersistentIdentifier(rp), rp.getFullName(),
-						getLabel(rp.getFullName(), rp)
-						));
-	
-				if (rp.getTranslatedName() != null
-						&& rp.getTranslatedName().getVisibility() == VisibilityConstants.PUBLIC
-						&& rp.getTranslatedName().getValue() != null) {
-					choiceList.add(new Choice(getPersistentIdentifier(rp), rp
-							.getTranslatedName().getValue(),
-							getLabel(rp.getTranslatedName()
-									.getValue(), rp)));
-				}
-	
-				for (RestrictedField variant : rp.getVariants()) {
-					if (variant.getValue() != null
-							&& variant.getVisibility() == VisibilityConstants.PUBLIC) {
-						choiceList.add(new Choice(getPersistentIdentifier(rp), variant
-								.getValue(), getLabel(
-								variant.getValue(), rp)));
-					}
-				}
-		    }
-	
-		    Choice[] results = new Choice[choiceList.size()];
+		    
+			int foundSize = choiceList.size();
+		    Choice[] results = new Choice[foundSize];
 		    results = choiceList.toArray(results);
-		    choicesResult = new Choices(results, 0, results.length,
+		    choicesResult = new Choices(results, 0, foundSize,
 		            Choices.CF_AMBIGUOUS, false, 0);
 		} else {
 			choicesResult = new Choices(false);
@@ -523,34 +550,62 @@ public class ResearcherPageUtils
             List<String> firstNames = new ArrayList<String>();
             String[] tmpStr;
             int tmp = dcpersona.getFirstNames().indexOf(" ");
-            
+			if (tmp == -1) {
+				tmp = dcpersona.getFirstNames().indexOf(".");
+			}
+			
             if(tmp > -1){
-                tmpStr = dcpersona.getFirstNames().split(" ");
+				tmpStr = dcpersona.getFirstNames().split("[ \\.]");
                 for(int h = 0; h < tmpStr.length; h++){
-                    if(!StringUtils.trim(tmpStr[h]).equals("")) {
+					if (StringUtils.isNotBlank(tmpStr[h])) {
                         firstname += tmpStr[h].substring(0, 1);
                         firstNames.add(firstname);
                     }
                 }
                 for (int h = 0; h < tmpStr.length; h++) {
-                    if(!StringUtils.trim(tmpStr[h]).equals("")) {
+                	if (StringUtils.isNotBlank(tmpStr[h])) {
                         firstNames.add(tmpStr[h].substring(0, 1));
                     }
                 }
-            }else{
+            } else if (dcpersona.getFirstNames().length() > 0) {
                 firstname = dcpersona.getFirstNames().substring(0, 1);
                 firstNames.add(firstname);
             }
             
             String lastname = dcpersona.getLastName();
-            result.add(dcpersona.getFirstNames() +" " + lastname);
-            result.add(lastname +" " + dcpersona.getFirstNames());
+			result.add((dcpersona.getFirstNames() + " " + lastname).trim());
+			result.add((lastname + " " + dcpersona.getFirstNames()).trim());
             for(String first : firstNames) {
-                result.add(first + " "+ lastname);
-                result.add(lastname + " " + first);                
+				result.add((first + " " + lastname).trim());
+				result.add((lastname + " " + first).trim());               
             }
             
         }
         return result;
     }
+
+	public static Date getDateValue(ACrisObject ro, String key) {
+		List<? extends Property> dpList = (List<? extends Property>) ro.getAnagrafica4view().get(key);
+		if (dpList != null && dpList.size() > 0) {
+			return (Date) dpList.get(0).getObject();
+		}
+		return null;
+	}
+
+	public static String getStringValue(ACrisObject ro, String key) {
+		List<? extends Property> dpList = (List<? extends Property>) ro.getAnagrafica4view().get(key);
+		if (dpList != null && dpList.size() > 0)
+		{
+			return dpList.get(0).toString();
+		}
+		return null;
+	}
+	
+	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void buildTextValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, String valueToSet, String pdefKey) {
+        TP pdef = applicationService.findPropertiesDefinitionByShortName(ro.getClassPropertiesDefinition(), pdefKey);        
+        TextValue text = new TextValue();
+        text.setOggetto(valueToSet);                 
+        P prop = ro.createProprieta(pdef);
+        prop.setValue(text);
+	}
 }

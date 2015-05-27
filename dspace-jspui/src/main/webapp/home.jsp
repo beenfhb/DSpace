@@ -15,6 +15,7 @@
   -    recent.submissions - RecetSubmissions
   --%>
 
+<%@page import="org.dspace.core.Utils"%>
 <%@page import="org.dspace.content.Bitstream"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
@@ -34,13 +35,12 @@
 <%@ page import="org.dspace.core.ConfigurationManager" %>
 <%@ page import="org.dspace.core.NewsManager" %>
 <%@ page import="org.dspace.browse.ItemCounter" %>
-<%@ page import="org.dspace.content.DCValue" %>
+<%@ page import="org.dspace.content.Metadatum" %>
 <%@ page import="org.dspace.content.Item" %>
 
 <%
     Community[] communities = (Community[]) request.getAttribute("communities");
 
-    Locale[] supportedLocales = I18nUtil.getSupportedLocales();
     Locale sessionLocale = UIUtil.getSessionLocale(request);
     Config.set(request.getSession(), Config.FMT_LOCALE, sessionLocale);
     String topNews = NewsManager.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-top.html"));
@@ -60,27 +60,8 @@
 
 <dspace:layout locbar="nolink" titlekey="jsp.home.title" feedData="<%= feedData %>">
 
-<% if (supportedLocales != null && supportedLocales.length > 1)
-{
-%>
-        <form method="get" name="repost" action="">
-          <input type ="hidden" name ="locale"/>
-        </form>
-<%
-for (int i = supportedLocales.length-1; i >= 0; i--)
-{
-%>
-        <a class ="langChangeOn"
-                  onclick="javascript:document.repost.locale.value='<%=supportedLocales[i].toString()%>';
-                  document.repost.submit();">
-                 <%= supportedLocales[i].getDisplayLanguage(supportedLocales[i])%>
-        </a> &nbsp;
-<%
-}
-}
-%>
 	<div class="jumbotron">
-       <%= topNews %>
+        <%= topNews %>
 	</div>
 
 <div class="row">
@@ -116,7 +97,7 @@ if (submissions != null && submissions.count() > 0)
 	    	       width = 36;
 	    	    }
 	%>
-	    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/site"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" vspace="3" border="0" /></a>
+	    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/site"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" style="margin: 3px 0 3px" /></a>
 	<%
 	    	}
 	    }
@@ -129,24 +110,22 @@ if (submissions != null && submissions.count() > 0)
 		    boolean first = true;
 		    for (Item item : submissions.getRecentSubmissions())
 		    {
-		        DCValue[] dcv = item.getMetadata("dc", "title", null, Item.ANY);
+		        Metadatum[] dcv = item.getMetadata("dc", "title", null, Item.ANY);
 		        String displayTitle = "Untitled";
 		        if (dcv != null & dcv.length > 0)
 		        {
-		            displayTitle = dcv[0].value;
+		            displayTitle = Utils.addEntities(dcv[0].value);
 		        }
 		        dcv = item.getMetadata("dc", "description", "abstract", Item.ANY);
 		        String displayAbstract = "";
 		        if (dcv != null & dcv.length > 0)
 		        {
-		            displayAbstract = dcv[0].value;
+		            displayAbstract = Utils.addEntities(dcv[0].value);
 		        }
 		%>
 		    <div style="padding-bottom: 50px; min-height: 200px;" class="item <%= first?"active":""%>">
 		      <div style="padding-left: 80px; padding-right: 80px; display: inline-block;"><%= StringUtils.abbreviate(displayTitle, 400) %> 
-		      	<a href="<%= request.getContextPath() %>/handle/<%=item.getHandle() %>"> 
-		      		<button class="btn btn-success" type="button">See</button>
-		      		</a>
+		      	<a href="<%= request.getContextPath() %>/handle/<%=item.getHandle() %>" class="btn btn-success">See</a>
                         <p><%= StringUtils.abbreviate(displayAbstract, 500) %></p>
 		      </div>
 		    </div>
@@ -227,7 +206,24 @@ if (communities != null && communities.length != 0)
 	<%
     	int discovery_panel_cols = 8;
     	int discovery_facet_cols = 4;
+    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
+    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
+    	String processorSidebar = (String) request.getAttribute("processorSidebar");
+    	String processorGlobal = (String) request.getAttribute("processorGlobal");
+    
+    if(processorGlobal!=null && processorGlobal.equals("global")) {
     %>
+	<%@ include file="discovery/static-globalsearch-component-facet.jsp" %>
+	<% } 
+    if(processorSidebar!=null && processorSidebar.equals("sidebar")) {
+	%>
 	<%@ include file="discovery/static-sidebar-facet.jsp" %>
+	<% } %>	
+</div>
+
+<div class="row">
+	<%@ include file="discovery/static-tagcloud-facet.jsp" %>
+</div>
+	
 </div>
 </dspace:layout>

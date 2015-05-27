@@ -13,8 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -52,6 +52,9 @@ public class MetadataField
 
     // cache of field by ID (Integer)
     private static Map<Integer, MetadataField> id2field = null;
+
+    /** metadatafield cache */
+    private static Map<String, MetadataField> metadatafieldcache = null;
 
 
     /**
@@ -270,51 +273,20 @@ public class MetadataField
      * @throws AuthorizeException
      */
     public static MetadataField findByElement(Context context, int schemaID,
-            String element, String qualifier) throws SQLException,
-            AuthorizeException
+            String element, String qualifier) throws SQLException
     {
-        // Grab rows from DB
-        TableRowIterator tri;
-        if (qualifier == null)
-        {
-        	tri = DatabaseManager.queryTable(context,"MetadataFieldRegistry",
-                    "SELECT * FROM MetadataFieldRegistry WHERE metadata_schema_id= ? " + 
-                    "AND element= ?  AND qualifier is NULL ",
-                    schemaID, element);
-        } 
-        else
-        {
-        	tri = DatabaseManager.queryTable(context,"MetadataFieldRegistry",
-                    "SELECT * FROM MetadataFieldRegistry WHERE metadata_schema_id= ? " + 
-                    "AND element= ?  AND qualifier= ? ",
-                    schemaID, element, qualifier);
-        }
-        
-        TableRow row = null;
-        try
-        {
-            if (tri.hasNext())
-            {
-                row = tri.next();
-            }
-        }
-        finally
-        {
-            // close the TableRowIterator to free up resources
-            if (tri != null)
-            {
-                tri.close();
-            }
+
+        if (!isCacheInitialized()){
+            initCache(context);
         }
 
-        if (row == null)
-        {
+        // 'sanity check' first.
+        String metadataFieldKey = schemaID+"."+element+"."+qualifier;
+        if(!metadatafieldcache.containsKey(metadataFieldKey)) {
             return null;
         }
-        else
-        {
-            return new MetadataField(row);
-        }
+
+        return metadatafieldcache.get(metadataFieldKey);
     }
 
     /**
@@ -629,6 +601,7 @@ public class MetadataField
         if (!isCacheInitialized())
         {
             Map<Integer, MetadataField> new_id2field = new HashMap<Integer, MetadataField>();
+            Map<String, MetadataField> new_metadatafieldcache = new HashMap<String, MetadataField>();
             log.info("Loading MetadataField elements into cache.");
 
             // Grab rows from DB
@@ -641,7 +614,9 @@ public class MetadataField
                 {
                     TableRow row = tri.next();
                     int fieldID = row.getIntColumn("metadata_field_id");
-                    new_id2field.put(Integer.valueOf(fieldID), new MetadataField(row));
+                    MetadataField metadataField = new MetadataField(row);
+                    new_id2field.put(Integer.valueOf(fieldID), metadataField);
+                    new_metadatafieldcache.put(metadataField.getSchemaID()+"."+metadataField.getElement()+"."+metadataField.getQualifier(), metadataField);
                 }
             }
             finally
@@ -654,6 +629,7 @@ public class MetadataField
             }
 
             id2field = new_id2field;
+            metadatafieldcache = new_metadatafieldcache;
         }
     }
 
@@ -698,4 +674,48 @@ public class MetadataField
         hash = 47 * hash + this.schemaID;
         return hash;
     }
+
+    
+    /**
+     * Return all metadata fields that are found in a given schema.
+     *
+     * @param context dspace context
+     * @param schemaID schema by db ID
+     * @return array of metadata fields
+     * @throws SQLException
+     */
+    public static MetadataField[] findAllByElement(Context context, int schemaID,
+            String element, String qualifier) throws SQLException,
+            AuthorizeException
+    {
+        List<MetadataField> fields = new ArrayList<MetadataField>();
+
+        // Get all the metadatafieldregistry rows
+        TableRowIterator tri = DatabaseManager.queryTable(context,"MetadataFieldRegistry",
+                "SELECT * FROM MetadataFieldRegistry WHERE metadata_schema_id= ? " + 
+                "AND element= ?",
+                schemaID, element);
+
+        try
+        {
+            // Make into DC Type objects
+            while (tri.hasNext())
+            {
+                fields.add(new MetadataField(tri.next()));
+            }
+        }
+        finally
+        {
+            // close the TableRowIterator to free up resources
+            if (tri != null)
+            {
+                tri.close();
+            }
+        }
+
+        // Convert list into an array
+        MetadataField[] typeArray = new MetadataField[fields.size()];
+        return (MetadataField[]) fields.toArray(typeArray);
+    }
+    
 }

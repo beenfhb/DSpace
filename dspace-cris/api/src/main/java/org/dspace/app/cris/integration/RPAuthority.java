@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.RestrictedField;
@@ -183,14 +184,10 @@ public class RPAuthority extends CRISAuthority implements
             int totalResult = 0;
             if (text != null && text.length() > 2)
             {
+				text = text.replaceAll("\\.", "");
                 DiscoverQuery discoverQuery = new DiscoverQuery();
                 discoverQuery.setDSpaceObjectFilter(CrisConstants.RP_TYPE_ID);
-                String filter = configurationService.getProperty("cris."
-                        + RP_AUTHORITY_NAME + ".filter");
-                if (filter != null)
-                {
-                    discoverQuery.addFilterQueries(filter);
-                }
+				ResearcherPageUtils.applyCustomFilter(field, discoverQuery, configurationService);
 
                 discoverQuery
                         .setQuery("{!lucene q.op=AND df=crisauthoritylookup}\""
@@ -337,6 +334,9 @@ public class RPAuthority extends CRISAuthority implements
             List<String> list = new ArrayList<String>();
             for(int itemID : itemIDs) {
                 list.add(String.valueOf(itemID));    
+                DatabaseManager.updateQuery(context,
+                        "delete from potentialmatches where rp like ? and item_id = ?",
+                        cris.getCrisID(), itemID);
             }
             
 			// FIXME this should be performed by the AuthorityManagementServlet
@@ -364,15 +364,19 @@ public class RPAuthority extends CRISAuthority implements
 
     
     @Override
-    protected int getCRISTargetTypeID()
+    public int getCRISTargetTypeID()
         {
         return CrisConstants.RP_TYPE_ID;
         }
 
     @Override
-    protected Class<ResearcherPage> getCRISTargetClass()
+    public Class<ResearcherPage> getCRISTargetClass()
     {
         return ResearcherPage.class;
+    }
+
+    public String getPublicPath() {
+    	return "rp";
     }
 
     @Override
@@ -384,7 +388,27 @@ public class RPAuthority extends CRISAuthority implements
         {
 			context = new Context();
 			context.turnOffAuthorisationSystem();
-
+			if (confidence != Choices.CF_ACCEPTED) {
+				if (DatabaseManager
+						.updateQuery(
+								context,
+								"update potentialmatches set pending=1 where rp like ? and item_id = ?",
+								authorityKey, itemID) != 1) {
+					TableRow row = DatabaseManager.create(context,
+							"potentialmatches");
+					row.setColumn("pending", true);
+					row.setColumn("rp", authorityKey);
+					row.setColumn("item_id", itemID);
+					DatabaseManager.update(context, row);
+				}
+			} else {
+				DatabaseManager
+						.updateQuery(
+								context,
+								"delete from potentialmatches where rp like ? and item_id = ?",
+								authorityKey, itemID);
+			}
+			context.commit();
 			// FIXME this should be performed by the AuthorityManagementServlet
 			// and not here!
 			// when done in the proper way, the relationpreference should invoke
@@ -407,4 +431,9 @@ public class RPAuthority extends CRISAuthority implements
         }
         
     }
+
+	@Override
+	public ResearcherPage getNewCrisObject() {
+		return new ResearcherPage();
+	}
 }

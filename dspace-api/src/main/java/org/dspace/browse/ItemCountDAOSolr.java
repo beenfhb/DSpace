@@ -67,7 +67,7 @@ public class ItemCountDAOSolr implements ItemCountDAO
      */
     public void collectionCount(Collection collection, int count) throws ItemCountException
     {
-        throw new ItemCountException("Caching is not supported by the ItemCountDAOSolr as it is not really needed, Solr is faster!");
+        log.error("Caching is not supported by the ItemCountDAOSolr as it is not really needed, Solr is faster!");
     }
 
     /**
@@ -79,7 +79,7 @@ public class ItemCountDAOSolr implements ItemCountDAO
      */
     public void communityCount(Community community, int count) throws ItemCountException
     {
-        throw new ItemCountException("Caching is not supported by the ItemCountDAOSolr as it is not really needed, Solr is faster!");
+        log.error("Caching is not supported by the ItemCountDAOSolr as it is not really needed, Solr is faster!");
     }
 
     /**
@@ -157,10 +157,10 @@ public class ItemCountDAOSolr implements ItemCountDAO
         query.setFacetMinCount(1);
         query.addFacetField(new DiscoverFacetField("location.comm",
                             DiscoveryConfigurationParameters.TYPE_STANDARD, -1,
-                            DiscoveryConfigurationParameters.SORT.COUNT));
+                            DiscoveryConfigurationParameters.SORT.COUNT, false));
         query.addFacetField(new DiscoverFacetField("location.coll",
                             DiscoveryConfigurationParameters.TYPE_STANDARD, -1,
-                            DiscoveryConfigurationParameters.SORT.COUNT));
+                            DiscoveryConfigurationParameters.SORT.COUNT, false));
         query.addFilterQueries("search.resourcetype:2");    // count only items
         query.addFilterQueries("NOT(discoverable:false)");  // only discoverable
         query.setMaxResults(0);

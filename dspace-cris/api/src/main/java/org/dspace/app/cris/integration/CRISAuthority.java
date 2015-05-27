@@ -27,6 +27,7 @@ import org.dspace.content.authority.ChoiceAuthorityDetails;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.services.ConfigurationService;
@@ -38,7 +39,7 @@ import org.dspace.utils.DSpace;
  * 
  * @author cilea
  */
-public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityDetails
+public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuthority, ChoiceAuthorityDetails
 {
     /** The logger */
     private static Logger log = Logger.getLogger(CRISAuthority.class);
@@ -138,6 +139,8 @@ public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityD
                                         luceneQuery.length() - 1) + "\")");
                 
                 discoverQuery.setMaxResults(50);
+                discoverQuery.setSortField("crisauthoritylookup_sort", SORT_ORDER.asc);
+                
                 DiscoverResult result = searchService.search(null,
                         discoverQuery, true);
 
@@ -145,10 +148,10 @@ public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityD
 
                 for (DSpaceObject dso : result.getDspaceObjects())
                 {
-                    ACrisObject cris = (ACrisObject) dso;
+                    T cris = (T) dso;
                     choiceList.add(new Choice(ResearcherPageUtils
                             .getPersistentIdentifier(cris), cris.getName(),
-                            cris.getName()));
+                            getDisplayEntry(cris)));
                 }
 
                 Choice[] results = new Choice[choiceList.size()];
@@ -165,9 +168,13 @@ public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityD
         }
     }
 
-    protected abstract int getCRISTargetTypeID();
+	protected String getDisplayEntry(T cris) {
+		return cris.getName();
+	}    
+    
+    public abstract int getCRISTargetTypeID();
 
-    private String getPluginName()
+    public String getPluginName()
     {
         return this.getClass().getSimpleName();
     }
@@ -208,7 +215,7 @@ public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityD
                     "invalid key for authority key " + key));
             return null;
         }
-        ACrisObject cris = applicationService.get(getCRISTargetClass(), id);
+        T cris = applicationService.get(getCRISTargetClass(), id);
         if (cris != null)
         {
             return cris.getName();
@@ -216,12 +223,14 @@ public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityD
         return null;
     }
 
-    protected abstract Class<? extends ACrisObject> getCRISTargetClass();
+    public abstract Class<T> getCRISTargetClass();
+  
+    public abstract String getPublicPath();
     
     @Override
     public Object getDetailsInfo(String field, String key, String locale) {
     	init();
-    	ACrisObject cris = applicationService.getEntityByCrisId(key, getCRISTargetClass());
+    	T cris = applicationService.getEntityByCrisId(key, getCRISTargetClass());
     	if (cris != null)
     	{
 	    	CrisAnagraficaObjectDTO dto = new CrisAnagraficaObjectDTO(cris);
@@ -232,4 +241,6 @@ public abstract class CRISAuthority implements ChoiceAuthority, ChoiceAuthorityD
     	}
     	return null;
     }
+    
+    public abstract T getNewCrisObject();
 }

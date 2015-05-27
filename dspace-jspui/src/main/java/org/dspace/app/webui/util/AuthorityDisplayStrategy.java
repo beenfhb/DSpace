@@ -12,7 +12,7 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 
 public class AuthorityDisplayStrategy extends ASimpleDisplayStrategy
 {
@@ -22,8 +22,8 @@ public class AuthorityDisplayStrategy extends ASimpleDisplayStrategy
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            DCValue[] metadataArray, boolean disableCrossLinks, boolean emph,
+            boolean viewFull, String browseType, int colIdx, int itemid, String field,
+            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext) throws JspException
     {
         String metadata;

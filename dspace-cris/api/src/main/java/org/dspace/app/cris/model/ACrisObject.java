@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -32,8 +33,9 @@ import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.authority.Choices;
 
 @MappedSuperclass
@@ -42,7 +44,8 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
         implements
         ICrisObject<P, TP>,
         BrowsableDSpaceObject,
-        IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>
+        IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>,
+        Cloneable
 {
 
     @Embedded    
@@ -143,8 +146,16 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
      *            the field (not null) to retrieve the value
      * @return a list of 0, 1 or more values
      */
-    public List<String> getMetadata(String field)
+    public String getMetadata(String field)
     {
+    	List<String> result = getMetadataValue(field);
+    	if(result.isEmpty()) {
+    		return null;
+    	}
+        return result.get(0);
+    }
+    
+    public List<String> getMetadataValue(String field) {
         List<String> result = new ArrayList();
 
         List<P> dyna = getAnagrafica4view().get(field);
@@ -154,11 +165,11 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
                 result.add(prop.toString());
         }
 
-        return result;
+    	return result;
     }
 
     @Override
-    public DCValue[] getMetadata(String schema, String element,
+    public Metadatum[] getMetadata(String schema, String element,
             String qualifier, String lang)
     {
         List values = new ArrayList();
@@ -169,7 +180,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
         }
         else if (!schema.equalsIgnoreCase("cris" + this.getPublicPath()))
         {
-            return new DCValue[0];
+            return new Metadatum[0];
         }
         else
         {
@@ -215,10 +226,10 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
                 }
             }
         }
-        DCValue[] result = new DCValue[values.size()];
+        Metadatum[] result = new Metadatum[values.size()];
         for (int idx = 0; idx < values.size(); idx++)
         {
-            result[idx] = new DCValue();
+            result[idx] = new Metadatum();
             result[idx].schema = schema;
             result[idx].element = element;
             result[idx].qualifier = qualifier;
@@ -361,4 +372,41 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
         this.sourceReference = sourceReference;
     }
 
+	@Override
+	public Metadatum[] getMetadataValueInDCFormat(String mdString) {
+        StringTokenizer dcf = new StringTokenizer(mdString, ".");
+        
+        String[] tokens = { "", "", "" };
+        int i = 0;
+        while(dcf.hasMoreTokens())
+        {
+            tokens[i] = dcf.nextToken().trim();
+            i++;
+        }
+        String schema = tokens[0];
+        String element = tokens[1];
+        String qualifier = tokens[2];
+        
+        Metadatum[] values;
+        if ("*".equals(qualifier))
+        {
+            values = getMetadata(schema, element, Item.ANY, Item.ANY);
+        }
+        else if ("".equals(qualifier))
+        {
+            values = getMetadata(schema, element, null, Item.ANY);
+        }
+        else
+        {
+            values = getMetadata(schema, element, qualifier, Item.ANY);
+        }
+        
+        return values;
+	}
+	
+	public abstract String getMetadataFieldTitle();
+	
+	public ACrisObject<P, TP, NP, NTP, ACNO, ATNO> clone() throws CloneNotSupportedException {
+		return ( ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ) super.clone();
+	}
 }

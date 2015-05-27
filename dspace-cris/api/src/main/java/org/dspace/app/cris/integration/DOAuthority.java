@@ -13,15 +13,25 @@ public class DOAuthority extends CRISAuthority
 {
 
     @Override
-    protected int getCRISTargetTypeID()
+    public int getCRISTargetTypeID()
     {   
         return -1;
     }
 
     @Override
-    protected Class<ResearchObject> getCRISTargetClass()
+    public Class<ResearchObject> getCRISTargetClass()
     {
         return ResearchObject.class;
     }
+    
+    @Override
+    public String getPublicPath() {
+    	return null;
+    }
+
+	@Override
+	public ResearchObject getNewCrisObject() {
+		return new ResearchObject();
+	}  
 
 }

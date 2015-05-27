@@ -45,7 +45,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.ItemIterator;
@@ -403,10 +403,10 @@ public class ItemExport
             throws Exception
     {
         Set<String> schemas = new HashSet<String>();
-        DCValue[] dcValues = i.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (DCValue dcValue : dcValues)
+        Metadatum[] Metadatums = i.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (Metadatum Metadatum : Metadatums)
         {
-            schemas.add(dcValue.schema);
+            schemas.add(Metadatum.schema);
         }
 
         // Save each of the schemas into it's own metadata file
@@ -439,7 +439,7 @@ public class ItemExport
             BufferedOutputStream out = new BufferedOutputStream(
                     new FileOutputStream(outFile));
 
-            DCValue[] dcorevalues = i.getMetadata(schema, Item.ANY, Item.ANY,
+            Metadatum[] dcorevalues = i.getMetadata(schema, Item.ANY, Item.ANY,
                     Item.ANY);
 
             // XML preamble
@@ -454,7 +454,7 @@ public class ItemExport
             String dateIssued = null;
             String dateAccessioned = null;
 
-            for (DCValue dcv : dcorevalues)
+            for (Metadatum dcv : dcorevalues)
             {
                 String qualifier = dcv.qualifier;
 
@@ -474,10 +474,10 @@ public class ItemExport
                     language = "";
                 }
 
-                utf8 = ("  <dcvalue element=\"" + dcv.element + "\" "
+                utf8 = ("  <Metadatum element=\"" + dcv.element + "\" "
                         + "qualifier=\"" + qualifier + "\""
                         + language + ">"
-                        + Utils.addEntities(dcv.value) + "</dcvalue>\n")
+                        + Utils.addEntities(dcv.value) + "</Metadatum>\n")
                         .getBytes("UTF-8");
 
                 if ((!migrate) ||
@@ -513,9 +513,9 @@ public class ItemExport
                 (dateAccessioned != null) &&
                 (!dateIssued.equals(dateAccessioned)))
             {
-                utf8 = ("  <dcvalue element=\"date\" "
+                utf8 = ("  <Metadatum element=\"date\" "
                         + "qualifier=\"issued\">"
-                        + Utils.addEntities(dateIssued) + "</dcvalue>\n")
+                        + Utils.addEntities(dateIssued) + "</Metadatum>\n")
                         .getBytes("UTF-8");
                 out.write(utf8, 0, utf8.length);
             }
@@ -1405,7 +1405,7 @@ public class ItemExport
     public static void emailErrorMessage(EPerson eperson, String error)
             throws MessagingException
     {
-        log.warn("An error occured during item export, the user will be notified. " + error);
+        log.warn("An error occurred during item export, the user will be notified. " + error);
         try
         {
             Locale supportedLocale = I18nUtil.getEPersonLocale(eperson);

@@ -274,6 +274,11 @@
 												propertyPath="real.mask[${i.count - 1}].rendering.regex"
 												labelKey="jsp.layout.hku.label.propertiesdefinition.rendering.text.regex"
 												helpKey="help.jdyna.message.rendering.text.regex" />
+											<div class="dynaClear">
+												&nbsp;
+											</div>			
+											<dyna:text visibility="false" propertyPath="real.mask[${i.count - 1}].rendering.displayFormat"
+												labelKey="jsp.layout.hku.label.propertiesdefinition.rendering.text.displayFormat" helpKey="help.jdyna.message.rendering.text.displayFormat"/>	
 											</fieldset>
 
 										</c:if>
@@ -408,14 +413,7 @@
 								title="<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.deletedynamicfield" />"
 								href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/deleteNestedFieldDefinition.htm?pDId=${subtypo.id}&parentId=${propertiesdefinition.real.id}&boxId=${boxId}&tabId=${tabId}">
-							<img
-								src="<%=request.getContextPath()%>/image/authority/jdynadeletebutton.jpg"
-								border="0"
-								alt="<fmt:message
-					key="jsp.dspace-admin.hku.jdyna-configuration.deletedynamicfield" />"
-								title="<fmt:message
-					key="jsp.dspace-admin.hku.jdyna-configuration.deletedynamicfield" />"
-								name="remove" id="remove_${boxed.id}" /> </a>
+							<span class="fa fa-trash" id="remove_${boxed.id}" ></span></a>
 							
 							
 							</fieldset>

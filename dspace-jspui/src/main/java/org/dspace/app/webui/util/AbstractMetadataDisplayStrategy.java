@@ -14,19 +14,26 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 import org.dspace.core.I18nUtil;
 
 
 public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy
 {
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            DCValue[] metadataArray, boolean disableCrossLinks, boolean emph,
+            boolean viewFull, String browseType,int itemid, int colIdx, String field,
+            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext)
     {	
         String metadataDisplay = "-";
-        String metadataValue = metadataArray.length > 0 ?metadataArray[0].value:null;
+        boolean found = false;
+        
+        for (Metadatum descrMetadata : metadataArray) {
+        	if (StringUtils.startsWith(descrMetadata.qualifier, "abstract")) {
+        		found = true; 
+        		break;
+        	}
+        }
         
         //Assente di default 
         try
@@ -41,16 +48,14 @@ public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy
             throw new RuntimeException(e.getMessage(), e);
         }
         
-        if (metadataValue != null)
+        if (found)
         {
-        	metadataValue = metadataValue.replace("\"", "");
-        	metadataValue = StringUtils.abbreviate(metadataValue, 23);
+
             try
             {  
                 metadataDisplay = MessageFormat.format(I18nUtil.getMessage(
                         "jsp.hasabstract.display-strategy.default", UIUtil
-                                .obtainContext(hrq)), hrq.getContextPath(),
-                        metadataValue);
+                                .obtainContext(hrq)), hrq.getContextPath());
                
             }
             catch (SQLException e)
@@ -65,7 +70,7 @@ public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            DCValue[] metadataArray, boolean disableCrossLinks, boolean emph,
+            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext)
     {
         return "nowrap=\"nowrap\" align=\"center\"";

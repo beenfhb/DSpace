@@ -10,7 +10,7 @@ package org.dspace.app.itemupdate;
 import java.text.ParseException;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 
@@ -38,19 +38,19 @@ public class DeleteMetadataAction extends UpdateMetadataAction {
 		for (String f : targetFields)
 		{
 			DtoMetadata dummy = DtoMetadata.create(f, Item.ANY, "");
-			DCValue[] ardcv = item.getMetadata(f);
+			Metadatum[] ardcv = item.getMetadataByMetadataString(f);
 
 			ItemUpdate.pr("Metadata to be deleted: ");
-			for (DCValue dcv : ardcv)
+			for (Metadatum dcv : ardcv)
 			{
-				ItemUpdate.pr("  " + MetadataUtilities.getDCValueString(dcv));
+				ItemUpdate.pr("  " + MetadataUtilities.getMetadatumString(dcv));
 			}
 
 			if (!isTest)
 			{
 				if (!suppressUndo)
 				{
-					for (DCValue dcv : ardcv)
+					for (Metadatum dcv : ardcv)
 					{
 						itarch.addUndoMetadataField(DtoMetadata.create(dcv.schema, dcv.element, 
 								dcv.qualifier, dcv.language, dcv.value));					

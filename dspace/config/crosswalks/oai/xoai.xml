@@ -16,7 +16,7 @@
     <Contexts>
         <Context baseurl="request" name="Default Context">
             <!-- Restrict access to hidden items by default -->
-            <Filter ref="defaultFilter" />
+            <Filter red="defaultFilter" />
 
             <Format ref="oaidc"/>
             <Format ref="mets"/>
@@ -47,8 +47,8 @@
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="driverTransformer"/>
             <!-- The driver filter -->
-            <Filter ref="driverFilter"/>
-            <!-- Just an alias, if fact it returns all items within the driver context -->
+            <Filter red="driverFilter"/>
+            <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="driverSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
@@ -72,8 +72,8 @@
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
             <!-- OpenAIRE filter -->
-            <Filter ref="openAireFilter"/>
-            <!-- Just an alias, if fact it returns all items within the driver context -->
+            <Filter red="openAireFilter"/>
+            <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="openaireSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
@@ -165,7 +165,7 @@
             <Prefix>junii2</Prefix>
             <XSLT>metadataFormats/junii2.xsl</XSLT>
             <Namespace>http://irdb.nii.ac.jp/oai</Namespace>
-            <SchemaLocation>http://irdb.nii.ac.jp/oai/junii2-3_0.xsd</SchemaLocation>
+            <SchemaLocation>http://irdb.nii.ac.jp/oai/junii2-3-1.xsd</SchemaLocation>
         </Format>
     </Formats>
 
@@ -220,20 +220,20 @@
                     <LeftCondition>
                         <And>
                             <LeftCondition>
-                                <Custom ref="titleExistsFilter"/>
+                                <Custom ref="titleExistsCondition"/>
                             </LeftCondition>
                             <RightCondition>
-                                <Custom ref="authorExistsFilter"/>
+                                <Custom ref="authorExistsCondition"/>
                             </RightCondition>
                         </And>
                     </LeftCondition>
                     <RightCondition>
                         <And>
                             <LeftCondition>
-                                <Custom ref="driverDocumentTypeFilter"/>
+                                <Custom ref="driverDocumentTypeCondition"/>
                             </LeftCondition>
                             <RightCondition>
-                                <Custom ref="openaireRelationFilter"/>
+                                <Custom ref="openaireRelationCondition"/>
                             </RightCondition>
                         </And>
                     </RightCondition>

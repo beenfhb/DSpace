@@ -13,7 +13,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.output.Format;
@@ -90,7 +90,7 @@ public class PubMedToImport {
 
     private static class PubMedHandler extends DefaultHandler {
         private static int recordCount = 1;
-        private static List<DCValue> dcValues;
+        private static List<Metadatum> Metadatums;
 
         private static StringBuilder value;
         private static StringBuilder lastName;
@@ -100,18 +100,18 @@ public class PubMedToImport {
         private static boolean isLastName = false;
         private static boolean isFirstName = false;
 
-        private static void addDCValue(String element, String qualifier, String value) {
-            if (dcValues == null) {
-                dcValues = new ArrayList<DCValue>();
+        private static void addMetadatum(String element, String qualifier, String value) {
+            if (Metadatums == null) {
+                Metadatums = new ArrayList<Metadatum>();
             }
 
-            DCValue thisValue = new DCValue();
+            Metadatum thisValue = new Metadatum();
             thisValue.schema = "dc";
             thisValue.element = element;
             thisValue.qualifier = qualifier;
             thisValue.value = value;
 
-            dcValues.add(thisValue);
+            Metadatums.add(thisValue);
         }
 
         @Override
@@ -139,19 +139,19 @@ public class PubMedToImport {
         {
             if (!isCorrection) {
                 if ("PMID".equals(qName)) {
-                    addDCValue("identifier", null, value.toString());
+                    addMetadatum("identifier", null, value.toString());
                 } else if ("ISSN".equals(qName)) {
-                    addDCValue("identifier", "issn", value.toString());
+                    addMetadatum("identifier", "issn", value.toString());
                 } else if ("ArticleTitle".equals(qName)) {
-                    addDCValue("title", null, value.toString());
+                    addMetadatum("title", null, value.toString());
                 } else if ("AbstractText".equals(qName)) {
-                    addDCValue("description", "abstract", value.toString());
+                    addMetadatum("description", "abstract", value.toString());
                 } else if ("PublicationType".equals(qName)) {
-                    addDCValue("type", null, value.toString());
+                    addMetadatum("type", null, value.toString());
                 } else if ("Author".equals(qName)) {
-                    addDCValue("contributor", "author", lastName + ", " + firstName);
+                    addMetadatum("contributor", "author", lastName + ", " + firstName);
                 } else if ("DescriptorName".equals(qName)) {
-                    addDCValue("subject", "mesh", value.toString());
+                    addMetadatum("subject", "mesh", value.toString());
                 }
             } else {
                 if ("MedlineCitation".equals(qName)) {
@@ -203,18 +203,18 @@ public class PubMedToImport {
 
             doc.setRootElement(root);
 
-            for (DCValue dcValue : dcValues)
+            for (Metadatum Metadatum : Metadatums)
             {
-                Element dcNode = new Element("dcvalue");
+                Element dcNode = new Element("Metadatum");
 
-                dcNode.setAttribute("element", dcValue.element);
+                dcNode.setAttribute("element", Metadatum.element);
 
-                if (!StringUtils.isEmpty(dcValue.qualifier))
+                if (!StringUtils.isEmpty(Metadatum.qualifier))
                 {
-                    dcNode.setAttribute("qualifier", dcValue.qualifier);
+                    dcNode.setAttribute("qualifier", Metadatum.qualifier);
                 }
 
-                dcNode.setText(dcValue.value);
+                dcNode.setText(Metadatum.value);
 
                 root.addContent(dcNode);
             }
@@ -232,7 +232,7 @@ public class PubMedToImport {
                 }
             }
 
-            dcValues.clear();
+            Metadatums.clear();
         }
     }
 }

@@ -8,10 +8,12 @@
 package org.dspace.discovery;
 
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,12 +27,29 @@ public class SolrServiceSpellIndexingPlugin implements SolrServiceIndexPlugin {
     @Override
     public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
         if(dso instanceof Item){
-            DCValue[] dcValues = ((Item) dso).getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-            for (DCValue dcValue : dcValues) {
-                document.addField("a_spell", dcValue.value);
+            Item item = (Item) dso;
+            Metadatum[] Metadatums = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            List<String> toIgnoreMetadataFields = SearchUtils.getIgnoredMetadataFields(item.getType());
+            for (Metadatum Metadatum : Metadatums) {
+                String field = Metadatum.schema + "." + Metadatum.element;
+                String unqualifiedField = field;
 
+                String value = Metadatum.value;
+
+                if (value == null)
+                {
+                    continue;
+                }
+
+                if (Metadatum.qualifier != null && !Metadatum.qualifier.trim().equals(""))
+                {
+                    field += "." + Metadatum.qualifier;
+                }
+
+                if(!toIgnoreMetadataFields.contains(field)){
+                    document.addField("a_spell", Metadatum.value);
+                }
             }
         }
-
     }
 }

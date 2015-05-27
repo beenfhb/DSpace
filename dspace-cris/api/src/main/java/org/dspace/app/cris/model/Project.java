@@ -22,6 +22,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectNestedObject;
 import org.dspace.app.cris.model.jdyna.ProjectNestedPropertiesDefinition;
@@ -29,6 +30,7 @@ import org.dspace.app.cris.model.jdyna.ProjectNestedProperty;
 import org.dspace.app.cris.model.jdyna.ProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.ProjectProperty;
 import org.dspace.app.cris.model.jdyna.ProjectTypeNestedObject;
+import org.dspace.app.cris.model.jdyna.RPAdditionalFieldStorage;
 
 @Entity
 @Table(name = "cris_project", uniqueConstraints = @UniqueConstraint(columnNames={"sourceID","sourceRef"}))
@@ -46,6 +48,7 @@ import org.dspace.app.cris.model.jdyna.ProjectTypeNestedObject;
         @NamedQuery(name = "Project.uniqueBySourceID", query = "from Project where sourceReference.sourceRef = ? and sourceReference.sourceID = ?"),
         @NamedQuery(name = "Project.uniqueUUID", query = "from Project where uuid = ?"),
         @NamedQuery(name = "Project.uniqueByCrisID", query = "from Project where crisID = ?"),
+		@NamedQuery(name = "Project.uniqueLastModifiedTimeStamp", query = "select timeStampInfo.timestampLastModified.timestamp from Project rp where rp.id = ?"),
         @NamedQuery(name = "Project.uniqueByUUID", query = "from Project where uuid = ?")
   })
 public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefinition, ProjectNestedProperty, ProjectNestedPropertiesDefinition, ProjectNestedObject, ProjectTypeNestedObject>
@@ -53,10 +56,12 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
         Cloneable
 {
 
+	private static final String NAME = "title";
+	
     /** DB Primary key */
     @Id
     @GeneratedValue(generator = "CRIS_PROJECT_SEQ")
-    @SequenceGenerator(name = "CRIS_PROJECT_SEQ", sequenceName = "CRIS_PROJECT_SEQ")
+    @SequenceGenerator(name = "CRIS_PROJECT_SEQ", sequenceName = "CRIS_PROJECT_SEQ", allocationSize = 1)
     private Integer id;
 
     /** timestamp info for creation and last modify */
@@ -72,6 +77,7 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
     public Project()
     {
         this.dynamicField = new ProjectAdditionalFieldStorage();
+        this.dynamicField.setProject(this);
     }
 
     /**
@@ -88,9 +94,15 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
         return timeStampInfo;
     }
     
-    public Object clone() throws CloneNotSupportedException
+    public Project clone() throws CloneNotSupportedException
     {
-        return super.clone();
+    	Project clone = (Project) super.clone();
+    	ProjectAdditionalFieldStorage additionalTemp = new ProjectAdditionalFieldStorage();
+        additionalTemp.setProject(clone);
+        additionalTemp.duplicaAnagrafica(this
+                    .getDynamicField());
+        clone.setDynamicField(additionalTemp);
+        return clone;
     }
 
 
@@ -219,7 +231,7 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
     @Override
     public String getName() {
         for (ProjectProperty title : this.getDynamicField()
-                .getAnagrafica4view().get("title"))
+                .getAnagrafica4view().get(NAME))
         {
             return title.toString();
         }
@@ -258,4 +270,10 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
 	public boolean isDiscoverable() {
 		return true;
 	}
+	
+	@Override
+	public String getMetadataFieldTitle() {
+		return NAME;
+	}
+
 }

@@ -38,10 +38,10 @@
 <%@ page import="org.dspace.content.*"%>
 <%@ page import="org.dspace.core.ConfigurationManager"%>
 <%@ page import="org.dspace.core.Context" %>
+<%@ page import="org.dspace.core.Utils" %>
 <%@ page import="org.dspace.eperson.Group"     %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="java.net.URLEncoder" %>
-
 
 <%
     // Retrieve attributes
@@ -195,13 +195,17 @@
     	       width = 36;
     	    }
 %>
-    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/<%= collection.getHandle() %>"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" vspace="3" border="0" /></a>
+    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/<%= collection.getHandle() %>"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" style="margin: 3px 0 3px" /></a>
 <%
     	} %>
     	</span><%
     }
 %>
         </form>
+
+<div class="row">
+	<%@ include file="discovery/static-tagcloud-facet.jsp" %>
+</div>
 
 <% if (show_items)
    {
@@ -230,7 +234,7 @@
     <%-- give us the top report on what we are looking at --%>
     <fmt:message var="bi_name" key="<%= bi_name_key %>"/>
     <fmt:message var="so_name" key="<%= so_name_key %>"/>
-    <div align="center" class="browse_range">
+    <div class="browse_range">
         <fmt:message key="jsp.collection-home.content.range">
             <fmt:param value="${bi_name}"/>
             <fmt:param value="${so_name}"/>
@@ -241,7 +245,7 @@
     </div>
 
     <%--  do the top previous and next page links --%>
-    <div align="center">
+    <div class="prev-next-links">
 <% 
       if (bi.hasPrevPage())
       {
@@ -276,7 +280,7 @@
 %>
 
     <%-- give us the bottom report on what we are looking at --%>
-    <div align="center" class="browse_range">
+    <div class="browse_range">
         <fmt:message key="jsp.collection-home.content.range">
             <fmt:param value="${bi_name}"/>
             <fmt:param value="${so_name}"/>
@@ -287,7 +291,7 @@
     </div>
 
     <%--  do the bottom previous and next page links --%>
-    <div align="center">
+    <div class="prev-next-links">
 <% 
       if (bi.hasPrevPage())
       {
@@ -368,13 +372,13 @@
 		Item[] items = rs.getRecentSubmissions();
 		for (int i = 0; i < items.length; i++)
 		{
-			DCValue[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
+			Metadatum[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
 			String displayTitle = "Untitled";
 			if (dcv != null)
 			{
 				if (dcv.length > 0)
 				{
-					displayTitle = dcv[0].value;
+					displayTitle = Utils.addEntities(dcv[0].value);
 				}
 			}
 			%><p class="recentItem"><a href="<%= request.getContextPath() %>/handle/<%= items[i].getHandle() %>"><%= displayTitle %></a></p><%
@@ -387,8 +391,14 @@
     <%
     	int discovery_panel_cols = 12;
     	int discovery_facet_cols = 12;
-    %>
-    <%@ include file="discovery/static-sidebar-facet.jsp" %>
+    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
+    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
+    	String processorSidebar = (String) request.getAttribute("processorSidebar");
+    
+    if(processorSidebar!=null && processorSidebar.equals("sidebar")) {
+	%>
+	<%@ include file="discovery/static-sidebar-facet.jsp" %>
+	<% } %>	
   </dspace:sidebar>
 
 </dspace:layout>

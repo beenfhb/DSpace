@@ -32,6 +32,8 @@ import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
+import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
+import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
 
 
 @Entity
@@ -53,15 +55,18 @@ import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
         @NamedQuery(name = "ResearchObject.uniqueByCrisID", query = "from ResearchObject where crisID = ?"),
         @NamedQuery(name = "ResearchObject.paginateByType.id.asc", query = "from ResearchObject where (typo = :par0) order by id asc"),
         @NamedQuery(name = "ResearchObject.paginateByType.id.desc", query = "from ResearchObject where (typo = :par0) order by id desc"),
+		@NamedQuery(name = "ResearchObject.uniqueLastModifiedTimeStamp", query = "select timeStampInfo.timestampLastModified.timestamp from ResearchObject rp where rp.id = ?"),
         @NamedQuery(name = "ResearchObject.uniqueByUUID", query = "from ResearchObject where uuid = ?")
   })
 public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, DynamicPropertiesDefinition, DynamicNestedProperty, DynamicNestedPropertiesDefinition, DynamicNestedObject, DynamicTypeNestedObject>
 {
-    
+	
+	private static final String NAME = "name";
+	
     /** DB Primary key */
     @Id
     @GeneratedValue(generator = "CRIS_DYNAOBJ_SEQ")
-    @SequenceGenerator(name = "CRIS_DYNAOBJ_SEQ", sequenceName = "CRIS_DYNAOBJ_SEQ")
+    @SequenceGenerator(name = "CRIS_DYNAOBJ_SEQ", sequenceName = "CRIS_DYNAOBJ_SEQ", allocationSize = 1)
     private Integer id;
     
     /** timestamp info for creation and last modify */
@@ -249,7 +254,7 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     @Override
     public String getName()
     {
-        for (DynamicProperty title : this.getAnagrafica4view().get(getTypo().getShortName() + "name"))
+        for (DynamicProperty title : this.getAnagrafica4view().get(getTypo().getShortName() + NAME))
         {
             return title.toString();
         }
@@ -272,4 +277,20 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
 		return true;
 	}
 
+	@Override
+	public String getMetadataFieldTitle() {
+		return NAME;
+	}
+
+	@Override
+	public ResearchObject clone()
+			throws CloneNotSupportedException {
+        ResearchObject clone = (ResearchObject) super.clone();
+        DynamicAdditionalFieldStorage additionalTemp = new DynamicAdditionalFieldStorage();
+        additionalTemp.setDynamicObject(clone);
+        additionalTemp.duplicaAnagrafica(this
+                    .getDynamicField());
+        clone.setDynamicField(additionalTemp);
+        return clone;
+	}
 }

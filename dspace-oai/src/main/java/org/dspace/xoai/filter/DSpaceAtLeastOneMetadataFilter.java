@@ -8,28 +8,27 @@
 
 package org.dspace.xoai.filter;
 
-import com.google.common.base.Function;
-import com.lyncode.builder.ListBuilder;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterList;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterMap;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterValue;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.SimpleType;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.xoai.data.DSpaceItem;
 import org.dspace.xoai.exceptions.InvalidMetadataFieldException;
 import org.dspace.xoai.filter.data.DSpaceMetadataFilterOperator;
 import org.dspace.xoai.filter.results.DatabaseFilterResult;
 import org.dspace.xoai.filter.results.SolrFilterResult;
-import org.dspace.xoai.services.api.database.FieldResolver;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Function;
+import com.lyncode.builder.ListBuilder;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterList;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterValue;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.SimpleType;
 
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
@@ -40,14 +39,6 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
     private String field;
     private DSpaceMetadataFilterOperator operator = DSpaceMetadataFilterOperator.UNDEF;
     private List<String> values;
-    private ParameterMap configuration;
-
-    public DSpaceAtLeastOneMetadataFilter(ParameterMap configuration) {
-        this.configuration = configuration;
-    }
-
-    @Autowired
-    FieldResolver fieldResolver;
 
     private String getField() {
         if (field == null) {
@@ -154,7 +145,7 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
         for (String v : values)
             this.buildWhere(v, parts, params);
         if (parts.size() > 0) {
-            String query = "EXISTS (SELECT tmp.* FROM metadatavalue tmp WHERE tmp.item_id=i.item_id AND tmp.metadata_field_id=?"
+            String query = "EXISTS (SELECT tmp.* FROM metadatavalue tmp WHERE tmp.resource_id=i.item_id AND tmp.resource_type_id=" + Constants.ITEM+ " AND tmp.metadata_field_id=?"
                     + " AND ("
                     + StringUtils.join(parts.iterator(), " OR ")
                     + "))";
@@ -248,7 +239,4 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
         }
     }
 
-    public ParameterMap getConfiguration() {
-        return configuration;
-    }
 }

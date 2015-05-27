@@ -32,7 +32,7 @@
 <%@ page import="org.dspace.app.webui.servlet.MyDSpaceServlet" %>
 <%@ page import="org.dspace.content.Collection" %>
 <%@ page import="org.dspace.content.DCDate" %>
-<%@ page import="org.dspace.content.DCValue" %>
+<%@ page import="org.dspace.content.Metadatum" %>
 <%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.content.SupervisedItem" %>
 <%@ page import="org.dspace.content.WorkspaceItem" %>
@@ -44,10 +44,15 @@
 <%@ page import="java.util.List" %>
 <%@page import="org.dspace.services.ConfigurationService"%>
 <%@page import="org.dspace.utils.DSpace"%>
+<%@page import="org.dspace.app.itemimport.BatchUpload"%>
 
 <%
     EPerson user = (EPerson) request.getAttribute("mydspace.user");
 
+	// Is the logged in user an admin
+	Boolean admin = (Boolean)request.getAttribute("is.admin");
+	boolean isAdmin = (admin == null ? false : admin.booleanValue());
+	
     WorkspaceItem[] workspaceItems =
         (WorkspaceItem[]) request.getAttribute("workspace.items");
 
@@ -68,82 +73,61 @@
     
     List<String> exportsAvailable = (List<String>)request.getAttribute("export.archives");
     
+    List<BatchUpload> importsAvailable = (List<BatchUpload>)request.getAttribute("import.uploads");
+    
     // Is the logged in user an admin
     Boolean displayMembership = (Boolean)request.getAttribute("display.groupmemberships");
     boolean displayGroupMembership = (displayMembership == null ? false : displayMembership.booleanValue());
     
     ConfigurationService configurationService = new DSpace().getConfigurationService();
     boolean crisEnabled = configurationService.getPropertyAsType("cris.enabled", false);
+    boolean rpChangeStatusAdmin =  configurationService.getPropertyAsType("cris.rp.changestatus.admin", false);
 
     if (crisEnabled)
     {
 %>
 <c:set var="dspace.layout.head.last" scope="request">
-    <script type="text/javascript"><!--
-
-               var j = jQuery.noConflict();
+    <script type="text/javascript">
+    <!--
+       var j = jQuery.noConflict();
        var myrpstatus = new Object();
        j(document).ready(function(){
-               j('#cris-rp-change-active').dialog({
-                       autoOpen: false, modal: true, width: 750, minHeight: 350,
-                               buttons: {
-                                       "<fmt:message key="jsp.mydspace.cris.rp-status-change.go"/>":
-                                               function(){
-                                                       j(window).attr('location','<%= request.getContextPath() %>'+myrpstatus.url);
-                                               },
-                                       "<fmt:message key="jsp.mydspace.cris.rp-status-change.inactive"/>":
-                                               function(){
-                                                       myRP('hide');
-                                               j(this).dialog("close");
-                                               },
-                                       "<fmt:message key="jsp.mydspace.cris.rp-status-change.remove"/>":
-                                               function(){
-                                                       myRP('remove');
-                                               j(this).dialog("close");
-                                               },
-                                       "<fmt:message key="jsp.mydspace.cris.rp-status-change.keep-active"/>":
-                                               function(){
-                                                       j(this).dialog("close");
-                                       }
-                               }
-               });
-               j('#cris-rp-change-inactive').dialog({
-                       autoOpen: false, modal: true, width: 750, minHeight: 350,
-                               buttons: {
-                                       "<fmt:message key="jsp.mydspace.cris.rp-status-change.go"/>":
-                                               function(){
-                                                       j(window).attr('location','<%= request.getContextPath() %>'+myrpstatus.url);
-                                               },
-                                       "<fmt:message key="jsp.mydspace.cris.rp-status-change.active"/>":
-                                               function(){
-                                                       myRP('activate');
-                                               j(this).dialog("close");
-                                       },
-                               "<fmt:message key="jsp.mydspace.cris.rp-status-change.remove"/>":
-                                       function(){
-                                               myRP('remove');
-                                               j(this).dialog("close");
-                                       },
-                               "<fmt:message key="jsp.mydspace.cris.rp-status-change.keep-inactive"/>":
-                                       function(){
-                                               j(this).dialog("close");
-                                       }
-                               }
-               });
-               j('#cris-rp-change-undefined').dialog({
-                       autoOpen: false, modal: true, width: 750, minHeight: 300,
-                               buttons: {
-                               "<fmt:message key="jsp.mydspace.cris.rp-status-change.create"/>":
-                                       function(){
-                                               myRP('create');
-                                               j(this).dialog("close");
-                                       },
-                               "<fmt:message key="jsp.mydspace.cris.rp-status-change.keep-undefined"/>":
-                                       function(){
-                                               j(this).dialog("close");
-                                       }
-                       }
-               });
+			  j("#inactiveDialogChangeActive").on('click',function(event){
+					event.preventDefault();
+					j(".cris-rp-status").hide();
+					j("#h2-cris-rp-status").show();
+					myRP('activate');
+					j("#cris-rp-change-inactive").modal('hide');
+			  });
+			  j("#inactiveDialogChangeRemove").on('click',function(event){
+					event.preventDefault();
+					j(".cris-rp-status").hide();
+					j("#h2-cris-rp-status").show();
+					myRP('remove');
+					j("#cris-rp-change-inactive").modal('hide');
+			  });
+			  j("#activeDialogChangeInActive").on('click',function(event){
+					event.preventDefault();
+					j(".cris-rp-status").hide();
+					j("#h2-cris-rp-status").show();
+					myRP('hide');
+					j("#cris-rp-change-active").modal('hide');
+			  });
+			  j("#activeDialogChangeRemove").on('click',function(event){
+					event.preventDefault();
+					j(".cris-rp-status").hide();
+					j("#h2-cris-rp-status").show();
+					myRP('remove');
+					j("#cris-rp-change-active").modal('hide');
+			  });
+			  j("#undefinedDialogChangeCreate").on('click',function(event){
+					event.preventDefault();
+					j(".cris-rp-status").hide();
+					j("#h2-cris-rp-status").show();
+					myRP('create');
+					j("#cris-rp-change-undefined").modal('hide');
+			  });			  
+               
 
                var myRP = function(myaction){
                        j.ajax( {
@@ -152,33 +136,36 @@
                                                "action" : myaction
                                        },
                                        success : function(data) {
-                                               myrpstatus = data.myrp;
+                                    	   	
+                                               myrpstatus = data.myrp;                                               
+                                               j('.myrpstatus-url').attr('href', dspaceContextPath + myrpstatus.url);
                                                if (data.myrp.url != null && data.myrp.active)
                                                {
-                                                       j('#cris-rp-status-value').html('<fmt:message key="jsp.mydspace.cris.rp-status-active" />');
-                                                       j('#cris-rp-status-value').addClass("cris-rp-status-active");
-                                                       j('#cris-rp-changestatus').off('click');
-                                                       j('#cris-rp-changestatus').on('click', function(){
-                                                               j('#cris-rp-change-active').dialog("open");
-                                                       });
+                                                   <% if(rpChangeStatusAdmin && !isAdmin){%>
+                                                   	   j('#h2-cris-rp-status').hide();
+                                                   	   j('#h2-cris-rp-status-active-admin').show();
+        	                                       <%}else{ %>
+        	                                       	   j('#h2-cris-rp-status').hide();
+		                                               j('#h2-cris-rp-status-active').show();
+		                                           <%}%>
+                                                               
                                                }
                                                else if (data.myrp.url != null && !data.myrp.active)
                                                {
-                                                       j('#cris-rp-status-value').html('<fmt:message key="jsp.mydspace.cris.rp-status-inactive" />');
-                                                       j('#cris-rp-status-value').addClass("cris-rp-status-inactive");
-                                                       j('#cris-rp-changestatus').off('click');
-                                                       j('#cris-rp-changestatus').on('click', function(){
-                                                               j('#cris-rp-change-inactive').dialog("open");
-                                                       });
+                                                       
+													<% if(rpChangeStatusAdmin && !isAdmin){ %>
+                                                	   j('#h2-cris-rp-status').hide();
+                                                   	   j('#h2-cris-rp-status-inactive-admin').show();
+        	                                       	<%}else{%>
+                                             	   	   j('#h2-cris-rp-status').hide();
+                                               	   	   j('#h2-cris-rp-status-inactive').show();
+                                                    <%}%>
+                                                       
                                                }
                                                else
                                                {
-                                                       j('#cris-rp-status-value').html('<fmt:message key="jsp.mydspace.cris.rp-status-undefined" />');
-                                                       j('#cris-rp-status-value').addClass("cris-rp-status-undefined");
-                                                       j('#cris-rp-changestatus').off('click');
-                                                       j('#cris-rp-changestatus').on('click', function(){
-                                                               j('#cris-rp-change-undefined').dialog("open");
-                                                       });
+                                            	   j(".cris-rp-status").hide();
+                                            	   j('#h2-cris-rp-status-undefined').show();
                                                }
                                        }
                        });
@@ -190,7 +177,7 @@
     </script>
 </c:set>
 <% } %>                                               
-<dspace:layout style="submission" titlekey="jsp.mydspace" nocache="true">
+<dspace:layout titlekey="jsp.mydspace" nocache="true">
 	<div class="panel panel-primary">
         <div class="panel-heading">
                     <fmt:message key="jsp.mydspace"/>: <%= Utils.addEntities(user.getFullName()) %>
@@ -203,21 +190,37 @@
     {
         %>
         
-        <h2 class="cris-rp-status">
+        <h2 id="h2-cris-rp-status" class="cris-rp-status">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
-        	<a href="#" id="cris-rp-changestatus"><span id="cris-rp-status-value" class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-loading"/></span>
-        	<img class="jdyna-icon jdyna-icon-action" src="<%= request.getContextPath() %>/image/jdyna/edit.gif" /></a>
+        	<a href="#"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-loading"/></span>
+        	<span class="fa fa-edit"></span></a>
         </h2>
-
-        <div id="cris-rp-change-active" class="cris-rp-changestatus-dialog" title="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-active.title"/>">
-        	<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-active.text"/></p>
-        </div>
-        <div id="cris-rp-change-inactive" class="cris-rp-changestatus-dialog" title="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-inactive.title"/>">
-        	<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-inactive.text"/></p>
-        </div>
-        <div id="cris-rp-change-undefined" class="cris-rp-changestatus-dialog" title="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-undefined.title"/>">
-        	<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-undefined.text"/></p>
-        </div>
+        <h2 id="h2-cris-rp-status-active" class="cris-rp-status" style="display:none;">
+        	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
+        	<a href="#" class="cris-rp-status-active" data-toggle="modal" data-target="#cris-rp-change-active"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-active"/></span>
+        	<span class="fa fa-edit"></span></a>
+        </h2>
+		<h2 id="h2-cris-rp-status-active-admin" class="cris-rp-status" style="display:none;">
+        	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
+        	<a href="#" class="cris-rp-status-active" data-toggle="modal" data-target="#cris-rp-change-admin"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-active"/></span>
+        	<span class="fa fa-edit"></span></a>
+        </h2>                                
+        <h2 id="h2-cris-rp-status-inactive" class="cris-rp-status" style="display:none;">
+        	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
+        	<a href="#" class="cris-rp-status-inactive" data-toggle="modal" data-target="#cris-rp-change-inactive"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-inactive"/></span>
+        	<span class="fa fa-edit"></span></a>
+        </h2>
+		<h2 id="h2-cris-rp-status-inactive-admin" class="cris-rp-status" style="display:none;">
+        	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
+        	<a href="#" class="cris-rp-status-inactive" data-toggle="modal" data-target="#cris-rp-change-admin"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-inactive"/></span>
+        	<span class="fa fa-edit"></span></a>
+        </h2>
+        <h2 id="h2-cris-rp-status-undefined" class="cris-rp-status" style="display:none;">
+        	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
+        	<a href="#" class="cris-rp-status-undefined" data-toggle="modal" data-target="#cris-rp-change-undefined"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-undefined"/></span>
+        	<span class="fa fa-edit"></span></a>
+        </h2>                                                                
+     
 <%        
 	}
  %>
@@ -256,7 +259,7 @@
 
         for (int i = 0; i < owned.length; i++)
         {
-            DCValue[] titleArray =
+            Metadatum[] titleArray =
                 owned[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                                                   : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
@@ -323,7 +326,7 @@
 
         for (int i = 0; i < pooled.length; i++)
         {
-            DCValue[] titleArray =
+            Metadatum[] titleArray =
                 pooled[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
@@ -393,7 +396,7 @@
 
         for (int i = 0; i < workspaceItems.length; i++)
         {
-            DCValue[] titleArray =
+            Metadatum[] titleArray =
                 workspaceItems[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
@@ -439,7 +442,7 @@
 
         for (int i = 0; i < supervisedItems.length; i++)
         {
-            DCValue[] titleArray =
+            Metadatum[] titleArray =
                 supervisedItems[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
@@ -492,7 +495,7 @@
 <%
         for (int i = 0; i < workflowItems.length; i++)
         {
-            DCValue[] titleArray =
+            Metadatum[] titleArray =
                 workflowItems[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
@@ -541,6 +544,179 @@
 		<% } %>
 	</ol>
 	<%} %>
+	
+	<%if(importsAvailable!=null && importsAvailable.size()>0){ %>
+	<h3><fmt:message key="jsp.mydspace.main.heading8"/></h3>
+	<ul class="exportArchives" style="list-style-type: none;">
+		<% int i=0;
+			for(BatchUpload batchUpload : importsAvailable){
+		%>
+			<li style="padding-top:5px; margin-top:10px">
+				<div style="float:left"><b><%= batchUpload.getDateFormatted() %></b></div>
+				<% if (batchUpload.isSuccessful()){ %>
+					<div style= "float:left">&nbsp;&nbsp;--> <span style="color:green"><fmt:message key="jsp.dspace-admin.batchimport.success"/></span></div>
+				<% } else { %>
+					<div style= "float:left;">&nbsp;&nbsp;--> <span style="color:red"><fmt:message key="jsp.dspace-admin.batchimport.failure"/></span></div>
+				<% } %>
+				<div style="float:left; padding-left:20px">
+					<a id="a2_<%= i%>" style="display:none; font-size:12px" href="javascript:showMoreClicked(<%= i%>);"><i>(<fmt:message key="jsp.dspace-admin.batchimport.hide"/>)</i></a>
+					<a id="a1_<%= i%>" style="font-size:12px" href="javascript:showMoreClicked(<%= i%>);"><i>(<fmt:message key="jsp.dspace-admin.batchimport.show"/>)</i></a>
+				</div><br/>
+				<div id="moreinfo_<%= i%>" style="clear:both; display:none; margin-top:15px; padding:10px; border:1px solid; border-radius:4px; border-color:#bbb">
+					<div><fmt:message key="jsp.dspace-admin.batchimport.itemstobeimported"/>: <b><%= batchUpload.getTotalItems() %></b></div>
+					<div style="float:left"><fmt:message key="jsp.dspace-admin.batchimport.itemsimported"/>: <b><%= batchUpload.getItemsImported() %></b></div>
+					<div style="float:left; padding-left:20px">
+					<a id="a4_<%= i%>" style="display:none; font-size:12px" href="javascript:showItemsClicked(<%= i%>);"><i>(<fmt:message key="jsp.dspace-admin.batchimport.hideitems"/>)</i></a>
+					<a id="a3_<%= i%>" style="font-size:12px" href="javascript:showItemsClicked(<%= i%>);"><i>(<fmt:message key="jsp.dspace-admin.batchimport.showitems"/>)</i></a>
+				</div>
+				<br/>
+					<div id="iteminfo_<%= i%>" style="clear:both; display:none; border:1px solid; background-color:#eeeeee; margin:30px 20px">
+						<%
+							for(String handle : batchUpload.getHandlesImported()){
+						%>
+							<div style="padding-left:10px"><a href="<%= request.getContextPath() %>/handle/<%= handle %>"><%= handle %></a></div>
+						<%
+							}
+						%>
+					</div>
+					<div style="margin-top:10px">
+						<form action="<%= request.getContextPath() %>/mydspace" method="post">
+							<input type="hidden" name="step" value="7">
+							<input type="hidden" name="uploadid" value="<%= batchUpload.getDir().getName() %>">
+							<input class="btn btn-info" type="submit" name="submit_mapfile" value="<fmt:message key="jsp.dspace-admin.batchimport.downloadmapfile"/>">
+							<% if (!batchUpload.isSuccessful()){ %>
+								<input class="btn btn-warning" type="submit" name="submit_resume" value="<fmt:message key="jsp.dspace-admin.batchimport.resume"/>">
+							<% } %>
+							<input class="btn btn-danger" type="submit" name="submit_delete" value="<fmt:message key="jsp.dspace-admin.batchimport.deleteitems"/>">
+						</form>
+					<div>
+					<% if (!batchUpload.getErrorMsgHTML().equals("")){ %>
+						<div style="margin-top:20px; padding-left:20px; background-color:#eee">
+							<div style="padding-top:10px; font-weight:bold">
+								<fmt:message key="jsp.dspace-admin.batchimport.errormsg"/>
+							</div>
+							<div style="padding-top:20px">
+								<%= batchUpload.getErrorMsgHTML() %>
+							</div>
+						</div>
+					<% } %>
+				</div>
+				<br/>
+			</li> 
+		<% i++;
+			} 
+		%>
+	</ul>
+	<%} %>
+	
+	<script>
+		function showMoreClicked(index){
+			$('#moreinfo_'+index).toggle( "slow", function() {
+				// Animation complete.
+			  });
+			$('#a1_'+index).toggle();
+			$('#a2_'+index).toggle();
+		}
+		
+		function showItemsClicked(index){
+			$('#iteminfo_'+index).toggle( "slow", function() {
+				// Animation complete.
+			  });
+			$('#a3_'+index).toggle();
+			$('#a4_'+index).toggle();
+		}
+	</script>
+	
 	</div>
-</div>	
+</div>
+
+
+		<div class="modal fade" id="cris-rp-change-active" tabindex="-1" role="dialog" aria-labelledby="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-active.title"/>" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title"><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-active.title"/></h4>
+						</div>
+						<div class="modal-body with-padding">
+							<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-active.text"/></p>
+						</div>
+						<div class="modal-footer">
+						<div class="btn-group btn-group-sm" role="group">
+							 <a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+							 <button type="button" id="activeDialogChangeInActive" class="btn btn-warning" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.inactive"/></button>
+							 <button type="button" id="activeDialogChangeRemove" class="btn btn-danger" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.remove"/></button>
+							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-active"/></button>
+						</div>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+		</div>
+		
+		<div class="modal fade" id="cris-rp-change-inactive" tabindex="-1" role="dialog" aria-labelledby="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-inactive.title"/>" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title"><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-inactive.title"/></h4>
+						</div>
+						<div class="modal-body with-padding">
+							<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-inactive.text"/></p>
+						</div>
+						<div class="modal-footer">
+						<div class="btn-group btn-group-sm" role="group">
+							 <a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+							 <button type="button" id="inactiveDialogChangeActive" class="btn btn-success" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.active"/></button>
+							 <button type="button" id="inactiveDialogChangeRemove" class="btn btn-danger" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.remove"/></button>
+							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-inactive"/></button>
+						</div>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+		</div>
+		
+	    <div class="modal fade" id="cris-rp-change-undefined" tabindex="-1" role="dialog" aria-labelledby="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-undefined.title"/>" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title"><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-undefined.title"/></h4>
+						</div>
+						<div class="modal-body with-padding">
+							<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-undefined.text"/></p>
+						</div>
+						<div class="modal-footer">
+							 <button type="button" id="undefinedDialogChangeCreate" class="btn btn-success" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.create"/></button>
+							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-undefined"/></button>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+		</div>
+		
+		<div class="modal fade" id="cris-rp-change-admin" tabindex="-1" role="dialog" aria-labelledby="<fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-admin.title"/>" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							<h4 class="modal-title"><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-admin.title"/></h4>
+						</div>
+						<div class="modal-body with-padding">
+							<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-admin.text"/></p>
+						</div>
+						<div class="modal-footer">
+							 <a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-undefined"/></button>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+		</div>
+		<!-- /.modal -->	
 </dspace:layout>

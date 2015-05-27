@@ -44,7 +44,6 @@ public class StatisticsLoggingConsumer implements Consumer
     // TODO: checkout whether moving of collections, communities and bitstreams works
     // TODO: use async threaded consumer as this might require some processing time
     // TODO: we might be able to improve the performance: changing the collection will trigger 4 update commands
-    @Override
     public void consume(Context ctx, Event event) throws Exception
     {
         if (toRemoveQueries == null)
@@ -87,7 +86,6 @@ public class StatisticsLoggingConsumer implements Consumer
     }
 
 
-    @Override
     public void end(Context ctx) throws Exception
     {
         if (toRemoveQueries != null)
@@ -101,7 +99,6 @@ public class StatisticsLoggingConsumer implements Consumer
         toRemoveQueries = null;
     }
 
-    @Override
     public void finish(Context ctx) throws Exception
     {
     }

@@ -7,16 +7,17 @@
  */
 package org.dspace.browse;
 
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
+import org.dspace.discovery.IGlobalSearchResult;
 
-public interface BrowsableDSpaceObject
+public interface BrowsableDSpaceObject extends IGlobalSearchResult
 {
 
     public boolean isArchived();
 
     public boolean isWithdrawn();
 
-    public DCValue[] getMetadata(String schema, String element,
+    public Metadatum[] getMetadata(String schema, String element,
             String qualifier, String lang);
 
     public int getID();

@@ -93,10 +93,12 @@ import org.dspace.eperson.EPerson;
         @NamedQuery(name = "ResearcherPage.uniqueByEPersonId", query = "from ResearcherPage where epersonID = ?"),
         @NamedQuery(name = "ResearcherPage.uniqueByUUID", query = "from ResearcherPage where uuid = ?") })
 public class ResearcherPage extends
-        ACrisObject<RPProperty, RPPropertiesDefinition, RPNestedProperty, RPNestedPropertiesDefinition, RPNestedObject, RPTypeNestedObject> implements Cloneable
+        ACrisObject<RPProperty, RPPropertiesDefinition, RPNestedProperty, RPNestedPropertiesDefinition, RPNestedObject, RPTypeNestedObject>
 {
 
-    @Column(unique = true, nullable = true)
+    private static final String NAME = "fullName";
+
+	@Column(unique = true, nullable = true)
     private Integer epersonID;
 
     /** log4j logger */
@@ -114,7 +116,7 @@ public class ResearcherPage extends
     /** DB Primary key */
     @Id
     @GeneratedValue(generator = "CRIS_RPAGE_SEQ")
-    @SequenceGenerator(name = "CRIS_RPAGE_SEQ", sequenceName = "CRIS_RPAGE_SEQ")
+    @SequenceGenerator(name = "CRIS_RPAGE_SEQ", sequenceName = "CRIS_RPAGE_SEQ", allocationSize = 1)
     private Integer id;
 
     @Transient
@@ -179,7 +181,7 @@ public class ResearcherPage extends
     public String getFullName()
     {
         for (RPProperty property : this.getDynamicField().getAnagrafica4view()
-                .get("fullName"))
+                .get(NAME))
         {
             return property.getValue().getObject().toString();
         }
@@ -390,9 +392,15 @@ public class ResearcherPage extends
         return results;
     }
 
-    public Object clone() throws CloneNotSupportedException
+    public ResearcherPage clone() throws CloneNotSupportedException
     {
-        return super.clone();
+        ResearcherPage clone = (ResearcherPage) super.clone();
+        RPAdditionalFieldStorage additionalTemp = new RPAdditionalFieldStorage();
+        additionalTemp.setResearcherPage(clone);
+        additionalTemp.duplicaAnagrafica(this
+                    .getDynamicField());
+        clone.setDynamicField(additionalTemp);
+        return clone;
     }
 
     public void setInternalRP(boolean internalRP)
@@ -633,4 +641,10 @@ public class ResearcherPage extends
 	public boolean isDiscoverable() {
 		return true;
 	}
+	
+	@Override
+	public String getMetadataFieldTitle() {
+		return NAME;
+	}
+
 }

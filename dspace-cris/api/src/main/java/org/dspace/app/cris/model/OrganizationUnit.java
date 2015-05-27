@@ -30,6 +30,7 @@ import org.dspace.app.cris.model.jdyna.OUNestedProperty;
 import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.OUTypeNestedObject;
+import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
 
 @Entity
 @Table(name = "cris_orgunit", uniqueConstraints = @UniqueConstraint(columnNames={"sourceID","sourceRef"}))
@@ -47,6 +48,7 @@ import org.dspace.app.cris.model.jdyna.OUTypeNestedObject;
         @NamedQuery(name = "OrganizationUnit.uniqueUUID", query = "from OrganizationUnit where uuid = ?"),
         @NamedQuery(name = "OrganizationUnit.uniqueBySourceID", query = "from OrganizationUnit where sourceReference.sourceRef = ? and sourceReference.sourceID = ?"),
         @NamedQuery(name = "OrganizationUnit.uniqueByCrisID", query = "from OrganizationUnit where crisID = ?"),
+		@NamedQuery(name = "OrganizationUnit.uniqueLastModifiedTimeStamp", query = "select timeStampInfo.timestampLastModified.timestamp from OrganizationUnit rp where rp.id = ?"),
         @NamedQuery(name = "OrganizationUnit.uniqueByUUID", query = "from OrganizationUnit where uuid = ?")
 })
 public class OrganizationUnit extends
@@ -54,6 +56,8 @@ public class OrganizationUnit extends
 		Cloneable
 {
 
+	private static final String NAME = "name";
+	
     @Transient
     /**
      * Constant for resource type assigned to the Researcher Grants
@@ -63,7 +67,7 @@ public class OrganizationUnit extends
     /** DB Primary key */
     @Id
     @GeneratedValue(generator = "CRIS_OU_SEQ")
-    @SequenceGenerator(name = "CRIS_OU_SEQ", sequenceName = "CRIS_OU_SEQ")
+    @SequenceGenerator(name = "CRIS_OU_SEQ", sequenceName = "CRIS_OU_SEQ", allocationSize = 1)
     private Integer id;
 
     /** timestamp info for creation and last modify */
@@ -79,6 +83,7 @@ public class OrganizationUnit extends
     public OrganizationUnit()
     {
         this.dynamicField = new OUAdditionalFieldStorage();
+        this.dynamicField.setOrganizationUnit(this);
     }
 
     /**
@@ -96,9 +101,15 @@ public class OrganizationUnit extends
         return timeStampInfo;
     }
 
-    public Object clone() throws CloneNotSupportedException
+    public OrganizationUnit clone() throws CloneNotSupportedException
     {
-        return super.clone();
+        OrganizationUnit clone = (OrganizationUnit) super.clone();
+        OUAdditionalFieldStorage additionalTemp = new OUAdditionalFieldStorage();
+        additionalTemp.setOrganizationUnit(clone);
+        additionalTemp.duplicaAnagrafica(this
+                    .getDynamicField());
+        clone.setDynamicField(additionalTemp);
+        return clone;
     }
 
     public OUAdditionalFieldStorage getDynamicField()
@@ -202,7 +213,7 @@ public class OrganizationUnit extends
 
     public String getName() {
         for (OUProperty title : this.getDynamicField()
-                .getAnagrafica4view().get("name"))
+                .getAnagrafica4view().get(NAME))
         {
             return title.toString();
         }
@@ -242,4 +253,10 @@ public class OrganizationUnit extends
 	public boolean isDiscoverable() {
 		return true;
 	}
+	
+	@Override
+	public String getMetadataFieldTitle() {
+		return NAME;
+	}
+
 }

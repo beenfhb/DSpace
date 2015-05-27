@@ -32,6 +32,7 @@
 <%@ page import="org.dspace.browse.ItemCounter" %>
 <%@ page import="org.dspace.content.*" %>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
+<%@ page import="org.dspace.core.Utils" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="java.util.List"%>
 
@@ -157,7 +158,7 @@
     	       width = 36;
     	    }
 %>
-    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/<%= community.getHandle() %>"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" vspace="3" border="0" /></a>
+    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/<%= community.getHandle() %>"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" style="margin: 3px 0 3px" /></a>
 <%
     	}
     }
@@ -174,21 +175,19 @@
 		  <div class="carousel-inner">
 	<%	for (int i = 0; i < items.length; i++)
 		{
-			DCValue[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
+			Metadatum[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
 			String displayTitle = "Untitled";
 			if (dcv != null)
 			{
 				if (dcv.length > 0)
 				{
-					displayTitle = dcv[0].value;
+					displayTitle = Utils.addEntities(dcv[0].value);
 				}
 			}
 			%>
 		    <div style="padding-bottom: 50px; min-height: 200px;" class="item <%= first?"active":""%>">
 		      <div style="padding-left: 80px; padding-right: 80px; display: inline-block;"><%= StringUtils.abbreviate(displayTitle, 400) %> 
-		      	<a href="<%= request.getContextPath() %>/handle/<%=items[i].getHandle() %>"> 
-		      		<button class="btn btn-success" type="button">See</button>
-		      		</a>
+		      	<a href="<%= request.getContextPath() %>/handle/<%=items[i].getHandle() %>" class="btn btn-success">See</a>
 		      </div>
 		    </div>
 <%
@@ -252,9 +251,20 @@
     <%
     	int discovery_panel_cols = 12;
     	int discovery_facet_cols = 4;
-    %>
+    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
+    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
+    	String processorSidebar = (String) request.getAttribute("processorSidebar");
+    
+    if(processorSidebar!=null && processorSidebar.equals("sidebar")) {
+	%>
 	<%@ include file="discovery/static-sidebar-facet.jsp" %>
+	<% } %>	
 </div>
+
+<div class="row">
+	<%@ include file="discovery/static-tagcloud-facet.jsp" %>
+</div>
+	
 <div class="row">
 <%
 	boolean showLogos = ConfigurationManager.getBooleanProperty("jspui.community-home.logos", true);
@@ -348,7 +358,7 @@
 <%
             }
 			if(isAdmin || !ConfigurationManager.getBooleanProperty("solr-statistics","authorization.admin")) { %>
-					<a href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collections[i].getHandle() %>"><img src="<%= request.getContextPath() %>/images/chart_curve.png" border="0" title="usage statistics"/></a>
+					<a href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collections[i].getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
 				&nbsp;
 		 <% } %>
         

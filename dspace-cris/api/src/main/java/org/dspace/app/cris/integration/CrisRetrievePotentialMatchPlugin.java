@@ -41,8 +41,6 @@ public class CrisRetrievePotentialMatchPlugin implements
             ResearcherPage researcher)
     {
 
-        String researcherPotentialMatchLookupBrowserIndex = ConfigurationManager
-                .getProperty(CrisConstants.CFG_MODULE, "researcherpage.browseindex");
 
         String authority = researcher.getCrisID();
         Integer id = researcher.getId();
@@ -53,6 +51,8 @@ public class CrisRetrievePotentialMatchPlugin implements
         Set<Integer> result = new HashSet<Integer>();
         try
         {
+            String researcherPotentialMatchLookupBrowserIndex = ConfigurationManager
+                    .getProperty(CrisConstants.CFG_MODULE, "researcherpage.browseindex");
             BrowseIndex bi = BrowseIndex
                     .getBrowseIndex(researcherPotentialMatchLookupBrowserIndex);
             // now start up a browse engine and get it to do the work for us
@@ -108,9 +108,7 @@ public class CrisRetrievePotentialMatchPlugin implements
             Map<String, Set<Integer>> mapInvalids, List<ResearcherPage> rps)
     {
         
-        String researcherPotentialMatchLookupBrowserIndex = ConfigurationManager
-                .getProperty(CrisConstants.CFG_MODULE, "researcherpage.browseindex");
-        
+      
         Map<NameResearcherPage, Item[]> result = new HashMap<NameResearcherPage, Item[]>();
 
         for (ResearcherPage researcher : rps)
@@ -120,6 +118,8 @@ public class CrisRetrievePotentialMatchPlugin implements
             BrowseIndex bi;
             try
             {
+            	String researcherPotentialMatchLookupBrowserIndex = ConfigurationManager
+                        .getProperty(CrisConstants.CFG_MODULE, "researcherpage.browseindex");
                 bi = BrowseIndex
                         .getBrowseIndex(researcherPotentialMatchLookupBrowserIndex);
 

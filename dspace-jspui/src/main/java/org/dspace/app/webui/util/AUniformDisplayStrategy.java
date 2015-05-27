@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.DCValue;
+import org.dspace.content.Metadatum;
 
 public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
 {
@@ -19,8 +19,8 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
     private static Logger log = Logger.getLogger(AUniformDisplayStrategy.class);
     
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            DCValue[] metadataArray, boolean disableCrossLinks, boolean emph,
+            boolean viewFull, String browseType, int colIdx, int itemid, String field,
+            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext)
     {
         String metadata;
@@ -41,7 +41,7 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
         StringBuffer sb = new StringBuffer();
         for (int j = 0; j < loopLimit; j++)
         {
-            sb.append(getDisplayForValue(hrq, metadataArray[j].value));
+            sb.append(getDisplayForValue(hrq, metadataArray[j].value, itemid));
             if (j < (loopLimit - 1))
             {
                 if (colIdx != -1) // we are showing metadata in a table row
@@ -84,5 +84,5 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
         return metadata;
     }
 
-    protected abstract String getDisplayForValue(HttpServletRequest hrq, String value);
+    protected abstract String getDisplayForValue(HttpServletRequest hrq, String value,int itemid);
 }
