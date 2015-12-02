@@ -27,17 +27,13 @@ public class DateDisplayStrategy extends ASimpleDisplayStrategy
         if (metadataArray.length > 0)
         {
             String value = metadataArray[0].value;
-            if(!StringUtils.isBlank(value)) {
-                if(value.equals("9999")) {
-                    metadata = I18nUtil.getMessage("jsp.mydspace.render.inpress", hrq.getLocale());
-                }
-                else {
-                    DCDate dd = new DCDate(value);
-                    metadata = UIUtil.displayDate(dd, false, false, hrq);
-                }
-            }         	
-            DCDate dd = new DCDate(metadataArray[0].value);
-            metadata = UIUtil.displayDate(dd, false, false, hrq);
+            if(value.equals("9999")) {
+                metadata = I18nUtil.getMessage("jsp.mydspace.render.inpress", hrq.getLocale());
+            }
+            else {
+                DCDate dd = new DCDate(value);
+                metadata = UIUtil.displayDate(dd, false, false, hrq);
+            }
         }
         metadata = (emph ? "<strong>" : "") + metadata
                 + (emph ? "</strong>" : "");
