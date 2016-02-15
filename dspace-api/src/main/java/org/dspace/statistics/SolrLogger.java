@@ -105,8 +105,7 @@ public class SolrLogger
         if (useProxies == null)
         {
             boolean result = false;
-            if ("true".equals(ConfigurationManager.getProperty(CFG_STAT_MODULE,
-                    "useProxies")))
+            if ("true".equals(ConfigurationManager.getProperty("useProxies")))
             {
                 result = true;
             }
