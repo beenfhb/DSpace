@@ -39,28 +39,7 @@
          compiling of the corresponding source module.
     -->
     <profiles>
-        <profile>
-            <id>dspace-xmlui</id>
-            <activation>
-                <file>
-                    <exists>xmlui/pom.xml</exists>
-                </file>
-            </activation>
-            <modules>
-                <module>xmlui</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>dspace-jspui</id>
-            <activation>
-                <file>
-                    <exists>jspui/pom.xml</exists>
-                </file>
-            </activation>
-            <modules>
-                <module>jspui</module>
-            </modules>
-        </profile>
+
         <profile>
             <id>dspace-rdf</id>
             <activation>
@@ -72,17 +51,7 @@
                 <module>rdf</module>
             </modules>
         </profile>
-        <profile>
-            <id>dspace-rest</id>
-            <activation>
-                <file>
-                    <exists>rest/pom.xml</exists>
-                </file>
-            </activation>
-            <modules>
-                <module>rest</module>
-            </modules>
-        </profile>
+        
         <profile>
             <id>dspace-sword</id>
             <activation>
@@ -94,6 +63,7 @@
                 <module>sword</module>
             </modules>
         </profile>
+        
         <profile>
             <id>dspace-swordv2</id>
             <activation>
@@ -105,6 +75,7 @@
                 <module>swordv2</module>
             </modules>
         </profile>
+        
         <profile>
             <id>dspace-solr</id>
             <activation>
@@ -116,6 +87,7 @@
                 <module>solr</module>
             </modules>
         </profile>
+
         <profile>
             <id>dspace-oai</id>
             <activation>
@@ -129,18 +101,15 @@
         </profile>
 
         <profile>
-            <!--Activates mirage2 on the presence of the property mirage2.on with any value e.g. mvn clean package -Dmirage2.on=on
-                Note the absence of activeByDefault. This module is optional. Also activeByDefault only works when no other profiles are active.
-            -->
-            <id>mirage2</id>
+            <id>dspace-hateoas</id>
             <activation>
-                <property>
-                    <name>mirage2.on</name>
-                </property>
+                <file>
+                    <exists>hateoas/pom.xml</exists>
+                </file>
             </activation>
             <modules>
-                <module>xmlui-mirage2</module>
+                <module>hateoas</module>
             </modules>
-        </profile>
+        </profile>        
     </profiles>
 </project>

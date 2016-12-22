@@ -384,8 +384,8 @@
             <artifactId>mail</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -590,8 +590,7 @@
 
         <dependency>
             <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>1.4.0</version>
+            <artifactId>elasticsearch</artifactId>            
         </dependency>
 
         <dependency>
@@ -677,7 +676,6 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.9.2</version>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
@@ -691,6 +689,12 @@
             <artifactId>axiom-impl</artifactId>
             <!-- NOTE: SWORDv2 needs 1.2.14, required by Abdera: https://abdera.apache.org/ -->
             <version>1.2.14</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.codehaus.woodstox</groupId>
+            		<artifactId>woodstox-core-asl</artifactId>            		
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -724,18 +728,34 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.7.0</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.7.0</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.7.0</version>
         </dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-jpa</artifactId>
+		    <scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>				
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+		</dependency>
     </dependencies>
 
 </project>
