@@ -590,7 +590,13 @@
 
         <dependency>
             <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>            
+            <artifactId>elasticsearch</artifactId>
+            <exclusions>
+            	<exclusion>
+            	    <groupId>com.google.guava</groupId>
+            		<artifactId>guava</artifactId>
+            	</exclusion>            
+            </exclusions>            
         </dependency>
 
         <dependency>

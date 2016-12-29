@@ -127,13 +127,13 @@ public class IndexVersion
             }
 
             // Open this index directory in Lucene
-            Directory indexDir = FSDirectory.open(dir);
+            Directory indexDir = FSDirectory.open(dir.toPath());
 
             // Get info on the Lucene segment file(s) in index directory
             SegmentInfos sis = new SegmentInfos();
             try
             {
-                sis.read(indexDir);
+                sis = SegmentInfos.readLatestCommit(indexDir);
             }
             catch(IOException ie)
             {

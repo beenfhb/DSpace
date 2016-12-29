@@ -8,16 +8,30 @@
 package org.dspace.statistics;
 
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import com.maxmind.geoip.Location;
-import com.maxmind.geoip.LookupService;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
@@ -25,16 +39,13 @@ import org.dspace.statistics.service.ElasticSearchLoggerService;
 import org.dspace.statistics.util.DnsLookup;
 import org.dspace.statistics.util.LocationUtils;
 import org.dspace.statistics.util.SpiderDetector;
-
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequestBuilder;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Client;
-
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
@@ -44,12 +55,10 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 import org.springframework.beans.factory.InitializingBean;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.*;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import com.maxmind.geoip.Location;
+import com.maxmind.geoip.LookupService;
 
 /*
  * @deprecated  As of DSpace 6.0, ElasticSearch statistics are replaced by Solr statistics
@@ -559,8 +568,12 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
 
         log.info("Creating TransportClient to [Address:" + address + "] [Port:" + port + "] [cluster.name:" + clusterName + "]");
 
-        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
-        client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(address, port));
+        Settings settings = Settings.builder().put("cluster.name", clusterName).build();
+        try {
+			client = TransportClient.builder().settings(settings).build().addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(address), port));
+		} catch (UnknownHostException e) {
+			log.error(e.getMessage(), e);
+		}
     }
     
     @Override
@@ -592,7 +605,7 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
     @Override
     public Client createNodeClient(ClientType clientType) {
         String dspaceDir = ConfigurationManager.getProperty("dspace.dir");
-        Settings settings = ImmutableSettings.settingsBuilder().put("path.data", dspaceDir + "/elasticsearch/").build();
+        Settings settings = Settings.builder().put("path.data", dspaceDir + "/elasticsearch/").build();
 
         NodeBuilder nodeBuilder = NodeBuilder.nodeBuilder().clusterName(clusterName).data(true).settings(settings);
 

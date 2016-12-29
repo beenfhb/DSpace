@@ -161,6 +161,12 @@
         <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-api</artifactId>
+            <exclusions>
+            	<exclusion>
+            	    <groupId>org.apache.solr</groupId>
+            		<artifactId>solr-solrj</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Solr (Datasource) -->
