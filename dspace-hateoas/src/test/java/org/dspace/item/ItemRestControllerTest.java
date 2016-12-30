@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -75,7 +76,7 @@ public class ItemRestControllerTest {
 
 	protected CommunityService communityService;
 	protected CollectionService collectionService;
-	protected ItemRepository itemService;
+	protected ItemService itemService;
 	protected WorkspaceItemService workspaceItemService;
 	protected InstallItemService installItemService;
 
@@ -90,6 +91,8 @@ public class ItemRestControllerTest {
 	 */
 	protected static DSpaceKernelImpl kernelImpl;
 
+	private ItemRepository itemRepository;
+	
 	@Autowired
 	private WebApplicationContext webApplicationContext;
 
@@ -109,11 +112,11 @@ public class ItemRestControllerTest {
 
 		CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
 		CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
-		itemService = (ItemRepository)ContentServiceFactory.getInstance().getItemService();
+		ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 		WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
 		InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
-		this.itemService.deleteAllInBatch();
+		this.itemRepository.deleteAllInBatch();
 
 		context.turnOffAuthorisationSystem();
 		this.owningCommunity = communityService.create(null, context);
@@ -122,8 +125,7 @@ public class ItemRestControllerTest {
 		this.item = installItemService.installItem(context, workspaceItem);
 
 		item.setSubmitter(context.getCurrentUser());
-		ItemService serv = ((ItemService)itemService);
-		serv.update(context, item);
+		itemService.update(context, item);
 		this.dspaceObject = item;
 		// we need to commit the changes so we don't block the table for testing
 		context.restoreAuthSystemState();
@@ -135,11 +137,9 @@ public class ItemRestControllerTest {
 				.andExpect(content().contentType(contentType)).andExpect(jsonPath("$.id", is(dspaceObject.getID())));
 	}
 
-	@Test
 	public void readItems() throws Exception {
 	}
 
-	@Test
 	public void createItem() throws Exception {
 	}
 
@@ -176,9 +176,6 @@ public class ItemRestControllerTest {
 	 */
 	@After
 	public void destroyKernel() throws SQLException {
-		// we clear the properties
-		testProps.clear();
-		testProps = null;
 
 		// Also clear out the kernel & nullify (so JUnit will clean it up)
 		if (kernelImpl != null) {

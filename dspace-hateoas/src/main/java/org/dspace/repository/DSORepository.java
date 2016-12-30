@@ -7,6 +7,5 @@ import org.dspace.content.DSpaceObject;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DSORepository<T extends DSpaceObject, ID extends UUID> extends JpaRepository<T, ID> {
-	Optional<T> findbyUUID(UUID uuid);
-	Optional<T> findbyId(Integer id);
+	Optional<T> findById(UUID uuid);
 }

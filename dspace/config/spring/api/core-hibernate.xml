@@ -13,39 +13,11 @@
     http://www.springframework.org/schema/tx
     http://www.springframework.org/schema/tx/spring-tx-2.0.xsd" default-lazy-init="true">
 
-    <!-- Hibernate 4 Configuration -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean" lazy-init="true">
-        <!-- Load most Hibernate settings from hibernate.cfg.xml -->
-        <property name="configLocation" value="file:${dspace.dir}/config/hibernate.cfg.xml"/>
-        <!-- Use the dataSource defined in the bean below. This is necessary so that Flyway can initialize
-             our database using the dataSource *prior* to Hibernate taking over -->
-        <property name="dataSource" ref="dataSource" />
-        <!-- Specify some additional Hibernate settings via dynamic properties. As noted below,
-        these values will be dynamically loaded from DSpace's ConfigurationService. -->
-        <!-- All other Hibernate settings are specified via the hibernate.cfg.xml referenced above. -->
-        <property name="hibernateProperties">
-            <props>
-                <prop key="hibernate.dialect">${db.dialect}</prop>
-                <prop key="hibernate.default_schema">${db.schema}</prop>
-            </props>
-        </property>
-    </bean>
-
-    <bean id='dataSource'
-          class='org.springframework.jndi.JndiObjectFactoryBean'>
-        <description>
-            Try to look up the DataSource in JNDI.  If not found, return a
-            DataSource built from connection details in the DSpace configuration.
-        </description>
-        <property name='jndiName' value='java:comp/env/jdbc/dspace'/>
-        <property name='defaultObject' ref='dspaceDataSource'/>
-    </bean>
-
     <!-- NOTE: All of the properties which are used to configure the BasicDataSource are
          dynamically loaded from DSpace's ConfigurationService. This is performed via
          the Spring PropertyPlaceholderConfigurer configured by dspace-services
          (see spring-dspace-core-services.xml). -->
-    <bean id="dspaceDataSource" class="org.apache.commons.dbcp2.BasicDataSource" lazy-init="true" destroy-method="close">
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" lazy-init="true" destroy-method="close">
         <property name="driverClassName" value="${db.driver}"/>
         <property name="url" value="${db.url}"/>
         <property name="username" value="${db.username}"/>
@@ -58,24 +30,35 @@
     <bean id="jpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
         <property name="showSql" value="false"/>
         <property name="generateDdl" value="false"/>
+        <property name="databasePlatform" value="org.dspace.storage.rdbms.hibernate.postgres.DSpacePostgreSQL82Dialect"/>
         <property name="database" value="POSTGRESQL"/>
     </bean>
 
     <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="jpaVendorAdapter" ref="jpaVendorAdapter"/>
-        <!-- spring based scanning for entity classes>-->
-        <property name="packagesToScan" value="org.dspace.repository"/>
+        <property name="jpaProperties">
+            <value>
+				hibernate.jdbc.batch_size = 20
+				hibernate.cache.use_second_level_cache = true
+                hibernate.cache.region.factory_class = org.hibernate.cache.ehcache.EhCacheRegionFactory
+                hibernate.cache.use_query_cache = true
+            </value>
+        </property>        
     </bean>
-
+    
     <!-- Enables the Hibernate @Transactional programming model -->
     <tx:annotation-driven transaction-manager="transactionManager" />
 
-    <bean id="transactionManager"
-        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sessionFactory" />
+    <bean class="org.springframework.orm.jpa.JpaTransactionManager"
+          id="transactionManager">
+        <property name="entityManagerFactory"
+                  ref="entityManagerFactory" />
+        <property name="jpaDialect">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
+        </property>
     </bean>
-
+    
     <jpa:repositories base-package="org.dspace.repository"/>
     
 </beans>
