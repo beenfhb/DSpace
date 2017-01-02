@@ -1,12 +1,8 @@
 package org.dspace.core;
 
-import java.util.TimeZone;
-
 import javax.servlet.Filter;
 
 import org.dspace.app.util.DSpaceContextListener;
-import org.dspace.servicemanager.DSpaceKernelImpl;
-import org.dspace.servicemanager.DSpaceKernelInit;
 import org.dspace.servicemanager.servlet.DSpaceKernelServletContextListener;
 import org.dspace.utils.servlet.DSpaceWebappServletFilter;
 import org.springframework.boot.SpringApplication;
@@ -14,12 +10,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-@SpringBootApplication(exclude={DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, FlywayAutoConfiguration.class})
+@SpringBootApplication(exclude={DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, FlywayAutoConfiguration.class, SolrAutoConfiguration.class})
+@EnableWebMvc
+@ComponentScan(basePackages = "org.dspace.controller")
 public class DSpace extends SpringBootServletInitializer {
 	
     @Override
