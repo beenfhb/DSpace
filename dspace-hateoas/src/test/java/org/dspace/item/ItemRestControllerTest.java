@@ -10,12 +10,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
@@ -31,15 +27,16 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.core.DSpace;
+import org.dspace.core.DSpaceTest;
+import org.dspace.core.I18nUtil;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.repository.ItemRepository;
-import org.dspace.servicemanager.DSpaceKernelImpl;
-import org.dspace.servicemanager.DSpaceKernelInit;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -51,7 +48,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = DSpace.class)
+@SpringApplicationConfiguration(classes = {DSpaceTest.class, DSpace.class})
 @WebAppConfiguration
 public class ItemRestControllerTest {
 
@@ -70,8 +67,6 @@ public class ItemRestControllerTest {
 	private Collection collection;
 	private Community owningCommunity;
 
-	private List<Item> itemList = new ArrayList<Item>();
-
 	private Context context;
 
 	protected CommunityService communityService;
@@ -85,13 +80,7 @@ public class ItemRestControllerTest {
 	 */
 	protected static Properties testProps;
 
-	/**
-	 * DSpace Kernel. Must be started to initialize ConfigurationService and any
-	 * other services.
-	 */
-	protected static DSpaceKernelImpl kernelImpl;
-
-	private ItemRepository itemRepository;
+	private EPerson eperson;
 	
 	@Autowired
 	private WebApplicationContext webApplicationContext;
@@ -107,7 +96,6 @@ public class ItemRestControllerTest {
 
 	@Before
 	public void setup() throws Exception {
-		initKernel();
 		this.mockMvc = webAppContextSetup(webApplicationContext).build();
 
 		CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
@@ -115,10 +103,32 @@ public class ItemRestControllerTest {
 		ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 		WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
 		InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-
-		this.itemRepository.deleteAllInBatch();
-
+		
+		this.context = new Context();
 		context.turnOffAuthorisationSystem();
+
+        //Find our global test EPerson account. If it doesn't exist, create it.
+        EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        eperson = ePersonService.findByEmail(context, "test@email.com");
+        if(eperson == null)
+        {
+            // This EPerson creation should only happen once (i.e. for first test run)
+            log.info("Creating initial EPerson (email=test@email.com) for Unit Tests");
+            eperson = ePersonService.create(context);
+            eperson.setFirstName(context, "first");
+            eperson.setLastName(context, "last");
+            eperson.setEmail("test@email.com");
+            eperson.setCanLogIn(true);
+            eperson.setLanguage(context, I18nUtil.getDefaultLocale().getLanguage());
+            // actually save the eperson to unit testing DB
+            ePersonService.update(context, eperson);
+        }
+        // Set our global test EPerson as the current user in DSpace
+        context.setCurrentUser(eperson);
+
+        // If our Anonymous/Administrator groups aren't initialized, initialize them as well
+        EPersonServiceFactory.getInstance().getGroupService().initDefaultGroupNames(context);
+		
 		this.owningCommunity = communityService.create(null, context);
 		this.collection = collectionService.create(context, owningCommunity);
 		WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false);
@@ -133,6 +143,8 @@ public class ItemRestControllerTest {
 
 	@Test
 	public void readItem() throws Exception {
+		mockMvc.perform(get("/api/core/item/1")).andExpect(status().isOk());
+		
 		mockMvc.perform(get("/api/core/item/" + this.dspaceObject.getID())).andExpect(status().isOk())
 				.andExpect(content().contentType(contentType)).andExpect(jsonPath("$.id", is(dspaceObject.getID())));
 	}
@@ -147,40 +159,5 @@ public class ItemRestControllerTest {
 		MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
 		this.mappingJackson2HttpMessageConverter.write(o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
 		return mockHttpOutputMessage.getBodyAsString();
-	}
-
-	/**
-	 * This method will be run before the first test as per @BeforeClass. It
-	 * will initialize shared resources required for all tests of this class.
-	 *
-	 * This method loads our test properties to initialize our test environment,
-	 * and then starts the DSpace Kernel (which allows access to services).
-	 */
-	public void initKernel() {
-		// set a standard time zone for the tests
-		TimeZone.setDefault(TimeZone.getTimeZone("Europe/Dublin"));
-
-		// Initialise the service manager kernel
-		kernelImpl = DSpaceKernelInit.getKernel(null);
-		if (!kernelImpl.isRunning()) {
-			// NOTE: the "dspace.dir" system property MUST be specified via
-			// Maven
-			kernelImpl.start(System.getProperty("dspace.dir")); // init the
-																// kernel
-		}
-	}
-
-	/**
-	 * This method will be run after all tests finish as per @AfterClass. It
-	 * will clean resources initialized by the @BeforeClass methods.
-	 */
-	@After
-	public void destroyKernel() throws SQLException {
-
-		// Also clear out the kernel & nullify (so JUnit will clean it up)
-		if (kernelImpl != null) {
-			kernelImpl.destroy();
-		}
-		kernelImpl = null;
 	}
 }
