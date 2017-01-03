@@ -9,6 +9,7 @@ package org.dspace.core;
 
 import org.dspace.storage.rdbms.DatabaseConfigVO;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
@@ -64,4 +65,6 @@ public interface DBConnection<T> {
      *     An exception that provides information on a database access error or other errors.
      */
     public <E extends ReloadableEntity> void uncacheEntity(E entity) throws SQLException ;
+
+	EntityManagerFactory getEntityManagerFactory();
 }

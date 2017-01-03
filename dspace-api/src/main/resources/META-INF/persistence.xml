@@ -1,0 +1,70 @@
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+	<persistence-unit name="default">
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<!-- Entities to be loaded by hibernate -->
+		<class>org.dspace.app.util.WebApp</class>
+
+		<class>org.dspace.authorize.ResourcePolicy</class>
+
+		<class>org.dspace.checker.ChecksumHistory</class>
+		<class>org.dspace.checker.ChecksumResult</class>
+		<class>org.dspace.checker.MostRecentChecksum</class>
+
+		<class>org.dspace.content.DSpaceObject</class>
+		<class>org.dspace.content.Bitstream</class>
+		<class>org.dspace.content.BitstreamFormat</class>
+		<class>org.dspace.content.Bundle</class>
+		<class>org.dspace.content.Collection</class>
+		<class>org.dspace.content.Community</class>
+		<class>org.dspace.content.Item</class>
+		<class>org.dspace.content.MetadataField</class>
+		<class>org.dspace.content.MetadataSchema</class>
+		<class>org.dspace.content.MetadataValue</class>
+		<class>org.dspace.content.Site</class>
+		<class>org.dspace.content.WorkspaceItem</class>
+
+		<class>org.dspace.eperson.EPerson</class>
+		<class>org.dspace.eperson.Group</class>
+		<class>org.dspace.eperson.Group2GroupCache</class>
+		<class>org.dspace.eperson.RegistrationData</class>
+		<class>org.dspace.eperson.Subscription</class>
+
+		<class>org.dspace.handle.Handle</class>
+
+		<class>org.dspace.harvest.HarvestedCollection</class>
+		<class>org.dspace.harvest.HarvestedItem</class>
+
+		<class>org.dspace.identifier.DOI</class>
+
+		<class>org.dspace.versioning.Version</class>
+		<class>org.dspace.versioning.VersionHistory</class>
+
+		<class>org.dspace.app.requestitem.RequestItem</class>
+
+		<!--Basic workflow services, comment or remove when switching to the configurable 
+			workflow -->
+		<class>org.dspace.workflowbasic.BasicWorkflowItem</class>
+		<class>org.dspace.workflowbasic.TaskListItem</class>
+
+		<shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
+		<!--Configurable workflow services, uncomment the xml workflow classes 
+			below to enable the configurable workflow -->
+		<!--<class>org.dspace.xmlworkflow.storedcomponents.ClaimedTask</class> 
+			<class>org.dspace.xmlworkflow.storedcomponents.CollectionRole</class> <class>org.dspace.xmlworkflow.storedcomponents.InProgressUser</class> 
+			<class>org.dspace.xmlworkflow.storedcomponents.PoolTask</class> <class>org.dspace.xmlworkflow.storedcomponents.WorkflowItemRole</class> 
+			<class>org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem</class> -->
+		<properties>
+			<property name="hibernate.hbm2ddl.auto">validate</property>
+			<property name="hibernate.hbm2ddl.import_files_sql_extractor">org.hibernate.tool.hbm2ddl.SingleLineSqlCommandExtractor</property>
+			<property name="hibernate.connection.autocommit">false</property>
+			<property name="hibernate.current_session_context_class">org.hibernate.context.internal.ThreadLocalSessionContext</property>
+
+			<!--Debug property that can be used to display the sql -->
+			<property name="show_sql">false</property>
+
+		</properties>
+	</persistence-unit>
+</persistence>

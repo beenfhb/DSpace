@@ -1,25 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd" default-lazy-init="true">
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+    	http://www.springframework.org/schema/tx
+    	http://www.springframework.org/schema/tx/spring-tx-2.0.xsd" default-lazy-init="true">
 
-    <!-- Hibernate 4 Configuration -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean" lazy-init="true">
-        <!-- Load most Hibernate settings from hibernate.cfg.xml -->
+    <!-- Hibernate 5 Configuration as JPA -->
+    <!-- <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" lazy-init="true">
+        Load most Hibernate settings from hibernate.cfg.xml
         <property name="configLocation" value="file:${dspace.dir}/config/hibernate.cfg.xml"/>
-        <!-- Use the dataSource defined in the bean below. This is necessary so that Flyway can initialize
-             our database using the dataSource *prior* to Hibernate taking over -->
+        Use the dataSource defined in the bean below. This is necessary so that Flyway can initialize
+             our database using the dataSource *prior* to Hibernate taking over
         <property name="dataSource" ref="dataSource" />
-        <!-- Specify some additional Hibernate settings via dynamic properties. As noted below,
-        these values will be dynamically loaded from DSpace's ConfigurationService. -->
-        <!-- All other Hibernate settings are specified via the hibernate.cfg.xml referenced above. -->
+        Specify some additional Hibernate settings via dynamic properties. As noted below,
+        these values will be dynamically loaded from DSpace's ConfigurationService.
+        All other Hibernate settings are specified via the hibernate.cfg.xml referenced above.
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">${db.dialect}</prop>
                 <prop key="hibernate.default_schema">${db.schema}</prop>
             </props>
         </property>
-    </bean>
+    </bean> -->
+    
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+	    <property name="dataSource" ref="dataSource"/>
+	    <property name="jpaVendorAdapter">
+	        <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+	    </property>
+	    <property name="mappingResources">
+	    	<list>
+	    		<value>file:${dspace.dir}/config/dspace-orm.xml</value>
+	    	</list>
+	    </property>
+	    <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.dialect">${db.dialect}</prop>
+                <prop key="hibernate.default_schema">${db.schema}</prop>
+                
+                <prop key="hibernate.hbm2ddl.auto">validate</prop>
+		        <prop key="hibernate.hbm2ddl.import_files_sql_extractor">org.hibernate.tool.hbm2ddl.SingleLineSqlCommandExtractor</prop>
+		        <prop key="hibernate.connection.autocommit">false</prop>
+		        <prop key="hibernate.jdbc.batch_size">20</prop>
+		        <prop key="hibernate.current_session_context_class">org.hibernate.context.internal.ThreadLocalSessionContext</prop>
+		
+		        <!--Debug property that can be used to display the sql-->
+		        <prop key="show_sql">false</prop>
+		
+		        <!--Second level cache configuration-->
+		        <prop key="hibernate.cache.use_second_level_cache">true</prop>
+		        <prop key="hibernate.cache.use_query_cache">true</prop>
+		        <prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</prop>
+		        <prop key="javax.persistence.sharedCache.mode">ENABLE_SELECTIVE</prop>
+            </props>
+        </property>
+	</bean>
+    
+    <!-- expose the session factory during the refactoring -->
+    <bean id="sessionFactory" class="org.springframework.orm.jpa.vendor.HibernateJpaSessionFactoryBean">
+    	<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
 
     <bean id='dataSource'
           class='org.springframework.jndi.JndiObjectFactoryBean'>
@@ -43,6 +86,14 @@
         <property name="maxWaitMillis" value="${db.maxwait}"/>
         <property name="maxIdle" value="${db.maxidle}"/>
         <property name="maxTotal" value="${db.maxconnections}"/>
+    </bean>
+
+    <!-- Enables the Hibernate @Transactional programming model -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
     </bean>
 
 </beans>
