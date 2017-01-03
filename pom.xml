@@ -672,6 +672,21 @@
             </modules>
         </profile>
 
+<!--
+             Builds Spring REST API WAR for DSpace
+        -->
+        <profile>
+            <id>dspace-spring-rest</id>
+            <activation>
+                <file>
+                    <exists>dspace-spring-rest/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>dspace-spring-rest</module>
+            </modules>
+        </profile>
+
         <!--
          The 'release' profile is used by the 'maven-release-plugin' (see above)
          to actually perform a DSpace software release to Maven central.
@@ -694,6 +709,7 @@
                 <module>dspace-solr</module>
                 <module>dspace-sword</module>
                 <module>dspace-swordv2</module>
+                <module>dspace-spring-rest</module>
             </modules>
             <build>
                 <plugins>
@@ -856,6 +872,19 @@
                 <version>7.0-SNAPSHOT</version>
                 <type>war</type>
                 <classifier>skinny</classifier>
+            </dependency>
+            <dependency>
+                <groupId>org.dspace</groupId>
+                <artifactId>dspace-spring-rest</artifactId>
+                <version>7.0-SNAPSHOT</version>
+                <type>jar</type>
+                <classifier>classes</classifier>
+            </dependency>
+            <dependency>
+                <groupId>org.dspace</groupId>
+                <artifactId>dspace-spring-rest</artifactId>
+                <version>7.0-SNAPSHOT</version>
+                <type>war</type>
             </dependency>
 
             <!-- DSpace Localization Packages -->
