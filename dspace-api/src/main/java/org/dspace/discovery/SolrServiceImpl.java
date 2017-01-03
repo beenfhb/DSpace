@@ -14,14 +14,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.AbstractUpdateRequest;
@@ -54,11 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -124,7 +116,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     /**
      * Non-Static CommonsHttpSolrServer for processing indexing events.
      */
-    private HttpSolrServer solr = null;
+    private SolrServer solr = null;
 
 
     protected SolrServiceImpl()
@@ -132,39 +124,41 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     }
 
-    protected HttpSolrServer getSolr()
+    protected SolrServer getSolr()
     {
         if ( solr == null)
         {
             String solrService = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("discovery.search.server");
 
-            UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
-            if (urlValidator.isValid(solrService)||ConfigurationManager.getBooleanProperty("discovery","solr.url.validation.enabled",true))
-            {
-                try {
-                    log.debug("Solr URL: " + solrService);
-                    solr = new HttpSolrServer(solrService);
-
-                    solr.setBaseURL(solrService);
-                    solr.setUseMultiPartPost(true);
-                    // Dummy/test query to search for Item (type=2) of ID=1
-                    SolrQuery solrQuery = new SolrQuery()
-                            .setQuery(RESOURCE_TYPE_FIELD + ":2 AND " + RESOURCE_ID_FIELD + ":1");
-                    // Only return obj identifier fields in result doc
-                    solrQuery.setFields(RESOURCE_TYPE_FIELD, RESOURCE_ID_FIELD);
-                    solr.query(solrQuery);
-
-                    // As long as Solr initialized, check with DatabaseUtils to see
-                    // if a reindex is in order. If so, reindex everything
-                    DatabaseUtils.checkReindexDiscovery(this);
-                } catch (SolrServerException e) {
-                    log.error("Error while initializing solr server", e);
-                }
-            }
-            else
-            {
-                log.error("Error while initializing solr, invalid url: " + solrService);
-            }
+//            UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
+//            if (urlValidator.isValid(solrService)||ConfigurationManager.getBooleanProperty("discovery","solr.url.validation.enabled",true))
+//            {
+//                try {
+//                    log.debug("Solr URL: " + solrService);
+////                    HttpClientBuilder httpClient = HttpClientBuilder.create().useSystemProperties();
+////                    SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient();
+//                    solr = new HttpSolrServer(solrService);//, httpClient);
+//
+//                    ((HttpSolrServer)solr).setBaseURL(solrService);
+//                    ((HttpSolrServer)solr).setUseMultiPartPost(true);
+//                    // Dummy/test query to search for Item (type=2) of ID=1
+//                    SolrQuery solrQuery = new SolrQuery()
+//                            .setQuery(RESOURCE_TYPE_FIELD + ":2 AND " + RESOURCE_ID_FIELD + ":1");
+//                    // Only return obj identifier fields in result doc
+//                    solrQuery.setFields(RESOURCE_TYPE_FIELD, RESOURCE_ID_FIELD);
+//                    solr.query(solrQuery);
+//
+//                    // As long as Solr initialized, check with DatabaseUtils to see
+//                    // if a reindex is in order. If so, reindex everything
+//                    DatabaseUtils.checkReindexDiscovery(this);
+//                } catch (SolrServerException e) {
+//                    log.error("Error while initializing solr server", e);
+//                }
+//            }
+//            else
+//            {
+//                log.error("Error while initializing solr, invalid url: " + solrService);
+//            }
         }
 
         return solr;
@@ -1819,54 +1813,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return solrQuery;
     }
 
-    @Override
-    public InputStream searchJSON(Context context, DiscoverQuery query, DSpaceObject dso, String jsonIdentifier) throws SearchServiceException {
-        if (dso != null)
-        {
-            if (dso instanceof Community)
-            {
-                query.addFilterQueries("location:m" + dso.getID());
-            } else if (dso instanceof Collection)
-            {
-                query.addFilterQueries("location:l" + dso.getID());
-            } else if (dso instanceof Item)
-            {
-                query.addFilterQueries(HANDLE_FIELD + ":" + dso.getHandle());
-            }
-        }
-        return searchJSON(context, query, jsonIdentifier);
-    }
-
-
-    @Override
-    public InputStream searchJSON(Context context, DiscoverQuery discoveryQuery, String jsonIdentifier) throws SearchServiceException {
-        if (getSolr() == null)
-        {
-            return null;
-        }
-
-        SolrQuery solrQuery = resolveToSolrQuery(context, discoveryQuery, false);
-        //We use json as out output type
-        solrQuery.setParam("json.nl", "map");
-        solrQuery.setParam("json.wrf", jsonIdentifier);
-        solrQuery.setParam(CommonParams.WT, "json");
-
-        StringBuilder urlBuilder = new StringBuilder();
-        urlBuilder.append(getSolr().getBaseURL()).append("/select?");
-        urlBuilder.append(solrQuery.toString());
-
-        try {
-            HttpGet get = new HttpGet(urlBuilder.toString());
-            HttpResponse response = new DefaultHttpClient().execute(get);
-            return response.getEntity().getContent();
-
-        } catch (Exception e)
-        {
-            log.error("Error while getting json solr result for discovery search recommendation", e);
-        }
-        return null;
-    }
-
     protected DiscoverResult retrieveResult(Context context, DiscoverQuery query, QueryResponse solrQueryResponse) throws SQLException {
         DiscoverResult result = new DiscoverResult();
 
@@ -2032,36 +1978,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
 
-    /**
-     * Simple means to return the search result as an InputStream
-     *
-     * @param query discovery query
-     * @return input stream
-     * @throws IOException
-     *     A general class of exceptions produced by failed or interrupted I/O operations.
-     * @throws SearchServiceException if something went wrong with querying the solr server
-     */
-    public java.io.InputStream searchAsInputStream(DiscoverQuery query) throws SearchServiceException, java.io.IOException {
-        if (getSolr() == null)
-        {
-            return null;
-        }
-        HttpHost hostURL = (HttpHost)(getSolr().getHttpClient().getParams().getParameter(ClientPNames.DEFAULT_HOST));
-
-        HttpGet method = new HttpGet(hostURL.toHostString() + "");
-        try
-        {
-            URI uri = new URIBuilder(method.getURI()).addParameter("q",query.toString()).build();
-        }
-        catch (URISyntaxException e)
-        {
-            throw new SearchServiceException(e);
-        }
-
-        HttpResponse response = getSolr().getHttpClient().execute(method);
-
-        return response.getEntity().getContent();
-    }
+  
 
     public List<DSpaceObject> search(Context context, String query, int offset, int max, String... filterquery)
     {

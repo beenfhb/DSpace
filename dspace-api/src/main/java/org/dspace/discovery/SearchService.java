@@ -90,11 +90,6 @@ public interface SearchService {
     DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn) throws SearchServiceException;
 
     
-    InputStream searchJSON(Context context, DiscoverQuery query, String jsonIdentifier) throws SearchServiceException;
-
-    InputStream searchJSON(Context context, DiscoverQuery query, DSpaceObject dso, String jsonIdentifier) throws SearchServiceException;
-
-
     List<DSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset, int max, String... filterquery);
 
 
