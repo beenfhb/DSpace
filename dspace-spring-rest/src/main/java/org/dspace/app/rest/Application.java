@@ -18,7 +18,7 @@ import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
 import org.dspace.app.rest.filter.DSpaceRequestContextFilter;
-import org.dspace.app.rest.utils.SpringBootConfiguration;
+import org.dspace.app.rest.utils.ApplicationConfig;
 import org.dspace.app.util.DSpaceContextListener;
 import org.dspace.core.DBConnection;
 import org.dspace.servicemanager.DSpaceKernelImpl;
@@ -37,8 +37,6 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 /**
  * Define the Spring Boot Application settings itself. This class takes the place 
@@ -50,6 +48,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  * a deployable WAR file with Spring Boot. See:
  * http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#howto-create-a-deployable-war-file
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  * @author Tim Donohue
  */
 @SpringBootApplication
@@ -58,7 +57,7 @@ public class Application extends SpringBootServletInitializer
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
     @Autowired
-    private SpringBootConfiguration configuration;
+    private ApplicationConfig configuration;
     
     /**
      * Override the default SpringBootServletInitializer.configure() method,

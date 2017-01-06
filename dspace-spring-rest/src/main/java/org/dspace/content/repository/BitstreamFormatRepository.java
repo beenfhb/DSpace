@@ -1,4 +1,4 @@
-package org.dspace.app.rest;
+package org.dspace.content.repository;
 
 import java.util.List;
 
