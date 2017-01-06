@@ -11,6 +11,10 @@ import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.hibernate.annotations.Type;
 import org.hibernate.proxy.HibernateProxyHelper;
+import org.springframework.data.rest.core.annotation.RestResource;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
@@ -92,6 +96,7 @@ public class MetadataValue implements ReloadableEntity<Integer>
      *
      * @return dspaceObject
      */
+    @JsonIgnore
     public DSpaceObject getDSpaceObject()
     {
         return dSpaceObject;

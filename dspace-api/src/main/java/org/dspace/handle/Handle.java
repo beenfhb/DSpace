@@ -13,6 +13,8 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 /**
@@ -35,12 +37,14 @@ public class Handle implements ReloadableEntity<Integer> {
 
     @ManyToOne(fetch =  FetchType.EAGER)
     @JoinColumn(name = "resource_id")
+    @JsonIgnore
     private DSpaceObject dso;
 
     /*
      * {@see org.dspace.core.Constants#Constants Constants}
      */
     @Column(name = "resource_type_id")
+    @JsonIgnore
     private Integer resourceTypeId;
 
     /**

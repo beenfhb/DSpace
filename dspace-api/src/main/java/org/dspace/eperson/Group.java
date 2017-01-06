@@ -18,6 +18,8 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.hibernate.proxy.HibernateProxyHelper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -73,6 +75,7 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
     private final List<Group> parentGroups = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "supervisorGroups")
+    @JsonIgnore
     private final List<WorkspaceItem> supervisedItems = new ArrayList<>();
 
     @Transient

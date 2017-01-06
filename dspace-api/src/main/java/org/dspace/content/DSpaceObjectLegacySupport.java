@@ -7,6 +7,8 @@
  */
 package org.dspace.content;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Database Object interface interface class that adds that getLegacyId method which returns the old integer based identifier
  * that was used to identify DSpaceObjects prior to DSpace 6.0
@@ -18,6 +20,7 @@ public interface DSpaceObjectLegacySupport {
     /**
      * @return the old integer based legacy identifier
      */
+	@JsonIgnore
     public Integer getLegacyId();
 
 }

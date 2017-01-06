@@ -7,18 +7,34 @@
  */
 package org.dspace.content;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.handle.Handle;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.data.rest.core.annotation.RestResource;
 
-import java.io.Serializable;
-import java.util.*;
-
-import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 /**
  * Abstract base class for DSpace objects
@@ -41,6 +57,8 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "dSpaceObject", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("metadataField, place")
+    @RestResource(exported=true)
+    @JsonIgnore(value=false)
     private List<MetadataValue> metadata = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "dso")
@@ -48,6 +66,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     // multiple handles are assigned to the latest version of an item the original handle will have the lowest identifier
     // This handle is the preferred handle.
     @OrderBy("id ASC")
+    @RestResource(rel="identifiers", path="identifiers")
     private List<Handle> handles = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "dSpaceObject", cascade = CascadeType.ALL)
@@ -99,6 +118,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     /**
      * @return summary of event details, or null if there are none.
      */
+    @JsonIgnore
     public String getDetails()
     {
         return (eventDetails == null ? null : eventDetails.toString());
@@ -109,6 +129,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
      * 
      * @return type of the object
      */
+    @JsonIgnore
     public abstract int getType();
 
     /**
@@ -128,6 +149,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
      * @return Handle of the object, or <code>null</code> if it doesn't have
      *         one
      */
+    @JsonProperty(access=Access.READ_ONLY)
     public String getHandle()
     {
         return (CollectionUtils.isNotEmpty(handles) ? handles.get(0).getHandle() : null);
@@ -147,7 +169,9 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
         return handles;
     }
 
-    protected List<MetadataValue> getMetadata() {
+    @RestResource(exported=true)
+    @JsonIgnore(value=false)
+    public List<MetadataValue> getMetadata() {
         return metadata;
     }
 
@@ -178,6 +202,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
         return resourcePolicies;
     }
 
+    @JsonIgnore
     public boolean isMetadataModified() {
         return modifiedMetadata;
     }
@@ -186,6 +211,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
         this.modifiedMetadata = true;
     }
 
+    @JsonIgnore
     public boolean isModified() {
         return modified;
     }

@@ -14,6 +14,8 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.hibernate.proxy.HibernateProxyHelper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -341,6 +343,7 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport
         return legacyId;
     }
 
+    @JsonIgnore
     public ItemService getItemService()
     {
         if(itemService == null)

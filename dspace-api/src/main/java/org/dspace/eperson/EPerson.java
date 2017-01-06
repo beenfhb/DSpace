@@ -18,6 +18,8 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.hibernate.proxy.HibernateProxyHelper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -66,6 +68,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
     private String digestAlgorithm;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "epeople")
+    @JsonIgnore
     private final List<Group> groups = new ArrayList<>();
 
     /** The e-mail field (for sorting) */

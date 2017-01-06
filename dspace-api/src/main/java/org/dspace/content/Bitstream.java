@@ -17,6 +17,9 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.hibernate.proxy.HibernateProxyHelper;
+import org.springframework.data.rest.core.annotation.RestResource;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
@@ -61,13 +64,16 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bitstream_format_id")
     private BitstreamFormat bitstreamFormat;
-
+    
+    @RestResource(exported=false)
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "bitstreams")
     private List<Bundle> bundles = new ArrayList<>();
-
+    
+    @RestResource(exported=false)
     @OneToOne(fetch = FetchType.LAZY, mappedBy="logo")
     private Community community;
-
+    
+    @RestResource(exported=false)
     @OneToOne(fetch = FetchType.LAZY, mappedBy="logo")
     private Collection collection;
 
@@ -280,6 +286,7 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
      * @return array of <code>Bundle</code> s this bitstream appears in
      * @throws SQLException if database error
      */
+    @JsonIgnore
     public List<Bundle> getBundles() throws SQLException
     {
         return bundles;
@@ -301,10 +308,12 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
         return Constants.BITSTREAM;
     }
 
+    @JsonIgnore
     public Collection getCollection() {
         return collection;
     }
 
+    @JsonIgnore
     public Community getCommunity() {
         return community;
     }
@@ -327,6 +336,7 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
         this.storeNumber = storeNumber;
     }
 
+    @JsonIgnore
     public String getInternalId() {
         return internalId;
     }
