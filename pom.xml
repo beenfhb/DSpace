@@ -28,11 +28,9 @@
         <solr.version>4.10.4</solr.version>
         <jena.version>2.13.0</jena.version>
         <slf4j.version>1.7.22</slf4j.version>
-        <!--
-            Hibernate version pinned to 4.2, 4.3 does not work with the spring version we are currently using
-            Upgrading the spring version will make the XMLUI crash
-        -->
-        <hibernate.version>5.0.11.Final</hibernate.version>
+        <!-- Versions of main dependencies -->
+        <spring-boot.version>1.4.3.RELEASE</spring-boot.version>
+        <!-- <hibernate.version>5.0.11.Final</hibernate.version> -->
         <spring.version>4.3.5.RELEASE</spring.version>
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
@@ -901,7 +899,7 @@
             </dependency>
          
             <!-- DSpace third Party Dependencies -->
-            <dependency>
+<!--             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
@@ -912,64 +910,11 @@
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-orm</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
+ -->
             <dependency>
                 <groupId>org.swordapp</groupId>
                 <artifactId>sword-common</artifactId>
                 <version>1.1</version>
-            </dependency>
-            <!-- Explicitly Specify Latest Version of Spring -->
-            <dependency>
-                <artifactId>spring-core</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-beans</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-aop</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-context</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-tx</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-jdbc</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-web</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
-            </dependency>
-
-            <dependency>
-                <artifactId>spring-webmvc</artifactId>
-                <groupId>org.springframework</groupId>
-                <version>${spring.version}</version>
             </dependency>
 
             <dependency>
@@ -1344,6 +1289,20 @@
                 <version>3.0.1u2</version>
                 <scope>provided</scope>
             </dependency>
+	        <dependency>
+	            <!-- Import dependency management from Spring Boot -->
+	            <groupId>org.springframework.boot</groupId>
+	            <artifactId>spring-boot-dependencies</artifactId>
+	            <version>${spring-boot.version}</version>
+	            <type>pom</type>
+	            <scope>import</scope>
+	        </dependency>
+	        <!-- spring-context-support is not included?! in the spring-boot-dependencies -->
+	        <dependency>
+	            <groupId>org.springframework</groupId>
+	            <artifactId>spring-context-support</artifactId>
+	            <version>${spring.version}</version>
+	        </dependency>
         </dependencies>
     </dependencyManagement>
 

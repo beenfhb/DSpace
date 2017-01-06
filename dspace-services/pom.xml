@@ -10,6 +10,7 @@
         <groupId>org.dspace</groupId>
         <artifactId>dspace-parent</artifactId>
         <version>7.0-SNAPSHOT</version>
+        <relativePath>../</relativePath>
     </parent>
 
     <properties>
@@ -89,7 +90,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
-            <version>${spring.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
