@@ -1297,12 +1297,34 @@
 	            <type>pom</type>
 	            <scope>import</scope>
 	        </dependency>
-	        <!-- spring-context-support is not included?! in the spring-boot-dependencies -->
 	        <dependency>
-	            <groupId>org.springframework</groupId>
-	            <artifactId>spring-context-support</artifactId>
-	            <version>${spring.version}</version>
-	        </dependency>
+		        <groupId>org.springframework</groupId>
+	    		<artifactId>spring-context-support</artifactId>
+		        <!-- we need an old version of spring-context-support  -->
+		        <version>3.2.13.RELEASE</version><!-- wersja wymagana przez ehcache-core 2.4.8-->
+			    <exclusions>
+			      <exclusion>
+			        <groupId>org.springframework</groupId>
+			        <artifactId>spring-beans</artifactId>
+			      </exclusion>
+			      <exclusion>
+			        <groupId>org.springframework</groupId>
+			        <artifactId>spring-context</artifactId>
+			      </exclusion>
+			      <exclusion>
+			        <groupId>org.springframework</groupId>
+			        <artifactId>spring-core</artifactId>
+			      </exclusion>
+			      <exclusion>
+			        <groupId>org.springframework</groupId>
+			        <artifactId>spring-jdbc</artifactId>
+			      </exclusion>
+			      <exclusion>
+			        <groupId>org.springframework</groupId>
+			        <artifactId>spring-tx</artifactId>
+			      </exclusion>
+			    </exclusions>
+		    </dependency> 
         </dependencies>
     </dependencyManagement>
 

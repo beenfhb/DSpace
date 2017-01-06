@@ -88,6 +88,10 @@
         </dependency>
         <!-- spring service manager -->
         <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
             <scope>compile</scope>
@@ -96,13 +100,10 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
-        <!-- this needs to eventually go into common/lib for tomcat 5 -->
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-            <version>2.4.3</version>
-            <scope>compile</scope>
-        </dependency>
+	    <dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+		</dependency>
         <!-- for filters -->
         <dependency>
             <groupId>javax.servlet</groupId>
