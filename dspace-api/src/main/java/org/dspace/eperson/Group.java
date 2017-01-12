@@ -7,23 +7,29 @@
  */
 package org.dspace.eperson;
 
-import org.apache.commons.lang3.StringUtils;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.DSpaceObjectLegacySupport;
-import org.dspace.content.MetadataSchema;
-import org.dspace.content.WorkspaceItem;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.GroupService;
-import org.hibernate.proxy.HibernateProxyHelper;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import javax.persistence.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.DSpaceObjectLegacySupport;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.hibernate.proxy.HibernateProxyHelper;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Class representing a group of e-people.
@@ -32,6 +38,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "epersongroup" )
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 {
 
@@ -75,10 +82,10 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
     private final List<Group> parentGroups = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "supervisorGroups")
-    @JsonIgnore
     private final List<WorkspaceItem> supervisedItems = new ArrayList<>();
 
     @Transient
+    @JsonIgnore
     private boolean groupsChanged;
 
     /**
