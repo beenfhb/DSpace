@@ -61,8 +61,8 @@ public final class DSpaceBeanPostProcessor implements BeanPostProcessor, Destruc
         DSpaceServiceManager.shutdownService(bean);
     }
 
-    @Override
-    public boolean requiresDestruction(Object arg0) {
-    	return false;
-    }
+//    @Override
+//    public boolean requiresDestruction(Object arg0) {
+//    	return false;
+//    }
 }
