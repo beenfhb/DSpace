@@ -62,7 +62,7 @@ public final class DSpaceBeanPostProcessor implements BeanPostProcessor, Destruc
     }
 
 //    @Override
-//    public boolean requiresDestruction(Object arg0) {
-//    	return false;
-//    }
+    public boolean requiresDestruction(Object arg0) {
+    	return false;
+    }
 }
