@@ -20,4 +20,5 @@ public class CommunityRest extends DSpaceObjectRest {
 	public String getType() {
 		return NAME;
 	}
+
 }
