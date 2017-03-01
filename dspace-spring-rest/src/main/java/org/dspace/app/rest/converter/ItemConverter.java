@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item, org.dspace.app.rest.model.ItemRest> {
-	@Autowired
+	@Autowired(required = true)
 	private CollectionConverter collectionConverter;
-	@Autowired
+	@Autowired(required = true)
 	private BitstreamConverter bitstreamConverter;
 
 	@Override
@@ -39,12 +39,12 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setWithdrawn(obj.isWithdrawn());
 		item.setLastModified(obj.getLastModified());
 		try {
-			//item.setTemplateItemOf(collectionConverter.fromModel(obj.getTemplateItemOf()));
+			item.setTemplateItemOf(collectionConverter.fromModel(obj.getTemplateItemOf()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
-			//item.setOwningCollection(collectionConverter.fromModel(obj.getOwningCollection()));
+			item.setOwningCollection(collectionConverter.fromModel(obj.getOwningCollection()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
