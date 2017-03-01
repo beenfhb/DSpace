@@ -44,6 +44,7 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setLastModified(obj.getLastModified());
 		try {
 			Collection c = obj.getOwningCollection();
+			log.info("TBTB1 "+c);
 			if (c != null) {
 				item.setOwningCollection(collectionConverter.fromModel(c));
 			}
@@ -52,6 +53,7 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		}
 		try {
 			Collection c = obj.getTemplateItemOf();
+			log.info("TBTB2 "+c);
 			if (c != null) {
 				item.setTemplateItemOf(collectionConverter.fromModel(c));
 			}
