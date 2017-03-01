@@ -10,10 +10,12 @@ package org.dspace.app.rest.converter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,11 +28,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item, org.dspace.app.rest.model.ItemRest> {
-	@Autowired
+	@Autowired(required = true)
 	private CollectionConverter collectionConverter;
-	@Autowired
+	@Autowired(required = true)
 	private BitstreamConverter bitstreamConverter;
 
+	private static final Logger log = Logger.getLogger(ItemConverter.class);
+	
 	@Override
 	public ItemRest fromModel(org.dspace.content.Item obj) {
 		ItemRest item = super.fromModel(obj);
@@ -39,14 +43,20 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setWithdrawn(obj.isWithdrawn());
 		item.setLastModified(obj.getLastModified());
 		try {
-			//item.setTemplateItemOf(collectionConverter.fromModel(obj.getTemplateItemOf()));
+			Collection c = obj.getOwningCollection();
+			if (c != null) {
+				item.setOwningCollection(collectionConverter.fromModel(c));
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error setting owning collection for item"+item.getHandle(), e);
 		}
 		try {
-			//item.setOwningCollection(collectionConverter.fromModel(obj.getOwningCollection()));
+			Collection c = obj.getTemplateItemOf();
+			if (c != null) {
+				item.setTemplateItemOf(collectionConverter.fromModel(c));
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error setting template item of for item "+item.getHandle(), e);
 		}
 		List<BitstreamRest> bitstreams = new ArrayList<BitstreamRest>();
 		for (Bundle bun : obj.getBundles()) {
