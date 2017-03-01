@@ -13,7 +13,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ItemRest;
-import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
@@ -45,8 +44,6 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setLastModified(obj.getLastModified());
 		try {
 			Collection c = obj.getOwningCollection();
-			log.error("TBTB1 " + c);
-			log.error("TBTB2 " + collectionConverter);
 			if (c != null) {
 				item.setOwningCollection(collectionConverter.fromModel(c));
 			}
@@ -55,8 +52,6 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		}
 		try {
 			Collection c = obj.getTemplateItemOf();
-			log.error("TBTB3 " + c);
-			log.error("TBTB4 " + collectionConverter);
 			if (c != null) {
 				item.setTemplateItemOf(collectionConverter.fromModel(c));
 			}
