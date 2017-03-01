@@ -48,7 +48,7 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 				item.setOwningCollection(collectionConverter.fromModel(c));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error setting owning collection for item"+item.getHandle(), e);
 		}
 		try {
 			Collection c = obj.getTemplateItemOf();
@@ -56,7 +56,7 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 				item.setTemplateItemOf(collectionConverter.fromModel(c));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error setting template item of for item "+item.getHandle(), e);
 		}
 		List<BitstreamRest> bitstreams = new ArrayList<BitstreamRest>();
 		for (Bundle bun : obj.getBundles()) {
