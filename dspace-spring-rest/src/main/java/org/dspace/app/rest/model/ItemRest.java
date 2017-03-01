@@ -22,8 +22,8 @@ public class ItemRest extends DSpaceObjectRest {
 	private boolean discoverable = false;
 	private boolean withdrawn = false;
 	private Date lastModified = new Date();
-	CollectionRest owningCollection;
-	CollectionRest templateItemOf;
+	private CollectionRest owningCollection;
+	private CollectionRest templateItemOf;
 	//private EPerson submitter;
 
 	List<BitstreamRest> bitstreams;
