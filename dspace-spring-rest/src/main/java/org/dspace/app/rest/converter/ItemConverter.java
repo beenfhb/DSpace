@@ -7,7 +7,13 @@
  */
 package org.dspace.app.rest.converter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ItemRest;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Component;
 public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item, org.dspace.app.rest.model.ItemRest> {
 	@Autowired
 	private CollectionConverter collectionConverter;
+	private BitstreamConverter bitstreamConverter;
 
 	@Override
 	public ItemRest fromModel(org.dspace.content.Item obj) {
@@ -30,8 +37,24 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setDiscoverable(obj.isDiscoverable());
 		item.setWithdrawn(obj.isWithdrawn());
 		item.setLastModified(obj.getLastModified());
-		//item.setTemplateItemOf(collectionConverter.fromModel(obj.getTemplateItemOf()));
-		//item.setOwningCollection(collectionConverter.fromModel(obj.getOwningCollection()));
+		try {
+			item.setTemplateItemOf(collectionConverter.fromModel(obj.getTemplateItemOf()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			item.setOwningCollection(collectionConverter.fromModel(obj.getOwningCollection()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		List<BitstreamRest> bitstreams = new ArrayList<BitstreamRest>();
+		for (Bundle bun : obj.getBundles()) {
+			for (Bitstream bit : bun.getBitstreams()) {
+				BitstreamRest bitrest = bitstreamConverter.fromModel(bit);
+				bitstreams.add(bitrest);
+			}
+		}
+		item.setBitstreams(bitstreams);
 		return item;
 	}
 
