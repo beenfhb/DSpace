@@ -44,9 +44,7 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setLastModified(obj.getLastModified());
 		try {
 			Collection c = obj.getOwningCollection();
-			log.info("TBTB1 "+c);
 			if (c != null) {
-				log.info("TBTB3 "+collectionConverter.fromModel(c));
 				item.setOwningCollection(collectionConverter.fromModel(c));
 			}
 		} catch (Exception e) {
@@ -54,9 +52,7 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		}
 		try {
 			Collection c = obj.getTemplateItemOf();
-			log.info("TBTB2 "+c);
 			if (c != null) {
-				log.info("TBTB4 "+collectionConverter.fromModel(c));
 				item.setTemplateItemOf(collectionConverter.fromModel(c));
 			}
 		} catch (Exception e) {
