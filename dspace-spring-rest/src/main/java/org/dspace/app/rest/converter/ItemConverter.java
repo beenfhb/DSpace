@@ -14,6 +14,7 @@ import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,12 +40,18 @@ public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item
 		item.setWithdrawn(obj.isWithdrawn());
 		item.setLastModified(obj.getLastModified());
 		try {
-			item.setTemplateItemOf(collectionConverter.fromModel(obj.getTemplateItemOf()));
+			Collection c = obj.getOwningCollection();
+			if (c != null) {
+				item.setOwningCollection(collectionConverter.fromModel(c));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
-			item.setOwningCollection(collectionConverter.fromModel(obj.getOwningCollection()));
+			Collection c = obj.getTemplateItemOf();
+			if (c != null) {
+				item.setTemplateItemOf(collectionConverter.fromModel(c));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
