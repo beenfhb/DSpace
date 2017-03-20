@@ -18,6 +18,7 @@ import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.webui.jsptag.MetadataAuthorityService;
 import org.dspace.content.Metadatum;
 import org.dspace.content.authority.MetadataAuthorityManager;
 import org.dspace.core.I18nUtil;
@@ -28,6 +29,10 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
     /** log4j category */
     private static Logger log = Logger.getLogger(DefaultDisplayStrategy.class);
 
+    
+    private final transient MetadataAuthorityService metadataAuthorityService
+            = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+    
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, int itemid, String field,
@@ -58,7 +63,7 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
                 String argument;
                 String value;
                 if (metadataArray[j].authority != null &&
-                        metadataArray[j].confidence >= MetadataAuthorityManager.getManager()
+                        metadataArray[j].confidence >= metadataAuthorityService
                             .getMinConfidence(metadataArray[j].schema, metadataArray[j].element, metadataArray[j].qualifier))
                 {
                     argument = "authority";

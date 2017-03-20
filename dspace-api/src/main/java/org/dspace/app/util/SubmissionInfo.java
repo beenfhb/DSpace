@@ -28,7 +28,6 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.workflow.WorkflowItem;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 
 /**
  * Information about an item being editing with the submission UI
@@ -170,7 +169,7 @@ public class SubmissionInfo extends HashMap
      */
     public boolean isInWorkflow()
     {
-        return ((this.submissionItem != null) && (this.submissionItem instanceof WorkflowItem || this.submissionItem instanceof XmlWorkflowItem));
+        return ((this.submissionItem != null) && this.submissionItem instanceof WorkflowItem);
     }
 
     public boolean isEditing() {
@@ -242,7 +241,7 @@ public class SubmissionInfo extends HashMap
     /**
      * Returns a particular global step definition based on its ID.
      * <P>
-     * Global step definitions are those defined in the <step-definitions>
+     * Global step definitions are those defined in the {@code <step-definitions>}
      * section of the configuration file.
      * 
      * @param stepID

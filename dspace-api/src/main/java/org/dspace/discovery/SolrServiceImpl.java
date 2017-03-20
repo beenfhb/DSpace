@@ -67,49 +67,45 @@ import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SpellingParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.extraction.ExtractingParams;
-import org.dspace.app.util.Util;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
+import org.dspace.content.*;
 import org.dspace.content.Collection;
-import org.dspace.content.Community;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
-import org.dspace.content.Metadatum;
-import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.authority.MetadataAuthorityManager;
-import org.dspace.content.crosswalk.IConverter;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.core.Email;
-import org.dspace.core.I18nUtil;
-import org.dspace.core.LogManager;
-import org.dspace.core.PluginManager;
-import org.dspace.discovery.configuration.DiscoveryConfiguration;
-import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
-import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
-import org.dspace.discovery.configuration.DiscoveryHitHighlightingConfiguration;
-import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
-import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
-import org.dspace.discovery.configuration.DiscoverySearchFilter;
-import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
-import org.dspace.discovery.configuration.DiscoverySortConfiguration;
-import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
-import org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration;
-import org.dspace.handle.HandleManager;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.*;
+import org.dspace.discovery.configuration.*;
+import org.dspace.handle.service.HandleService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.util.MultiFormatDateParser;
-import org.dspace.utils.DSpace;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 /**
  * SolrIndexer contains the methods that index Items and their metadata,
  * collections, communities, etc. It is meant to either be invoked from the
  * command line (see dspace/bin/index-all) or via the indexContent() methods
  * within DSpace.
- * <p/>
+ * <p>
  * The Administrator can choose to run SolrIndexer in a cron that repeats
  * regularly, a failed attempt to index from the UI will be "caught" up on in
  * that cron.
@@ -143,17 +139,37 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     public static final String VARIANTS_STORE_SEPARATOR = "###";
 
+    @Autowired(required = true)
+    protected ContentServiceFactory contentServiceFactory;
+    @Autowired(required = true)
+    protected ChoiceAuthorityService choiceAuthorityService;
+    @Autowired(required = true)
+    protected CommunityService communityService;
+    @Autowired(required = true)
+    protected CollectionService collectionService;
+    @Autowired(required = true)
+    protected ItemService itemService;
+    @Autowired(required = true)
+    protected HandleService handleService;
+    @Autowired(required = true)
+    protected MetadataAuthorityService metadataAuthorityService;
+
     /**
      * Non-Static CommonsHttpSolrServer for processing indexing events.
      */
     private HttpSolrServer solr = null;
 
 
+    protected SolrServiceImpl()
+    {
+
+    }
+
     protected HttpSolrServer getSolr()
     {
         if ( solr == null)
         {
-            String solrService = new DSpace().getConfigurationService().getProperty("discovery.search.server");
+            String solrService = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("discovery.search.server");
 
             UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
             if (urlValidator.isValid(solrService)||ConfigurationManager.getBooleanProperty("discovery","solr.url.validation.enabled",true))
@@ -194,8 +210,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      *
      * @param context Users Context
      * @param dso     DSpace Object (Item, Collection or Community
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if error
      */
     @Override
     public void indexContent(Context context, DSpaceObject dso)
@@ -211,8 +226,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * @param context Users Context
      * @param dso     DSpace Object (Item, Collection or Community
      * @param force   Force update even if not stale.
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if error
      */
     @Override
     public void indexContent(Context context, DSpaceObject dso,
@@ -222,7 +236,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         if (handle == null)
         {
-            handle = HandleManager.findHandle(context, dso);
+            handle = handleService.findHandle(context, dso);
         }
 
         try {
@@ -278,8 +292,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      *
      * @param context
      * @param dso     DSpace Object, can be Community, Item, or Collection
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if database error
+     * @throws IOException if IO error
      */
     @Override
     public void unIndexContent(Context context, DSpaceObject dso)
@@ -293,8 +307,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * @param context
      * @param dso     DSpace Object, can be Community, Item, or Collection
      * @param commit if <code>true</code> force an immediate commit on SOLR
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if database error
+     * @throws IOException if IO error
      */
     @Override
     public void unIndexContent(Context context, DSpaceObject dso, boolean commit)
@@ -320,8 +334,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * Unindex a Document in the Lucene index.
      * @param context the dspace context
      * @param handle the handle of the object to be deleted
-     * @throws IOException
-     * @throws SQLException
+     * @throws IOException if IO error
+     * @throws SQLException if database error
      */
     @Override
     public void unIndexContent(Context context, String handle) throws IOException, SQLException {
@@ -332,8 +346,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * Unindex a Document in the Lucene Index.
      * @param context the dspace context
      * @param handle the handle of the object to be deleted
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if database error
+     * @throws IOException if IO error
      */
     @Override
     public void unIndexContent(Context context, String handle, boolean commit)
@@ -402,7 +416,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * Iterates over all Items, Collections and Communities. And updates them in
      * the index. Uses decaching to control memory footprint. Uses indexContent
      * and isStale to check state of item in index.
-     * <p/>
+     * <p>
      * At first it may appear counterintuitive to have an IndexWriter/Reader
      * opened and closed on each DSO. But this allows the UI processes to step
      * in and attain a lock and write to the index even if other processes/jvms
@@ -445,16 +459,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             for (Collection collection : collections)
             {
                 indexContent(context, collection, force);
-                context.removeCached(collection, collection.getID());
-
             }
                 break;
             case Constants.COMMUNITY:
-            Community[] communities = Community.findAll(context);
+            List<Community> communities = communityService.findAll(context);
             for (Community community : communities)
             {
                 indexContent(context, community, force);
-                context.removeCached(community, community.getID());
             }
                 break;
             default:
@@ -738,40 +749,41 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
     /**
+     * @param context DSpace context
      * @param myitem the item for which our locations are to be retrieved
-     * @return a list containing the identifiers of the communities & collections
+     * @return a list containing the identifiers of the communities and collections
      * @throws SQLException sql exception
      */
-    protected List<String> getItemLocations(Item myitem)
+    protected List<String> getItemLocations(Context context, Item myitem)
             throws SQLException {
         List<String> locations = new Vector<String>();
 
         // build list of community ids
-        Community[] communities = myitem.getCommunities();
+        List<Community> communities = itemService.getCommunities(context, myitem);
 
         // build list of collection ids
-        Collection[] collections = myitem.getCollections();
+        List<Collection> collections = myitem.getCollections();
 
         // now put those into strings
         int i = 0;
 
-        for (i = 0; i < communities.length; i++)
+        for (i = 0; i < communities.size(); i++)
         {
-            locations.add("m" + communities[i].getID());
+            locations.add("m" + communities.get(i).getID());
         }
 
-        for (i = 0; i < collections.length; i++)
+        for (i = 0; i < collections.size(); i++)
         {
-            locations.add("l" + collections[i].getID());
+            locations.add("l" + collections.get(i).getID());
         }
 
         return locations;
     }
 
-    protected List<String> getCollectionLocations(Collection target) throws SQLException {
+    protected List<String> getCollectionLocations(Context context, Collection target) throws SQLException {
         List<String> locations = new Vector<String>();
         // build list of community ids
-        Community[] communities = target.getCommunities();
+        List<Community> communities = communityService.getAllParents(context, target);
 
         // now put those into strings
         for (Community community : communities)
@@ -781,43 +793,92 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         return locations;
     }
-
-    protected List<String> getCommunityLocations(Community target)
+    
+    @Override
+    public String createLocationQueryForAdministrableItems(Context context)
             throws SQLException
     {
-        List<String> locations = new Vector<String>();
-        // build list of community ids
-        Community[] communities = target.getAllParents();
-
-        // now put those into strings
-        for (Community community : communities)
+        StringBuilder locationQuery = new StringBuilder();
+        
+        if (context.getCurrentUser() != null) 
         {
-            locations.add("m" + community.getID());
-        }
+            List<Group> groupList = EPersonServiceFactory.getInstance().getGroupService()
+                    .allMemberGroups(context, context.getCurrentUser());
+            
+            List<ResourcePolicy> communitiesPolicies = AuthorizeServiceFactory.getInstance().getResourcePolicyService()
+                    .find(context, context.getCurrentUser(), groupList, Constants.ADMIN, Constants.COMMUNITY);
 
-        return locations;
-    }    
-    
+            List<ResourcePolicy> collectionsPolicies = AuthorizeServiceFactory.getInstance().getResourcePolicyService()
+                    .find(context, context.getCurrentUser(), groupList, Constants.ADMIN, Constants.COLLECTION);
+
+            List<Collection> allCollections = new ArrayList<>();
+            
+            for( ResourcePolicy rp: collectionsPolicies){
+                Collection collection = ContentServiceFactory.getInstance().getCollectionService()
+                        .find(context, rp.getdSpaceObject().getID());
+                allCollections.add(collection);
+            }
+
+            if (CollectionUtils.isNotEmpty(communitiesPolicies) || CollectionUtils.isNotEmpty(allCollections)) 
+            {
+                locationQuery.append("location:( ");
+
+                for (int i = 0; i< communitiesPolicies.size(); i++) 
+                {
+                    ResourcePolicy rp = communitiesPolicies.get(i);
+                    Community community = ContentServiceFactory.getInstance().getCommunityService()
+                            .find(context, rp.getdSpaceObject().getID());
+                
+                    locationQuery.append("m").append(community.getID());
+
+                    if (i != (communitiesPolicies.size() - 1)) {
+                        locationQuery.append(" OR ");
+                    }
+                    allCollections.addAll(ContentServiceFactory.getInstance().getCommunityService()
+                            .getAllCollections(context, community));
+                }
+
+                Iterator<Collection> collIter = allCollections.iterator();
+
+                if (communitiesPolicies.size() > 0 && allCollections.size() > 0) {
+                    locationQuery.append(" OR ");
+                }
+
+                while (collIter.hasNext()) {
+                    locationQuery.append("l").append(collIter.next().getID());
+
+                    if (collIter.hasNext()) {
+                        locationQuery.append(" OR ");
+                    }
+                }
+                locationQuery.append(")");
+            } else {
+                log.warn("We have a collection or community admin with ID: " + context.getCurrentUser().getID()
+                        + " without any administrable collection or community!");
+            }
+        }
+        return locationQuery.toString();
+    }
+
     /**
      * Write the document to the index under the appropriate handle.
      *
-     * @param doc the solr document to be written to the server
+     * @param doc
+     *     the solr document to be written to the server
      * @param streams
-     * @throws IOException IO exception
+     *     list of bitstream content streams
+     * @throws IOException
+     *     A general class of exceptions produced by failed or interrupted I/O operations.
      */
-    protected void writeDocument(SolrInputDocument doc, List<BitstreamContentStream> streams) throws IOException {
+    protected void writeDocument(SolrInputDocument doc, FullTextContentStreams streams) throws IOException {
 
         try {
             if(getSolr() != null)
             {
-                if(CollectionUtils.isNotEmpty(streams))
+                if (streams != null && !streams.isEmpty())
                 {
                     ContentStreamUpdateRequest req = new ContentStreamUpdateRequest("/update/extract");
-
-                    for(BitstreamContentStream bce : streams)
-                    {
-                        req.addContentStream(bce);
-                    }
+                    req.addContentStream(streams);
 
                     ModifiableSolrParams params = new ModifiableSolrParams();
 
@@ -852,8 +913,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * Build a solr document for a DSpace Community.
      *
      * @param community Community to be indexed
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if database error
+     * @throws IOException if IO error
      */
     protected void buildDocument(Context context, Community community)
             throws SQLException, IOException
@@ -880,11 +941,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
 
         // and populate it
-        String description = community.getMetadata("introductory_text");
-        String description_abstract = community.getMetadata("short_description");
-        String description_table = community.getMetadata("side_bar_text");
-        String rights = community.getMetadata("copyright_text");
-        String title = community.getMetadata("name");
+        String description = communityService.getMetadata(community, "introductory_text");
+        String description_abstract = communityService.getMetadata(community, "short_description");
+        String description_table = communityService.getMetadata(community, "side_bar_text");
+        String rights = communityService.getMetadata(community, "copyright_text");
+        String title = communityService.getMetadata(community, "name");
 
         List<String> toIgnoreMetadataFields = SearchUtils.getIgnoredMetadataFields(community.getType());
         addContainerMetadataField(doc, highlightedMetadataFields, toIgnoreMetadataFields, "dc.description", description);
@@ -894,9 +955,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         addContainerMetadataField(doc, highlightedMetadataFields, toIgnoreMetadataFields, "dc.title", title);
 
         //Do any additional indexing, depends on the plugins
-        List<SolrServiceIndexPlugin> solrServiceIndexPlugins = new DSpace()
-                .getServiceManager().getServicesByType(
-                        SolrServiceIndexPlugin.class);
+        List<SolrServiceIndexPlugin> solrServiceIndexPlugins = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
             solrServiceIndexPlugin.additionalIndex(context, community, doc);
@@ -914,7 +973,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      */
     protected void buildDocument(Context context, Collection collection)
     throws SQLException, IOException {
-        List<String> locations = getCollectionLocations(collection);
+        List<String> locations = getCollectionLocations(context, collection);
 
         // Create Lucene Document
         SolrInputDocument doc = buildDocument(Constants.COLLECTION, collection.getID(),
@@ -933,13 +992,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
         // and populate it
-        String description = collection.getMetadata("introductory_text");
-        String description_abstract = collection.getMetadata("short_description");
-        String description_table = collection.getMetadata("side_bar_text");
-        String provenance = collection.getMetadata("provenance_description");
-        String rights = collection.getMetadata("copyright_text");
-        String rights_license = collection.getMetadata("license");
-        String title = collection.getMetadata("name");
+        String description = collectionService.getMetadata(collection, "introductory_text");
+        String description_abstract = collectionService.getMetadata(collection, "short_description");
+        String description_table = collectionService.getMetadata(collection, "side_bar_text");
+        String provenance = collectionService.getMetadata(collection, "provenance_description");
+        String rights = collectionService.getMetadata(collection, "copyright_text");
+        String rights_license = collectionService.getMetadata(collection, "license");
+        String title = collectionService.getMetadata(collection, "name");
 
         List<String> toIgnoreMetadataFields = SearchUtils.getIgnoredMetadataFields(collection.getType());
         addContainerMetadataField(doc, highlightedMetadataFields, toIgnoreMetadataFields, "dc.description", description);
@@ -952,7 +1011,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
         //Do any additional indexing, depends on the plugins
-        List<SolrServiceIndexPlugin> solrServiceIndexPlugins = new DSpace().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
+        List<SolrServiceIndexPlugin> solrServiceIndexPlugins = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
             solrServiceIndexPlugin.additionalIndex(context, collection, doc);
@@ -989,8 +1048,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      *
      * @param context Users Context
      * @param item    The DSpace Item to be indexed
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException if database error
+     * @throws IOException if IO error
      */
     protected void buildDocument(Context context, Item item)
             throws SQLException, IOException {
@@ -998,19 +1057,21 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         if (handle == null)
         {
-            handle = HandleManager.findHandle(context, item);
+            handle = handleService.findHandle(context, item);
         }
 
         // get the location string (for searching by collection & community)
-        List<String> locations = getItemLocations(item);
+        List<String> locations = getItemLocations(context, item);
 
         SolrInputDocument doc = buildDocument(Constants.ITEM, item.getID(), handle,
                 locations);
 
         log.debug("Building Item: " + handle);
 
+        doc.addField("archived", item.isArchived());
         doc.addField("withdrawn", item.isWithdrawn());
         doc.addField("discoverable", item.isDiscoverable());
+        doc.addField("lastModified", item.getLastModified());
 
         //Keep a list of our sort values which we added, sort values can only be added once
         List<String> sortFieldsAdded = new ArrayList<String>();
@@ -1082,34 +1143,32 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
             List<String> toProjectionFields = new ArrayList<String>();
-            String projectionFieldsString = new DSpace().getConfigurationService().getProperty("discovery.index.projection");
-            if(projectionFieldsString != null){
-                if(projectionFieldsString.indexOf(",") != -1){
-                    for (int i = 0; i < projectionFieldsString.split(",").length; i++) {
-                        toProjectionFields.add(projectionFieldsString.split(",")[i].trim());
-                    }
-                } else {
-                    toProjectionFields.add(projectionFieldsString);
+            String[] projectionFields = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("discovery.index.projection");
+            if(projectionFields != null){
+                for (String field : projectionFields) {
+                    toProjectionFields.add(field.trim());
                 }
             }
 
             List<String> toIgnoreMetadataFields = SearchUtils.getIgnoredMetadataFields(item.getType());
-            Metadatum[] mydc = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-            for (Metadatum meta : mydc)
+            List<MetadataValue> mydc = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            for (MetadataValue meta : mydc)
             {
-                String field = meta.schema + "." + meta.element;
+                MetadataField metadataField = meta.getMetadataField();
+                MetadataSchema metadataSchema = metadataField.getMetadataSchema();
+                String field = metadataSchema.getName() + "." + metadataField.getElement();
                 String unqualifiedField = field;
 
-                String value = meta.value;
+                String value = meta.getValue();
 
                 if (value == null)
                 {
                     continue;
                 }
 
-                if (meta.qualifier != null && !meta.qualifier.trim().equals(""))
+                if (metadataField.getQualifier() != null && !metadataField.getQualifier().trim().equals(""))
                 {
-                    field += "." + meta.qualifier;
+                    field += "." + metadataField.getQualifier();
                 }
 
                 //We are not indexing provenance, this is useless
@@ -1129,40 +1188,31 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 String authority = null;
                 String preferedLabel = null;
                 List<String> variants = null;
-                boolean isAuthorityControlled = MetadataAuthorityManager
-                        .getManager().isAuthorityControlled(meta.schema,
-                                meta.element,
-                                meta.qualifier);
+                boolean isAuthorityControlled = metadataAuthorityService
+                        .isAuthorityControlled(metadataField);
 
-                int minConfidence = isAuthorityControlled?MetadataAuthorityManager
-                        .getManager().getMinConfidence(
-                                meta.schema,
-                                meta.element,
-                                meta.qualifier):Choices.CF_ACCEPTED;
+                int minConfidence = isAuthorityControlled? metadataAuthorityService
+                        .getMinConfidence(metadataField) : Choices.CF_ACCEPTED;
 
-                if (isAuthorityControlled && meta.authority != null
-                        && meta.confidence >= minConfidence)
+                if (isAuthorityControlled && meta.getAuthority() != null
+                        && meta.getConfidence() >= minConfidence)
                 {
-                    boolean ignoreAuthority = new DSpace()
-                            .getConfigurationService()
+                    boolean ignoreAuthority = DSpaceServicesFactory.getInstance().getConfigurationService()
                             .getPropertyAsType(
                                     "discovery.index.authority.ignore." + field,
-                                    new DSpace()
-                                            .getConfigurationService()
+                                    DSpaceServicesFactory.getInstance().getConfigurationService()
                                             .getPropertyAsType(
                                                     "discovery.index.authority.ignore",
                                                     new Boolean(false)), true);
                     if (!ignoreAuthority)
                     {
-                        authority = meta.authority;
+                        authority = meta.getAuthority();
 
-                        boolean ignorePrefered = new DSpace()
-                                .getConfigurationService()
+                        boolean ignorePrefered = DSpaceServicesFactory.getInstance().getConfigurationService()
                                 .getPropertyAsType(
                                         "discovery.index.authority.ignore-prefered."
                                                 + field,
-                                        new DSpace()
-                                                .getConfigurationService()
+                                        DSpaceServicesFactory.getInstance().getConfigurationService()
                                                 .getPropertyAsType(
                                                         "discovery.index.authority.ignore-prefered",
                                                         new Boolean(false)),
@@ -1170,29 +1220,23 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         if (!ignorePrefered)
                         {
 
-                            preferedLabel = ChoiceAuthorityManager.getManager()
-                                    .getLabel(meta.schema, meta.element,
-                                            meta.qualifier, meta.authority,
-                                            meta.language);
+                            preferedLabel = choiceAuthorityService
+                                    .getLabel(meta, meta.getLanguage());
                         }
 
-                        boolean ignoreVariants = new DSpace()
-                                .getConfigurationService()
+                        boolean ignoreVariants = DSpaceServicesFactory.getInstance().getConfigurationService()
                                 .getPropertyAsType(
                                         "discovery.index.authority.ignore-variants."
                                                 + field,
-                                        new DSpace()
-                                                .getConfigurationService()
+                                        DSpaceServicesFactory.getInstance().getConfigurationService()
                                                 .getPropertyAsType(
                                                         "discovery.index.authority.ignore-variants",
                                                         new Boolean(false)),
                                         true);
                         if (!ignoreVariants)
                         {
-                            variants = ChoiceAuthorityManager.getManager()
-                                    .getVariants(meta.schema, meta.element,
-                                            meta.qualifier, meta.authority,
-                                            meta.language);
+                            variants = choiceAuthorityService
+                                    .getVariants(meta);
                         }
 
                     }
@@ -1209,7 +1253,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     for (DiscoverySearchFilter searchFilter : searchFilterConfigs)
                     {
                         Date date = null;
-                        String separator = new DSpace().getConfigurationService().getProperty("discovery.solr.facets.split.char");
+                        String separator = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("discovery.solr.facets.split.char");
                         if(separator == null)
                         {
                             separator = FILTER_SEPARATOR;
@@ -1457,12 +1501,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                                             .substring(VARIANTS_STORE_SEPARATOR
                                                     .length()) : "null")
                                     + STORE_SEPARATOR + authority
-                                    + STORE_SEPARATOR + meta.language);
+                                    + STORE_SEPARATOR + meta.getLanguage());
                 }
 
-                if (meta.language != null && !meta.language.trim().equals(""))
+                if (meta.getLanguage() != null && !meta.getLanguage().trim().equals(""))
                 {
-                    String langField = field + "." + meta.language;
+                    String langField = field + "." + meta.getLanguage();
                     doc.addField(langField, value);
                 }
             }
@@ -1476,9 +1520,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         try {
 
-            Metadatum[] values = item.getMetadataByMetadataString("dc.relation.ispartof");
+            List<MetadataValue> values = itemService.getMetadataByMetadataString(item, "dc.relation.ispartof");
 
-            if(values != null && values.length > 0 && values[0] != null && values[0].value != null)
+            if(values != null && values.size() > 0 && values.get(0) != null && values.get(0).getValue() != null)
             {
                 // group on parent
                 String handlePrefix = ConfigurationManager.getProperty("handle.canonical.prefix");
@@ -1487,7 +1531,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     handlePrefix = "http://hdl.handle.net/";
                 }
 
-                doc.addField("publication_grp",values[0].value.replaceFirst(handlePrefix,"") );
+                doc.addField("publication_grp",values.get(0).getValue().replaceFirst(handlePrefix, "") );
 
             }
             else
@@ -1504,50 +1548,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         log.debug("  Added Grouping");
 
-
-
-        List<BitstreamContentStream> streams = new ArrayList<BitstreamContentStream>();
-
-        try {
-            // now get full text of any bitstreams in the TEXT bundle
-            // trundle through the bundles
-            Bundle[] myBundles = item.getBundles();
-
-            for (Bundle myBundle : myBundles)
-            {
-                if ((myBundle.getName() != null)
-                        && myBundle.getName().equals("TEXT"))
-                {
-                    // a-ha! grab the text out of the bitstreams
-                    Bitstream[] myBitstreams = myBundle.getBitstreams();
-
-                    for (Bitstream myBitstream : myBitstreams)
-                    {
-                        try {
-
-                            streams.add(new BitstreamContentStream(myBitstream));
-
-                            log.debug("  Added BitStream: "
-                                    + myBitstream.getStoreNumber() + "	"
-                                    + myBitstream.getSequenceID() + "   "
-                                    + myBitstream.getName());
-
-                        } catch (Exception e)
-                        {
-                            // this will never happen, but compiler is now
-                            // happy.
-                            log.trace(e.getMessage(), e);
-                        }
-                    }
-                }
-            }
-        } catch (RuntimeException e)
-        {
-            log.error(e.getMessage(), e);
-        }
-
         //Do any additional indexing, depends on the plugins
-        List<SolrServiceIndexPlugin> solrServiceIndexPlugins = new DSpace().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
+        List<SolrServiceIndexPlugin> solrServiceIndexPlugins = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
             solrServiceIndexPlugin.additionalIndex(context, item, doc);
@@ -1555,7 +1557,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         // write the index and close the inputstreamreaders
         try {
-            writeDocument(doc, streams);
+            writeDocument(doc, new FullTextContentStreams(context, item));
             log.info("Wrote Item: " + handle + " to Index");
         } catch (RuntimeException e)
         {
@@ -1571,7 +1573,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * @param handle
      * @param locations @return
      */
-    protected SolrInputDocument buildDocument(int type, int id, String handle,
+    protected SolrInputDocument buildDocument(int type, UUID id, String handle,
                                             List<String> locations)
     {
         SolrInputDocument doc = new SolrInputDocument();
@@ -1582,10 +1584,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         // New fields to weaken the dependence on handles, and allow for faster
         // list display
-		doc.addField("search.uniqueid", type+"-"+id);
+        doc.addField("search.uniqueid", type+"-"+id);
         doc.addField(RESOURCE_TYPE_FIELD, Integer.toString(type));
-
-        doc.addField(RESOURCE_ID_FIELD, Integer.toString(id));
+        doc.addField(RESOURCE_ID_FIELD, id.toString());
 
         // want to be able to search for handle, so use keyword
         // (not tokenized, but it is indexed)
@@ -1622,7 +1623,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * @param t the string to be transformed to a date
      * @return a date if the formatting was successful, null if not able to transform to a date
      */
-    public static Date toDate(String t)
+    public Date toDate(String t)
     {
         SimpleDateFormat[] dfArr;
 
@@ -1683,11 +1684,15 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return null;
     }
 
-    public static String locationToName(Context context, String field, String value) throws SQLException {
+    public String locationToName(Context context, String field, String value) throws SQLException {
         if("location.comm".equals(field) || "location.coll".equals(field))
         {
-            int type = field.equals("location.comm") ? Constants.COMMUNITY : Constants.COLLECTION;
-            DSpaceObject commColl = DSpaceObject.find(context, type, Integer.parseInt(value));
+            int type = ("location.comm").equals(field) ? Constants.COMMUNITY : Constants.COLLECTION;
+            DSpaceObject commColl = null;
+            if (StringUtils.isNotBlank(value))
+            {
+                commColl = contentServiceFactory.getDSpaceObjectService(type).find(context, UUID.fromString(value));
+            }
             if(commColl != null)
             {
                 return commColl.getName();
@@ -1697,7 +1702,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return value;
     }
 
-    //******** SearchService implementation
+    //========== SearchService implementation
     @Override
     public DiscoverResult search(Context context, DiscoverQuery query) throws SearchServiceException
     {
@@ -1712,6 +1717,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return search(context, dso, query, false);
     }
 
+    @Override
     public DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery discoveryQuery, boolean includeUnDiscoverable) throws SearchServiceException {
         if(dso != null)
         {
@@ -1731,6 +1737,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
 
+    @Override
     public DiscoverResult search(Context context, DiscoverQuery discoveryQuery, boolean includeUnDiscoverable) throws SearchServiceException {
         try {
             if(getSolr() == null){
@@ -1902,7 +1909,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
 
         //Add any configured search plugins !
-        List<SolrServiceSearchPlugin> solrServiceSearchPlugins = new DSpace().getServiceManager().getServicesByType(SolrServiceSearchPlugin.class);
+        List<SolrServiceSearchPlugin> solrServiceSearchPlugins = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(SolrServiceSearchPlugin.class);
         for (SolrServiceSearchPlugin searchPlugin : solrServiceSearchPlugins)
         {
             searchPlugin.additionalSearchParameters(context, discoveryQuery, solrQuery);
@@ -1929,6 +1936,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
 
+    @Override
     public InputStream searchJSON(Context context, DiscoverQuery discoveryQuery, String jsonIdentifier) throws SearchServiceException {
         if(getSolr() == null)
         {
@@ -2140,17 +2148,17 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	}
 
     protected DSpaceObject findDSpaceObject(Context context, SolrDocument doc) throws SQLException {
-
         Integer type = (Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD);
-        Integer id = (Integer) doc.getFirstValue(RESOURCE_ID_FIELD);
+        UUID id = UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD));
         String handle = (String) doc.getFirstValue(HANDLE_FIELD);
-        DSpaceObject o = null;
+        
+        
         if (type != null && id != null)
         {
-            o = DSpaceObject.find(context, type, id);
+            return contentServiceFactory.getDSpaceObjectService(type).find(context, id);
         } else if (handle != null)
         {
-            o = HandleManager.resolveToObject(context, handle);
+            return handleService.resolveToObject(context, handle);
         }
 
         if (o != null)
@@ -2191,6 +2199,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return search(context, query, null, true, offset, max, filterquery);
     }
 
+    @Override
     public List<DSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset, int max, String... filterquery)
     {
 
@@ -2223,7 +2232,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             {
                 SolrDocument doc = (SolrDocument) iter.next();
 
-                DSpaceObject o = findDSpaceObject(context, doc);
+                DSpaceObject o = contentServiceFactory.getDSpaceObjectService((Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD)).find(context, UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD)));
 
                 if (o != null)
                 {
@@ -2240,11 +2249,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 		}
     }
 
+    @Override
     public DiscoverFilterQuery toFilterQuery(Context context, String field, String operator, String value) throws SQLException{
         DiscoverFilterQuery result = new DiscoverFilterQuery();
 
         StringBuilder filterQuery = new StringBuilder();
-        if (StringUtils.isNotBlank(field) && StringUtils.isNotEmpty(value))
+        if(StringUtils.isNotBlank(field) && StringUtils.isNotBlank(value))
         {
             filterQuery.append(field);
             if("equals".equals(operator))
@@ -2296,10 +2306,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 }
             }
 
-
+            result.setDisplayedValue(transformDisplayedValue(context, field, value));
         }
 
-        result.setDisplayedValue(transformDisplayedValue(context, field, value));
         result.setFilterQuery(filterQuery.toString());
         return result;
     }
@@ -2438,7 +2447,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
           || field.endsWith("_acid"))
         {
             //We have a filter make sure we split !
-            String separator = new DSpace().getConfigurationService().getProperty("discovery.solr.facets.split.char");
+            String separator = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("discovery.solr.facets.split.char");
             if(separator == null)
             {
                 separator = FILTER_SEPARATOR;
@@ -2477,7 +2486,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 || field.endsWith("_acid"))
         {
             //We have a filter make sure we split !
-            String separator = new DSpace().getConfigurationService().getProperty("discovery.solr.facets.split.char");
+            String separator = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("discovery.solr.facets.split.char");
             if(separator == null)
             {
                 separator = FILTER_SEPARATOR;
@@ -2518,7 +2527,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 || field.endsWith("_acid"))
         {
             //We have a filter make sure we split !
-            String separator = new DSpace().getConfigurationService().getProperty("discovery.solr.facets.split.char");
+            String separator = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("discovery.solr.facets.split.char");
             if(separator == null)
             {
                 separator = FILTER_SEPARATOR;

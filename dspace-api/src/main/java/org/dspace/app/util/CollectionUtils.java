@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.webui.jsptag.ConfigurationService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.core.ConfigurationManager;
@@ -25,14 +26,17 @@ import org.dspace.eperson.EPerson;
 import org.dspace.utils.DSpace;
 
 public class CollectionUtils {
+    
+    private static ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    
 	public static CollectionsTree getCollectionsTree(Collection[] collections, boolean skipCollection)
 			throws SQLException {
-		DSpace dspace = new DSpace();
+		
 		if (collections == null || collections.length == 0) {
 			return null;
 		}
 		
-		String skipHandles= ConfigurationManager.getProperty("submission.skip.handle");
+		String skipHandles = configurationService.getProperty("submission.skip.handle");
 		//TODO: Should we create a plugin?
 		
 

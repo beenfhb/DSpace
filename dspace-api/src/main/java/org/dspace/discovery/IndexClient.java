@@ -25,10 +25,21 @@ import org.apache.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ExternalService;
-import org.dspace.handle.HandleManager;
-import org.dspace.utils.DSpace;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.services.factory.DSpaceServicesFactory;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Iterator;
 
 /**
  * Class used to reindex dspace communities/collections/items into discovery
@@ -48,7 +59,7 @@ public class IndexClient {
      *
      * @param args the command-line arguments, none used
      * @throws java.io.IOException
-     * @throws java.sql.SQLException
+     * @throws SQLException if database error
      *
      */
     public static void main(String[] args) throws SQLException, IOException, SearchServiceException {
@@ -56,19 +67,26 @@ public class IndexClient {
         Context context = new Context();
         context.turnOffAuthorisationSystem();
 
-        String usage = "org.dspace.discovery.IndexClient [-cbhf[r <item handle>]] or nothing to update/clean an existing index.";
+        String usage = "org.dspace.discovery.IndexClient [-cbhf] | [-r <handle>] | [-i <handle>] or nothing to update/clean an existing index.";
         Options options = new Options();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine line = null;
 
         options
                 .addOption(OptionBuilder
-                        .withArgName("item handle")
+                        .withArgName("handle to remove")
                         .hasArg(true)
                         .withDescription(
                                 "remove an Item, Collection or Community from index based on its handle")
                         .create("r"));
 
+        options
+                .addOption(OptionBuilder
+                        .withArgName("handle to add or update")
+                        .hasArg(true)
+                        .withDescription(
+                                "add or update an Item, Collection or Community based on its handle")
+                        .create("i"));
 
         options
                 .addOption(OptionBuilder
@@ -135,9 +153,7 @@ public class IndexClient {
          * new DSpace.getServiceManager().getServiceByName("org.dspace.discovery.SolrIndexer");
          */
 
-        DSpace dspace = new DSpace();
-
-        IndexingService indexer = dspace.getServiceManager().getServiceByName(IndexingService.class.getName(),IndexingService.class);
+        IndexingService indexer = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(IndexingService.class.getName(),IndexingService.class);
 
         if (line.hasOption("r")) {
             log.info("Removing " + line.getOptionValue("r") + " from Index");
@@ -164,10 +180,10 @@ public class IndexClient {
 			for (String id : identifiers) {
 				DSpaceObject dso;
 				if (id.startsWith(ConfigurationManager.getProperty("handle.prefix")) || id.startsWith("123456789/")) {
-					dso = HandleManager.resolveToObject(context, id);
+					dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, id);
 				} else {
 
-					dso = dspace.getSingletonService(ExternalService.class).getObject(id);
+					dso = DSpaceServicesFactory.getInstance().getServiceManager().getSingletonService(ExternalService.class).getObject(id);
 				}
 				indexer.indexContent(context, dso, line.hasOption("f"));
 			}
@@ -202,6 +218,19 @@ public class IndexClient {
             } catch (Exception e) {
                 log.error("Error: " + e.getMessage());
             }
+        } else if(line.hasOption('i')) {
+            final String handle = line.getOptionValue('i');
+            final DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
+            if (dso == null) {
+                throw new IllegalArgumentException("Cannot resolve " + handle + " to a DSpace object");
+            }
+            log.info("Forcibly Indexing " + handle);
+            // Enable batch mode; we may be indexing a large number of items
+            context.enableBatchMode(true);
+            final long startTimeMillis = System.currentTimeMillis();
+            final long count = indexAll(indexer,  ContentServiceFactory.getInstance().getItemService(), context, dso);
+            final long seconds = (System.currentTimeMillis() - startTimeMillis ) / 1000;
+            log.info("Indexed " + count + " DSpace object" + (count > 1 ? "s" : "") + " in " + seconds + " seconds");
         } else {
             log.info("Updating and Cleaning Index");
             indexer.cleanIndex(line.hasOption("f"));
@@ -211,6 +240,62 @@ public class IndexClient {
 
         log.info("Done with indexing");
 	}
+
+    /**
+     * Indexes the given object and all children, if applicable.
+     */
+    private static long indexAll(final IndexingService indexingService,
+                                 final ItemService itemService,
+                                 final Context context,
+                                 final DSpaceObject dso) throws IOException, SearchServiceException, SQLException {
+        long count = 0;
+
+        indexingService.indexContent(context, dso, true, true);
+        count++;
+        if (dso.getType() == Constants.COMMUNITY) {
+            final Community community = (Community) dso;
+            final String communityHandle = community.getHandle();
+            for (final Community subcommunity : community.getSubcommunities()) {
+                count += indexAll(indexingService, itemService, context, subcommunity);
+                //To prevent memory issues, discard an object from the cache after processing
+                context.uncacheEntity(subcommunity);
+            }
+            final Community reloadedCommunity = (Community) HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, communityHandle);
+            for (final Collection collection : reloadedCommunity.getCollections()) {
+                count++;
+                indexingService.indexContent(context, collection, true, true);
+                count += indexItems(indexingService, itemService, context, collection);
+                //To prevent memory issues, discard an object from the cache after processing
+                context.uncacheEntity(collection);
+            }
+        } else if (dso.getType() == Constants.COLLECTION) {
+            count += indexItems(indexingService, itemService, context, (Collection) dso);
+        }
+
+        return count;
+    }
+
+    /**
+     * Indexes all items in the given collection.
+     */
+    private static long indexItems(final IndexingService indexingService,
+                                   final ItemService itemService,
+                                   final Context context,
+                                   final Collection collection) throws IOException, SearchServiceException, SQLException {
+        long count = 0;
+
+        final Iterator<Item> itemIterator = itemService.findByCollection(context, collection);
+        while (itemIterator.hasNext()) {
+            Item item = itemIterator.next();
+            indexingService.indexContent(context, item, true, false);
+            count++;
+            //To prevent memory issues, discard an object from the cache after processing
+            context.uncacheEntity(item);
+        }
+        indexingService.commit();
+
+        return count;
+    }
 
     /**
      * Check the command line options and rebuild the spell check if active.

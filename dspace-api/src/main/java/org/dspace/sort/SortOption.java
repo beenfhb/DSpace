@@ -8,9 +8,7 @@
 package org.dspace.sort;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,7 +52,12 @@ public class SortOption
     static {
         try
         {
-            Set<SortOption> newSortOptionsSet = new HashSet<SortOption>();
+            Set<SortOption> newSortOptionsSet = new TreeSet<SortOption>(new Comparator<SortOption>() {
+	            @Override
+	            public int compare(SortOption sortOption, SortOption sortOption1) {
+		            return Integer.valueOf(sortOption.getNumber()).compareTo(Integer.valueOf(sortOption1.getNumber()));
+	            }
+            });
             int idx = 1;
             String option;
 
@@ -79,7 +82,7 @@ public class SortOption
 	 * @param name
 	 * @param md
 	 * @param type
-	 * @throws SortException
+	 * @throws SortException if sort error
 	 */
 	public SortOption(int number, String name, String md, String type)
 		throws SortException
@@ -97,7 +100,7 @@ public class SortOption
 	 * 
 	 * @param number
 	 * @param definition
-	 * @throws SortException
+	 * @throws SortException if sort error
 	 */
 	public SortOption(int number, String definition)
 		throws SortException
@@ -216,7 +219,7 @@ public class SortOption
 	/**
 	 * Tell the class to generate the metadata bits
 	 * 
-	 * @throws SortException
+	 * @throws SortException if sort error
 	 */
     private void generateMdBits()
     	throws SortException
@@ -264,9 +267,7 @@ public class SortOption
     }
     
     /**
-     * Is this a date field
-     * 
-     * @return
+     * Is this a date field?
      */
     public boolean isDate()
     {
@@ -279,9 +280,7 @@ public class SortOption
     }
     
     /**
-     * Is the default sort option
-     * 
-     * @return
+     * Is the default sort option?
      */
     public boolean isDefault()
     {
@@ -293,51 +292,8 @@ public class SortOption
     }
 
     /**
-     * Return all the configured sort options for a specific browse
-     * @return
-     * @throws SortException
-     */
-    public static Set<SortOption> getSortOptions(String browseName) throws SortException
-    {
-        if (SortOption.sortOptionsSet == null)
-        {
-            throw new SortException("Sort options not loaded");
-        }
-        
-        Set<SortOption> options = new HashSet<SortOption>();
-        try
-        {
-            String sortCfg = ConfigurationManager.getProperty("browse."
-                    + browseName + ".sort-options");
-            if (sortCfg != null)
-            {
-                String[] sorts = sortCfg.split(",");
-                for (String s: sorts)
-                {
-                    options.add(SortOption.getSortOption(Integer.parseInt(s.trim())));
-                }
-            }
-        }
-        catch (NumberFormatException e)
-        {
-            throw new SortException("Wrong sort options for browse: "+browseName);
-        }
-
-        if (options.size() == 0)
-        {
-            return sortOptionsSet;
-        }
-        else
-        {
-            return options;
-        }
-    }
-
-    
-    /**
-     * Return all the configured sort options
-     * @return
-     * @throws SortException
+     * Return all the configured sort options.
+     * @throws SortException if sort error
      */
     public static Set<SortOption> getSortOptions() throws SortException
     {
@@ -350,10 +306,9 @@ public class SortOption
     }
     
     /**
-     * Get the defined sort option by number (.1, .2, etc)
+     * Get the defined sort option by number (.1, .2, etc).
      * @param number
-     * @return
-     * @throws SortException
+     * @throws SortException if sort error
      */
     public static SortOption getSortOption(int number) throws SortException
     {
@@ -369,9 +324,8 @@ public class SortOption
     }
     
     /**
-     * Get the default sort option - initially, just the first one defined
-     * @return
-     * @throws SortException
+     * Get the default sort option - initially, just the first one defined.
+     * @throws SortException if sort error
      */
     public static SortOption getDefaultSortOption() throws SortException
     {

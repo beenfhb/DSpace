@@ -23,7 +23,7 @@ import org.dspace.discovery.configuration.DiscoveryMostViewedConfiguration;
 import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
 import org.dspace.kernel.ServiceManager;
-import org.dspace.utils.DSpace;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Util methods used by discovery
@@ -40,8 +40,7 @@ public class SearchUtils {
     public static SearchService getSearchService()
     {
         if(searchService ==  null){
-            DSpace dspace = new DSpace();
-            org.dspace.kernel.ServiceManager manager = dspace.getServiceManager() ;
+            org.dspace.kernel.ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
             searchService = manager.getServiceByName(SearchService.class.getName(),SearchService.class);
         }
         return searchService;
@@ -76,8 +75,7 @@ public class SearchUtils {
     }
 
     public static DiscoveryConfigurationService getConfigurationService() {
-        DSpace dspace  = new DSpace();
-        ServiceManager manager = dspace.getServiceManager();
+        ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
         return manager.getServiceByName(DiscoveryConfigurationService.class.getName(), DiscoveryConfigurationService.class);
     }
 
@@ -95,16 +93,14 @@ public class SearchUtils {
     public static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(Item item) throws SQLException {
         Map<String, DiscoveryConfiguration> result = new HashMap<String, DiscoveryConfiguration>();
 
-		if (item != null) {
-			Collection[] collections = item.getCollections();
-			for (Collection collection : collections) {
-				DiscoveryConfiguration configuration = getDiscoveryConfiguration(collection);
-				if (!result.containsKey(configuration.getId())) {
-					result.put(configuration.getId(), configuration);
-				}
-			}
-		}
-		
+        List<Collection> collections = item.getCollections();
+        for (Collection collection : collections) {
+            DiscoveryConfiguration configuration = getDiscoveryConfiguration(collection);
+            if(!result.containsKey(configuration.getId())){
+                result.put(configuration.getId(), configuration);
+            }
+        }
+
         //Also add one for the default
         DiscoveryConfiguration configuration = getDiscoveryConfiguration(null);
         if(!result.containsKey(configuration.getId())){

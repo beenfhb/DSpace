@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -21,17 +21,23 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.jstl.core.Config;
 
 import org.apache.log4j.Logger;
-import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authenticate.ExtraLoggedInAction;
 import org.dspace.authenticate.PostLoggedInAction;
 import org.dspace.authenticate.PostLoggedOutAction;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authenticate.factory.AuthenticateServiceFactory;
+import org.dspace.authenticate.service.AuthenticationService;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.utils.DSpace;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 
 /**
  * Methods for authenticating the user. This is DSpace platform code, as opposed
@@ -45,7 +51,24 @@ public class Authenticate
 {
     /** log4j category */
     private static Logger log = Logger.getLogger(Authenticate.class);
+    
+    private static boolean initialized = false;
+    
+    private static AuthenticationService authenticationService;
+    
+    private static AuthorizeService authorizeService;
+    
+    private static EPersonService personService;
 
+    private static synchronized void initialize() {
+    	if (initialized) {
+    		return;
+    	}
+    	authenticationService = AuthenticateServiceFactory.getInstance().getAuthenticationService();
+    	authorizeService =  AuthorizeServiceFactory.getInstance().getAuthorizeService();
+    	personService = EPersonServiceFactory.getInstance().getEPersonService();
+    }
+    
     /**
      * Return the request that the system should be dealing with, given the
      * request that the browse just sent. If the incoming request is from a
@@ -59,6 +82,8 @@ public class Authenticate
      */
     public static HttpServletRequest getRealRequest(HttpServletRequest request)
     {
+    	initialize();
+    	
         HttpSession session = request.getSession();
 
         if (session.getAttribute("resuming.request") != null)
@@ -111,6 +136,8 @@ public class Authenticate
     public static void resumeInterruptedRequest(HttpServletRequest request,
             HttpServletResponse response) throws IOException
     {
+    	initialize();
+    	
         HttpSession session = request.getSession();
         String originalURL = (String) session
                 .getAttribute("interrupted.request.url");
@@ -155,6 +182,8 @@ public class Authenticate
             HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+    	initialize();
+    	
         HttpSession session = request.getSession();
 
         /*
@@ -164,20 +193,9 @@ public class Authenticate
          * 2. if those fail, redirect to enter credentials.
          *    return false.
          */
-        if (AuthenticationManager.authenticateImplicit(context, null, null,
+        if (authenticationService.authenticateImplicit(context, null, null,
                 null, request) == AuthenticationMethod.SUCCESS)
         {
-            try {
-                // the AuthenticationManager updates the last_active field of the
-                // eperson that logged in. We need to commit the context, to store
-                // the updated field in the database.
-                context.commit();
-            } catch (SQLException ex) {
-                // We can log the SQLException, but we should not interrupt the 
-                // users interaction here.
-                log.error("Failed to write an updated last_active field of an "
-                        + "EPerson into the databse.", ex);
-            }
             loggedIn(context, request, context.getCurrentUser());
             log.info(LogManager.getHeader(context, "login", "type=implicit"));
             if(context.getCurrentUser() != null){
@@ -211,7 +229,7 @@ public class Authenticate
              * ones with a "redirect" login page -- if there's only one,
              * go directly there.  If there is a choice, go to JSP chooser.
              */
-            Iterator ai = AuthenticationManager.authenticationMethodIterator();
+            Iterator ai = authenticationService.authenticationMethodIterator();
             AuthenticationMethod am;
             int count = 0;
             String url = null;
@@ -252,6 +270,8 @@ public class Authenticate
                                 HttpServletRequest request,
                                 EPerson eperson)
     {
+    	initialize();
+    	
         HttpSession session = request.getSession();
 
         // For security reasons after login, give the user a new session
@@ -301,10 +321,14 @@ public class Authenticate
         context.setCurrentUser(eperson);
         
         boolean isAdmin = false;
+        boolean isCommunityAdmin = false;
+        boolean isCollectionAdmin = false;
         
         try
         {
-            isAdmin = AuthorizeManager.isAdmin(context);
+            isAdmin = authorizeService.isAdmin(context);
+            isCommunityAdmin = authorizeService.isCommunityAdmin(context);
+            isCollectionAdmin = authorizeService.isCollectionAdmin(context);
         }
         catch (SQLException se)
         {
@@ -313,13 +337,15 @@ public class Authenticate
         finally 
         {
             request.setAttribute("is.admin", Boolean.valueOf(isAdmin));
+            request.setAttribute("is.communityAdmin", Boolean.valueOf(isCommunityAdmin));
+            request.setAttribute("is.collectionAdmin", Boolean.valueOf(isCollectionAdmin));
         }
 
         // We store the current user in the request as an EPerson object...
         request.setAttribute("dspace.current.user", eperson);
 
         // and in the session as an ID
-        session.setAttribute("dspace.current.user.id", Integer.valueOf(eperson.getID()));
+        session.setAttribute("dspace.current.user.id", eperson.getID());
 
         // and the remote IP address to compare against later requests
         // so we can detect session hijacking.
@@ -345,6 +371,8 @@ public class Authenticate
      */
     public static void loggedOut(Context context, HttpServletRequest request) throws SQLException
     {
+    	initialize();
+    	
         HttpSession session = request.getSession();
 
         context.setCurrentUser(null);
@@ -352,7 +380,7 @@ public class Authenticate
         request.removeAttribute("dspace.current.user");
         session.removeAttribute("dspace.current.user.id");
 
-        Integer previousUserID = (Integer) session.getAttribute("dspace.previous.user.id");
+        UUID previousUserID = (UUID) session.getAttribute("dspace.previous.user.id");
         
         // Keep the user's locale setting if set
         Locale sessionLocale = UIUtil.getSessionLocale(request);
@@ -383,7 +411,7 @@ public class Authenticate
         if (previousUserID != null)
         {
             session.removeAttribute("dspace.previous.user.id");
-            EPerson ePerson = EPerson.find(context, previousUserID);
+            EPerson ePerson = personService.find(context, previousUserID);
             context.setCurrentUser(ePerson);
             loggedIn(context, request, ePerson);
         }

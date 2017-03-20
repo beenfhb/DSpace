@@ -38,16 +38,19 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration;
-import org.dspace.handle.HandleManager;
+
 
 public class DiscoverUtility
 {
     /** log4j category */
     private static Logger log = Logger.getLogger(DiscoverUtility.class);
-
+    
     public static final int TYPE_FACETS = 1;
     public static final int TYPE_TAGCLOUD = 2;
     
@@ -77,7 +80,8 @@ public class DiscoverUtility
             }
             return null;
         }
-        DSpaceObject scope = HandleManager.resolveToObject(context, location);
+        HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+        DSpaceObject scope = handleService.resolveToObject(context, location);
         return scope;
     }
 
@@ -339,9 +343,13 @@ public class DiscoverUtility
         {
             try
             {
-            String newFilterQuery = SearchUtils.getSearchService()
-                    .toFilterQuery(context, f[0], f[1], f[2])
-                    .getFilterQuery();
+            String newFilterQuery = null;
+            if (StringUtils.isNotBlank(f[0]) && StringUtils.isNotBlank(f[2]))
+            {
+                newFilterQuery = SearchUtils.getSearchService()
+                        .toFilterQuery(context, f[0], f[1], f[2])
+                        .getFilterQuery();
+            }
             if (StringUtils.isNotBlank(newFilterQuery))
             {
                 queryArgs.addFilterQueries(tagging+newFilterQuery);
@@ -683,7 +691,7 @@ public class DiscoverUtility
                             // filterquery
                             queryArgs.addFacetField(new DiscoverFacetField(
                                     facet.getIndexFieldName(), facet.getType(),
-                                    10, facet.getSortOrder(),false));
+                                    10, facet.getSortOrderSidebar(),false));
                         }
                         else
                         {
@@ -760,15 +768,23 @@ public class DiscoverUtility
                     // add the already selected facet so to have a full
                     // top list
                     // if possible
+					
+                    int limit = 0;
+                    if (type==TYPE_FACETS){
+                    	limit = facetLimit + 1 + alreadySelected;
+                    }
+                    else 
+                    	limit = facetLimit;
+
 					if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
 							globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName())) {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
-								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
-										.getSortOrder(), facetPage * facetLimit, true));
+								DiscoveryConfigurationParameters.TYPE_TEXT, limit, facet
+										.getSortOrderSidebar(), facetPage * limit, true));
 					} else {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
-								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
-										.getSortOrder(), facetPage * facetLimit, false));
+								DiscoveryConfigurationParameters.TYPE_TEXT, limit, facet
+										.getSortOrderSidebar(), facetPage * limit, false));
 					}
                 }
             }

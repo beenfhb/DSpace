@@ -47,6 +47,8 @@
                             </includes>
                         </resource>
                     </webResources>
+                    <!-- Filter the web.xml (needed for IDE compatibility/debugging) -->
+                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
                 </configuration>
                 <executions>
                     <execution>
@@ -93,6 +95,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -147,7 +153,7 @@
         <dependency>
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
-            <version>1.1</version>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

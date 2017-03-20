@@ -8,36 +8,35 @@
 package org.dspace.rest.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Date;
 
-//import org.codehaus.jackson.annotate.JsonIgnore;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "resourcepolicy")
 public class ResourcePolicy{
-
+	
 	public enum Action {
 		READ, WRITE, DELETE;
 	}
-
+	
 	private Integer id;
 	private Action action;
-	private Integer epersonId;
-	private Integer groupId;
-	private Integer resourceId;
+	private String epersonId;   //UUID
+	private String groupId;     //UUID
+	private String resourceId;  //UUID
 	private String resourceType;
 	private String rpDescription;
 	private String rpName;
 	private String rpType;
 	private Date startDate;
 	private Date endDate;
-
+	
 	public ResourcePolicy() {}
-
+	
 	public ResourcePolicy(org.dspace.authorize.ResourcePolicy dspacePolicy) {
 		this.id = dspacePolicy.getID();
-
+		
 		switch(dspacePolicy.getAction()) {
 		case org.dspace.core.Constants.READ:
 			this.action = Action.READ;
@@ -50,16 +49,15 @@ public class ResourcePolicy{
 			break;
 		}
 
-		this.epersonId = dspacePolicy.getEPersonID();
-		this.groupId = dspacePolicy.getGroupID();
-		this.resourceId = dspacePolicy.getResourceID();
+		this.epersonId = dspacePolicy.getEPerson().getID().toString();
+		this.groupId = dspacePolicy.getGroup().getID().toString();
+		this.resourceId = dspacePolicy.getdSpaceObject().getID().toString();
 		this.rpDescription = dspacePolicy.getRpDescription();
 		this.rpName = dspacePolicy.getRpName();
 		this.rpType = dspacePolicy.getRpType();
 		this.startDate = dspacePolicy.getStartDate();
 		this.endDate = dspacePolicy.getEndDate();
-
-		switch(dspacePolicy.getResourceType()) {
+		switch(dspacePolicy.getdSpaceObject().getType()) {
 		case org.dspace.core.Constants.BITSTREAM:
 			this.resourceType = "bitstream";
 			break;
@@ -92,7 +90,7 @@ public class ResourcePolicy{
 	public Action getAction() {
 		return action;
 	}
-
+	
 	@JsonIgnore
 	public int getActionInt(){
 		switch(action) {
@@ -110,27 +108,27 @@ public class ResourcePolicy{
 		this.action = action;
 	}
 
-	public Integer getEpersonId() {
+	public String getEpersonId() {
 		return epersonId;
 	}
 
-	public void setEpersonId(Integer epersonId) {
+	public void setEpersonId(String epersonId) {
 		this.epersonId = epersonId;
 	}
 
-	public Integer getGroupId() {
+	public String getGroupId() {
 		return groupId;
 	}
 
-	public void setGroupId(Integer groupId) {
+	public void setGroupId(String groupId) {
 		this.groupId = groupId;
 	}
 
-	public Integer getResourceId() {
+	public String getResourceId() {
 		return resourceId;
 	}
 
-	public void setResourceId(Integer resourceId) {
+	public void setResourceId(String resourceId) {
 		this.resourceId = resourceId;
 	}
 
@@ -181,5 +179,5 @@ public class ResourcePolicy{
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
 	}
-
+	
 }

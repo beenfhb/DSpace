@@ -25,12 +25,12 @@
 <%@ page import="org.dspace.content.Collection" %>
 <%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.eperson.EPerson" %>
-<%@ page import="org.dspace.workflow.WorkflowItem" %>
-<%@ page import="org.dspace.workflow.WorkflowManager" %>
+<%@ page import="org.dspace.workflowbasic.BasicWorkflowItem" %>
+<%@ page import="org.dspace.workflowbasic.service.BasicWorkflowService" %>
 
 <%
-    WorkflowItem workflowItem =
-        (WorkflowItem) request.getAttribute("workflow.item");
+    BasicWorkflowItem workflowItem =
+        (BasicWorkflowItem) request.getAttribute("workflow.item");
 
     Collection collection = workflowItem.getCollection();
     Item item = workflowItem.getItem();
@@ -46,27 +46,27 @@
     <h1><fmt:message key="jsp.mydspace.perform-task.title"/></h1>
     
 <%
-    if (workflowItem.getState() == WorkflowManager.WFSTATE_STEP1)
+    if (workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP1)
     {
 %>
 	<p><fmt:message key="jsp.mydspace.perform-task.text1">
-        <fmt:param><%= collection.getMetadata("name") %></fmt:param>
+        <fmt:param><%= collection.getName() %></fmt:param>
          </fmt:message></p>
 <%
     }
-    else if (workflowItem.getState() == WorkflowManager.WFSTATE_STEP2)
+    else if (workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP2)
     {
 %>
 	<p><fmt:message key="jsp.mydspace.perform-task.text3">
-        <fmt:param><%= collection.getMetadata("name") %></fmt:param>
+        <fmt:param><%= collection.getName() %></fmt:param>
 	</fmt:message></p>
 <%
     }
-    else if (workflowItem.getState() == WorkflowManager.WFSTATE_STEP3)
+    else if (workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP3)
     {
 %>
 	<p><fmt:message key="jsp.mydspace.perform-task.text4">
-        <fmt:param><%= collection.getMetadata("name") %></fmt:param>
+        <fmt:param><%= collection.getName() %></fmt:param>
     </fmt:message></p>
 <%
     }
@@ -82,8 +82,8 @@
         <ul class="list-group">
 <%
     
-    if (workflowItem.getState() == WorkflowManager.WFSTATE_STEP1 ||
-        workflowItem.getState() == WorkflowManager.WFSTATE_STEP2)
+    if (workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP1 ||
+        workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP2)
     {
 %>
                 <li class="list-group-item">
@@ -118,8 +118,8 @@
 <%
     }
 
-    if (workflowItem.getState() == WorkflowManager.WFSTATE_STEP1 ||
-        workflowItem.getState() == WorkflowManager.WFSTATE_STEP2)
+    if (workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP1 ||
+        workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP2)
     {
 %>
 				<li class="list-group-item">
@@ -139,8 +139,8 @@
 <%
     }
 
-    if (workflowItem.getState() == WorkflowManager.WFSTATE_STEP2 ||
-        workflowItem.getState() == WorkflowManager.WFSTATE_STEP3)
+    if (workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP2 ||
+        workflowItem.getState() == BasicWorkflowService.WFSTATE_STEP3)
     {
 %>
 				<li class="list-group-item">

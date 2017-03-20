@@ -9,7 +9,6 @@ package org.dspace.app.webui.submit.step;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,7 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.webui.submit.JSPStep;
@@ -28,13 +26,13 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.CollectionService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.submit.lookup.SubmissionLookupDataLoader;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.lookup.SubmissionLookupService;
 import org.dspace.submit.step.StartSubmissionLookupStep;
-import org.dspace.utils.DSpace;
 
 /**
  * Step which controls selecting an item from external database service to auto
@@ -75,9 +73,13 @@ public class JSPStartSubmissionLookupStep extends JSPStep
     private static Logger log = Logger
             .getLogger(JSPStartSubmissionLookupStep.class);
 
-    SubmissionLookupService slService = new DSpace().getServiceManager()
+    SubmissionLookupService slService = DSpaceServicesFactory.getInstance().getServiceManager()
             .getServiceByName(SubmissionLookupService.class.getCanonicalName(),
                     SubmissionLookupService.class);
+    
+	private CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
+
+    private final String DEFAULT_COLLECTION_ID = "-1";
 
     /**
      * Do any pre-processing to determine which JSP (if any) is used to generate
@@ -124,13 +126,19 @@ public class JSPStartSubmissionLookupStep extends JSPStep
          * With no parameters, this servlet prepares for display of the Select
          * Collection JSP.
          */
-        int collection_id = UIUtil.getIntParameter(request, "collection");
-        int collectionID = UIUtil.getIntParameter(request, "collectionid");
+        UUID collection_id = null;
+        if(!DEFAULT_COLLECTION_ID.equals(request.getParameter("collection"))) {
+        collection_id = UIUtil.getUUIDParameter(request, "collection");
+    }
+
+        if(collection_id == null && !DEFAULT_COLLECTION_ID.equals(request.getParameter("collectionid"))) {
+            collection_id = UIUtil.getUUIDParameter(request, "collectionid");
+        }
         Collection col = null;
 
-        if (collectionID != -1)
+        if (collection_id != null)
         {
-            col = Collection.find(context, collectionID);
+            col = collectionService.find(context, collection_id);
         }
 
         // if we already have a valid collection, then we can forward directly
@@ -138,37 +146,38 @@ public class JSPStartSubmissionLookupStep extends JSPStep
         if (col != null)
         {
             log.debug("Select Collection page skipped, since a Collection ID was already found.  Collection ID="
-                    + collectionID);
+                    + collection_id);
         }
         else
         {
             // gather info for JSP page
             Community com = UIUtil.getCommunityLocation(request);
 
-            Collection[] collections;
+            List<Collection> collections;
 
             if (com != null)
             {
                 // In a community. Show collections in that community only.
-                collections = Collection.findAuthorized(context, com,
+                collections = collectionService.findAuthorized(context, com,
                         Constants.ADD);
             }
             else
             {
                 // Show all collections
-                collections = Collection.findAuthorizedOptimized(context,
+                collections = collectionService.findAuthorizedOptimized(context,
                         Constants.ADD);
             }
-            
-            String excludeHandles = ConfigurationManager.getProperty("submissions.exclude.community");
-			if (excludeHandles != null) {
-				collections = filterOut(excludeHandles.split(","), collections);
-			}
 
             // save collections to request for JSP
             request.setAttribute("collections", collections);
-            request.setAttribute("collection_id", collection_id);
-            request.setAttribute("collectionID", collectionID);
+
+            if(collection_id!=null) {
+                request.setAttribute("collection_id", collection_id);
+            }
+            else {
+                request.setAttribute("collection_id", DEFAULT_COLLECTION_ID);
+            }
+            request.setAttribute("collectionID", collection_id);
 
             Map<String, List<String>> identifiers2providers = slService
                     .getProvidersIdentifiersMap();
@@ -184,26 +193,7 @@ public class JSPStartSubmissionLookupStep extends JSPStep
         }
     }
 
-    private Collection[] filterOut(String[] handles, Collection[] collections) throws SQLException {
-    	List<Collection> filteredCollections = new ArrayList<Collection>();
-    	for (Collection c : collections) {
-    		boolean filter = false;
-    		for (String h : handles) {
-    			if (StringUtils.equals(c.getParentObject().getHandle(), h.trim())){
-    				filter = true;
-    				break;
-    			}
-    		}
-    		if (!filter) {
-    			filteredCollections.add(c);
-    		}
-    	}
-    	Collection[] filteredArray = new Collection[filteredCollections.size()];
-    	filteredArray = filteredCollections.toArray(filteredArray);
-    	return filteredArray;
-	}
-
-	/**
+    /**
      * Do any post-processing after the step's backend processing occurred (in
      * the doProcessing() method).
      * <P>

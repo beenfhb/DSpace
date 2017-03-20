@@ -42,15 +42,32 @@
             <exclude>LICENSE_HEADER</exclude>
          </excludes>
       </fileSet>
-      <!-- Copy necessary subdirectories to resulting directory -->
+      <!-- If local.cfg is in the root folder, copy it to config folder -->
+      <fileSet>
+         <directory>..</directory>
+         <outputDirectory>config</outputDirectory>
+         <includes>
+            <include>local.cfg</include>
+         </includes>
+         <filtered>true</filtered>
+      </fileSet>
+
       <fileSet>
          <outputDirectory>.</outputDirectory>
          <includes>
             <include>bin/**</include>
             <include>config/**</include>
+            <include>docs/**</include>
             <include>etc/**</include>
             <include>solr/**</include>
          </includes>
+         <!-- Exclude source code & configs (we'll copy configs below) -->
+         <excludes>
+            <exclude>src</exclude>
+            <exclude>config/dspace.cfg</exclude>
+            <exclude>config/log4j.properties</exclude>
+            <exclude>config/modules/**</exclude>
+         </excludes>
          <!-- Exclude source code & configs (we'll copy configs below) -->
          <excludes>
             <exclude>src</exclude>
@@ -61,14 +78,6 @@
             <exclude>config/log4j.properties</exclude>
             <exclude>config/modules/**</exclude>
          </excludes>
-      </fileSet>
-      <!-- Copy over all module configs & filter them -->
-      <fileSet>
-         <outputDirectory>.</outputDirectory>
-         <includes>
-            <include>config/modules/**</include>
-         </includes>
-         <filtered>true</filtered>
       </fileSet>
    </fileSets>
 
@@ -111,6 +120,7 @@
             <include>*:jar:*</include>
          </includes>
          <outputDirectory>lib</outputDirectory>
+         <useProjectArtifact>false</useProjectArtifact>
       </dependencySet>
    </dependencySets>
 

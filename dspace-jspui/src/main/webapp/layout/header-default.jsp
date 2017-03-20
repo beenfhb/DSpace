@@ -108,6 +108,7 @@
 	<script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/custom-functions.js'></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"> </script>
+    
     <script type="text/javascript" src="<%= request.getContextPath() %>/js/jdyna/jdyna.js"></script>    
     <script type="text/javascript" src="<%= request.getContextPath() %>/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/dataTables.bootstrap.min.js"></script>
@@ -154,29 +155,14 @@
     });
     </script>
     <% } %>
-    <%--Gooogle Analytics recording.--%>
     <%
-    if (analyticsKey != null && analyticsKey.length() > 0)
-    {
-    %>
-        <script type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', '<%= analyticsKey %>']);
-            _gaq.push(['_trackPageview']);
 
-            (function() {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
-        </script>
-    <%
-    }
+    <dspace:include page="/layout/google-analytics-snippet.jsp" />
     if (extraHeadDataLast != null)
     { %>
-		<%= extraHeadDataLast %>
-		<%
-		    }
+        <%= extraHeadDataLast %>
+    <%
+    }
     %>
     
 
@@ -205,11 +191,11 @@
     }
     else
     {
-    	%>
+    %>
         <div class="container-fluid">
             <dspace:include page="/layout/navbar-minimal.jsp" />
         </div>
-<%    	
+<%
     }
 %>
 </header>
@@ -248,8 +234,8 @@
         </div>
         <div class="col-sm-4 hidden-xs pull-<%= isRtl ?"left" :"right" %>"><img class="img-responsive" src="<%= request.getContextPath() %>/image/logo.gif" alt="DSpace logo" />
         </div>
-	</div>
-</div>	
+    </div>
+</div>
 <br/>
                 <%-- Location bar --%>
 <%

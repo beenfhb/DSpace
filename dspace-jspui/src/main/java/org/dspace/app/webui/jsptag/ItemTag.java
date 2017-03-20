@@ -8,34 +8,62 @@
 package org.dspace.app.webui.jsptag;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 import javax.servlet.jsp.tagext.TagSupport;
-
 import org.apache.commons.lang.ArrayUtils;
+
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.util.IViewer;
-import org.dspace.app.util.MetadataExposure;
-import org.dspace.app.webui.jsptag.DisplayItemMetadataUtils.DisplayMetadata;
+import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.app.util.Util;
+import org.dspace.app.util.factory.UtilServiceFactory;
+import org.dspace.app.util.service.MetadataExposureService;
+import org.dspace.app.webui.util.StyleSelection;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.browse.BrowseException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
+import org.dspace.workflow.WorkflowItemService;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 /**
  * <P>
@@ -175,10 +203,10 @@ public class ItemTag extends TagSupport
     private static final String DOI_DEFAULT_BASEURL = "http://dx.doi.org/";
 
     /** Item to display */
-    private transient Item item;
+    private Item item;
 
     /** Collections this item appears in */
-    private transient Collection[] collections;
+    private List<Collection> collections;
 
     /** The style to use - "default" or "full" */
     private String style;
@@ -186,10 +214,100 @@ public class ItemTag extends TagSupport
     /** Whether to show preview thumbs on the item page */
     private boolean showThumbs;
 
+    /** Default DC fields to display, in absence of configuration */
+    private static final String defaultFields
+            = "dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier";
+
     /** log4j logger */
-    private static Logger log = Logger.getLogger(ItemTag.class);
+    private static final Logger log = Logger.getLogger(ItemTag.class);
+
+    private final transient StyleSelection styleSelection
+            = (StyleSelection) CoreServiceFactory.getInstance().getPluginService().getSinglePlugin(StyleSelection.class);
+    
+    /** Hashmap of linked metadata to browse, from dspace.cfg */
+    private static final Map<String,String> linkedMetadata;
+    
+    /** Hashmap of urn base url resolver, from dspace.cfg */
+    private static final Map<String,String> urn2baseurl;
+    
+    /** regex pattern to capture the style of a field, ie <code>schema.element.qualifier(style)</code> */
+    private final Pattern fieldStylePatter = Pattern.compile(".*\\((.*)\\)");
 
     private static final long serialVersionUID = -3841266490729417240L;
+    
+    private final transient MetadataExposureService metadataExposureService
+            = UtilServiceFactory.getInstance().getMetadataExposureService();
+
+    private final transient ItemService itemService
+            = ContentServiceFactory.getInstance().getItemService();
+
+    private final transient MetadataAuthorityService metadataAuthorityService
+            = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+
+    private final transient BundleService bundleService
+            = ContentServiceFactory.getInstance().getBundleService();
+
+    private final transient AuthorizeService authorizeService
+            = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+
+    private final transient WorkflowItemService workflowItemService 
+            = WorkflowServiceFactory.getInstance().getWorkflowItemService();
+    
+    private final transient WorkspaceItemService workspaceItemService 
+            = ContentServiceFactory.getInstance().getWorkspaceItemService();
+    
+    private final transient ResourcePolicyService resourcePolicyService 
+            = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+    
+    private final transient GroupService groupService 
+            = EPersonServiceFactory.getInstance().getGroupService();
+
+    static {
+        int i;
+
+        linkedMetadata = new HashMap<>();
+        String linkMetadata;
+
+        i = 1;
+        do {
+            linkMetadata = ConfigurationManager.getProperty("webui.browse.link."+i);
+            if (linkMetadata != null) {
+                String[] linkedMetadataSplit = linkMetadata.split(":");
+                String indexName = linkedMetadataSplit[0].trim();
+                String metadataName = linkedMetadataSplit[1].trim();
+                linkedMetadata.put(indexName, metadataName);
+            }
+
+            i++;
+        } while (linkMetadata != null);
+
+        urn2baseurl = new HashMap<>();
+
+        String urn;
+        i = 1;
+        do {
+            urn = ConfigurationManager.getProperty("webui.resolver."+i+".urn");
+            if (urn != null) {
+                String baseurl = ConfigurationManager.getProperty("webui.resolver."+i+".baseurl");
+                if (baseurl != null){
+                    urn2baseurl.put(urn, baseurl);
+                } else {
+                    log.warn("Wrong webui.resolver configuration, you need to specify both webui.resolver.<n>.urn and webui.resolver.<n>.baseurl: missing baseurl for n = "+i);
+                }
+            }
+
+            i++;
+        } while (urn != null);
+
+        // Set sensible default if no config is found for doi & handle
+        if (!urn2baseurl.containsKey("doi")){
+            urn2baseurl.put("doi",DOI_DEFAULT_BASEURL);
+        }
+
+        if (!urn2baseurl.containsKey("hdl")){
+            urn2baseurl.put("hdl",HANDLE_DEFAULT_BASEURL);
+        }
+    }
     
     public ItemTag()
     {
@@ -197,11 +315,17 @@ public class ItemTag extends TagSupport
         getThumbSettings();
     }
 
+    @Override
     public int doStartTag() throws JspException
     {
         try
         {
-            if (style!=null && style.equals("full"))
+            if (style == null || style.equals(""))
+            {
+                style = styleSelection.getStyleForItem(item);
+            }
+
+            if (style.equals("full"))
             {
                 renderFull();
             }
@@ -217,6 +341,10 @@ public class ItemTag extends TagSupport
         catch (IOException ie)
         {
             throw new JspException(ie);
+        }
+        catch (DCInputsReaderException ex)
+        {
+            throw new JspException(ex);
         }
 
         return SKIP_BODY;
@@ -248,9 +376,9 @@ public class ItemTag extends TagSupport
      * 
      * @return the collections
      */
-    public Collection[] getCollections()
+    public List<Collection> getCollections()
     {
-        return (Collection[]) ArrayUtils.clone(collections);
+        return collections;
     }
 
     /**
@@ -259,9 +387,9 @@ public class ItemTag extends TagSupport
      * @param collectionsIn
      *            the collections
      */
-    public void setCollections(Collection[] collectionsIn)
+    public void setCollections(List<Collection> collectionsIn)
     {
-        collections = (Collection[]) ArrayUtils.clone(collectionsIn);
+        collections = collectionsIn;
     }
 
     /**
@@ -285,6 +413,7 @@ public class ItemTag extends TagSupport
         style = styleIn;
     }
 
+    @Override
     public void release()
     {
         style = "default";
@@ -315,7 +444,7 @@ public class ItemTag extends TagSupport
 
         out.println("</table><br/>");
 
-        listBitstreams();
+        listBitstreams(context);
 
         if (ConfigurationManager
                 .getBooleanProperty("webui.licence_bundle.show"))
@@ -336,10 +465,14 @@ public class ItemTag extends TagSupport
         Context context = UIUtil.obtainContext(request);
 
         // Get all the metadata
-        Metadatum[] values = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+
+        out.println("<div class=\"panel panel-info\"><div class=\"panel-heading\">"
+                + LocaleSupport.getLocalizedMessage(pageContext,
+                        "org.dspace.app.webui.jsptag.ItemTag.full") + "</div>");
 
         // Three column table - DC field, value, language
-		out.println("<table class=\"table itemDisplayTable\">");
+        out.println("<table class=\"panel-body table itemDisplayTable\">");
         out.println("<tr><th id=\"s1\" class=\"standard\">"
                 + LocaleSupport.getLocalizedMessage(pageContext,
                         "org.dspace.app.webui.jsptag.ItemTag.dcfield")
@@ -351,30 +484,32 @@ public class ItemTag extends TagSupport
                         "org.dspace.app.webui.jsptag.ItemTag.lang")
                 + "</th></tr>");
 
-        for (int i = 0; i < values.length; i++)
+        for (MetadataValue val : values)
         {
-            if (!MetadataExposure.isHidden(context, values[i].schema, values[i].element, values[i].qualifier))
+        	MetadataField field = val.getMetadataField();
+            if (!metadataExposureService.isHidden(context, field.getMetadataSchema().getName(),
+            		field.getElement(), field.getQualifier()))
             {
                 out.print("<tr><td headers=\"s1\" class=\"metadataFieldLabel\">");
-                out.print(values[i].schema);
-                out.print("." + values[i].element);
+                out.print(field.getMetadataSchema().getName());
+                out.print("." + field.getElement());
 
-                if (values[i].qualifier != null)
+                if (field.getQualifier() != null)
                 {
-                    out.print("." + values[i].qualifier);
+                    out.print("." + field.getQualifier());
                 }
 
                 out.print("</td><td headers=\"s2\" class=\"metadataFieldValue\">");
-                out.print(Utils.addEntities(values[i].value));
+                out.print(Utils.addEntities(val.getValue()));
                 out.print("</td><td headers=\"s3\" class=\"metadataFieldValue\">");
 
-                if (values[i].language == null)
+                if (val.getLanguage() == null)
                 {
                     out.print("-");
                 }
                 else
                 {
-                    out.print(values[i].language);
+                    out.print(val.getLanguage());
                 }
 
                 out.println("</td></tr>");
@@ -385,7 +520,7 @@ public class ItemTag extends TagSupport
 
 		out.println("</table>");
 
-        listBitstreams();
+        listBitstreams(context);
 
         if (ConfigurationManager
                 .getBooleanProperty("webui.licence_bundle.show"))
@@ -420,14 +555,14 @@ public class ItemTag extends TagSupport
             		(style.equals("full")?"colspan=\"2\"":"")
             		+">");
 
-            for (int i = 0; i < collections.length; i++)
+            for (int i = 0; i < collections.size(); i++)
             {
                 out.print("<a href=\"");
                 out.print(request.getContextPath());
                 out.print("/handle/");
-                out.print(collections[i].getHandle());
+                out.print(collections.get(i).getHandle());
                 out.print("\">");
-                out.print(collections[i].getMetadata("name"));
+                out.print(collections.get(i).getName());
                 out.print("</a><br/>");
             }
 
@@ -438,7 +573,7 @@ public class ItemTag extends TagSupport
     /**
      * List bitstreams in the item
      */
-    private void listBitstreams() throws IOException
+    private void listBitstreams(Context context) throws IOException
     {
         JspWriter out = pageContext.getOut();
         HttpServletRequest request = (HttpServletRequest) pageContext
@@ -446,13 +581,13 @@ public class ItemTag extends TagSupport
 
         try
         {
-        	Bundle[] bundles = item.getBundles("ORIGINAL");
+        	List<Bundle> bundles = itemService.getBundles(item, "ORIGINAL");
 
         	boolean filesExist = false;
             
             for (Bundle bnd : bundles)
             {
-            	filesExist = bnd.getBitstreams().length > 0;
+            	filesExist = bnd.getBitstreams().size() > 0;
             	if (filesExist)
             	{
             		break;
@@ -472,33 +607,34 @@ public class ItemTag extends TagSupport
         		String handle = item.getHandle();
         		Bitstream primaryBitstream = null;
 
-        		Bundle[] bunds = item.getBundles("ORIGINAL");
-        		Bundle[] thumbs = item.getBundles("THUMBNAIL");
+        		List<Bundle> bunds = itemService.getBundles(item, "ORIGINAL");
+        		List<Bundle> thumbs = itemService.getBundles(item, "THUMBNAIL");
 
         		// if item contains multiple bitstreams, display bitstream
         		// description
         		boolean multiFile = false;
-        		Bundle[] allBundles = item.getBundles();
+        		List<Bundle> allBundles = item.getBundles();
 
-        		for (int i = 0, filecount = 0; (i < allBundles.length)
+        		for (int i = 0, filecount = 0; (i < allBundles.size())
                     	&& !multiFile; i++)
         		{
-        			filecount += allBundles[i].getBitstreams().length;
+        			filecount += allBundles.get(i).getBitstreams().size();
         			multiFile = (filecount > 1);
         		}
 
         		// check if primary bitstream is html
-        		if (bunds[0] != null)
+        		if (bunds.get(0) != null)
         		{
-        			Bitstream[] bits = bunds[0].getBitstreams();
+        			List<Bitstream> bits = bunds.get(0).getBitstreams();
 
-        			for (int i = 0; (i < bits.length) && !html; i++)
+        			for (int i = 0; (i < bits.size()) && !html; i++)
         			{
-        				if (bits[i].getID() == bunds[0].getPrimaryBitstreamID())
+        				Bitstream b = bits.get(i);
+						if (b.equals(bunds.get(0).getPrimaryBitstream()))
         				{
-        					html = bits[i].getFormat().getMIMEType().equals(
+        					html = b.getFormat(context).getMIMEType().equals(
         							"text/html");
-        					primaryBitstream = bits[i];
+        					primaryBitstream = b;
         				}
         			}
         		}
@@ -540,7 +676,7 @@ public class ItemTag extends TagSupport
             			handle = "db-id/" + item.getID();
             		}
 
-            		out.print("<tr><td headers=\"t1\" class=\"standard\">");
+            		out.print("<tr><td headers=\"t1\" class=\"standard break-all\">");
                     out.print("<a target=\"_blank\" href=\"");
                     out.print(request.getContextPath());
                     out.print("/html/");
@@ -555,7 +691,7 @@ public class ItemTag extends TagSupport
                     
             		if (multiFile)
             		{
-            			out.print("</td><td headers=\"t2\" class=\"standard\">");
+            			out.print("</td><td headers=\"t2\" class=\"standard break-all\">");
 
             			String desc = primaryBitstream.getDescription();
             			out.print((desc != null) ? desc : "");
@@ -564,7 +700,7 @@ public class ItemTag extends TagSupport
             		out.print("</td><td headers=\"t3\" class=\"standard\">");
                     out.print(UIUtil.formatFileSize(primaryBitstream.getSize()));
                     out.print("</td><td headers=\"t4\" class=\"standard\">");
-            		out.print(primaryBitstream.getFormatDescription());
+            		out.print(primaryBitstream.getFormatDescription(context));
             		out
                         .print("</td><td class=\"standard\"><a class=\"btn btn-primary\" target=\"_blank\" href=\"");
             		out.print(request.getContextPath());
@@ -580,25 +716,31 @@ public class ItemTag extends TagSupport
             	}	
             	else
             	{
-            		Context context = UIUtil
-							.obtainContext(request);
             		boolean showRequestCopy = false;
             		if ("all".equalsIgnoreCase(ConfigurationManager.getProperty("request.item.type")) || 
             				("logged".equalsIgnoreCase(ConfigurationManager.getProperty("request.item.type")) &&
             						context.getCurrentUser() != null))
-					{
+                        {
             			showRequestCopy = true;
-					}
-            		for (int i = 0; i < bundles.length; i++)
+                        }
+                        
+                        // check whether bitstreams with access restrictions for
+                        // anonymous users. Label bitstreams accordingly.
+                        boolean labelResctrictedBitstreams =
+                                ConfigurationManager.getBooleanProperty(
+                                        "webui.itemdisplay.label.restricted.bitstreams",
+                                        true);
+                        
+            		for (Bundle bundle : bundles)
             		{
-            			Bitstream[] bitstreams = bundles[i].getBitstreams();
+            			List<Bitstream> bitstreams = bundle.getBitstreams();
 
-            			for (int k = 0; k < bitstreams.length; k++)
+            			for (Bitstream b : bitstreams)
             			{
             				// Skip internal types
-            				if (!bitstreams[k].getFormat().isInternal())
+            				if (!b.getFormat(context).isInternal())
             				{
-            					List<ViewOption> viewOptions = getViewOptions(context, request, pageContext, handle, bitstreams[k]);
+            					List<ViewOption> viewOptions = getViewOptions(context, request, pageContext, handle, b);
             					
                                 // Work out what the bitstream link should be
                                 // (persistent
@@ -607,61 +749,136 @@ public class ItemTag extends TagSupport
                                 bsLink = bsLink + viewOptions.get(0).link;
                                 bsLink = bsLink + "\">";
 
+
             					out
-                                    .print("<tr><td headers=\"t1\" class=\"standard\">");
+                                    .print("<tr><td headers=\"t1\" class=\"standard break-all\">");
                                 out.print("<a ");
             					out.print(bsLink);
-            					out.print(bitstreams[k].getName());
+            					out.print(b.getName());
                                 out.print("</a>");
+                                // check whether the Bitstream is readable for 
+                                // anonymous users
+                                boolean anonymousReadable = false;
+                                List<ResourcePolicy> policies = resourcePolicyService.find(
+                                                context,
+                                                b,
+                                                groupService.findByName(context, Group.ANONYMOUS),
+                                                Constants.READ,
+                                                -1);
+                                ResourcePolicy rp = null;
+                                for (ResourcePolicy policy : policies)
+                                {
+                                    // we expect to find one policy with the same
+                                    // group, cation and bitstream only.
+                                    // so we can assume that this loop will be 
+                                    // run once only.
+                                    // Even if it is rune multiple times, we
+                                    // won't have a big problem here
+                                    rp = policy;
+                                    // if we found a policy allowing anonymous
+                                    // group to read the bitstream, mark it as
+                                    // being anoymous readable and leave the loop
+                                    if (resourcePolicyService.isDateValid(policy))
+                                    {
+                                        anonymousReadable = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // we need to check for workspace and worflow 
+                                // items, item read policies from the owning
+                                // collection as well, if we did not found 
+                                // read policies already.
+                                if (rp == null && !anonymousReadable)
+                                {
+                                    Collection parent = null;
+                                    
+                                    if (workspaceItemService.findByItem(context, item) != null)
+                                    {
+                                        parent = workspaceItemService.findByItem(context, item).getCollection();
+                                    } else if (workflowItemService.findByItem(context, item) != null)
+                                    {
+                                        parent = workflowItemService.findByItem(context, item).getCollection();
+                                    }
+                                    if (parent != null)
+                                    {
+                                        anonymousReadable = !authorizeService.getPoliciesActionFilter(
+                                                        context,
+                                                        parent,
+                                                        Constants.DEFAULT_ITEM_READ).isEmpty();
+                                    }
+                                }
+
+                                if (labelResctrictedBitstreams && !anonymousReadable)
+                                {
+                                    out.print("<br /><i class=\"label label-info\">");
+                                    if (rp == null
+                                            || rp.getEndDate() != null
+                                            || rp.getStartDate() == null)
+                                    {
+                                        out.print(LocaleSupport.getLocalizedMessage(
+                                                pageContext,
+                                                "org.dspace.app.webui.jsptag.ItemTag.accessRestricted"));
+                                    } else {
+                                        out.print(LocaleSupport.getLocalizedMessage(
+                                                pageContext,
+                                                "org.dspace.app.webui.jsptag.ItemTag.restrictionUntil"));
+                                        out.print(" " + DateFormatUtils.format(rp.getStartDate(), "yyyy-MM-dd"));
+                                    }
+                                    out.print("</i>");
+                                }
+
                                 
 
             					if (multiFile)
             					{
             						out
-                                        .print("</td><td headers=\"t2\" class=\"standard\">");
+                                        .print("</td><td headers=\"t2\" class=\"standard break-all\">");
 
-            						String desc = bitstreams[k].getDescription();
+            						String desc = b.getDescription();
             						out.print((desc != null) ? desc : "");
             					}
 
             					out
                                     .print("</td><td headers=\"t3\" class=\"standard\">");
-                                out.print(UIUtil.formatFileSize(bitstreams[k].getSize()));
+                                out.print(UIUtil.formatFileSize(b.getSize()));
             					out
                                 .print("</td><td headers=\"t4\" class=\"standard\">");
-            					out.print(bitstreams[k].getFormatDescription());
+            					out.print(b.getFormatDescription(context));
             					out
                                     .print("</td><td class=\"standard\" align=\"center\">");
 
             					// is there a thumbnail bundle?
-            					if ((thumbs.length > 0) && showThumbs)
+            					if ((thumbs.size() > 0) && showThumbs)
             					{
-            						String tName = bitstreams[k].getName() + ".jpg";
+            						String tName = b.getName() + ".jpg";
                                     String tAltText = LocaleSupport.getLocalizedMessage(pageContext, "org.dspace.app.webui.jsptag.ItemTag.thumbnail");
-            						Bitstream tb = thumbs[0]
-                                        .	getBitstreamByName(tName);
+            						Bitstream tb = bundleService
+                                        .	getBitstreamByName(thumbs.get(0), tName);
 
             						if (tb != null)
             						{
-                                        if (AuthorizeManager.authorizeActionBoolean(context, tb, Constants.READ))
-                                        {
-                                            String myPath = request.getContextPath()
-                                                + "/retrieve/"
-                                                + tb.getID()
-                                                + "/"
-                                                + UIUtil.encodeBitstreamName(tb.getName(),
-                                                		Constants.DEFAULT_ENCODING);
+            						         if (authorizeService.authorizeActionBoolean(context, tb, Constants.READ))
+                                                            {
+                                                                String myPath = request.getContextPath()
+                                                                    + "/retrieve/"
+                                                                    + tb.getID()
+                                                                    + "/"
+                                                                    + UIUtil.encodeBitstreamName(tb
+                                            			.getName(),
+                                            			Constants.DEFAULT_ENCODING);
 
             							out.print("<a ");
             							out.print(bsLink);
             							out.print("<img src=\"" + myPath + "\" ");
             							out.print("alt=\"" + tAltText
             									+ "\" /></a><br />");
-                                        }
+
+                                                            }
             						}
             					}
             					
-								boolean authorizedToVew = AuthorizeManager.authorizeActionBoolean(context,bitstreams[k],Constants.READ);
+								boolean authorizedToVew = authorizeService.authorizeActionBoolean(context,b,Constants.READ);
 								if(context.getCurrentUser() == null || authorizedToVew){
 									if (viewOptions.size() == 1) {
 										out.print("<a class=\"btn btn-primary\" ");
@@ -706,13 +923,14 @@ public class ItemTag extends TagSupport
 											+ "/request-item?handle="
 											+ handle
 											+ "&bitstream-id="
-											+ bitstreams[k].getID()
+											+ b.getID()
 											+ "\">"
 											+ LocaleSupport
 													.getLocalizedMessage(
 															pageContext,
 															"org.dspace.app.webui.jsptag.ItemTag.restrict")
 											+ "</a>");
+
 								}
             				}
 						}
@@ -745,10 +963,10 @@ public class ItemTag extends TagSupport
         HttpServletRequest request = (HttpServletRequest) pageContext
                 .getRequest();
 
-        Bundle[] bundles = null;
+        List<Bundle> bundles = null;
         try
         {
-        	bundles = item.getBundles("LICENSE");
+        	bundles = itemService.getBundles(item, "LICENSE");
         }
         catch(SQLException sqle)
         {
@@ -762,18 +980,18 @@ public class ItemTag extends TagSupport
                         "org.dspace.app.webui.jsptag.ItemTag.itemprotected")
                 + "</strong></p>");
 
-        for (int i = 0; i < bundles.length; i++)
+        for (Bundle bundle : bundles)
         {
-            Bitstream[] bitstreams = bundles[i].getBitstreams();
+            List<Bitstream> bitstreams = bundle.getBitstreams();
 
-            for (int k = 0; k < bitstreams.length; k++)
+            for (Bitstream b : bitstreams)
             {
 				out.print("<div class=\"text-center\">");
                 out.print("<strong><a class=\"btn btn-primary\" target=\"_blank\" href=\"");
                 out.print(request.getContextPath());
                 out.print("/retrieve/");
-                out.print(bitstreams[k].getID() + "/");
-                out.print(UIUtil.encodeBitstreamName(bitstreams[k].getName(),
+                out.print(b.getID() + "/");
+                out.print(UIUtil.encodeBitstreamName(b.getName(),
                         Constants.DEFAULT_ENCODING));
                 out
                         .print("\">"

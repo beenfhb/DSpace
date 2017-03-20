@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -21,6 +22,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.dspace.app.bulkedit.DSpaceCSV;
 import org.dspace.app.bulkedit.MetadataExport;
+import org.dspace.app.webui.jsptag.ConfigurationService;
+import org.dspace.app.webui.jsptag.ItemService;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -33,9 +36,10 @@ import org.dspace.browse.BrowserScope;
 import org.dspace.content.ItemIterator;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.MetadataAuthorityManager;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.utils.DSpace;
+import org.apache.log4j.Logger;
 
 /**
  * Servlet for browsing through indices, as they are defined in 
@@ -63,6 +67,10 @@ public class BrowserServlet extends AbstractBrowserServlet
     /** log4j category */
     private static Logger log = Logger.getLogger(AbstractBrowserServlet.class);
 
+    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
+    private MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+    
     /**
      * Do the usual DSpace GET method.  You will notice that browse does not currently
      * respond to POST requests.
@@ -176,9 +184,7 @@ public class BrowserServlet extends AbstractBrowserServlet
 
 		if (bInfo != null) {
 			if (bInfo.hasAuthority()) {
-				String humanValue = bInfo.getAuthority();
-				ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
-				MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
+				String humanValue = bInfo.getAuthority();				
 				List<String> authorities = mam.getAuthorityMetadata();
 				String[] browseMetadata = bInfo.getBrowseIndex().getMetadata().split(",");
 				for (String auth : authorities) {
@@ -225,13 +231,11 @@ public class BrowserServlet extends AbstractBrowserServlet
 
             BrowseIndex bidx = scope.getBrowseIndex();
             // Export a browse view
-            boolean isMultilanguage = new DSpace()
-            .getConfigurationService()
+            boolean isMultilanguage = configurationService
             .getPropertyAsType(
                     "discovery.browse.authority.multilanguage."
                             + bidx.getName(),
-                    new DSpace()
-                            .getConfigurationService()
+                    new configurationService
                             .getPropertyAsType(
                                     "discovery.browse.authority.multilanguage",
                                     new Boolean(false)),
@@ -240,13 +244,8 @@ public class BrowserServlet extends AbstractBrowserServlet
             BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
                     scope.getUserLocale():null);
             BrowseInfo binfo = be.browse(scope);
-            List<Integer> iids = new ArrayList<Integer>();
-            for (BrowseItem bi : binfo.getBrowseItemResults())
-            {
-                iids.add(bi.getID());
-            }
-            ItemIterator ii = new ItemIterator(context, iids);
-            MetadataExport exporter = new MetadataExport(context, ii, false);
+			Iterator<Item> iterator = binfo.getBrowseItemResults().iterator();
+			MetadataExport exporter = new MetadataExport(context, iterator, false);
 
             // Perform the export
             DSpaceCSV csv = exporter.export();

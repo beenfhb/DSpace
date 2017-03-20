@@ -84,7 +84,7 @@
 	    query = "";
 	}
     Boolean error_b = (Boolean)request.getAttribute("search.error");
-    boolean error = (error_b == null ? false : error_b.booleanValue());
+    boolean error = error_b==null ? false : error_b.booleanValue();
     
     DiscoverQuery qArgs = (DiscoverQuery) request.getAttribute("queryArgs");
     String sortedBy = qArgs.getSortField();
@@ -108,6 +108,13 @@
 	    int idx = 1;
 	    for (String[] filter : appliedFilters)
 	    {
+                if (filter == null
+                        || filter[0] == null || filter[0].trim().equals("")
+                        || filter[2] == null || filter[2].trim().equals(""))
+                {
+                    idx++;
+                    continue;
+                }
 	        httpFilters += "&amp;filter_field_"+idx+"="+URLEncoder.encode(filter[0],"UTF-8");
 	        httpFilters += "&amp;filter_type_"+idx+"="+URLEncoder.encode(filter[1],"UTF-8");
 	        httpFilters += "&amp;filter_value_"+idx+"="+URLEncoder.encode(filter[2],"UTF-8");
@@ -326,7 +333,7 @@ jsp.search.results.searchin<%= StringUtils.isNotBlank(searchScope)?"."+searchSco
 					{
 					    String fkey = "jsp.search.filter." + Escape.uriParam(searchFilter.getIndexFieldName());
 					    %><option value="<%= Utils.addEntities(searchFilter.getIndexFieldName()) %>"<% 
-					            if (filter[0].equals(searchFilter.getIndexFieldName()))
+					            if (searchFilter.getIndexFieldName().equals(filter[0]))
 					            {
 					                %> selected="selected"<%
 					                found = true;
@@ -633,14 +640,14 @@ else if( qResults != null)
     </div>
 <% } %>
 
-<% if (collections.length > 0 ) { %>
+<% if (collections.size() > 0 ) { %>
     <div class="panel panel-info">
     <div class="panel-heading"><fmt:message key="jsp.search.results.colhits"/></div>
     <dspace:collectionlist collections="<%= collections %>" />
     </div>
 <% } %>
 
-<% if (items.length > 0) { %>
+<% if (items.size() > 0) { %>
     <div class="panel panel-info">
     <div class="panel-heading"><h6><fmt:message key="jsp.search.results.itemhits"/></h6></div>
     
@@ -681,7 +688,7 @@ else if( qResults != null)
 <% } %>
 </div>
 <%-- if the result page is enought long... --%>
-<% if ((communities.length + collections.length + items.length) > 10) {%>
+<% if ((communities.size() + collections.size() + items.size()) > 10) {%>
 <%-- show again the navigation info/links --%>
 <div class="discovery-result-pagination">
     <%-- <p align="center">Results <//%=qResults.getStart()+1%>-<//%=qResults.getStart()+qResults.getHitHandles().size()%> of --%>

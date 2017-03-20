@@ -36,18 +36,16 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.services.EmailService;
-import org.dspace.utils.DSpace;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Class representing an e-mail message, also used to send e-mails.
  * <P>
  * Typical use:
  * <P>
- * <code>Email email = ConfigurationManager.getEmail(name);</code><br>
+ * <code>Email email = new Email();</code><br>
  * <code>email.addRecipient("foo@bar.com");</code><br>
  * <code>email.addArgument("John");</code><br>
  * <code>email.addArgument("On the Testing of DSpace");</code><br>
@@ -105,9 +103,6 @@ import org.dspace.utils.DSpace;
  */
 public class Email
 {
-    
-    private static boolean skipEmailSend = false;
-    
     /** The content of the message */
     private String content;
 
@@ -118,11 +113,8 @@ public class Email
     private List<Object> arguments;
 
     /** The recipients */
-    private List<String> recipientsTO;
+    private List<String> recipients;
 
-    /** The recipients */
-    private List<String> recipientsCC;
-    
     /** Reply to field, if any */
     private String replyTo;
 
@@ -134,19 +126,13 @@ public class Email
 
     private static final Logger log = Logger.getLogger(Email.class);
 
-
-    public static void setSkipEmailSend(boolean skip) {
-        skipEmailSend = skip;
-    }
-    
     /**
      * Create a new email message.
      */
     public Email()
     {
         arguments = new ArrayList<Object>(50);
-        recipientsTO = new ArrayList<String>(50);
-        recipientsCC = new ArrayList<String>(50);
+        recipients = new ArrayList<String>(50);
         attachments = new ArrayList<FileAttachment>(10);
         moreAttachments = new ArrayList<InputStreamAttachment>(10);
         subject = "";
@@ -163,26 +149,9 @@ public class Email
      */
     public void addRecipient(String email)
     {
-        addRecipientTO(email);
+        recipients.add(email);
     }
 
-
-    /**
-     * Add a recipient
-     *
-     * @param email
-     *            the recipient's email address
-     */
-    public void addRecipientTO(String email)
-    {
-        recipientsTO.add(email);
-    }
-    
-    public void addRecipientCC(String email)
-    {
-        recipientsCC.add(email);
-    }
-    
     /**
      * Set the content of the message. Setting this "resets" the message
      * formatting -<code>addArgument</code> will start. Comments and any
@@ -251,8 +220,7 @@ public class Email
     public void reset()
     {
         arguments = new ArrayList<Object>(50);
-        recipientsTO = new ArrayList<String>(50);
-        recipientsCC = new ArrayList<String>(50);
+        recipients = new ArrayList<String>(50);
         attachments = new ArrayList<FileAttachment>(10);
         moreAttachments = new ArrayList<InputStreamAttachment>(10);
         replyTo = null;
@@ -264,73 +232,40 @@ public class Email
      *
      * @throws MessagingException
      *             if there was a problem sending the mail.
-     * @throws IOException 
+     * @throws IOException if IO error
      */
     public void send() throws MessagingException, IOException
     {
-        
-        if (skipEmailSend) {
-            // exit immediatly
-            return;
-        }
-        
+        ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
+
         // Get the mail configuration properties
-        String from = ConfigurationManager.getProperty("mail.from.address");
-        boolean disabled = ConfigurationManager.getBooleanProperty("mail.server.disabled", false);
-        String fixedRecipient = ConfigurationManager.getProperty("mail.server.fixedRecipient");
+        String from = config.getProperty("mail.from.address");
+        boolean disabled = config.getBooleanProperty("mail.server.disabled", false);
 
         // If no character set specified, attempt to retrieve a default
         if (charset == null)
         {
-            charset = ConfigurationManager.getProperty("mail.charset");
+            charset = config.getProperty("mail.charset");
         }
 
         // Get session
-        Session session = new DSpace().getServiceManager().
-                getServicesByType(EmailService.class).get(0).getSession();
+        Session session = DSpaceServicesFactory.getInstance().getEmailService().getSession();
 
         // Create message
         MimeMessage message = new MimeMessage(session);
 
         // Set the recipients of the message
-        Iterator<String> i = recipientsTO.iterator();
-        Iterator<String> z = recipientsCC.iterator();
+        Iterator<String> i = recipients.iterator();
 
         while (i.hasNext())
         {
-            // ATTENTION: if you add more recipientType be sure to handle 
-            // them properly when the fixedRecipient is used
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(
                     i.next()));
-        }
-        while (z.hasNext())
-        {
-            // ATTENTION: if you add more recipientType be sure to handle 
-            // them properly when the fixedRecipient is used
-            message.addRecipient(Message.RecipientType.CC, new InternetAddress(
-                    z.next()));
         }
 
         // Format the mail message
         Object[] args = arguments.toArray();
         String fullMessage = MessageFormat.format(content, args);
-        
-        if(disabled) {
-            fullMessage += "\n===REAL RECIPIENT===\n";
-            for (String r : recipientsTO)
-            {
-                fullMessage += r + "\n";
-            }
-            if (recipientsCC.size() > 0)
-            {
-                fullMessage += "\n===REAL RECIPIENT (cc)===\n";
-                for (String r : recipientsCC)
-                {
-                    fullMessage += r + "\n";
-                }
-            }
-        }
-        
         Date date = new Date();
 
         message.setSentDate(date);
@@ -419,18 +354,7 @@ public class Email
 
             text.append('\n').append(fullMessage);
 
-            if (StringUtils.isNotEmpty(fixedRecipient))
-            {
-                message.setRecipient(Message.RecipientType.TO,
-                        new InternetAddress(fixedRecipient));
-                message.setRecipients(Message.RecipientType.CC, 
-                        "");                        
-                Transport.send(message);
-            }
-            else
-            {
-                log.info(text);
-            }
+            log.info(text);
         }
         else
             Transport.send(message);
@@ -446,7 +370,7 @@ public class Email
      * @return the email object, with the content and subject filled out from
      *         the template
      *
-     * @throws IOException
+     * @throws IOException if IO error
      *             if the template couldn't be found, or there was some other
      *             error reading the template
      */
@@ -539,10 +463,11 @@ public class Email
      */
     public static void main(String[] args)
     {
-        String to = ConfigurationManager.getProperty("mail.admin");
+        ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
+        String to = config.getProperty("mail.admin");
         String subject = "DSpace test email";
-        String server = ConfigurationManager.getProperty("mail.server");
-        String url = ConfigurationManager.getProperty("dspace.url");
+        String server = config.getProperty("mail.server");
+        String url = config.getProperty("dspace.url");
         Email e = new Email();
         e.setSubject(subject);
         e.addRecipient(to);
@@ -551,7 +476,7 @@ public class Email
         System.out.println(" - To: " + to);
         System.out.println(" - Subject: " + subject);
         System.out.println(" - Server: " + server);
-        boolean disabled = ConfigurationManager.getBooleanProperty("mail.server.disabled", false);
+        boolean disabled = config.getBooleanProperty("mail.server.disabled", false);
         try
         {
             if( disabled)
@@ -640,20 +565,24 @@ public class Email
                baos.write(buff, 0, read);            
            }        
        }                
-       
-       public String getContentType() {            
+
+       @Override
+       public String getContentType() {
            return contentType;        
        }         
        
-       public InputStream getInputStream() throws IOException {            
-           return new ByteArrayInputStream(baos.toByteArray());        
+       @Override
+       public InputStream getInputStream() throws IOException {
+           return new ByteArrayInputStream(baos.toByteArray());
        }         
        
-       public String getName() {            
+       @Override
+       public String getName() {
            return name;        
        }         
-       
-       public OutputStream getOutputStream() throws IOException {            
+
+       @Override
+       public OutputStream getOutputStream() throws IOException {
            throw new IOException("Cannot write to this read-only resource");        
        }    
    }

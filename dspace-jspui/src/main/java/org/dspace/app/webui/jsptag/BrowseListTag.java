@@ -7,20 +7,24 @@
  */
 package org.dspace.app.webui.jsptag;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 import javax.servlet.jsp.tagext.TagSupport;
-
 import org.apache.commons.lang.ArrayUtils;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.DateDisplayStrategy;
@@ -34,13 +38,30 @@ import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowseItem;
 import org.dspace.browse.CrossLinks;
-import org.dspace.content.Metadatum;
+import org.dspace.app.webui.util.UIUtil;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowseException;
+import org.dspace.browse.BrowseIndex;
+import org.dspace.browse.BrowseInfo;
+import org.dspace.browse.CrossLinks;
+import org.dspace.content.Bitstream;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.PluginManager;
-import org.dspace.sort.SortException;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.Thumbnail;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.core.Utils;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.sort.SortOption;
-import org.dspace.utils.DSpace;
 
 /**
  * Tag for display a list of items
@@ -51,10 +72,10 @@ import org.dspace.utils.DSpace;
 public class BrowseListTag extends TagSupport
 {
     /** log4j category */
-    private static Logger log = Logger.getLogger(BrowseListTag.class);
+    private static final Logger log = Logger.getLogger(BrowseListTag.class);
 
     /** Items to display */
-    private transient BrowseItem[] items;
+    private List<Item> items;
 
     /** Row to highlight, -1 for no row */
     private int highlightRow = -1;
@@ -87,10 +108,10 @@ public class BrowseListTag extends TagSupport
     private String order = null;
 
     /** The default fields to be displayed when listing items */
-    private static final String DEFAULT_LIST_FIELDS;
+    private static final String[] DEFAULT_LIST_FIELDS;
 
     /** The default widths for the columns */
-    private static final String DEFAULT_LIST_WIDTHS;
+    private static final String[] DEFAULT_LIST_WIDTHS;
 
     /** The default field which is bound to the browse by date */
     private static String dateField = "dc.date.issued";
@@ -127,6 +148,21 @@ public class BrowseListTag extends TagSupport
     private String inputName;
     
     private static final long serialVersionUID = 8091584920304256107L;
+    
+    transient private final ItemService itemService
+            = ContentServiceFactory.getInstance().getItemService();
+
+    transient private final MetadataAuthorityService metadataAuthorityService
+            = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+
+    transient private final BitstreamService bitstreamService
+            = ContentServiceFactory.getInstance().getBitstreamService();
+    
+    transient private final ConfigurationService configurationService
+             = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    transient private final AuthorizeService authorizeService
+            = AuthorizeServiceFactory.getInstance().getAuthorizeService();
 
     static
     {
@@ -135,34 +171,37 @@ public class BrowseListTag extends TagSupport
 
         if (showThumbs)
         {
-            DEFAULT_LIST_FIELDS = "thumbnail, dc.date.issued(date), dc.title, dc.contributor.*";
-            DEFAULT_LIST_WIDTHS = "*, 130, 60%, 40%";
+            DEFAULT_LIST_FIELDS = new String[]{"thumbnail", "dc.date.issued(date)", "dc.title", "dc.contributor.*"};
+            DEFAULT_LIST_WIDTHS = new String[]{"*", "130", "60%", "40%"};
         }
         else
         {
-            DEFAULT_LIST_FIELDS = "dc.date.issued(date), dc.title, dc.contributor.*";
-            DEFAULT_LIST_WIDTHS = "130, 60%, 40%";
+            DEFAULT_LIST_FIELDS = new String[]{"dc.date.issued(date)", "dc.title", "dc.contributor.*"};
+            DEFAULT_LIST_WIDTHS = new String[]{"130", "60%", "40%"};
         }
 
         // get the date and title fields
-        String dateLine = ConfigurationManager
+<<<<<<< .mine        String dateLine = ConfigurationManager
                 .getProperty("webui.browse.index.date");
-        if (dateLine != null)
+=======        String dateLine = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("webui.browse.index.date");
+>>>>>>> .theirs        if (dateLine != null)
         {
             dateField = dateLine;
         }
 
-        String titleLine = ConfigurationManager
+<<<<<<< .mine        String titleLine = ConfigurationManager
                 .getProperty("webui.browse.index.title");
-        if (titleLine != null)
+=======        String titleLine = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("webui.browse.index.title");
+>>>>>>> .theirs        if (titleLine != null)
         {
             titleField = titleLine;
         }
 
         // get the author truncation config
-        String authorLine = ConfigurationManager
+<<<<<<< .mine        String authorLine = ConfigurationManager
                 .getProperty("webui.browse.author-field");
-        if (authorLine != null)
+=======        String authorLine = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("webui.browse.author-field");
+>>>>>>> .theirs        if (authorLine != null)
         {
             authorField = authorLine;
         }
@@ -173,6 +212,7 @@ public class BrowseListTag extends TagSupport
         super();
     }
 
+    @Override
     public int doStartTag() throws JspException
     {
         JspWriter out = pageContext.getOut();
@@ -188,9 +228,11 @@ public class BrowseListTag extends TagSupport
          */
 
         // get the elements to display
-        String browseListLine = null;
+<<<<<<< .mine        String browseListLine = null;
         String browseWidthLine = null;
-
+=======        String[] browseFields  = null;
+        String[] browseWidths = null;
+>>>>>>> .theirs
         // As different indexes / sort options may require different columns to
         // be displayed
         // try to obtain a custom configuration based for the browse that has
@@ -205,9 +247,9 @@ public class BrowseListTag extends TagSupport
             {
                 // First, try to get a configuration for this browse and sort
                 // option combined
-                if (so != null && browseListLine == null)
+                if (so != null && ArrayUtils.isEmpty(browseFields))
                 {
-                    browseListLine = ConfigurationManager
+<<<<<<< .mine                    browseListLine = ConfigurationManager
                             .getProperty("webui.itemlist.browse."
                                     + bix.getName() + ".sort." + so.getName()
                                     + ".columns");
@@ -215,7 +257,9 @@ public class BrowseListTag extends TagSupport
                             .getProperty("webui.itemlist.browse."
                                     + bix.getName() + ".sort." + so.getName()
                                     + ".widths");
-                }
+=======                    browseFields  = configurationService.getArrayProperty("webui.itemlist.browse." + bix.getName() + ".sort." + so.getName() + ".columns");
+                    browseWidths = configurationService.getArrayProperty("webui.itemlist.browse." + bix.getName() + ".sort." + so.getName() + ".widths");
+>>>>>>> .theirs                }
 
                 // We haven't got a sort option defined, so get one for the
                 // index
@@ -227,135 +271,77 @@ public class BrowseListTag extends TagSupport
             }
 
             // If no config found, attempt to get one for this sort option
-            if (so != null && browseListLine == null)
+            if (so != null && ArrayUtils.isEmpty(browseFields))
             {
-                browseListLine = ConfigurationManager
-                        .getProperty("webui.itemlist.sort." + so.getName()
-                                + ".columns");
-                browseWidthLine = ConfigurationManager
-                        .getProperty("webui.itemlist.sort." + so.getName()
-                                + ".widths");
+                browseFields  = configurationService.getArrayProperty("webui.itemlist.sort." + so.getName() + ".columns");
+                browseWidths = configurationService.getArrayProperty("webui.itemlist.sort." + so.getName() + ".widths");
             }
 
             // If no config found, attempt to get one for this browse index
-            if (bix != null && browseListLine == null)
+            if (bix != null && ArrayUtils.isEmpty(browseFields))
             {
-                browseListLine = ConfigurationManager
-                        .getProperty("webui.itemlist.browse." + bix.getName()
-                                + ".columns");
-                browseWidthLine = ConfigurationManager
-                        .getProperty("webui.itemlist.browse." + bix.getName()
-                                + ".widths");
+                browseFields  = configurationService.getArrayProperty("webui.itemlist.browse." + bix.getName() + ".columns");
+                browseWidths = configurationService.getArrayProperty("webui.itemlist.browse." + bix.getName() + ".widths");
             }
 
             // If no config found, attempt to get a general one, using the sort
             // name
-            if (so != null && browseListLine == null)
+            if (so != null &&  ArrayUtils.isEmpty(browseFields))
             {
-                browseListLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + so.getName()
-                                + ".columns");
-                browseWidthLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + so.getName()
-                                + ".widths");
+                browseFields  = configurationService.getArrayProperty("webui.itemlist." + so.getName() + ".columns");
+                browseWidths = configurationService.getArrayProperty("webui.itemlist." + so.getName() + ".widths");
             }
 
             // If no config found, attempt to get a general one, using the index
             // name
-            if (bix != null && browseListLine == null)
+            if (bix != null && ArrayUtils.isEmpty(browseFields))
             {
-                browseListLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + bix.getName()
-                                + ".columns");
-                browseWidthLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + bix.getName()
-                                + ".widths");
+                browseFields  = configurationService.getArrayProperty("webui.itemlist." + bix.getName() + ".columns");
+                browseWidths = configurationService.getArrayProperty("webui.itemlist." + bix.getName() + ".widths");
             }
             
-            if (bix != null && browseListLine == null)
+            if (bix != null && ArrayUtils.isEmpty(browseFields))
             {
-                browseListLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + bix.getName()
+                browseFields  = configurationService.getArrayProperty("webui.itemlist." + bix.getName()
                                 + ".columns");
-                browseWidthLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + bix.getName()
+                browseWidths = configurationService.getArrayProperty("webui.itemlist." + bix.getName()
                                 + ".widths");
             }
 
-            if (bix != null && browseListLine == null)
+            if (bix != null && ArrayUtils.isEmpty(browseFields))
             {
-                browseListLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + bix.getDisplayType()
+                browseFields = configurationService.getArrayProperty("webui.itemlist." + bix.getDisplayType()
                                 + ".columns");
-                browseWidthLine = ConfigurationManager
-                        .getProperty("webui.itemlist." + bix.getDisplayType()
+                browseWidths = configurationService.getArrayProperty("webui.itemlist." + bix.getDisplayType()
                                 + ".widths");
             }
         }
 
-        if (browseListLine == null && config != null)
+        if (ArrayUtils.isEmpty(browseFields) && config != null)
         {
-            browseListLine = ConfigurationManager.getProperty("webui.itemlist."
+            browseFields  = configurationService.getArrayProperty("webui.itemlist."
                     + config + ".columns");
-            browseWidthLine = ConfigurationManager
-                    .getProperty("webui.itemlist." + config + ".widths");
+            browseWidths = configurationService.getArrayProperty("webui.itemlist." + config + ".widths");
         }
 
         // Have we read a field configration from dspace.cfg?
-        if (browseListLine != null)
+        if (ArrayUtils.isNotEmpty(browseFields))
         {
             // If thumbnails are disabled, strip out any thumbnail column from
             // the configuration
-            if (!showThumbs && browseListLine.contains("thumbnail"))
+            if (!showThumbs)
             {
-                // Ensure we haven't got any nulls
-                browseListLine = browseListLine == null ? "" : browseListLine;
-                browseWidthLine = browseWidthLine == null ? ""
-                        : browseWidthLine;
-
-                // Tokenize the field and width lines
-                StringTokenizer bllt = new StringTokenizer(browseListLine, ",");
-                StringTokenizer bwlt = new StringTokenizer(browseWidthLine, ",");
-
-                StringBuilder newBLLine = new StringBuilder();
-                StringBuilder newBWLine = new StringBuilder();
-                while (bllt.hasMoreTokens() || bwlt.hasMoreTokens())
+                // check if it contains a thumbnail entry
+                // If so, remove it, and the width associated with it
+                int thumbnailIndex = ArrayUtils.indexOf(browseFields, "thumbnail");
+                if(thumbnailIndex>=0)
                 {
-                    String browseListTok = bllt.hasMoreTokens() ? bllt
-                            .nextToken() : null;
-                    String browseWidthTok = bwlt.hasMoreTokens() ? bwlt
-                            .nextToken() : null;
-
-                    // Only use the Field and Width tokens, if the field isn't
-                    // 'thumbnail'
-                    if (browseListTok == null
-                            || !browseListTok.trim().equals("thumbnail"))
+                    browseFields = (String[]) ArrayUtils.remove(browseFields, thumbnailIndex);
+                    if(ArrayUtils.isNotEmpty(browseWidths))
                     {
-                        if (browseListTok != null)
-                        {
-                            if (newBLLine.length() > 0)
-                            {
-                                newBLLine.append(",");
-                            }
-
-                            newBLLine.append(browseListTok);
-                        }
-
-                        if (browseWidthTok != null)
-                        {
-                            if (newBWLine.length() > 0)
-                            {
-                                newBWLine.append(",");
-                            }
-
-                            newBWLine.append(browseWidthTok);
-                        }
+                       browseWidths = (String[]) ArrayUtils.remove(browseWidths, thumbnailIndex);
                     }
                 }
-
-                // Use the newly built configuration file
-                browseListLine = newBLLine.toString();
-                browseWidthLine = newBWLine.toString();
             }
         }
         else
@@ -394,34 +380,24 @@ public class BrowseListTag extends TagSupport
             }
         }
 
-        // Arrays used to hold the information we will require when outputting
-        // each row
-        String[] fieldArr = browseListLine == null ? new String[0]
-                : browseListLine.split("\\s*,\\s*");
-        String[] widthArr = browseWidthLine == null ? new String[0]
-                : browseWidthLine.split("\\s*,\\s*");
-        String useRender[] = new String[fieldArr.length];
-        boolean emph[] = new boolean[fieldArr.length];
-        boolean isAuthor[] = new boolean[fieldArr.length];
-        boolean viewFull[] = new boolean[fieldArr.length];
-        String[] browseType = new String[fieldArr.length];
-        String[] cOddOrEven = new String[fieldArr.length];
-
+        // Arrays used to hold the information we will require when outputting each row
+        boolean isDate[]   = new boolean[browseFields.length];
+        boolean emph[]     = new boolean[browseFields.length];
+        boolean isAuthor[] = new boolean[browseFields.length];
+        boolean viewFull[] = new boolean[browseFields.length];
+        String[] browseType = new String[browseFields.length];
+        String[] cOddOrEven = new String[browseFields.length];
         try
         {
             // Get the interlinking configuration too
             CrossLinks cl = new CrossLinks();
 
             // Get a width for the table
-            String tablewidth = ConfigurationManager
-                    .getProperty("webui.itemlist.tablewidth");
+            String tablewidth = configurationService.getProperty("webui.itemlist.tablewidth");
 
-            // If we have column widths, try to use a fixed layout table -
-            // faster for browsers to render
-            // but not if we have to add an 'edit item' button - we can't know
-            // how big it will be
-            if (widthArr.length > 0 && widthArr.length == fieldArr.length
-                    && !linkToEdit)
+            // If we have column widths, try to use a fixed layout table - faster for browsers to render
+            // but not if we have to add an 'edit item' button - we can't know how big it will be
+            if (ArrayUtils.isNotEmpty(browseWidths) && browseWidths.length == browseFields.length && !linkToEdit)
             {
                 // If the table width has been specified, we can make this a
                 // fixed layout
@@ -440,23 +416,19 @@ public class BrowseListTag extends TagSupport
                 // Output the known column widths
                 out.print("<colgroup>");
 
-                for (int w = 0; w < widthArr.length; w++)
+                for (int w = 0; w < browseWidths.length; w++)
                 {
                     out.print("<col width=\"");
 
-                    // For a thumbnail column of width '*', use the configured
-                    // max width for thumbnails
-                    if (fieldArr[w].equals("thumbnail")
-                            && widthArr[w].equals("*"))
+                    // For a thumbnail column of width '*', use the configured max width for thumbnails
+                    if (browseFields[w].equals("thumbnail") && browseWidths[w].equals("*"))
                     {
                         out.print(thumbItemListMaxWidth);
                     }
                     else
                     {
-                        out.print(StringUtils.isEmpty(widthArr[w]) ? "*"
-                                : widthArr[w]);
+                        out.print(StringUtils.isEmpty(browseWidths[w]) ? "*" : browseWidths[w]);
                     }
-
                     out.print("\" />");
                 }
 
@@ -486,9 +458,9 @@ public class BrowseListTag extends TagSupport
                 out.print("</th>");
             }
             
-            for (int colIdx = 0; colIdx < fieldArr.length; colIdx++)
+            for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
             {
-                String field = fieldArr[colIdx].toLowerCase().trim();
+                String field = browseFields[colIdx].toLowerCase().trim();
                 cOddOrEven[colIdx] = (((colIdx + 1) % 2) == 0 ? "Odd" : "Even");
 
                 String style = null;
@@ -524,7 +496,7 @@ public class BrowseListTag extends TagSupport
                 }
 
                 // Cache any modifications to field
-                fieldArr[colIdx] = field;
+                browseFields[colIdx] = field;
 
                 // find out if this is the author column
                 if (field.equals(authorField))
@@ -669,19 +641,11 @@ public class BrowseListTag extends TagSupport
             out.print("</tr>");
 
             // now output each item row
-            for (int i = 0; i < items.length; i++)
+            for (Item item : items)
             {
                 out.print("<tr>");
                 // now prepare the XHTML frag for this division
                 String rOddOrEven;
-                if (i == highlightRow)
-                {
-                    rOddOrEven = "highlight";
-                }
-                else
-                {
-                    rOddOrEven = ((i & 1) == 1 ? "odd" : "even");
-                }
 
                 if (inputName != null) {
                     out.print("<td align=\"right\" class=\"oddRowOddCol\">");
@@ -692,9 +656,9 @@ public class BrowseListTag extends TagSupport
                             + "\" />");
                     out.print("</td>");
                 }                
-                for (int colIdx = 0; colIdx < fieldArr.length; colIdx++)
+                for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
                 {
-                    String field = fieldArr[colIdx];
+                    String field = browseFields[colIdx];
 
                     // get the schema and the element qualifier pair
                     // (Note, the schema is not used for anything yet)
@@ -716,7 +680,7 @@ public class BrowseListTag extends TagSupport
                     String qualifier = tokens[2];
 
                     // first get hold of the relevant metadata for this column
-                    Metadatum[] metadataArray = null;
+                    List<MetadataValue> metadataArray;
                     
                     if (schema.equalsIgnoreCase("extra")) {
                     	
@@ -726,35 +690,34 @@ public class BrowseListTag extends TagSupport
 							val = String.valueOf(obj);
 						}
                     	if (StringUtils.isNotBlank(val)) {
-                    		metadataArray = new Metadatum[1];
-                    		metadataArray[0] = new Metadatum();
-                    		metadataArray[0].value = val;
-                    		metadataArray[0].schema = "extra";
-                    		metadataArray[0].element = element;
+                    		metadataArray = new ArrayList<>();
+                    		MetadataValue metadataValue = new MetadataValue();
+                    		metadataValue.setValue(val);
+                    		metadataValue.setSchema("extra");
+                    		metadataValue.setElement(element);
+                    		metadataArray.add(metadataValue);
                     	}
+
                     }
                     else {
 	                    if (qualifier.equals("*"))
 	                    {
-	                        metadataArray = items[i].getMetadata(schema, element,
-	                                Item.ANY, Item.ANY);
+	                        metadataArray = itemService.getMetadata(item, schema, element, Item.ANY, Item.ANY);
 	                    }
 	                    else if (qualifier.equals(""))
 	                    {
-	                        metadataArray = items[i].getMetadata(schema, element,
-	                                null, Item.ANY);
+	                        metadataArray = itemService.getMetadata(item, schema, element, null, Item.ANY);
 	                    }
 	                    else
 	                    {
-	                        metadataArray = items[i].getMetadata(schema, element,
-	                                qualifier, Item.ANY);
+	                        metadataArray = itemService.getMetadata(item, schema, element, qualifier, Item.ANY);
 	                    }
                     }
                     
-                    // save on a null check which would make the code untidy
+	                // save on a null check which would make the code untidy
                     if (metadataArray == null)
                     {
-                    	metadataArray = new Metadatum[0];
+                    	metadataArray = new ArrayList<>();
                     }
 
                     // now prepare the content of the table division
@@ -763,6 +726,7 @@ public class BrowseListTag extends TagSupport
                     {
                         limit = (authorLimit <= 0 ? metadataArray.length
                                 : authorLimit);
+
                     }
 
                     IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) PluginManager
@@ -859,7 +823,7 @@ public class BrowseListTag extends TagSupport
             // close the table
             out.println("</table>");
         }
-        catch (IOException ie)
+        catch (AuthorizeException | IOException | BrowseException e)
         {
             throw new JspException(ie);
         } 
@@ -867,7 +831,6 @@ public class BrowseListTag extends TagSupport
         {
             throw new JspException(e);
         }
-
         return SKIP_BODY;
     }
 
@@ -908,9 +871,9 @@ public class BrowseListTag extends TagSupport
      * 
      * @return the items
      */
-    public BrowseItem[] getItems()
+    public List<Item> getItems()
     {
-        return (BrowseItem[]) ArrayUtils.clone(items);
+        return items;
     }
 
     /**
@@ -919,9 +882,9 @@ public class BrowseListTag extends TagSupport
      * @param itemsIn
      *            the items
      */
-    public void setItems(BrowseItem[] itemsIn)
+    public void setItems(List<Item> itemsIn)
     {
-        items = (BrowseItem[]) ArrayUtils.clone(itemsIn);
+        items = itemsIn;
     }
 
     /**

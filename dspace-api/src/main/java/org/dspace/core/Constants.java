@@ -40,14 +40,6 @@ public class Constants
     /** Type of individual eperson objects */
     public static final int EPERSON = 7;
 
-    public static final int SCHEME = 8;
-
-    /** Type of eperson groups */
-    public static final int CONCEPT = 9;
-
-    /** Type of individual eperson objects */
-    public static final int TERM = 10;
-
     /**
      * lets you look up type names from the type IDs
      */
@@ -153,7 +145,7 @@ public class Constants
 
     /**
      * generating constants for the relevance array dynamically is simple: just
-     * 1 << TYPE
+     * {@code 1 << TYPE}
      */
     public static final int RBITSTREAM = 1 << BITSTREAM;
 
@@ -187,7 +179,6 @@ public class Constants
             RCOLLECTION, // 10 - DEFAULT_ITEM_READ
             RITEM | RCOLLECTION | RCOMMUNITY, // 11 - ADMIN
             RBITSTREAM | RBUNDLE | RITEM // 12 - WITHDRAWN_READ
-
     };
 
     public static final String DEFAULT_ENCODING = "UTF-8";

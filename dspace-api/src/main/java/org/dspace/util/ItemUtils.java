@@ -19,6 +19,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.storage.rdbms.DatabaseManager;
@@ -44,19 +45,15 @@ public class ItemUtils
             return ARCHIVE;
         if (item.isWithdrawn())
             return WITHDRAWN;
-        TableRow row = DatabaseManager.querySingle(context,
-                "select * from workflowitem where item_id = ?", item.getID());
-        if (row != null)
-        {
-            return WORKFLOW;
-        }
-        row = DatabaseManager.querySingle(context,
-                "select * from workspaceitem where item_id = ?", item.getID());
+        
+        WorkspaceItem row = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context, item);
         if (row != null)
         {
             return WORKSPACE;
-        }
-        return UNKNOWN;
+        }        
+        
+        return WORKFLOW;
+        
     }
     
 

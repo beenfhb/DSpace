@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authority.AuthorityValue;
-import org.dspace.authority.AuthorityValueGenerator;
+import org.dspace.authority.AuthorityValueServiceImpl;
 import org.dspace.authority.PersonAuthorityValue;
 import org.dspace.authority.orcid.jaxb.ExternalIdentifier;
 import org.dspace.authority.orcid.jaxb.Keyword;
@@ -52,9 +52,9 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 	private boolean update; // used in setValues(Bio bio)
 
 	/**
-	 * Creates an instance of OrcidAuthorityValue with only uninitialized
-	 * fields. This is meant to be filled in with values from an existing
-	 * record. To create a brand new OrcidAuthorityValue, use create()
+     * Creates an instance of OrcidAuthorityValue with only uninitialized fields.
+     * This is meant to be filled in with values from an existing record.
+     * To create a brand new OrcidAuthorityValue, use create()
 	 */
 	public OrcidAuthorityValue() {
 	}
@@ -266,13 +266,14 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 		return map;
 	}
 
+    @Override
 	public String getAuthorityType() {
 		return "orcid";
 	}
 
 	@Override
 	public String generateString() {
-		String generateString = AuthorityValueGenerator.GENERATE + getAuthorityType() + AuthorityValueGenerator.SPLIT;
+        String generateString = AuthorityValueServiceImpl.GENERATE + getAuthorityType() + AuthorityValueServiceImpl.SPLIT;
 		if (StringUtils.isNotBlank(getOrcid_id())) {
 			generateString += getOrcid_id();
 		}
@@ -314,6 +315,7 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 		return orcid_id != null ? orcid_id.hashCode() : 0;
 	}
 
+    @Override
 	public boolean hasTheSameInformationAs(Object o) {
 		if (this == o) {
 			return true;

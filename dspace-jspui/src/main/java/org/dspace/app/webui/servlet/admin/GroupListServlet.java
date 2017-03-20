@@ -9,6 +9,8 @@ package org.dspace.app.webui.servlet.admin;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +22,8 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 
 /**
  * Servlet browsing through groups and selecting them
@@ -28,6 +32,10 @@ import org.dspace.eperson.Group;
  */
 public class GroupListServlet extends DSpaceServlet
 {
+	private final transient GroupService groupService
+             = EPersonServiceFactory.getInstance().getGroupService();
+	
+    @Override
 	protected void doDSGet(Context context,
 			HttpServletRequest request,
 			HttpServletResponse response)
@@ -37,15 +45,8 @@ public class GroupListServlet extends DSpaceServlet
 		boolean multiple = UIUtil.getBoolParameter(request, "multiple");
 		
 		// What are we sorting by?  Name is default
-		int sortBy = Group.NAME;
-		
-		String sbParam = request.getParameter("sortby");
+		int sortBy = GroupService.NAME;
 
-		if (sbParam != null && sbParam.equals("id"))
-		{
-			sortBy = Group.ID;
-		}
-		
 		// What's the index of the first group to show?  Default is 0
 		int first = UIUtil.getIntParameter(request, "first");
 		if (first == -1)
@@ -63,7 +64,7 @@ public class GroupListServlet extends DSpaceServlet
         }		
 
 		// Retrieve the e-people in the specified order
-		Group[] groups;
+		List<Group> groups = groupService.findAll(context, sortBy);
 		
         String search = request.getParameter("search");
         if (search != null && !search.equals(""))
@@ -79,8 +80,8 @@ public class GroupListServlet extends DSpaceServlet
         }    
         
 		// Set attributes for JSP
-		request.setAttribute("sortby", Integer.valueOf(sortBy));
-		request.setAttribute("first",  Integer.valueOf(first));
+		request.setAttribute("sortby", sortBy);
+		request.setAttribute("first", first);
 		request.setAttribute("groups", groups);
         request.setAttribute("search", search);
 		if (multiple)

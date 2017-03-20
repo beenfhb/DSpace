@@ -7,31 +7,21 @@
  */
 package org.dspace.core;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.EmptyStackException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Stack;
-
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.EPersonCRISIntegration;
-import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.event.Dispatcher;
 import org.dspace.event.Event;
-import org.dspace.event.EventManager;
-import org.dspace.storage.rdbms.DatabaseManager;
+import org.dspace.event.factory.EventServiceFactory;
+import org.dspace.event.service.EventService;
+import org.dspace.storage.rdbms.DatabaseConfigVO;
+import org.dspace.storage.rdbms.DatabaseUtils;
+import org.dspace.utils.DSpace;
+import org.springframework.util.CollectionUtils;
+
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * Class representing the context of a particular DSpace operation. This stores
@@ -57,14 +47,8 @@ public class Context
     /** option flags */
     public static final short READ_ONLY = 0x01;
 
-    /** Database connection */
-    private Connection connection;
-
     /** Current user - null means anonymous access */
     private EPerson currentUser;
-
-	/** Current user crisID if any **/
-	private String crisID;
 
     /** Current Locale */
     private Locale currentLocale;
@@ -84,11 +68,8 @@ public class Context
      */
     private Stack<String> authStateClassCallHistory;
 
-    /** Object cache for this context */
-    private Map<String, Object> objectCache;
-
     /** Group IDs of special groups user is a member of */
-    private List<Integer> specialGroups;
+    private List<UUID> specialGroups;
 
     /** Content events */
     private LinkedList<Event> events = null;
@@ -96,35 +77,40 @@ public class Context
     /** Event dispatcher name */
     private String dispName = null;
 
-    /** Autocommit */
-    private boolean isAutoCommit;
-    
     /** options */
     private short options = 0;
 
-    /**
-     * Check to get ItemWrapper on demand {@link Item}
-     */
-    private boolean requiredItemWrapper;
+    protected EventService eventService;
 
-    /** A stack with the history of the requiredItemWrapper check modify */
-    private Stack<Boolean> itemWrapperChangeHistory;
-    
-    /**
-     * A stack with the name of the caller class that modify requiredItemWrapper
-     * system check
-     */
-    private Stack<String> itemWrapperCallHistory;
-    
-    
+    private DBConnection dbConnection;
+
+    static
+    {
+        // Before initializing a Context object, we need to ensure the database
+        // is up-to-date. This ensures any outstanding Flyway migrations are run
+        // PRIOR to Hibernate initializing (occurs when DBConnection is loaded in init() below).
+        try
+        {
+            DatabaseUtils.updateDatabase();
+        }
+        catch(SQLException sqle)
+        {
+            log.fatal("Cannot initialize database via Flyway!", sqle);
+        }
+    }
+
+    protected Context(EventService eventService, DBConnection dbConnection)  {
+        this.eventService = eventService;
+        this.dbConnection = dbConnection;
+        init();
+    }
+
+
     /**
      * Construct a new context object with default options. A database connection is opened.
      * No user is authenticated.
-     * 
-     * @exception SQLException
-     *                if there was an error obtaining a database connection
      */
-    public Context() throws SQLException
+    public Context()
     {
         init();
     }
@@ -134,10 +120,8 @@ public class Context
      * No user is authenticated.
      * 
      * @param options   context operation flags
-     * @exception SQLException
-     *                if there was an error obtaining a database connection
      */
-    public Context(short options) throws SQLException
+    public Context(short options)
     {
         this.options = options;
         init();
@@ -149,37 +133,32 @@ public class Context
      * @exception SQLException
      *                if there was an error obtaining a database connection
      */
-    private void init() throws SQLException
+    private void init()
     {
-        // Obtain a non-auto-committing connection
-        connection = DatabaseManager.getConnection();
-        connection.setAutoCommit(false);
-
-		// This is one heck of a bottleneck, most visitors were just
-		// outsider/robots, they should be
-		// querying our database most of the time, so just let them do the
-		// reading and guard only those
-		// updating our database instead, don't lock up the connection just for
-		// the sake of those people.
-		// Free up those "Idle in Transaction" connections.
-        connection.setAutoCommit(true);
-		isAutoCommit = true;
+        if(eventService == null)
+        {
+            eventService = EventServiceFactory.getInstance().getEventService();
+        }
+        if(dbConnection == null)
+        {
+            // Obtain a non-auto-committing connection
+            dbConnection = new DSpace().getSingletonService(DBConnection.class);
+            if(dbConnection == null)
+            {
+                log.fatal("Cannot obtain the bean which provides a database connection. " +
+                        "Check previous entries in the dspace.log to find why the db failed to initialize.");
+            }
+        }
 
         currentUser = null;
-		crisID = null;
         currentLocale = I18nUtil.DEFAULTLOCALE;
         extraLogInfo = "";
         ignoreAuth = false;
-        requiredItemWrapper = true;
 
-        objectCache = new HashMap<String, Object>();
-        specialGroups = new ArrayList<Integer>();
+        specialGroups = new ArrayList<>();
 
         authStateChangeHistory = new Stack<Boolean>();
         authStateClassCallHistory = new Stack<String>();
-        
-        itemWrapperChangeHistory = new Stack<Boolean>();
-        itemWrapperCallHistory = new Stack<String>();
     }
 
     /**
@@ -187,17 +166,20 @@ public class Context
      * 
      * @return the database connection
      */
-    public Connection getDBConnection()
+    DBConnection getDBConnection()
     {
-        return connection;
+        return dbConnection;
     }
 
-    public void setAutoCommit(boolean b) throws SQLException
+    public DatabaseConfigVO getDBConfig() throws SQLException
     {
-	if (b != isAutoCommit)
-		connection.setAutoCommit(b);
-	isAutoCommit = b;
+        return dbConnection.getDatabaseConfig();
     }
+
+    public String getDbType(){
+        return dbConnection.getType();
+    }
+
     /**
      * Set the current user. Authentication must have been performed by the
      * caller - this call does not attempt any authentication.
@@ -209,16 +191,6 @@ public class Context
     public void setCurrentUser(EPerson user)
     {
         currentUser = user;
-
-		EPersonCRISIntegration plugin = (EPersonCRISIntegration) PluginManager
-				.getSinglePlugin(org.dspace.content.EPersonCRISIntegration.class);
-		if (plugin != null) {
-			if (user != null) {
-				crisID = plugin.getResearcher(user.getID());
-			} else {
-				crisID = null;
-			}
-		}
     }
 
     /**
@@ -231,10 +203,6 @@ public class Context
     {
         return currentUser;
     }
-
-	public String getCrisID() {
-		return crisID;
-	}
 
     /**
      * Gets the current Locale
@@ -336,21 +304,6 @@ public class Context
     }
 
     /**
-     * Specify whether the authorisation system should be ignored for this
-     * context. This should be used sparingly.
-     * 
-     * @deprecated use turnOffAuthorisationSystem() for make the change and
-     *             restoreAuthSystemState() when change are not more required
-     * @param b
-     *            if <code>true</code>, authorisation should be ignored for this
-     *            session.
-     */
-    public void setIgnoreAuthorization(boolean b)
-    {
-        ignoreAuth = b;
-    }
-
-    /**
      * Set extra information that should be added to any message logged in the
      * scope of this context. An example of this might be the session ID of the
      * current Web user's session:
@@ -394,89 +347,92 @@ public class Context
         if(!isValid())
             log.info("complete() was called on a closed Context object. No changes to commit.");
 
-        // FIXME: Might be good not to do a commit() if nothing has actually
-        // been written using this connection
         try
         {
             // As long as we have a valid, writeable database connection,
             // commit any changes made as part of the transaction
-            if (isValid() && !isReadOnly() && !isAutoCommit)
-            {
-                commit();
-            }
+            commit();
         }
         finally
         {
-            // Free the DB connection
-            // If connection is closed or null, this is a no-op
-            DatabaseManager.freeConnection(connection);
-            connection = null;
-            clearCache();
+            if(dbConnection != null)
+            {
+                // Free the DB connection
+                dbConnection.closeDBConnection();
+                dbConnection = null;
+            }
         }
     }
 
     /**
-     * Commit any transaction that is currently in progress, but do not close
-     * the context.
-     * 
-     * @exception SQLException
-     *                if there was an error completing the database transaction
-     *                or closing the connection
-     * @exception IllegalStateException
-     *                if the Context is read-only or is no longer valid
+     * Commit the current transaction with the database, persisting any pending changes.
+     * The database connection is not closed and can be reused afterwards.
+     *
+     * <b>WARNING: After calling this method all previously fetched entities are "detached" (pending
+     * changes are not tracked anymore). You have to reload all entities you still want to work with
+     * manually after this method call (see {@link Context#reloadEntity(ReloadableEntity)}).</b>
+     *
+     * @throws SQLException When committing the transaction in the database fails.
      */
     public void commit() throws SQLException
     {
-        // Invalid Condition. The Context is Read-Only, and transactions cannot
-        // be committed.
-        if (isReadOnly())
-        {
-            throw new IllegalStateException("Attempt to commit transaction in read-only context");
+        // If Context is no longer open/valid, just note that it has already been closed
+        if(!isValid()) {
+            log.info("commit() was called on a closed Context object. No changes to commit.");
         }
 
-        // Invalid Condition. The Context has been either completed or aborted
-        // and is no longer valid
-        if (!isValid())
+        // Our DB Connection (Hibernate) will decide if an actual commit is required or not
+        try
         {
-            throw new IllegalStateException("Attempt to commit transaction to a completed or aborted context");
-        }
+            // As long as we have a valid, writeable database connection,
+            // commit any changes made as part of the transaction
+            if (isValid() && !isReadOnly())
+            {
+                dispatchEvents();
+            }
 
+        } finally {
+            if(log.isDebugEnabled()) {
+                log.debug("Cache size on commit is " + getCacheSize());
+            }
+
+            if(dbConnection != null)
+            {
+                //Commit our changes
+                dbConnection.commit();
+                reloadContextBoundEntities();
+            }
+        }
+    }
+
+
+    public void dispatchEvents()
+    {
         // Commit any changes made as part of the transaction
         Dispatcher dispatcher = null;
 
-		try {
-			if (events != null) {
+        try {
+            if (events != null) {
 
-				if (dispName == null) {
-					dispName = EventManager.DEFAULT_DISPATCHER;
-				}
+                if (dispName == null) {
+                    dispName = EventService.DEFAULT_DISPATCHER;
+                }
 
-				dispatcher = EventManager.getDispatcher(dispName);
-				if (!isAutoCommit) {
-					connection.commit();
-				}
-				dispatcher.dispatch(this);
-			} else {
-				if (!isAutoCommit) {
-					connection.commit();
-				}
-			}
-
-		}
-        finally
-        {
+                dispatcher = eventService.getDispatcher(dispName);
+                dispatcher.dispatch(this);
+            }
+        } finally {
             events = null;
-            if (dispatcher != null)
-            {
-                EventManager.returnDispatcher(dispName, dispatcher);
+            if (dispatcher != null) {
+                eventService.returnDispatcher(dispName, dispatcher);
             }
         }
-
     }
 
     /**
      * Select an event dispatcher, <code>null</code> selects the default
      * 
+     * @param dispatcher dispatcher
      */
     public void setDispatcher(String dispatcher)
     {
@@ -528,7 +484,7 @@ public class Context
     }
 
     /**
-     * Retrieves the first element in the events list & removes it from the list of events once retrieved
+     * Retrieves the first element in the events list and removes it from the list of events once retrieved
      * @return The first event of the list or <code>null</code> if the list is empty
      */
     public Event pollEvent()
@@ -560,12 +516,9 @@ public class Context
         try
         {
             // Rollback if we have a database connection, and it is NOT Read Only
-            if (isValid() && !connection.isClosed() && !isReadOnly())
+            if (isValid() && !isReadOnly())
             {
-                if (!isAutoCommit)
-                {
-                    connection.rollback();
-                }
+                dbConnection.rollback();
             }
         }
         catch (SQLException se)
@@ -576,17 +529,16 @@ public class Context
         {
             try
             {
-                // Free the DB connection
-                // If connection is closed or null, this is a no-op
-                DatabaseManager.freeConnection(connection);
+                if (!dbConnection.isSessionAlive())
+                {
+                    dbConnection.closeDBConnection();
+                }
             }
             catch (Exception ex)
             {
                 log.error("Exception aborting context", ex);
             }
-            connection = null;
             events = null;
-            clearCache();
         }
     }
 
@@ -601,7 +553,7 @@ public class Context
     public boolean isValid()
     {
         // Only return true if our DB connection is live
-        return (connection != null);
+        return dbConnection != null && dbConnection.isTransActionAlive();
     }
 
     /**
@@ -615,89 +567,9 @@ public class Context
         return (options & READ_ONLY) > 0;
     }
 
-    /**
-     * Store an object in the object cache.
-     * 
-     * @param objectClass
-     *            Java Class of object to check for in cache
-     * @param id
-     *            ID of object in cache
-     * 
-     * @return the object from the cache, or <code>null</code> if it's not
-     *         cached.
-     */
-    public Object fromCache(Class<?> objectClass, int id)
+    public void setSpecialGroup(UUID groupID)
     {
-        String key = objectClass.getName() + id;
-
-        return objectCache.get(key);
-    }
-
-    /**
-     * Store an object in the object cache.
-     * 
-     * @param o
-     *            the object to store
-     * @param id
-     *            the object's ID
-     */
-    public void cache(Object o, int id)
-    {
-        // bypass cache if in read-only mode
-        if (! isReadOnly())
-        {
-            String key = o.getClass().getName() + id;
-            objectCache.put(key, o);
-        }
-    }
-
-    /**
-     * Remove an object from the object cache.
-     * 
-     * @param o
-     *            the object to remove
-     * @param id
-     *            the object's ID
-     */
-    public void removeCached(Object o, int id)
-    {
-        String key = o.getClass().getName() + id;
-        objectCache.remove(key);
-    }
-
-    /**
-     * Remove all the objects from the object cache
-     */
-    public void clearCache()
-    {
-        objectCache.clear();
-    }
-
-    /**
-     * Get the count of cached objects, which you can use to instrument an
-     * application to track whether it is "leaking" heap space by letting cached
-     * objects build up. We recommend logging a cache count periodically or
-     * episodically at the INFO or DEBUG level, but ONLY when you are diagnosing
-     * cache leaks.
-     * 
-     * @return count of entries in the cache.
-     * 
-     * @return the number of items in the cache
-     */
-    public int getCacheSize()
-    {
-        return objectCache.size();
-    }
-
-    /**
-     * set membership in a special group
-     * 
-     * @param groupID
-     *            special group's ID
-     */
-    public void setSpecialGroup(int groupID)
-    {
-        specialGroups.add(Integer.valueOf(groupID));
+        specialGroups.add(groupID);
 
         // System.out.println("Added " + groupID);
     }
@@ -709,9 +581,9 @@ public class Context
      *            ID of special group to test
      * @return true if member
      */
-    public boolean inSpecialGroup(int groupID)
+    public boolean inSpecialGroup(UUID groupID)
     {
-        if (specialGroups.contains(Integer.valueOf(groupID)))
+        if (specialGroups.contains(groupID))
         {
             // System.out.println("Contains " + groupID);
             return true;
@@ -723,26 +595,28 @@ public class Context
     /**
      * Get an array of all of the special groups that current user is a member
      * of.
-     * @throws SQLException
+     * @return list of groups
+     * @throws SQLException if database error
      */
-    public Group[] getSpecialGroups() throws SQLException
+    public List<Group> getSpecialGroups() throws SQLException
     {
         List<Group> myGroups = new ArrayList<Group>();
-        for (Integer groupId : specialGroups)
+        for (UUID groupId : specialGroups)
         {
-            myGroups.add(Group.find(this, groupId.intValue()));
+            myGroups.add(EPersonServiceFactory.getInstance().getGroupService().find(this, groupId));
         }
 
-        return myGroups.toArray(new Group[myGroups.size()]);
+        return myGroups;
     }
 
+    @Override
     protected void finalize() throws Throwable
     {
         /*
          * If a context is garbage-collected, we roll back and free up the
          * database connection if there is one.
          */
-        if (connection != null)
+        if (dbConnection != null && dbConnection.isTransActionAlive())
         {
             abort();
         }
@@ -750,76 +624,78 @@ public class Context
         super.finalize();
     }
 
-    public boolean isRequiredItemWrapper()
-    {
-        return requiredItemWrapper;
+    public void shutDownDatabase() throws SQLException {
+        dbConnection.shutdown();
+    }
+
+
+    /**
+     * Returns the size of the cache of all object that have been read from the database so far. A larger number
+     * means that more memory is consumed by the cache. This also has a negative impact on the query performance. In
+     * that case you should consider clearing the cache (see {@link Context#clearCache() clearCache}).
+     *
+     * @throws SQLException When connecting to the active cache fails.
+     */
+    public long getCacheSize() throws SQLException {
+        return this.getDBConnection().getCacheSize();
     }
 
     /**
-    * Turn Off the Item Wrapper for this context and store this change
-    * in a history for future use.
-    */
-   public void turnOffItemWrapper()
-   {
-       itemWrapperChangeHistory.push(requiredItemWrapper);
-       if (log.isDebugEnabled())
-       {
-           Thread currThread = Thread.currentThread();
-           StackTraceElement[] stackTrace = currThread.getStackTrace();
-           String caller = stackTrace[stackTrace.length - 1].getClassName();
+     * Enable or disable "batch processing mode" for this context.
+     *
+     * Enabling batch processing mode means that the database connection is configured so that it is optimized to
+     * process a large number of records.
+     *
+     * Disabling batch processing mode restores the normal behaviour that is optimal for querying and updating a
+     * small number of records.
+     *
+     * @param batchModeEnabled When true, batch processing mode will be enabled. If false, it will be disabled.
+     * @throws SQLException When configuring the database connection fails.
+     */
+    public void enableBatchMode(boolean batchModeEnabled) throws SQLException {
+        dbConnection.setOptimizedForBatchProcessing(batchModeEnabled);
+    }
 
-           itemWrapperCallHistory.push(caller);
-       }
-       requiredItemWrapper = false;
-   }
-   
-   
-   /**
-    * Restore the previous item wrapper system state. If the state was not
-    * changed by the current caller a warning will be displayed in log. Use:
-    * <code>
-    *     mycontext.turnOffItemWrapper();
-    *     some java code that require no item wrapper
-    *     mycontext.restoreItemWrapperState(); 
-        * </code> If Context debug is enabled, the correct sequence calling will be
-    * checked and a warning will be displayed if not.
-    */
-   public void restoreItemWrapperState()
-   {
-       Boolean previousState;
-       try
-       {
-           previousState = itemWrapperChangeHistory.pop();
-       }
-       catch (EmptyStackException ex)
-       {
-           log.warn(LogManager.getHeader(this, "restore_itemwrap_sys_state",
-                   "not previous state info available "
-                           + ex.getLocalizedMessage()));
-           previousState = Boolean.FALSE;
-       }
-       if (log.isDebugEnabled())
-       {
-           Thread currThread = Thread.currentThread();
-           StackTraceElement[] stackTrace = currThread.getStackTrace();
-           String caller = stackTrace[stackTrace.length - 1].getClassName();
+    /**
+     * Check if "batch processing mode" is enabled for this context.
+     * @return True if batch processing mode is enabled, false otherwise.
+     */
+    public boolean isBatchModeEnabled() {
+        return dbConnection.isOptimizedForBatchProcessing();
+    }
 
-           String previousCaller = (String) itemWrapperCallHistory.pop();
+    /**
+     * Reload an entity from the database into the cache. This method will return a reference to the "attached"
+     * entity. This means changes to the entity will be tracked and persisted to the database.
+     *
+     * @param entity The entity to reload
+     * @param <E> The class of the enity. The entity must implement the {@link ReloadableEntity} interface.
+     * @return A (possibly) <b>NEW</b> reference to the entity that should be used for further processing.
+     * @throws SQLException When reloading the entity from the database fails.
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends ReloadableEntity> E reloadEntity(E entity) throws SQLException {
+        return (E) dbConnection.reloadEntity(entity);
+    }
 
-           // if previousCaller is not the current caller *only* log a warning
-           if (!previousCaller.equals(caller))
-           {
-               log
-                       .warn(LogManager
-                               .getHeader(
-                                       this,
-                                       "restore_itemwrap_sys_state",
-                                       "Class: "
-                                               + caller
-                                               + " call restore but previous state change made by "
-                                               + previousCaller));
-           }
-       }
-       requiredItemWrapper = previousState.booleanValue();
-   }
+    /**
+     * Remove an entity from the cache. This is necessary when batch processing a large number of items.
+     *
+     * @param entity The entity to reload
+     * @param <E> The class of the enity. The entity must implement the {@link ReloadableEntity} interface.
+     * @throws SQLException When reloading the entity from the database fails.
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends ReloadableEntity> void uncacheEntity(E entity) throws SQLException {
+        dbConnection.uncacheEntity(entity);
+    }
+
+    
+    /**
+     * Reload all entities related to this context.
+     * @throws SQLException When reloading one of the entities fails.
+     */
+    private void reloadContextBoundEntities() throws SQLException {
+        currentUser = reloadEntity(currentUser);
+    }
 }

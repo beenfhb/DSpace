@@ -29,14 +29,16 @@
 <%@ page  import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 
 <%@ page import="org.dspace.core.Utils" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.dspace.eperson.service.GroupService" %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
 
 
 <%
     int PAGESIZE = 50;
 
-    Group[] groups =
-        (Group[]) request.getAttribute("groups");
+    List<Group> groups =
+        (List<Group>) request.getAttribute("groups");
     int sortBy = ((Integer)request.getAttribute("sortby" )).intValue();
     int first = ((Integer)request.getAttribute("first")).intValue();
 	boolean multiple = (request.getAttribute("multiple") != null);
@@ -45,32 +47,29 @@
 	int offset = ((Integer)request.getAttribute("offset")).intValue();
 	
 	// Make sure we won't run over end of list
-    int last = first + PAGESIZE;
-    if (last >= groups.length)
-        last = groups.length - 1;
+	int last = first + PAGESIZE;
+	if (last >= groups.size()) last = groups.size() - 1;
 
-    // Index of first group on last page
-    int jumpEnd = ((groups.length - 1) / PAGESIZE) * PAGESIZE;
+	// Index of first group on last page
+	int jumpEnd = ((groups.size() - 1) / PAGESIZE) * PAGESIZE;
 
-    // Now work out values for next/prev page buttons
-    int jumpFiveBack = first - PAGESIZE * 5;
-    if (jumpFiveBack < 0)
-        jumpFiveBack = 0;
+	// Now work out values for next/prev page buttons
+	int jumpFiveBack = first - PAGESIZE * 5;
+	if (jumpFiveBack < 0) jumpFiveBack = 0;
+	
+	int jumpOneBack = first - PAGESIZE;
+	if (jumpOneBack < 0) jumpOneBack = 0;
+	
+	int jumpOneForward = first + PAGESIZE;
+	if (jumpOneForward > groups.size()) jumpOneForward = first;
+	
+	int jumpFiveForward = first + PAGESIZE * 5;
+	if (jumpFiveForward > groups.size()) jumpFiveForward = jumpEnd;
+	
+	// What's the link?
+	String sortByParam = "name";
 
-    int jumpOneBack = first - PAGESIZE;
-    if (jumpOneBack < 0)
-        jumpOneBack = 0;
 
-    int jumpOneForward = first + PAGESIZE;
-    if (jumpOneForward > groups.length)
-        jumpOneForward = jumpEnd;
-
-    int jumpFiveForward = first + PAGESIZE * 5;
-    if (jumpFiveForward > groups.length)
-        jumpFiveForward = jumpEnd;
-
-    // What's the link?
-    String sortByParam = "name";
     if (sortBy == Group.ID)
         sortByParam = "id";
 
@@ -119,11 +118,11 @@ function clearGroups()
 	</head>
 	<body class="pageContents">
 
-    <%-- <h3>Groups <%= first + 1 %>-<%= last + 1 %> of <%= groups.length %></h3> --%>
+    <%-- <h3>Groups <%= first + 1 %>-<%= last + 1 %> of <%= groups.size() %></h3> --%>
 	<h3><fmt:message key="jsp.tools.group-select-list.heading">
         <fmt:param><%= first + 1 %></fmt:param>
         <fmt:param><%= last + 1 %></fmt:param>
-        <fmt:param><%= groups.length %></fmt:param>
+        <fmt:param><%= groups.size() %></fmt:param>
     </fmt:message></h3>
 
 <%
@@ -168,18 +167,11 @@ function clearGroups()
     <table class="table table-striped" align="center" summary="Group list">
         <tr>
             <th id="t1" class="oddRowOddCol">&nbsp;</th>
-			<th id="t2" class="oddRowEvenCol"><%
-                if (sortBy == Group.ID)
-                {
-                    %><fmt:message key="jsp.tools.group-select-list.th.id"/><span class="glyphicon glyphicon-arrow-down"><%
-                }
-                else
-                {
-                    %><a href="<%= sortLink %>id"><fmt:message key="jsp.tools.group-select-list.th.id" /></a><%
-                }
+			<th id="t2" class="oddRowEvenCol">
+				<a href="<%= sortLink %>id"><fmt:message key="jsp.tools.group-select-list.th.id" /></a><%
             %></th>
             <th id="t3" class="oddRowOddCol"><%
-                if (sortBy == Group.NAME)
+                if (sortBy == GroupService.NAME)
                 {
                     %><fmt:message key="jsp.tools.group-select-list.th.name" /><span class="glyphicon glyphicon-arrow-down"><%
                 }
@@ -202,7 +194,7 @@ function clearGroups()
 
     for (int i = first; i <= last; i++)
     {
-        Group g = groups[i];
+        Group g = groups.get(i);
 		// Make sure no quotes in full name will mess up our Javascript
 		
         String fullname = StringUtils.isNotBlank(g.getName()) ? g.getName().replace('\'', ' ') : LocaleSupport.getLocalizedMessage(pageContext,"jsp.tools.group-select-list.untitled");
