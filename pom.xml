@@ -58,10 +58,14 @@
         <slf4j.version>1.7.14</slf4j.version>
         <!--
             Hibernate version pinned to 4.2, 4.3 does not work with the spring version we are currently using
-            Upgrading the spring version will make the XMLUI crash
+            Upgrading the spring version will make the XMLUI crash.
+            
+            ADDITIONAL: downgrade hibernate and spring version to a minor version; DSpace-CRIS and JDynA backward compatibility;
         -->
-        <hibernate.version>4.2.21.Final</hibernate.version>
-        <spring.version>3.2.16.RELEASE</spring.version>
+        <!-- <hibernate.version>4.2.21.Final</hibernate.version>
+		<spring.version>3.2.16.RELEASE</spring.version> -->
+        <hibernate.version>4.1.8.Final</hibernate.version>
+        <spring.version>3.1.1.RELEASE</spring.version>
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
@@ -230,12 +234,6 @@
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
                     <version>2.11</version>
-                </plugin>
-                <!-- Used to generate a new release via Sonatype (see release profile). -->
-                <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>1.6.7</version>
                 </plugin>
                 <!-- Used to generate JavaDocs for new releases (see release profile). -->
                 <plugin>
@@ -779,100 +777,8 @@
                 <module>dspace-xmlui</module>
             </modules>
         </profile> 
-        <!--
-         The 'release' profile is used by the 'maven-release-plugin' (see above)
-         to actually perform a DSpace software release to Maven central.
-         This profile contains settings which are ONLY enabled when performing
-         a DSpace release. See alse https://wiki.duraspace.org/display/DSPACE/Release+Procedure
-        -->
-        <profile>
-            <id>release</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <!-- Activate all modules *except* for the 'dspace' module,
-                 as it does not include any Java source code to release. -->
-            <modules>
-                <module>dspace-api</module>
-                <module>dspace-jspui</module>
-                <module>dspace-oai</module>
-                <module>dspace-rdf</module>
-                <module>dspace-rest</module>
-                <module>dspace-services</module>
-                <module>dspace-solr</module>
-                <module>dspace-sword</module>
-                <module>dspace-swordv2</module>
-                <module>dspace-xmlui-mirage2</module>
-                <module>dspace-xmlui</module>
-            </modules>
-            <build>
-                <plugins>
-                    <!-- Configure Nexus plugin for new releases via Sonatype.
-                         See: http://central.sonatype.org/pages/apache-maven.html -->
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <!-- In your settings.xml, your username/password
-                                 MUST be specified for server 'ossrh' -->
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <!-- Require manual verification / release to Maven Central -->
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                    <!-- For new releases, generate Source JAR files -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- For new releases, generate JavaDocs -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>aggregate-jar</goal>
-                                </goals>
-                                <configuration>
-                                    <additionalparam>${javadoc.opts}</additionalparam>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- Sign any new releases via GPG. 
-                         NOTE: you may optionall specify the "gpg.passphrase" in your settings.xml -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
-    <!--
+    	<!--
            Builds CRIS Module for DSpace
         -->
         <profile>
@@ -1003,37 +909,6 @@
 		        </dependencies>		                    
             </dependencyManagement>
         </profile>                                
-      <!--
-         The 'release' profile is used by the 'maven-release-plugin' (see above)
-         to actually perform a DSpace software release to Maven central.
-       -->
-      <profile>
-         <id>release</id>
-         <activation>
-            <activeByDefault>false</activeByDefault>
-         </activation>
-         <!-- Activate all modules *except* for the 'dspace' module,
-              as it does not include any Java source code to release. -->
-         <modules>
-            <module>dspace-api</module>
-            <module>dspace-jspui</module>
-            <!-- <module>dspace-xmlui</module>
-            <module>dspace-lni</module>  -->
-            <module>dspace-oai</module>
-            <module>dspace-cris-ametrics</module>
-            <module>dspace-cris</module>
-            <module>dspace-rest</module>
-            <module>dspace-sword</module>
-            <module>dspace-swordv2</module>
-
-             <module>dspace-rdf</module>
-             <module>dspace-services</module>
-             <module>dspace-solr</module>
-
-
-
-         </modules>
-      </profile>
 
    </profiles>
 
@@ -1318,6 +1193,13 @@
                 <artifactId>ant</artifactId>
                 <version>1.7.0</version>
             </dependency>
+            
+            <dependency>
+			    <groupId>org.apache.solr</groupId>
+			    <artifactId>solr-solrj</artifactId>
+		    	<version>${solr.version}</version>
+		 	</dependency>
+		             
             <dependency>
                 <groupId>org.apache.jena</groupId>
                 <artifactId>apache-jena-libs</artifactId>
@@ -1417,11 +1299,11 @@
                 <artifactId>mail</artifactId>
                 <version>1.4.7</version>
             </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.5</version>
-            </dependency>
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>3.0.1</version>
+			</dependency>
 
             <dependency>
                 <groupId>jaxen</groupId>
@@ -1507,8 +1389,8 @@
          </dependency>
          <dependency>
             <groupId>xml-apis</groupId>
-            <artifactId>xmlParserAPIs</artifactId>
-            <version>2.0.2</version>
+            <artifactId>xml-apis</artifactId>
+            <version>1.4.01</version>
          </dependency>
          <dependency>
             <groupId>javax.activation</groupId>
@@ -1575,7 +1457,12 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.1</version>
+            	<version>4.5.1</version>
+         	</dependency>
+         	<dependency>
+            	<groupId>net.sourceforge.jexcelapi</groupId>
+            	<artifactId>jxl</artifactId>
+            	<version>2.6.12</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -1623,79 +1510,64 @@
                 <version>1.4.187</version>
                 <scope>test</scope>
             </dependency>
-            <!-- Contiperf is used for performance tests within our Unit/Integration tests -->
-            <dependency>
-                <groupId>org.databene</groupId>
-                <artifactId>contiperf</artifactId>
-                <version>2.3.4</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>2.6.1</version>
-                <scope>compile</scope>
-            </dependency>
-            <!-- Google Analytics -->
-            <dependency>
-                <groupId>com.google.apis</groupId>
-                <artifactId>google-api-services-analytics</artifactId>
-                <version>v3-rev123-1.21.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.api-client</groupId>
-                <artifactId>google-api-client</artifactId>
-                <version>1.21.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.http-client</groupId>
-                <artifactId>google-http-client</artifactId>
-                <version>1.21.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.http-client</groupId>
-                <artifactId>google-http-client-jackson2</artifactId>
-                <version>1.21.0</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>jackson-core</artifactId>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>jackson-databind</artifactId>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.google.oauth-client</groupId>
-                <artifactId>google-oauth-client</artifactId>
-                <version>1.21.0</version>
-            </dependency>
-            <!-- Findbugs annotations -->
-            <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>jsr305</artifactId>
-                <version>3.0.1</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>annotations</artifactId>
-                <version>3.0.1u2</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>1.10.19</version>
-            </dependency>
+
+
+		<dependency>
+			<groupId>net.sourceforge.htmlcleaner</groupId>
+			<artifactId>htmlcleaner</artifactId>
+			<version>2.2</version>
+		</dependency>
+		
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+			 
 		<dependency>
     		<groupId>javassist</groupId>
     		<artifactId>javassist</artifactId>
     		<version>3.12.1.GA</version>
-		</dependency>
+		</dependency> 
 
+        <!-- Contiperf is used for performance tests within our Unit/Integration tests -->
+		<dependency>
+			<groupId>org.databene</groupId>
+			<artifactId>contiperf</artifactId>
+			<version>2.3.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-jspui-api</artifactId>
+			<version>${project.version}</version>			
+		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-jspui-webapp</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>			
+		</dependency>		
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-jspui-webapp</artifactId>
+			<version>${project.version}</version>			
+		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-webservices-api</artifactId>
+			<version>${project.version}</version>			
+		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-webservices-webapp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-webservices-webapp</artifactId>
@@ -1712,13 +1584,80 @@
 			<artifactId>flexjson</artifactId>
 			<version>2.1</version>
 		</dependency>
-		   
-        <dependency>
-        	<groupId>com.fasterxml.jackson.jaxrs</groupId>
-        	<artifactId>jackson-jaxrs-json-provider</artifactId>
-        	<version>2.5.4</version>
-	    </dependency>
-	    <dependency>
+	
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.6.1</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- Google Analytics -->
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-analytics</artifactId>
+			<version>v3-rev123-1.21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<version>1.21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client</artifactId>
+			<version>1.21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client-jackson2</artifactId>
+			<version>1.21.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jackson-core</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-databind</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client</artifactId>
+			<version>1.21.0</version>
+		</dependency>
+		<!-- Findbugs annotations -->
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>3.0.1u2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.10.19</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>net.sf.flexjson</groupId>
+			<artifactId>flexjson</artifactId>
+			<version>2.1</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>2.5.4</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
@@ -1728,7 +1667,7 @@
 			<artifactId>addon-commons-api</artifactId>
 			<version>${commons.addon.modules}</version>
 		</dependency>
-        </dependencies>
+	        </dependencies>
     </dependencyManagement>
 
     <licenses>

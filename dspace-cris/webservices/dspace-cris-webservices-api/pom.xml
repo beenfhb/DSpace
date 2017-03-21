@@ -32,7 +32,7 @@
 			<version>3.1.1.RELEASE</version>
 		</dependency>
 		<dependency>
-			<groupId>jdom</groupId>
+			<groupId>org.jdom</groupId>
 			<artifactId>jdom</artifactId>
 		</dependency>
 		<dependency>
@@ -62,7 +62,5 @@
 			<artifactId>castor</artifactId>
 			<version>1.2</version>
 		</dependency>
-
-
 	</dependencies>
 </project>

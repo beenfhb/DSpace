@@ -254,9 +254,8 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>provided</scope>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>

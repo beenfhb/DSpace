@@ -167,8 +167,8 @@
            <artifactId>xalan</artifactId>
        </dependency>
 
-         <dependency>
-			<groupId>postgresql</groupId>
+       <dependency>
+			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
 		

@@ -202,7 +202,51 @@
 		<mapping class="org.dspace.app.cris.metrics.pmc.model.PMCCitation" />
 		
 		<!-- STATS METRICS -->
-		<mapping class="org.dspace.app.cris.metrics.common.model.CrisMetrics" />		
+		<mapping class="org.dspace.app.cris.metrics.common.model.CrisMetrics" />
+		
+		<!-- Entities from basic DSpace  -->
+        <mapping class="org.dspace.app.util.WebApp"/>
+
+        <mapping class="org.dspace.authorize.ResourcePolicy"/>
+
+        <mapping class="org.dspace.checker.ChecksumHistory"/>
+        <mapping class="org.dspace.checker.ChecksumResult"/>
+        <mapping class="org.dspace.checker.MostRecentChecksum"/>
+
+        <mapping class="org.dspace.content.DSpaceObject"/>
+        <mapping class="org.dspace.content.Bitstream"/>
+        <mapping class="org.dspace.content.BitstreamFormat"/>
+        <mapping class="org.dspace.content.Bundle"/>
+        <mapping class="org.dspace.content.Collection"/>
+        <mapping class="org.dspace.content.Community"/>
+        <mapping class="org.dspace.content.Item"/>
+        <mapping class="org.dspace.content.MetadataField"/>
+        <mapping class="org.dspace.content.MetadataSchema"/>
+        <mapping class="org.dspace.content.MetadataValue"/>
+        <mapping class="org.dspace.content.Site"/>
+        <mapping class="org.dspace.content.WorkspaceItem"/>
+
+        <mapping class="org.dspace.eperson.EPerson"/>
+        <mapping class="org.dspace.eperson.Group"/>
+        <mapping class="org.dspace.eperson.Group2GroupCache"/>
+        <mapping class="org.dspace.eperson.RegistrationData"/>
+        <mapping class="org.dspace.eperson.Subscription"/>
+
+        <mapping class="org.dspace.handle.Handle"/>
+
+        <mapping class="org.dspace.harvest.HarvestedCollection"/>
+        <mapping class="org.dspace.harvest.HarvestedItem"/>
+
+        <mapping class="org.dspace.identifier.DOI"/>
+
+        <mapping class="org.dspace.versioning.Version"/>
+        <mapping class="org.dspace.versioning.VersionHistory"/>
+
+        <mapping class="org.dspace.app.requestitem.RequestItem"/>
+
+        <!--Basic workflow services, comment or remove when switching to the configurable workflow -->
+        <mapping class="org.dspace.workflowbasic.BasicWorkflowItem"/>
+        <mapping class="org.dspace.workflowbasic.TaskListItem"/>		
 	</session-factory>
 
 </hibernate-configuration>
