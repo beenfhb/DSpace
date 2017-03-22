@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -88,7 +89,7 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
             internal: for (Bitstream b : bnd.getBitstreams())
             {
                 count++;
-                List<ResourcePolicy> rps = AuthorizeManager
+                List<ResourcePolicy> rps = AuthorizeServiceFactory.getInstance().getAuthorizeService()
                         .getPoliciesActionFilter(context, b, Constants.READ);
                 boolean bRestricted = true;
                 if (rps != null)

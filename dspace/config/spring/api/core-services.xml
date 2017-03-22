@@ -115,4 +115,6 @@
     <bean class="org.dspace.xmlworkflow.WorkflowRequirementsServiceImpl"/>
     <bean class="org.dspace.xmlworkflow.XmlWorkflowFactoryImpl"/>-->
 
+	<!-- DSpace-CRIS -->
+	<bean class="org.dspace.app.cris.service.CrisObjectServiceImpl"/>
 </beans>

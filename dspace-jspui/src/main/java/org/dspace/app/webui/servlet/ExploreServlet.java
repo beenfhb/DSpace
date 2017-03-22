@@ -21,6 +21,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.viewer.JSPViewer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
@@ -61,7 +62,7 @@ public class ExploreServlet extends DSpaceServlet {
 			return;
 		}
 
-		AuthorizeManager.authorizeAction(context, bitstream, Constants.READ);
+		AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(context, bitstream, Constants.READ);
 
 		String handle = request.getParameter("handle");
 		String viewname = request.getParameter("provider");

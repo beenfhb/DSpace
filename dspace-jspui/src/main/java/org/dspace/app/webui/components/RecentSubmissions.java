@@ -7,8 +7,7 @@
  */
 package org.dspace.app.webui.components;
 
-import java.util.List;
-
+import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 
@@ -23,9 +22,7 @@ import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 public class RecentSubmissions
 {
 	/** The set of items being represented */
-
-
-
+	private IGlobalSearchResult[] items;
 	private DiscoveryViewConfiguration configuration;
 	/**
 	 * Construct a new RecentSubmissions object to represent the passed
@@ -45,7 +42,7 @@ public class RecentSubmissions
 	 */
 	public int count()
 	{
-		return items.size();
+		return items.length;
 	}
 	
 	/**
@@ -68,9 +65,9 @@ public class RecentSubmissions
 	 */
 	public IGlobalSearchResult getRecentSubmission(int i)
 	{
-		if (i < items.size())
+		if (i < items.length)
 		{
-			return items.get(i);
+			return items[i];
 		}
 		else
 		{

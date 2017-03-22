@@ -12,26 +12,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.PageContext;
 
-import org.dspace.services.ConfigurationService;
-import org.dspace.app.webui.jsptag.AuthorizeService;
-import org.dspace.app.webui.jsptag.BitstreamService;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.browse.BrowseItem;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Thumbnail;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
-import org.dspace.storage.bitstore.BitstreamStorageManager;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 {
@@ -98,23 +100,30 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem item,
+            List<MetadataValue> metadataArray, BrowseItem item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
-        return getThumbMarkup(hrq, item.getID(), item.getHandle());
+        try
+        {
+            return getThumbMarkup(hrq, itemService.findByLegacyId(UIUtil.obtainContext(hrq), item.getID()), item.getHandle());
+        }
+        catch (SQLException e)
+        {
+            throw new JspException(e);
+        }
     }
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
-        return getThumbMarkup(hrq, item.getID(), item.getHandle());
+        return getThumbMarkup(hrq, item, item.getHandle());
     }
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem browseItem,
+            List<MetadataValue> metadataArray, BrowseItem browseItem,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
         return null;
@@ -122,7 +131,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;
@@ -246,14 +255,14 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     }
 
     /* generate the (X)HTML required to show the thumbnail */
-    private String getThumbMarkup(HttpServletRequest hrq, int itemID,
+    private String getThumbMarkup(HttpServletRequest hrq, Item item,
             String handle) throws JspException
     {
         try
         {
 
             Context c = UIUtil.obtainContext(hrq);
-            Thumbnail thumbnail = itemService.getThumbnail(c, itemID,
+            Thumbnail thumbnail = itemService.getThumbnail(c, item,
                     linkToBitstream);
 
             if (thumbnail == null || !authorizeService.authorizeActionBoolean(c,
@@ -306,9 +315,16 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, IGlobalSearchResult item,
+            List<MetadataValue> metadataArray, IGlobalSearchResult item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
-        return getThumbMarkup(hrq, item.getID(), item.getHandle());
+        try
+        {
+            return getThumbMarkup(hrq, itemService.findByLegacyId(UIUtil.obtainContext(hrq), item.getID()), item.getHandle());
+        }
+        catch (SQLException e)
+        {
+            throw new JspException(e);
+        }
     }
 }

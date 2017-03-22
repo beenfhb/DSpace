@@ -13,8 +13,10 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.util.MappingMetadata;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * 
@@ -73,6 +75,7 @@ public class OrcidFundingMetadata extends MappingMetadata {
 	 */
 	public OrcidFundingMetadata(Context context, Project item) throws SQLException {
 		init("orcid-project-metadata.config");
+		setDspaceObjectService(ContentServiceFactory.getInstance().getDSpaceObjectService(item));
 		// Hold onto the item in case we need to refresh a stale parse
 		this.item = item;		
 		itemURL = ConfigurationManager.getProperty("dspace.url") + "/cris/uuid/" + item.getHandle();

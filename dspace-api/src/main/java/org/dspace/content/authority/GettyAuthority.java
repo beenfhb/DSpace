@@ -15,12 +15,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -28,6 +23,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
+import org.dspace.content.Collection;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,8 +31,6 @@ public abstract class GettyAuthority implements ChoiceAuthority {
 	
 	Logger log = Logger.getLogger(GettyAuthority.class);
 	String gettyURL = "http://vocab.getty.edu/sparql.json";
-	
-
 	
 	public Choices query(String query) {
         
@@ -121,12 +115,11 @@ public abstract class GettyAuthority implements ChoiceAuthority {
     }
 	
 	
-    // this implements the specific RoMEO API args and XML tag naming
 	@Override
-    public abstract Choices getMatches(String field,String text, int collection, int start, int limit, String locale);
+    public abstract Choices getMatches(String field,String text, Collection collection, int start, int limit, String locale);
 
 	@Override
-	public Choices getBestMatch(String field, String text, int collection, String locale) {
+	public Choices getBestMatch(String field, String text, Collection collection, String locale) {
 		return getMatches(field,text,collection,0,1,locale);
 	}
 

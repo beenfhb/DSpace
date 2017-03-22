@@ -7,18 +7,31 @@
  */
 package org.dspace.content;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Class representing an item in DSpace.
@@ -358,21 +371,6 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport
         return Constants.ITEM;
     }
 
-    @Override
-    /**
-     * Check if the item is an inprogress submission
-     * @param context
-     * @param item
-     * @return <code>true</code> if the item is an inprogress submission, i.e. a WorkspaceItem or WorkflowItem
-     * @throws SQLException
-     */
-    public boolean isInProgressSubmission() throws SQLException {
-		return WorkspaceItem.findByItem(ourContext, this) != null ||
-				((ConfigurationManager.getProperty("workflow", "workflow.framework").equals("xmlworkflow")
-						&& XmlWorkflowItem.findByItem(ourContext, this) != null)
-						|| WorkflowItem.findByItem(ourContext, this) != null);
-    }
-    
     public String getName()
     {
         return getItemService().getMetadataFirstValue(this, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
@@ -396,10 +394,9 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport
         return Constants.typeText[Constants.ITEM];
     }
 
-	public Item getWrapper() {
-        DSpace dspace = new DSpace();
-		ItemWrapperIntegration wrapperService = (ItemWrapperIntegration) dspace
-				.getSingletonService(ItemWrapperIntegration.class);
+	public Item getWrapper() {        
+		ItemWrapperIntegration wrapperService = (ItemWrapperIntegration) DSpaceServicesFactory.getInstance().getServiceManager()
+				.getServiceByName(ItemWrapperIntegration.class.getName(),ItemWrapperIntegration.class);
         return wrapperService.getWrapper(this);    
     }
 

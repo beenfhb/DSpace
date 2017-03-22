@@ -37,6 +37,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
@@ -313,7 +314,7 @@ public class ReferencesServlet extends DSpaceServlet
                 Bitstream[] bs = bnd.getBitstreams();
                 for (Bitstream b : bs)
                 {
-                    if (AuthorizeManager.authorizeActionBoolean(context, b,
+                    if (AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, b,
                             Constants.READ))
                     {
                         size += b.getSize();
@@ -374,7 +375,7 @@ public class ReferencesServlet extends DSpaceServlet
                     for (Bitstream b : bs)
                     {
                         int myPrefix = 1; // only used with name conflict
-                        if (AuthorizeManager.authorizeActionBoolean(context, b,
+                        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, b,
                                 Constants.READ))
                         {
                             InputStream is = b.retrieve();

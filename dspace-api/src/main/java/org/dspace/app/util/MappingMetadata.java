@@ -21,6 +21,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -29,18 +30,21 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
 
@@ -50,7 +54,9 @@ import com.google.common.collect.ListMultimap;
 public abstract class MappingMetadata {
 
 	private final static Logger log = Logger.getLogger(MappingMetadata.class);
-
+    
+	protected DSpaceObjectService<DSpaceObject> dspaceObjectService;
+	
 	protected DSpaceObject item;
 
 	protected String itemURL;
@@ -73,7 +79,7 @@ public abstract class MappingMetadata {
 
 	// Load configured fields from google-metadata.properties
 	public void init(String configuration) {
-
+	    
 		File loadedFile = null;
 		URL url = null;
 		InputStream is = null;
@@ -121,63 +127,67 @@ public abstract class MappingMetadata {
 
 	protected abstract String getPrefix();
 
-	/**
-	 * Add a single metadata value to the Google field, defaulting to the
-	 * first-encountered instance of the field for this Item.
-	 * 
-	 * @param fieldName
-	 * @return
-	 */
-	protected boolean addSingleField(String fieldName) {
+    /**
+     * Add a single metadata value to the Google field, defaulting to the
+     * first-encountered instance of the field for this Item.
+     * 
+     * @param fieldName
+     * @return successful?
+     */
+    protected boolean addSingleField(String fieldName)
+    {
 
 		String config = configuredFields.get(fieldName);
 
-		if (null == config || config.equals("")) {
-			return false;
-		}
+        if (null == config || config.equals(""))
+        {
+            return false;
+        }
 
-		if (log.isDebugEnabled()) {
-			log.debug("Processing " + fieldName);
-		}
+        if (log.isDebugEnabled())
+        {
+            log.debug("Processing " + fieldName);
+        }
 
-		if (config.equals("$handle")) {
-			if (null != itemURL && !itemURL.equals("")) {
-				metadataMappings.put(fieldName, itemURL);
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-        if (config.equals("$simple-handle")) {
-            if (null != item.getHandle() && !item.getHandle().equals("")) {
-                metadataMappings.put(fieldName, item.getHandle());
+        if (config.equals("$handle"))
+        {
+            if (null != itemURL && !itemURL.equals(""))
+            {
+                metadataMappings.put(fieldName, itemURL);
                 return true;
-            } else {
+            }
+            else
+            {
                 return false;
             }
         }
-        
-		if (config.equals("$simple-pdf")) {
-			String pdf_url = getPDFSimpleUrl(item);
-			if (pdf_url.length() > 0) {
-				metadataMappings.put(fieldName, pdf_url);
-				return true;
-			} else {
-				return false;
-			}
-		}
 
-		Metadatum v = resolveMetadataField(config);
+        if (config.equals("$simple-pdf"))
+        {
+            String pdf_url = getPDFSimpleUrl(item);
+            if(pdf_url.length() > 0)
+            {
+                metadataMappings.put(fieldName, pdf_url);
+                return true;
+            } else
+            {
+                return false;
+            }
+        }
 
-		if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-			metadataMappings.put(fieldName, v.value);
-			return true;
-		} else {
-			// No values found
-			return false;
-		}
-	}
+        MetadataValue v = resolveMetadataField(config);
+
+        if (null != v && (null != v.getValue()) && !v.getValue().trim().equals(""))
+        {
+            metadataMappings.put(fieldName, v.getValue());
+            return true;
+        }
+        else
+        {
+            // No values found
+            return false;
+        }
+    }
 
 	/**
 	 * Gets the URL to a PDF using a very basic strategy by assuming that the
@@ -217,299 +227,374 @@ public abstract class MappingMetadata {
 		return "";
 	}
 
-	/**
-	 * A singular version of resolveMetadata to return only one field value
-	 * instead of an aggregate.
-	 * 
-	 * @param configFilter
-	 * @return The first configured match of metadata field for the item.
-	 */
-	private Metadatum resolveMetadataField(String configFilter) {
+    /**
+     * A singular version of resolveMetadata to return only one field value
+     * instead of an aggregate.
+     * 
+     * @param configFilter
+     * @return The first configured match of metadata field for the item.
+     */
+    protected MetadataValue resolveMetadataField(String configFilter)
+    {
 
-		ArrayList<Metadatum> fields = resolveMetadata(configFilter, SINGLE);
-		if (null != fields && fields.size() > 0) {
-			return fields.get(0);
-		}
+        ArrayList<MetadataValue> fields = resolveMetadata(configFilter, SINGLE);
+        if (null != fields && fields.size() > 0)
+        {
+            return fields.get(0);
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	/**
-	 * A plural version of resolveMetadata for aggregate fields.
-	 * 
-	 * @param configFilter
-	 * @return Aggregate of all matching metadata fields configured in the first
-	 *         option field-set to return any number of filter matches.
-	 */
-	protected ArrayList<Metadatum> resolveMetadataFields(String configFilter) {
+    /**
+     * A plural version of resolveMetadata for aggregate fields.
+     * 
+     * @param configFilter
+     * @return Aggregate of all matching metadata fields configured in the first
+     *         option field-set to return any number of filter matches.
+     */
+    protected ArrayList<MetadataValue> resolveMetadataFields(String configFilter)
+    {
 
-		ArrayList<Metadatum> fields = resolveMetadata(configFilter, MULTI);
-		if (null != fields && fields.size() > 0) {
-			return fields;
-		}
-		return null;
-	}
+        ArrayList<MetadataValue> fields = resolveMetadata(configFilter, MULTI);
+        if (null != fields && fields.size() > 0)
+        {
+            return fields;
+        }
+        return null;
+    }
 
-	/**
-	 * Aggregate an array of Metadatums present on the current item that pass
-	 * the configuration filter.
-	 * 
-	 * @param configFilter
-	 * @param returnType
-	 * @return Array of configuration -> item-field matches
-	 */
-	private ArrayList<Metadatum> resolveMetadata(String configFilter, int returnType) {
+    /**
+     * Aggregate an array of DCValues present on the current item that pass the
+     * configuration filter.
+     * 
+     * @param configFilter
+     * @param returnType
+     * @return Array of configuration to item-field matches
+     */
+    protected ArrayList<MetadataValue> resolveMetadata(String configFilter,
+            int returnType)
+    {
 
-		if (null == configFilter || configFilter.trim().equals("") || !configFilter.contains(".")) {
-			log.error("The configuration string [" + configFilter + "] is invalid.");
-			return null;
-		} else {
-			configFilter = configFilter.trim();
-		}
-		ArrayList<ArrayList<String>> parsedOptions = new ArrayList<ArrayList<String>>();
-		parsedOptions = parseOptions(configFilter);
+        if (null == configFilter || configFilter.trim().equals("")
+                || !configFilter.contains("."))
+        {
+            log.error("The configuration string [" + configFilter
+                    + "] is invalid.");
+            return null;
+        }
+        else
+        {
+            configFilter = configFilter.trim();
+        }
+        ArrayList<ArrayList<String>> parsedOptions = parseOptions(configFilter);
 
-		if (log.isDebugEnabled()) {
-			log.debug("Resolved Fields For This Item Per Configuration Filter:");
-			for (int i = 0; i < parsedOptions.size(); i++) {
-				ArrayList<String> optionFields = parsedOptions.get(i);
+        if (log.isDebugEnabled())
+        {
+            log
+                    .debug("Resolved Fields For This Item Per Configuration Filter:");
+            for (int i = 0; i < parsedOptions.size(); i++)
+            {
+                ArrayList<String> optionFields = parsedOptions.get(i);
 
-				log.debug("Option " + (i + 1) + ":");
-				for (String f : optionFields) {
-					log.debug("{" + f + "}");
-				}
-			}
-		}
+                log.debug("Option " + (i + 1) + ":");
+                for (String f : optionFields)
+                {
+                    log.debug("{" + f + "}");
+                }
+            }
+        }
 
-		// Iterate through each configured option's field-set until
-		// we have a match.
-		for (ArrayList<String> optionFields : parsedOptions) {
+        // Iterate through each configured option's field-set until
+        // we have a match.
+        for (ArrayList<String> optionFields : parsedOptions)
+        {
 
-			int optionMatches = 0;
-			String[] components;
-			Metadatum[] values;
-			ArrayList<Metadatum> resolvedFields = new ArrayList<Metadatum>();
+            int optionMatches = 0;
+            String[] components;
+            List<MetadataValue> values;
+            ArrayList<MetadataValue> resolvedFields = new ArrayList<MetadataValue>();
 
-			for (String field : optionFields) {
+            for (String field : optionFields)
+            {
 
-				components = parseComponents(field);
-				values = item.getMetadata(components[0], components[1], components[2], Item.ANY);
+                components = parseComponents(field);
+                values = dspaceObjectService.getMetadata(item, components[0], components[1],
+                        components[2], Item.ANY);
 
-				if (values.length > 0) {
-					for (Metadatum v : values) {
+                if (values.size() > 0)
+                {
+                    for (MetadataValue v : values)
+                    {
 
-						resolvedFields.add(v);
+                        resolvedFields.add(v);
 
-						if (returnType == SINGLE) {
-							if (!resolvedFields.isEmpty()) {
-								if (log.isDebugEnabled()) {
-									log.debug("Resolved Field Value For This Item:");
-									for (Metadatum r : resolvedFields) {
-										log.debug("{" + r.value + "}");
-									}
-								}
-								return resolvedFields;
-							}
-						}
-					}
-				}
-			}
+                        if (returnType == SINGLE)
+                        {
+                            if (!resolvedFields.isEmpty())
+                            {
+                                if (log.isDebugEnabled())
+                                {
+                                    log
+                                            .debug("Resolved Field Value For This Item:");
+                                    for (MetadataValue r : resolvedFields)
+                                    {
+                                        log.debug("{" + r.getValue() + "}");
+                                    }
+                                }
+                                return resolvedFields;
+                            }
+                        }
+                    }
+                }
+            }
 
-			// If the item had any of the fields contained in this option,
-			// return them, otherwise move on to the next option's field-set.
-			if (!resolvedFields.isEmpty()) {
-				if (log.isDebugEnabled()) {
-					log.debug("Resolved Field Values For This Item:");
-					for (Metadatum v : resolvedFields) {
-						log.debug("{" + v.value + "}");
-					}
-				}
+            // If the item had any of the fields contained in this option,
+            // return them, otherwise move on to the next option's field-set.
+            if (!resolvedFields.isEmpty())
+            {
+                if (log.isDebugEnabled())
+                {
+                    log.debug("Resolved Field Values For This Item:");
+                    for (MetadataValue v : resolvedFields)
+                    {
+                        log.debug("{" + v.getValue() + "}");
+                    }
+                }
 
-				// Check to see if this is a full option match
-				if (ALL_FIELDS_IN_OPTION == returnType) {
-					if (resolvedFields.size() == optionMatches) {
-						return resolvedFields;
-					}
-					// Otherwise, if there are any matches for the option,
-					// return them.
-				} else if (MULTI == returnType) {
-					return resolvedFields;
-				}
-			}
-		}
-		return null;
-	}
+                // Check to see if this is a full option match
+                if (ALL_FIELDS_IN_OPTION == returnType)
+                {
+                    if (resolvedFields.size() == optionMatches)
+                    {
+                        return resolvedFields;
+                    }
+                    // Otherwise, if there are any matches for the option,
+                    // return them.
+                }
+                else if (MULTI == returnType)
+                {
+                    return resolvedFields;
+                }
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * Parse first-match path of metadata field-group options for the given
-	 * configuration.
-	 * 
-	 * @param configFilter
-	 * @return
-	 */
-	protected ArrayList<ArrayList<String>> parseOptions(String configFilter) {
+    /**
+     * Parse first-match path of metadata field-group options for the given
+     * configuration.
+     * 
+     * @param configFilter
+     * @return array of parsed options or null
+     */
+    protected ArrayList<ArrayList<String>> parseOptions(String configFilter)
+    {
 
-		ArrayList<String> options = new ArrayList<String>();
-		ArrayList<ArrayList<String>> parsedOptions = new ArrayList<ArrayList<String>>();
+        ArrayList<String> options = new ArrayList<String>();
+        ArrayList<ArrayList<String>> parsedOptions = new ArrayList<ArrayList<String>>();
 
-		if (null == configFilter || configFilter.equals("")) {
-			return null;
-		}
+        if (null == configFilter || configFilter.equals(""))
+        {
+            return null;
+        }
 
-		if (configFilter.contains("|")) {
+        if (configFilter.contains("|"))
+        {
 
-			String[] configOptions = configFilter.split("\\|");
+            String[] configOptions = configFilter.split("\\|");
 
-			for (String option : configOptions) {
-				options.add(option.trim());
-			}
-		} else {
-			options = new ArrayList<String>();
-			options.add(configFilter);
-		}
+            for (String option : configOptions)
+            {
+                options.add(option.trim());
+            }
+        }
+        else
+        {
+            options = new ArrayList<String>();
+            options.add(configFilter);
+        }
 
-		// Parse first-match path options. The first option (field-set)
-		// to match fields present in the item is used.
-		ArrayList<String> parsedFields;
+        // Parse first-match path options. The first option (field-set)
+        // to match fields present in the item is used.
+        ArrayList<String> parsedFields;
 
-		// Parse the fields for each field-set in order.
-		for (String option : options) {
+        // Parse the fields for each field-set in order.
+        for (String option : options)
+        {
 
-			ArrayList<String> fields;
-			parsedFields = new ArrayList<String>();
+            ArrayList<String> fields;
+            parsedFields = new ArrayList<String>();
 
-			if (option.contains(",")) {
-				fields = parseFields(option);
-			} else {
-				fields = new ArrayList<String>();
-				fields.add(option);
-			}
+            if (option.contains(","))
+            {
+                fields = parseFields(option);
+            }
+            else
+            {
+                fields = new ArrayList<String>();
+                fields.add(option);
+            }
 
-			// Parse field list for this field-set, expanding any wildcards.
-			for (String field : fields) {
+            // Parse field list for this field-set, expanding any wildcards.
+            for (String field : fields)
+            {
 
-				if (field.contains("*")) {
+                if (field.contains("*"))
+                {
 
-					ArrayList<String> wc = parseWildcard(field);
-					for (String wcField : wc) {
-						if (!parsedFields.contains(wcField)) {
-							parsedFields.add(wcField);
-						}
-					}
+                    ArrayList<String> wc = parseWildcard(field);
+                    for (String wcField : wc)
+                    {
+                        if (!parsedFields.contains(wcField))
+                        {
+                            parsedFields.add(wcField);
+                        }
+                    }
 
-				} else {
-					if (!parsedFields.contains(field)) {
-						parsedFields.add(field);
-					}
-				}
-			}
+                }
+                else
+                {
+                    if (!parsedFields.contains(field))
+                    {
+                        parsedFields.add(field);
+                    }
+                }
+            }
 
-			parsedOptions.add(parsedFields);
-		}
+            parsedOptions.add(parsedFields);
+        }
 
-		return parsedOptions;
-	}
+        if (null != parsedOptions)
+        {
+            return parsedOptions;
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-	/**
-	 * Build a Vector of fields that can be added to when expanding wildcards.
-	 * 
-	 * @param configString
-	 *            - Value of one metadata field configuration
-	 * @return A vector of raw field configurations.
-	 */
-	private ArrayList<String> parseFields(String configString) {
+    /**
+     * Build a Vector of fields that can be added to when expanding wildcards.
+     * 
+     * @param configString
+     *            - Value of one metadata field configuration
+     * @return A vector of raw field configurations.
+     */
+    protected ArrayList<String> parseFields(String configString)
+    {
 
-		ArrayList<String> fields = new ArrayList<String>();
+        ArrayList<String> fields = new ArrayList<String>();
 
-		for (String field : configString.split("\\,")) {
-			fields.add(field.trim());
-		}
+        for (String field : configString.split("\\,"))
+        {
+            fields.add(field.trim());
+        }
 
-		return fields;
-	}
+        return fields;
+    }
 
-	/**
-	 * Pull apart an individual field structure.
-	 * 
-	 * @param field
-	 *            The configured field for one metadata field map
-	 * @return Schema, Element, Qualifier of metadata field
-	 */
-	private String[] parseComponents(String field) {
+    /**
+     * Pull apart an individual field structure.
+     * 
+     * @param field
+     *            The configured field for one metadata field map
+     * @return Schema, Element, Qualifier of metadata field
+     */
+    protected String[] parseComponents(String field)
+    {
 
-		int index = 0;
-		String[] components = new String[3];
+        int index = 0;
+        String[] components = new String[3];
 
-		for (String c : field.split("\\.")) {
-			components[index] = c.trim();
-			index++;
-		}
+        for (String c : field.split("\\."))
+        {
+            components[index] = c.trim();
+            index++;
+        }
 
-		return components;
-	}
+        return components;
+    }
 
-	/**
-	 * Expand any wildcard characters to an array of all matching fields for
-	 * this item. No order consistency is implied.
-	 * 
-	 * @param field
-	 *            The field identifier containing a wildcard character.
-	 * @return Expanded field list.
-	 */
-	private ArrayList<String> parseWildcard(String field) {
+    /**
+     * Expand any wildcard characters to an array of all matching fields for
+     * this item. No order consistency is implied.
+     * 
+     * @param field
+     *            The field identifier containing a wildcard character.
+     * @return Expanded field list.
+     */
+    protected ArrayList<String> parseWildcard(String field)
+    {
 
-		if (!field.contains("*")) {
-			return null;
-		} else {
-			String[] components = parseComponents(field);
+        if (!field.contains("*"))
+        {
+            return null;
+        }
+        else
+        {
+            String[] components = parseComponents(field);
 
-			for (int i = 0; i < components.length; i++) {
-				if (components[i].trim().equals("*")) {
-					components[i] = Item.ANY;
-				}
-			}
+            for (int i = 0; i < components.length; i++)
+            {
+                if (components[i].trim().equals("*"))
+                {
+                    components[i] = Item.ANY;
+                }
+            }
 
-			Metadatum[] allMD = item.getMetadata(components[0], components[1], components[2], Item.ANY);
+            List<MetadataValue> allMD = dspaceObjectService.getMetadata(item, components[0], components[1],
+                    components[2], Item.ANY);
 
-			ArrayList<String> expandedDC = new ArrayList<String>();
-			for (Metadatum v : allMD) {
+            ArrayList<String> expandedDC = new ArrayList<String>();
+            for (MetadataValue v : allMD)
+            {
 
-				// De-dup multiple occurrences of field names in item
-				if (!expandedDC.contains(buildFieldName(v))) {
-					expandedDC.add(buildFieldName(v));
-				}
-			}
+                // De-dup multiple occurrences of field names in item
+                if (!expandedDC.contains(buildFieldName(v)))
+                {
+                    expandedDC.add(buildFieldName(v));
+                }
+            }
 
-			if (log.isDebugEnabled()) {
-				log.debug("Field Names From Expanded Wildcard \"" + field + "\"");
-				for (String v : expandedDC) {
-					log.debug("    " + v);
-				}
-			}
+            if (log.isDebugEnabled())
+            {
+                log.debug("Field Names From Expanded Wildcard \"" + field
+                        + "\"");
+                for (String v : expandedDC)
+                {
+                    log.debug("    " + v);
+                }
+            }
 
-			return expandedDC;
-		}
-	}
+            return expandedDC;
+        }
+    }
+    
+    /**
+     * Construct metadata field name out of Metadatum components
+     * 
+     * @param v
+     *            The Metadatum to construct a name for.
+     * @return The complete metadata field name.
+     */
+    protected String buildFieldName(MetadataValue v)
+    {
 
-	/**
-	 * Construct metadata field name out of Metadatum components
-	 * 
-	 * @param v
-	 *            The Metadatum to construct a name for.
-	 * @return The complete metadata field name.
-	 */
-	protected String buildFieldName(Metadatum v) {
+        StringBuilder name = new StringBuilder();
 
-		StringBuilder name = new StringBuilder();
+        MetadataField metadataField = v.getMetadataField();
+        MetadataSchema metadataSchema = v.getMetadataField().getMetadataSchema();
+        name.append(metadataSchema.getName()).append(".").append(metadataField.getElement());
+        if (null != metadataField.getQualifier())
+        {
+            name.append("." + metadataField.getQualifier());
+        }
 
-		name.append(v.schema + "." + v.element);
-		if (null != v.qualifier) {
-			name.append("." + v.qualifier);
-		}
-
-		return name.toString();
-	}
-
+        return name.toString();
+    }
+    
 	/**
 	 * Dump Metadata field mapping to log
 	 * 
@@ -522,130 +607,172 @@ public abstract class MappingMetadata {
 		}
 	}
 
-	/**
-	 * 
-	 * 
-	 * @param FIELD
-	 *            to aggregate all values of in a matching option
-	 * @param delim
-	 *            to delimit field values with
-	 */
-	protected void addAggregateValues(String FIELD, String delim) {
+	
+    /**
+     * Gets the URL to a PDF using a very basic strategy by assuming that the PDF
+     * is in the default content bundle, and that the item only has one public bitstream
+     * and it is a PDF.
+     *
+     * @param item
+     * @return URL that the PDF can be directly downloaded from
+     */
+    protected String getPDFSimpleUrl(Item item)
+    {
+        try {
+            Bitstream bitstream = findLinkableFulltext(item);
+            if (bitstream != null) {
+                StringBuilder path = new StringBuilder();
+                path.append(ConfigurationManager.getProperty("dspace.url"));
 
-		String authorConfig = configuredFields.get(FIELD);
-		ArrayList<Metadatum> fields = resolveMetadataFields(authorConfig);
+                if (item.getHandle() != null) {
+                    path.append("/bitstream/");
+                    path.append(item.getHandle());
+                    path.append("/");
+                    path.append(bitstream.getSequenceID());
+                } else {
+                    path.append("/retrieve/");
+                    path.append(bitstream.getID());
+                }
 
-		if (null != fields && !fields.isEmpty()) {
+                path.append("/");
+                path.append(Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING));
+                return path.toString();
+            }
+        } catch (UnsupportedEncodingException ex) {
+            log.debug(ex.getMessage());
+        } catch (SQLException ex) {
+            log.debug(ex.getMessage());
+        }
 
-			StringBuilder fieldMetadata = new StringBuilder();
-			int count = 0;
+        return "";
+    }
 
-			for (Metadatum field : fields) {
-				fieldMetadata.append(field.value);
-				if (count < fields.size() - 1) {
-					fieldMetadata.append(delim + " ");
-					count++;
-				}
-			}
-			metadataMappings.put(FIELD, fieldMetadata.toString());
-		}
-	}
+    /**
+     * A bitstream is considered linkable fulltext when it is either
+     * <ul>
+     *     <li>the item's only bitstream (in the ORIGINAL bundle); or</li>
+     *     <li>the primary bitstream</li>
+     * </ul>
+     * Additionally, this bitstream must be publicly viewable.
+     * @param item
+     * @return a linkable bitstream or null if none found
+     * @throws SQLException if database error
+     */
+    protected Bitstream findLinkableFulltext(DSpaceObject dso) throws SQLException {
+        Bitstream bestSoFar = null;
+        if (item instanceof Item)
+        {
+            Item item = (Item) dso;
+            List<Bundle> contentBundles = item.getItemService().getBundles(item,
+                    "ORIGINAL");
+            for (Bundle bundle : contentBundles)
+            {
+                List<Bitstream> bitstreams = bundle.getBitstreams();
+                for (Bitstream candidate : bitstreams)
+                {
+                    if (candidate.equals(bundle.getPrimaryBitstream()))
+                    { // is primary -> use this one
+                        if (isPublic(candidate))
+                        {
+                            return candidate;
+                        }
+                    }
+                    else
+                    {
+                        if (bestSoFar == null && isPublic(candidate))
+                        { // if bestSoFar is null but the candidate is not
+                          // public you don't use it and try to find another
+                            bestSoFar = candidate;
+                        }
+                    }
+                }
+            }
+        }
+        return bestSoFar;
+    }
 
-	/**
-	 * If metadata field contains multiple values, then add each value to the
-	 * map separately
-	 * 
-	 * @param FIELD
-	 */
-	protected void addMultipleValues(String FIELD) {
-		String fieldConfig = configuredFields.get(FIELD);
-		ArrayList<Metadatum> fields = resolveMetadataFields(fieldConfig);
+    protected boolean isPublic(Bitstream bitstream) {
+        if (bitstream == null) {
+            return false;
+        }
+        boolean result = false;
+        Context context = null;
+        try {
+            context = new Context();
+            result = AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, bitstream, Constants.READ, true);
+        } catch (SQLException e) {
+            log.error("Cannot determine whether bitstream is public, assuming it isn't. bitstream_id=" + bitstream.getID(), e);
+        }
+        return result;
+    }
 
-		if (null != fields && !fields.isEmpty()) {
-			for (Metadatum field : fields) {
-				// TODO if this is author field, first-name first
-				metadataMappings.put(FIELD, field.value);
-			}
-		}
-	}
+    /**
+     * 
+     * 
+     * @param field
+     *            to aggregate all values of in a matching option
+     * @param delimiter
+     *            to delimit field values with
+     */
+    protected void addAggregateValues(String field, String delimiter)
+    {
 
+        String authorConfig = configuredFields.get(field);
+        ArrayList<MetadataValue> fields = resolveMetadataFields(authorConfig);
+
+        if (null != fields && !fields.isEmpty())
+        {
+
+            StringBuilder fieldMetadata = new StringBuilder();
+            int count = 0;
+
+            for (MetadataValue metadataValue : fields)
+            {
+                fieldMetadata.append(metadataValue.getValue());
+                if (count < fields.size() - 1)
+                {
+                    fieldMetadata.append(delimiter).append(" ");
+                    count++;
+                }
+            }
+            metadataMappings.put(field, fieldMetadata.toString());
+        }
+    }
+
+    /**
+     * If metadata field contains multiple values, then add each value to the map separately
+     * @param FIELD
+     */
+    protected void addMultipleValues(String FIELD)
+    {
+        String fieldConfig = configuredFields.get(FIELD);
+        ArrayList<MetadataValue> fields = resolveMetadataFields(fieldConfig);
+
+        if (null != fields && !fields.isEmpty())
+        {
+            for (MetadataValue field : fields)
+            {
+                //TODO if this is author field, first-name first
+                metadataMappings.put(FIELD, field.getValue());
+            }
+        }
+    }
+    
 	protected void addMultipleWithAuthorityValues(String FIELD) {
 		String fieldConfig = configuredFields.get(FIELD);
-		ArrayList<Metadatum> fields = resolveMetadataFields(fieldConfig);
+		ArrayList<MetadataValue> fields = resolveMetadataFields(fieldConfig);
 
 		if (null != fields && !fields.isEmpty()) {
-			for (Metadatum field : fields) {
-				if (StringUtils.isNotBlank(field.authority)) {
-					metadataMappings.put(FIELD, field.authority);
+			for (MetadataValue field : fields) {
+				if (StringUtils.isNotBlank(field.getAuthority())) {
+					metadataMappings.put(FIELD, field.getAuthority());
 				} else {
-					metadataMappings.put(FIELD, field.value);
+					metadataMappings.put(FIELD, field.getValue());
 				}
 			}
 		}
 	}
 
-	/**
-	 * A bitstream is considered linkable fulltext when it is either
-	 * <ul>
-	 * <li>the item's only bitstream (in the ORIGINAL bundle); or</li>
-	 * <li>the primary bitstream</li>
-	 * </ul>
-	 * Additionally, this bitstream must be publicly viewable.
-	 * 
-	 * @param item
-	 * @return
-	 * @throws SQLException
-	 */
-	private Bitstream findLinkableFulltext(DSpaceObject dso) throws SQLException {
-
-		Bitstream bestSoFar = null;
-		if (item instanceof Item) {
-			Item item = (Item) dso;
-			int bitstreamCount = 0;
-			Bundle[] contentBundles = item.getBundles("ORIGINAL");
-			for (Bundle bundle : contentBundles) {
-				int primaryBitstreamId = bundle.getPrimaryBitstreamID();
-				Bitstream[] bitstreams = bundle.getBitstreams();
-				for (Bitstream candidate : bitstreams) {
-					if (candidate.getID() == primaryBitstreamId) { // is primary
-																	// ->
-																	// use this
-																	// one
-						if (isPublic(candidate)) {
-							return candidate;
-						}
-					} else if (bestSoFar == null) {
-						bestSoFar = candidate;
-					}
-					bitstreamCount++;
-				}
-			}
-			if (bitstreamCount > 1 || !isPublic(bestSoFar)) {
-				bestSoFar = null;
-			}
-		}
-		return bestSoFar;
-	}
-
-	private boolean isPublic(Bitstream bitstream) {
-		if (bitstream == null) {
-			return false;
-		}
-		boolean result = false;
-		Context context = null;
-		try {
-			context = new Context();
-			result = AuthorizeManager.authorizeActionBoolean(context, bitstream, Constants.READ, true);
-		} catch (SQLException e) {
-			log.error("Cannot determine whether bitstream is public, assuming it isn't. bitstream_id="
-					+ bitstream.getID(), e);
-		} finally {
-			if (context != null) {
-				context.abort();
-			}
-		}
-		return result;
-	}
 
 	/**
 	 * Identifies if this item matches a particular configuration of fields and
@@ -696,13 +823,13 @@ public abstract class MappingMetadata {
 		}
 
 		// Check resolved/present metadata fields against configured values
-		ArrayList<Metadatum> presentMD = resolveMetadataFields(sb.toString());
+		ArrayList<MetadataValue> presentMD = resolveMetadataFields(sb.toString());
 		if (null != presentMD && presentMD.size() != 0) {
-			for (Metadatum v : presentMD) {
+			for (MetadataValue v : presentMD) {
 				String fieldName = buildFieldName(v);
 				if (mdPairs.containsKey(fieldName)) {
 					for (String configValue : mdPairs.get(fieldName)) {
-						if (configValue.equals(v.value)) {
+						if (configValue.equals(v.getValue())) {
 							return true;
 						}
 					}
@@ -723,7 +850,7 @@ public abstract class MappingMetadata {
 		if (log.isDebugEnabled()) {
 			log.debug("Processing " + fieldName);
 		}
-		final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+		final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
 				.getNamedPlugin(StreamDisseminationCrosswalk.class, config);
 
 		OutputStream outputStream = new ByteArrayOutputStream();
@@ -771,14 +898,14 @@ public abstract class MappingMetadata {
 			config = config.replaceAll("\\(" + language + "\\)", "");
 		}
 		if (StringUtils.isEmpty(language)) {
-			Metadatum v = resolveMetadataField(languageConfig);
-			language = v.value;
+			MetadataValue v = resolveMetadataField(languageConfig);
+			language = v.getValue();
 		}
 
-		Metadatum v = resolveMetadataField(config);
+		MetadataValue v = resolveMetadataField(config);
 
-		if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-			metadataMappings.put(fieldName, v.value);
+		if (null != v && StringUtils.isNotBlank(v.getValue())) {
+			metadataMappings.put(fieldName, v.getValue());
 			metadataMappings.put(fieldName + ".language", language);
 			return true;
 		} else {
@@ -797,9 +924,9 @@ public abstract class MappingMetadata {
 		DSpace dspace = new DSpace();
 		MultiFormatDateParser multiFormatDateParser = dspace.getSingletonService(MultiFormatDateParser.class);
 
-		Metadatum v = resolveMetadataField(config);
-		if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-			Date date = multiFormatDateParser.parse(v.value);
+		MetadataValue v = resolveMetadataField(config);
+		if (null != v && StringUtils.isNotBlank(v.getValue())) {
+			Date date = multiFormatDateParser.parse(v.getValue());
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(date);
 			int year = cal.get(Calendar.YEAR);
@@ -832,11 +959,11 @@ public abstract class MappingMetadata {
 			}
 		}
 
-		Metadatum v = resolveMetadataField(config);
+		MetadataValue v = resolveMetadataField(config);
 
-		if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-			metadataMappings.put(fieldName, v.value);
-			metadataMappings.put(v.value, identifierCode);
+		if (null != v && StringUtils.isNotBlank(v.getValue())) {
+			metadataMappings.put(fieldName, v.getValue());
+			metadataMappings.put(v.getValue(), identifierCode);
 			return true;
 		} else {
 			// No values found
@@ -887,13 +1014,13 @@ public abstract class MappingMetadata {
             } 
         }		
 		
-		ArrayList<Metadatum> fields = resolveMetadataFields(result);
+		ArrayList<MetadataValue> fields = resolveMetadataFields(result);
 
 		if (null != fields && !fields.isEmpty()) {
-			for (Metadatum v : fields) {
-				if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-					metadataMappings.put(fieldName, v.value);
-					metadataMappings.put(v.value, map.get(v.getField()));
+			for (MetadataValue v : fields) {
+				if (null != v && StringUtils.isNotBlank(v.getValue())) {
+					metadataMappings.put(fieldName, v.getValue());
+					metadataMappings.put(v.getValue(), map.get(v.getMetadataField()));
 				}
 			}
 		} else {
@@ -925,16 +1052,16 @@ public abstract class MappingMetadata {
 			config = config.replaceAll("\\(" + language + "\\)", "");
 		}
 		if (StringUtils.isEmpty(language)) {
-			Metadatum v = resolveMetadataField(languageConfig);
-			if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-				language = v.value;
+			MetadataValue v = resolveMetadataField(languageConfig);
+			if (null != v && StringUtils.isNotBlank(v.getValue())) {
+				language = v.getValue();
 			}
 		}
 
-		Metadatum v = resolveMetadataField(config);
+		MetadataValue v = resolveMetadataField(config);
 
-		if (null != v && (null != v.value) && !v.value.trim().equals("")) {
-			metadataMappings.put(fieldName, v.value);
+		if (null != v && StringUtils.isNotBlank(v.getValue())) {
+			metadataMappings.put(fieldName, v.getValue());
 			metadataMappings.put(fieldName + ".currencycode", language);
 			return true;
 		} else {
@@ -942,5 +1069,16 @@ public abstract class MappingMetadata {
 			return false;
 		}
 	}
+
+    public DSpaceObjectService<DSpaceObject> getDspaceObjectService()
+    {
+        return dspaceObjectService;
+    }
+
+    public void setDspaceObjectService(
+            DSpaceObjectService dspaceObjectService)
+    {
+        this.dspaceObjectService = dspaceObjectService;
+    }
 
 }

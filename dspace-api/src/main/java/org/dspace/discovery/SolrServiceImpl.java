@@ -51,7 +51,6 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.AbstractUpdateRequest;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.Group;
 import org.apache.solr.client.solrj.response.GroupCommand;
 import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -72,11 +71,13 @@ import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.crosswalk.IConverter;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.*;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.configuration.*;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -84,6 +85,8 @@ import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.util.MultiFormatDateParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,6 +98,8 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.dspace.app.util.Util;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.eperson.Group;
@@ -440,7 +445,14 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         if(type!=Constants.ITEM) {
             throw new RuntimeException("Only ITEM is supported in this mode - type founded: " + type);
         }
-        startMultiThreadIndex(force, ids);
+        try
+        {
+            startMultiThreadIndex(context, force, ids);
+        }
+        catch (SQLException e)
+        {
+            log.error(e.getMessage(), e);
+        }
     }
     
     @Override
@@ -450,12 +462,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         {
             switch (type)
             {
-            case Constants.ITEM:
-                List<Integer> ids = Item.findAllItemIDsUnfiltered(context);
-                startMultiThreadIndex(force, ids);
+            case Constants.ITEM:                
+                startMultiThreadIndex(context, force, null);
                 break;
             case Constants.COLLECTION:
-            Collection[] collections = Collection.findAll(context);
+            List<Collection> collections = collectionService.findAll(context);
             for (Collection collection : collections)
             {
                 indexContent(context, collection, force);
@@ -484,10 +495,17 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
     }
 
-    private void startMultiThreadIndex(boolean force, List<Integer> ids)
+    private void startMultiThreadIndex(Context context, boolean force, List<Integer> ids) throws SQLException
     {
         int numThreads = ConfigurationManager.getIntProperty("discovery", "indexer.items.threads", 5);
 
+        if(ids==null) {
+            ids = new ArrayList<>();
+            Iterator<Item> items = itemService.findAllUnfiltered(context);
+            for(Item item : ImmutableList.copyOf(items)) {
+                ids.add(item.getLegacyId());
+            }
+        }
         List<Integer>[] arrayIDList = Util.splitList(ids, numThreads);
         List<IndexerThread> threads = new ArrayList<IndexerThread>();
         for (List<Integer> hl : arrayIDList) {
@@ -583,7 +601,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     }
                     else
                     {
-                        context.removeCached(o, o.getID());
                         log.debug("Keeping: " + o.getHandle());
                     }
                 }
@@ -794,6 +811,22 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return locations;
     }
     
+   protected List<String> getCommunityLocations(Community target)
+            throws SQLException
+    {
+        List<String> locations = new Vector<String>();
+        // build list of community ids
+        List<Community> communities = target.getParentCommunities();
+
+        // now put those into strings
+        for (Community community : communities)
+        {
+            locations.add("m" + community.getID());
+        }
+
+        return locations;
+    }
+
     @Override
     public String createLocationQueryForAdministrableItems(Context context)
             throws SQLException
@@ -1181,7 +1214,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         "discovery", "converter." + field);
                 if (converterName != null)
                 {
-                    IConverter iconverter = (IConverter) PluginManager
+                    IConverter iconverter = (IConverter) CoreServiceFactory.getInstance().getPluginService()
                             .getNamedPlugin(IConverter.class, converterName);
                     value = iconverter.makeConversion(value);
                 }
@@ -1980,7 +2013,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             	for(GroupCommand groupCommand : collapsing.getValues()) {
             		groupTotal += groupCommand.getMatches();           		
 
-            		for(Group group : groupCommand.getValues()) {          			
+            		for(org.apache.solr.client.solrj.response.Group group : groupCommand.getValues()) {          			
                         for (SolrDocument doc : group.getResult())
                         {
                             DSpaceObject dso = findDSpaceObject(context, doc);
@@ -2151,14 +2184,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         Integer type = (Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD);
         UUID id = UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD));
         String handle = (String) doc.getFirstValue(HANDLE_FIELD);
-        
-        
+        DSpaceObject o = null;
         if (type != null && id != null)
         {
-            return contentServiceFactory.getDSpaceObjectService(type).find(context, id);
+            o = contentServiceFactory.getDSpaceObjectService(type).find(context, id);
         } else if (handle != null)
         {
-            return handleService.resolveToObject(context, handle);
+            o = handleService.resolveToObject(context, handle);
         }
 
         if (o != null)
@@ -2615,9 +2647,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 				final int size = itemids.size();
 				for (Integer id : itemids) {
 				    try {				        
-				        Item item = Item.find(context, id);
+				        Item item = itemService.findByLegacyId(context, id);
 				        indexContent(context, item, force);				        
-				        item.decache();
 				    }
 				    catch(Exception ex) {
 				        System.out.println("ERROR: identifier item:" + id + " identifier thread:"+ head);

@@ -36,6 +36,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
@@ -171,7 +172,7 @@ public class EditDSpaceObjectServlet extends DSpaceServlet
     private void checkEditAuthorization(Context c, DSpaceObject item)
             throws AuthorizeException, java.sql.SQLException
     {
-        AuthorizeManager.authorizeAction(c, item, Constants.WRITE);
+        AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(c, item, Constants.WRITE);
     }
 
     /**

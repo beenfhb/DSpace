@@ -1527,7 +1527,7 @@
 		<dependency>
     		<groupId>javassist</groupId>
     		<artifactId>javassist</artifactId>
-    		<version>3.12.1.GA</version>
+    		<version>3.18.1-GA</version>
 		</dependency> 
 
         <!-- Contiperf is used for performance tests within our Unit/Integration tests -->
@@ -1579,11 +1579,6 @@
 			 <artifactId>metrics-retrieve</artifactId>
 			 <version>${project.version}</version>
          </dependency>
-		<dependency>
-			<groupId>net.sf.flexjson</groupId>
-			<artifactId>flexjson</artifactId>
-			<version>2.1</version>
-		</dependency>
 	
 		<dependency>
 			<groupId>com.google.code.gson</groupId>

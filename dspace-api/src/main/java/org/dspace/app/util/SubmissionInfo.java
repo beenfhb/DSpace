@@ -20,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.EditItem;
@@ -144,7 +145,7 @@ public class SubmissionInfo extends HashMap
             collectionHandle = subItem.getCollection().getHandle();
             Item item = subItem.getItem();
             if (subItem instanceof EditItem) {
-                if (!AuthorizeManager.isAdmin(context) && !item.canEdit()) {
+                if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context) && !item.canEdit()) {
                     throw new AuthorizeException("Unauthorized attempt to edit ItemID " + item.getID());
                 }
                 context.turnOffAuthorisationSystem();

@@ -237,7 +237,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
                 context = new Context();
                 String defaultKey =  makeFieldKey(MetadataSchema.DC_SCHEMA, "authority", "default");
                 String defaultfKey = ConfigurationManager.getProperty(CHOICES_PLUGIN_PREFIX+MetadataSchema.DC_SCHEMA+".authority.default");
-                ChoiceAuthority maDefault = (ChoiceAuthority) pluginService.
+                ChoiceAuthority maDefault = (ChoiceAuthority) pluginService
                         .getNamedPlugin(ChoiceAuthority.class,
                                 ConfigurationManager
                                         .getProperty(defaultKey));

@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -21,7 +22,7 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -42,7 +43,7 @@ public class ItemAuthority implements ChoiceAuthority
 
     // punt!  this is a poor implementation..
     @Override
-    public Choices getBestMatch(String field, String text, int collection, String locale)
+    public Choices getBestMatch(String field, String text, Collection collection, String locale)
     {
         return getMatches(field, text, collection, 0, 2, locale);
     }
@@ -52,7 +53,7 @@ public class ItemAuthority implements ChoiceAuthority
 	 * filter query to limit the scope only to specific item types
 	 */
     @Override
-    public Choices getMatches(String field, String text, int collection, int start, int limit, String locale)
+    public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale)
     {
     	Context context = null;
     	if (limit <= 0) {
@@ -92,7 +93,7 @@ public class ItemAuthority implements ChoiceAuthority
 			return new Choices(results, 0, results.length, Choices.CF_AMBIGUOUS,
 					resultSearch.getTotalSearchResults() > (start + limit), 0);
 	        
-		} catch (SearchServiceException | SQLException e) {
+		} catch (SearchServiceException e) {
 			log.error(e.getMessage(), e);
 			return new Choices(true);
 		}
@@ -111,7 +112,7 @@ public class ItemAuthority implements ChoiceAuthority
     		Context context = null;
 	    	try {
 	    		context = new Context();
-	    		DSpaceObject dso = HandleManager.resolveToObject(context, key);
+	    		DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, key);
 	    		if (dso != null) {
 	    			title = dso.getName();
 	    		}

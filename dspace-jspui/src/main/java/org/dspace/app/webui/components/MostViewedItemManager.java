@@ -18,9 +18,13 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.SolrLoggerServiceImpl;
+import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.utils.DSpace;
 
 public class MostViewedItemManager
@@ -30,7 +34,7 @@ public class MostViewedItemManager
 
     private final String TYPE = "2";
 
-    private final String STATISTICS_TYPE = SolrLogger.StatisticsType.VIEW
+    private final String STATISTICS_TYPE = SolrLoggerServiceImpl.StatisticsType.VIEW
             .text();
 
     private DSpaceObject owningDso;
@@ -41,8 +45,10 @@ public class MostViewedItemManager
 
     DSpace dspace = new DSpace();
 
-    SolrLogger solrLogger = dspace.getServiceManager()
-            .getServiceByName(SolrLogger.class.getName(), SolrLogger.class);
+    SolrLoggerService solrLogger = DSpaceServicesFactory.getInstance().getServiceManager()
+            .getServiceByName(SolrLoggerService.class.getName(), SolrLoggerService.class);
+    
+    ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     public MostViewedItemManager(DSpaceObject dso, int max, String period)
     {
@@ -92,7 +98,7 @@ public class MostViewedItemManager
         for (int x = 0; x < oc.length; x++)
         {
             int id = Integer.parseInt(oc[x].getValue());
-            Item item = Item.find(context, id);
+            Item item = itemService.findByLegacyId(context, id);
             if (item != null)
             {
                 if (!item.isWithdrawn())

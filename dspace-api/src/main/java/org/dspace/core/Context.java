@@ -50,6 +50,9 @@ public class Context
     /** Current user - null means anonymous access */
     private EPerson currentUser;
 
+	/** Current user crisID if any **/
+	private String crisID;
+
     /** Current Locale */
     private Locale currentLocale;
 
@@ -79,6 +82,20 @@ public class Context
 
     /** options */
     private short options = 0;
+
+    /**
+     * Check to get ItemWrapper on demand {@link Item}
+     */
+    private boolean requiredItemWrapper;
+
+    /** A stack with the history of the requiredItemWrapper check modify */
+    private Stack<Boolean> itemWrapperChangeHistory;
+    
+    /**
+     * A stack with the name of the caller class that modify requiredItemWrapper
+     * system check
+     */
+    private Stack<String> itemWrapperCallHistory;
 
     protected EventService eventService;
 
@@ -154,11 +171,15 @@ public class Context
         currentLocale = I18nUtil.DEFAULTLOCALE;
         extraLogInfo = "";
         ignoreAuth = false;
+        requiredItemWrapper = true;
 
         specialGroups = new ArrayList<>();
 
         authStateChangeHistory = new Stack<Boolean>();
         authStateClassCallHistory = new Stack<String>();
+        
+        itemWrapperChangeHistory = new Stack<Boolean>();
+        itemWrapperCallHistory = new Stack<String>();
     }
 
     /**
@@ -166,7 +187,7 @@ public class Context
      * 
      * @return the database connection
      */
-    DBConnection getDBConnection()
+    public DBConnection getDBConnection()
     {
         return dbConnection;
     }
@@ -191,6 +212,16 @@ public class Context
     public void setCurrentUser(EPerson user)
     {
         currentUser = user;
+
+		EPersonCRISIntegration plugin = (EPersonCRISIntegration) PluginManager
+				.getSinglePlugin(org.dspace.content.EPersonCRISIntegration.class);
+		if (plugin != null) {
+			if (user != null) {
+				crisID = plugin.getResearcher(user.getID());
+			} else {
+				crisID = null;
+			}
+		}
     }
 
     /**
@@ -203,6 +234,10 @@ public class Context
     {
         return currentUser;
     }
+
+	public String getCrisID() {
+		return crisID;
+	}
 
     /**
      * Gets the current Locale
@@ -698,4 +733,78 @@ public class Context
     private void reloadContextBoundEntities() throws SQLException {
         currentUser = reloadEntity(currentUser);
     }
+
+
+    public boolean isRequiredItemWrapper()
+    {
+        return requiredItemWrapper;
+    }
+
+    /**
+    * Turn Off the Item Wrapper for this context and store this change
+    * in a history for future use.
+    */
+   public void turnOffItemWrapper()
+   {
+       itemWrapperChangeHistory.push(requiredItemWrapper);
+       if (log.isDebugEnabled())
+       {
+           Thread currThread = Thread.currentThread();
+           StackTraceElement[] stackTrace = currThread.getStackTrace();
+           String caller = stackTrace[stackTrace.length - 1].getClassName();
+
+           itemWrapperCallHistory.push(caller);
+       }
+       requiredItemWrapper = false;
+   }
+   
+   
+   /**
+    * Restore the previous item wrapper system state. If the state was not
+    * changed by the current caller a warning will be displayed in log. Use:
+    * <code>
+    *     mycontext.turnOffItemWrapper();
+    *     some java code that require no item wrapper
+    *     mycontext.restoreItemWrapperState(); 
+        * </code> If Context debug is enabled, the correct sequence calling will be
+    * checked and a warning will be displayed if not.
+    */
+   public void restoreItemWrapperState()
+   {
+       Boolean previousState;
+       try
+       {
+           previousState = itemWrapperChangeHistory.pop();
+       }
+       catch (EmptyStackException ex)
+       {
+           log.warn(LogManager.getHeader(this, "restore_itemwrap_sys_state",
+                   "not previous state info available "
+                           + ex.getLocalizedMessage()));
+           previousState = Boolean.FALSE;
+       }
+       if (log.isDebugEnabled())
+       {
+           Thread currThread = Thread.currentThread();
+           StackTraceElement[] stackTrace = currThread.getStackTrace();
+           String caller = stackTrace[stackTrace.length - 1].getClassName();
+
+           String previousCaller = (String) itemWrapperCallHistory.pop();
+
+           // if previousCaller is not the current caller *only* log a warning
+           if (!previousCaller.equals(caller))
+           {
+               log
+                       .warn(LogManager
+                               .getHeader(
+                                       this,
+                                       "restore_itemwrap_sys_state",
+                                       "Class: "
+                                               + caller
+                                               + " call restore but previous state change made by "
+                                               + previousCaller));
+           }
+       }
+       requiredItemWrapper = previousState.booleanValue();
+   }
 }

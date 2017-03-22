@@ -39,7 +39,6 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -766,7 +765,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			request.setAttribute("selectorViewMetadata", discoveryViewAndHighlightConfigurationByName.getSelector());
 			
 			try {
-				if (AuthorizeManager.isAdmin(context)) {
+				if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context)) {
 					// Set a variable to create admin buttons
 					request.setAttribute("admin_button", new Boolean(true));
 				}

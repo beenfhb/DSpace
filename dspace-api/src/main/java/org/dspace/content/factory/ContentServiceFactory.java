@@ -77,6 +77,12 @@ public abstract class ContentServiceFactory {
     {
         for (int i = 0; i < getDSpaceObjectServices().size(); i++) {
             DSpaceObjectService objectService = getDSpaceObjectServices().get(i);
+            if(type>=9) {
+                if(objectService.getSupportsTypeConstant()==9) {
+                    //TODO implements for each DSpace-CRIS object a service
+                    return objectService;    
+                }
+            }
             if(objectService.getSupportsTypeConstant() == type)
             {
                 return objectService;

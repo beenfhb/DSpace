@@ -21,6 +21,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.sort.SortException;
 import org.dspace.discovery.IGlobalSearchResult;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.sort.SortOption;
 
 /**
@@ -80,12 +81,12 @@ public class RecentSubmissionsManager
 			    bi = BrowseIndex.getBrowseIndex(indexName);
 			}
 			
-            boolean isMultilanguage = new DSpace()
+            boolean isMultilanguage = DSpaceServicesFactory.getInstance()
                     .getConfigurationService()
                     .getPropertyAsType(
                             "discovery.browse.authority.multilanguage."
                                     + bi.getName(),
-                            new DSpace()
+                            DSpaceServicesFactory.getInstance()
                                     .getConfigurationService()
                                     .getPropertyAsType(
                                             "discovery.browse.authority.multilanguage",

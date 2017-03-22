@@ -8,21 +8,26 @@
 package org.dspace.authenticate;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authority.orcid.OrcidService;
-import org.dspace.authority.orcid.jaxb.OrcidBio;
 import org.dspace.authority.orcid.jaxb.OrcidProfile;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 
 /**
  *
@@ -54,8 +59,8 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
     }
 
     @Override
-    public int[] getSpecialGroups(Context context, HttpServletRequest request) throws SQLException {
-        return new int[0];  //To change body of implemented methods use File | Settings | File Templates.
+    public List<Group> getSpecialGroups(Context context, HttpServletRequest request) throws SQLException {
+        return new ArrayList<>();  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -73,7 +78,8 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
             return BAD_ARGS;
         }
         
-        EPerson eperson = EPerson.findByNetid(context, orcid);
+        EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        EPerson eperson = ePersonService.findByNetid(context, orcid);
         
         // No email address, perhaps the eperson has been setup, better check it
         if (eperson == null)
@@ -138,9 +144,9 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
         if (eperson == null && email != null) {
 	        try
 	        {
-	            eperson = EPerson.findByEmail(context, email);
+	            eperson = ePersonService.findByEmail(context, email);
 	        }
-	        catch (AuthorizeException e)
+	        catch (SQLException e)
 	        {
 	            log.warn("Fail to locate user with email:" + email, e);
 	            eperson = null;
@@ -159,16 +165,16 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
 	            log.info(LogManager.getHeader(context, "autoregister", "orcid="
 	                    + orcid));
             
-                eperson = EPerson.create(context);
+                eperson = ePersonService.create(context);
                 eperson.setEmail(email!=null?email:orcid);
-                eperson.setFirstName(fname);
-                eperson.setLastName(lname);
+                eperson.setFirstName(context, fname);
+                eperson.setLastName(context, lname);
                 eperson.setCanLogIn(true);
-                AuthenticationManager.initEPerson(context, request, eperson);
+                AuthenticateServiceFactory.getInstance().getAuthenticationService().initEPerson(context, request, eperson);
                 eperson.setNetid(orcid);
-                eperson.addMetadata("eperson", "orcid", null, null, orcid);
-                eperson.addMetadata("eperson", "orcid", "accesstoken", null, token);
-                eperson.update();
+                ePersonService.addMetadata(context, eperson, "eperson", "orcid", null, null, orcid);
+                ePersonService.addMetadata(context, eperson, "eperson", "orcid", "accesstoken", null, token);
+                ePersonService.update(context, eperson);
                 context.commit();
                 context.setCurrentUser(eperson);
 	        }
@@ -180,21 +186,21 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
                 	eperson.setEmail(email!=null?email:orcid);
                 } 
                 //eperson.setMetadata("access_token",token);
-                Metadatum[] md = eperson.getMetadata("eperson", "orcid", null, null);
+                List<MetadataValue> md = ePersonService.getMetadata(eperson, "eperson", "orcid", null, null);
                 boolean found = false;
-                if (md != null && md.length > 0) {
-                	for (Metadatum m : md) {
-                		if (StringUtils.equals(m.value, orcid)) {
-                			found = true;
-                			break;
-                		}
-                	}
+                for (MetadataValue m : md)
+                {
+                    if (StringUtils.equals(m.getValue(), orcid))
+                    {
+                        found = true;
+                        break;
+                    }
                 }
                 if (!found) {
-                	eperson.addMetadata("eperson", "orcid", null, null, orcid);
+                	ePersonService.addMetadata(context, eperson, "eperson", "orcid", null, null, orcid);
                 }
-                eperson.addMetadata("eperson", "orcid", "accesstoken", null, token);
-                eperson.update();
+                ePersonService.addMetadata(context, eperson, "eperson", "orcid", "accesstoken", null, token);
+                ePersonService.update(context, eperson);
                 context.commit();
 	        }
         }

@@ -9,22 +9,21 @@ package org.dspace.content.authority;
 
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
-import org.dspace.handle.HandleManager;
-import org.dspace.utils.DSpace;
+import org.dspace.handle.factory.HandleServiceFactory;
 
 /**
  * Sample authority to link a dspace item with another (i.e a publication with
@@ -93,14 +92,14 @@ public class ItemAuthorityConsumer implements Consumer
 
 	private boolean checkItemRefs(Context ctx, Item item, String m) throws SQLException {
 		boolean needCommit = false;
-		Metadatum[] meta = item.getMetadataByMetadataString(m);
+		List<MetadataValue> meta = item.getItemService().getMetadataByMetadataString(item, m);
 		if (meta != null) {
-			for (Metadatum md : meta) {
-				if (md.authority != null) {
-					DSpaceObject dso = HandleManager.resolveToObject(ctx, md.authority);
+			for (MetadataValue md : meta) {
+				if (md.getAuthority() != null) {
+					DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(ctx, md.getAuthority());
 		    		if (dso != null && dso instanceof Item) {
 		    			Item target = (Item) dso;
-		    			needCommit = needCommit || assureReciprocalLink(target, reciprocalMetadata.get(m), item.getName(), item.getHandle());
+		    			needCommit = needCommit || assureReciprocalLink(ctx, target, reciprocalMetadata.get(m), item.getName(), item.getHandle());
 		    		}			
 				}
 			}
@@ -108,32 +107,27 @@ public class ItemAuthorityConsumer implements Consumer
 		return needCommit;
 	}
 
-    private boolean assureReciprocalLink(Item target, String mdString, String name, String handle) {
-    	Metadatum[] meta = target.getMetadataByMetadataString(mdString);
+    private boolean assureReciprocalLink(Context ctx, Item target, String mdString, String name, String handle) throws SQLException {
+    	List<MetadataValue> meta = target.getItemService().getMetadataByMetadataString(target, mdString);
     	String[] mdSplit = mdString.split("\\.");
-    	target.clearMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, Item.ANY);
+    	target.getItemService().clearMetadata(ctx, target, mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, Item.ANY);
     	boolean added = false;
 		if (meta != null) {
-			for (Metadatum md : meta) {
-				if (StringUtils.equals(md.authority, handle)) {
-					if (!StringUtils.equals(md.value, name)) {
-						md.value = name;
+			for (MetadataValue md : meta) {
+				if (StringUtils.equals(md.getAuthority(), handle)) {
+					if (!StringUtils.equals(md.getValue(), name)) {
+						md.setValue(name);
 						added = true;
 					}
 					else {
 						return false;
 					}
 				}
-				target.addMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, null, md.value, md.authority, md.confidence);
+				target.getItemService().addMetadata(ctx, target, mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, null, md.getValue(), md.getAuthority(), md.getConfidence());
 			}
 		}
 		if (!added) {
-			target.addMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, null, name, handle, Choices.CF_ACCEPTED);
-		}
-    	try {
-    		target.updateMetadata();
-		} catch (SQLException | AuthorizeException e) {
-			log.error(e.getMessage(), e);
+			target.getItemService().addMetadata(ctx, target, mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, null, name, handle, Choices.CF_ACCEPTED);
 		}
 		return true;
 	}

@@ -28,8 +28,8 @@ import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
-import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
+import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authority.orcid.OrcidAccessToken;
 import org.dspace.authority.orcid.OrcidService;
 import org.dspace.authorize.AuthorizeException;
@@ -176,7 +176,7 @@ public class OAuthAuthenticationServlet extends DSpaceServlet {
 		}
 
 		// Locate the eperson
-		int status = AuthenticationManager.authenticate(context, null, null, null, request);
+		int status = AuthenticateServiceFactory.getInstance().getAuthenticationService().authenticate(context, null, null, null, request);
 
 		String jsp = null;
 		if (status == AuthenticationMethod.SUCCESS) {

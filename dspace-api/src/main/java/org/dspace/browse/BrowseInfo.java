@@ -13,9 +13,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.dspace.content.*;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
 import org.dspace.sort.SortOption;
 
 /**
@@ -478,7 +483,7 @@ public class BrowseInfo
      *
      * @return Result list. This list cannot be modified.
      */
-    public List<Item> getResults()
+    public List getResults()
     {
         return results;
     }
@@ -542,9 +547,9 @@ public class BrowseInfo
      *
      * @return		the results of the browse as a BrowseItem array
      */
-    public List<Item> getBrowseItemResults()
+    public BrowseItem[] getBrowseItemResults()
     {
-        return results;
+        return (BrowseItem[]) results.toArray(new BrowseItem[results.size()]);
     }
 
     /**
@@ -884,7 +889,7 @@ public class BrowseInfo
 		Iterator itr = results.iterator();
 		while (itr.hasNext())
 		{
-			Item bi = (Item) itr.next();
+			BrowseItem bi = (BrowseItem) itr.next();
 			if (bi == null)
 			{
 				sb.append("{{ NULL ITEM }}");

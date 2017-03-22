@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.handle.Handle;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.persistence.*;
 

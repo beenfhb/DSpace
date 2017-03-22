@@ -138,9 +138,7 @@ public class SearchUtils {
     public static DiscoveryViewAndHighlightConfiguration getDiscoveryViewAndHighlightConfigurationByName(
             String configurationName)
     {
-        DSpace dspace  = new DSpace();
-        ServiceManager manager = dspace.getServiceManager();
-        return manager.getServiceByName(configurationName, DiscoveryViewAndHighlightConfiguration.class);
+        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(configurationName, DiscoveryViewAndHighlightConfiguration.class);
     }
     
 	public static DiscoveryConfiguration getGlobalConfiguration() {

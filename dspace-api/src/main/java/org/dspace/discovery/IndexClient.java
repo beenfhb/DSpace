@@ -183,7 +183,7 @@ public class IndexClient {
 					dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, id);
 				} else {
 
-					dso = DSpaceServicesFactory.getInstance().getServiceManager().getSingletonService(ExternalService.class).getObject(id);
+					dso = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(ExternalService.class.getName(), ExternalService.class).getObject(id);
 				}
 				indexer.indexContent(context, dso, line.hasOption("f"));
 			}

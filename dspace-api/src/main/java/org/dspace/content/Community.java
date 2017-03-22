@@ -7,16 +7,28 @@
  */
 package org.dspace.content;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CommunityService;
-import org.dspace.core.*;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
-import java.util.*;
 
 /**
  * Class representing a community
@@ -232,6 +244,11 @@ public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
         return Constants.COMMUNITY;
     }
 
+    @Override
+    public String getTypeText() {
+        return Constants.typeText[Constants.COMMUNITY];
+    }
+    
     @Override
     public String getName() {
         String value = getCommunityService().getMetadataFirstValue(this, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
