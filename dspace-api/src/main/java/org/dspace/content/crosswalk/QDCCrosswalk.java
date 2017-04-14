@@ -92,7 +92,7 @@ public class QDCCrosswalk extends SelfNamedPlugin
     // map of qdc to JDOM Element
     private Map<String, Element> qdc2element = new HashMap<String, Element>();
 
-    // map of JDOM Element to qdc Metadatum
+    // map of JDOM Element to qdc MetadataValue
     private Map<String, String> element2qdc = new HashMap<String, String>();
 
     // the XML namespaces from config file for this name.

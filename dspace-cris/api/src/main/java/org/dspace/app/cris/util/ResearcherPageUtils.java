@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Transient;
 
@@ -30,6 +31,7 @@ import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.authority.Choice;
@@ -392,7 +394,7 @@ return decorator.generateDisplayValue(alternativeName, rp);
     
     private static List<Choice> choiceResults(DiscoverResult result){
     	List<Choice> choiceList = new LinkedList<Choice>();
-		for (DSpaceObject dso : result.getDspaceObjects()) {
+		for (BrowsableDSpaceObject dso : result.getDspaceObjects()) {
 			ResearcherPage rp = (ResearcherPage) dso;
 			choiceList.add(new Choice(getPersistentIdentifier(rp), rp.getFullName(),getLabel(rp.getFullName(), rp)));
 			if (rp.getTranslatedName() != null
@@ -504,7 +506,7 @@ return decorator.generateDisplayValue(alternativeName, rp);
 	
 	
     public static List<NameResearcherPage> getAllVariantsName(
-            Set<Integer> invalidIds, ResearcherPage researcher)
+            Set<UUID> invalidIds, ResearcherPage researcher)
     {
         String authority = researcher.getCrisID();
         Integer id = researcher.getId();

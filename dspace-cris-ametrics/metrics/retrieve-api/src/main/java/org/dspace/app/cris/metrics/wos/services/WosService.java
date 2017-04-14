@@ -36,6 +36,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 
 public class WosService {
 
@@ -92,7 +93,7 @@ public class WosService {
 
 				URIBuilder uriBuilder = new URIBuilder(endpoint);
 
-				final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+				final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
 						.getNamedPlugin(StreamDisseminationCrosswalk.class, "wos");
 
 				File file = File.createTempFile("tmp-wos-", ".xml");

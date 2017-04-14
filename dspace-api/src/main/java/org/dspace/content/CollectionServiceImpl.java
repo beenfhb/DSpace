@@ -875,4 +875,10 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
     public List<Map.Entry<Collection, Long>> getCollectionsWithBitstreamSizesTotal(Context context) throws SQLException {
         return collectionDAO.getCollectionsWithBitstreamSizesTotal(context);
     }
+
+	@Override
+	public void addMetadata(Context context, Collection dso, MetadataField metadataField, String lang,
+			List<String> values, List<String> authorities, List<Integer> confidences) throws SQLException {
+		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
+	}
 }

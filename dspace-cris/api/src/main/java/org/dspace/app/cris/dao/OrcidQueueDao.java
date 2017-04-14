@@ -8,6 +8,7 @@
 package org.dspace.app.cris.dao;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.orcid.OrcidQueue;
 
@@ -27,8 +28,8 @@ public interface OrcidQueueDao extends PaginableObjectDao<OrcidQueue, Integer> {
 	public OrcidQueue uniqueOrcidQueueByProjectIdAndOwner(Integer pjId, String crisId); 
 	public List<OrcidQueue> findOrcidQueueByPublicationId(Integer pId); 
 	public OrcidQueue uniqueOrcidQueueByPublicationIdAndOwner(Integer pId, String crisId); 
-	public List<OrcidQueue> findOrcidQueueByEntityIdAndTypeId(Integer entityID, Integer typeId); 
-	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwner(Integer entityID, Integer typeId, String crisId);
+	public List<OrcidQueue> findOrcidQueueByEntityIdAndTypeId(UUID entityID, Integer typeId); 
+	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwner(UUID entityID, Integer typeId, String crisId);
 	public void deleteByOwnerAndTypeId(String crisID, int typeId);
 	public void deleteByOwnerAndUuid(String crisID, String uuId);
 	 

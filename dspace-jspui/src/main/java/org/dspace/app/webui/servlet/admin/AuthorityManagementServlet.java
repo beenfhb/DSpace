@@ -31,20 +31,20 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.StringConfigurationComparator;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.content.authority.AuthorityInfo;
-import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.authority.MetadataAuthorityManager;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
-import org.dspace.storage.rdbms.DatabaseManager;
 
 /**
  * 
@@ -103,7 +103,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
         String authority = request.getParameter("authority");
         
         List<String> metadataList;
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+        ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         if (authority != null)
         {
             metadataList = cam.getAuthorityMetadataForAuthority(authority);
@@ -137,17 +137,17 @@ public class AuthorityManagementServlet extends DSpaceServlet
             {
                 for (int itemID : items_uanfur)
                 {
-                    Item item = Item.find(context, itemID);
+                    Item item = ContentServiceFactory.getInstance().getItemService().findByLegacyId(context, itemID);
                     
                     for (String issued : metadataList)
                     {
                         String[] metadata = issued.split("\\.");
-                        Metadatum[] original = item.getMetadataByMetadataString(issued);
-                        item.clearMetadata(metadata[0], metadata[1],
+                        List<MetadataValue> original = item.getMetadataValueInDCFormat(issued);
+                        item.getItemService().clearMetadata(context, item, metadata[0], metadata[1],
                                 metadata.length > 2 ? metadata[2] : null, Item.ANY);
-                        for (Metadatum md : original)
+                        for (MetadataValue md : original)
                         {
-                            if (key.equals(md.authority))
+                            if (key.equals(md.getAuthority()))
                             {
                                 if ("submit_accept".equalsIgnoreCase(submitButton))
                                 {
@@ -155,7 +155,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
                                             "confirm_authority_key", "item_id: "
                                                     + itemID + ", authority_key: "
                                                     + key));
-                                    md.confidence = Choices.CF_ACCEPTED;
+                                    md.setConfidence(Choices.CF_ACCEPTED);
                                 }
                                 else
                                 {
@@ -163,17 +163,17 @@ public class AuthorityManagementServlet extends DSpaceServlet
                                             "reject_authority_key", "item_id: "
                                                     + itemID + ", authority_key: "
                                                     + key));
-                                    md.confidence = Choices.CF_UNSET;
-                                    md.authority = null;
+                                    md.setConfidence(Choices.CF_UNSET);
+                                    md.setAuthority(null);
                                     itemRejectedIDs.add(itemID);
                                 }
                             }
-                            item.addMetadata(md.schema, md.element, md.qualifier,
-                                    md.language, md.value, md.authority,
-                                    md.confidence);
+                            item.getItemService().addMetadata(context, item, md.schema, md.element, md.qualifier,
+                                    md.getLanguage(), md.getValue(), md.getAuthority(),
+                                    md.getConfidence());
                         }
                     }
-                    item.update();
+                    item.getItemService().update(context, item);
                 }
             }
         }
@@ -283,7 +283,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
         
         if (detail)
         {
-            MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
+        	MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
             List<String> authorityMetadata = new ArrayList<String>();
             List<String> tmpAuthorityMetadata = mam.getAuthorityMetadata();
             final String authManagementPrefix = "authority.management.";
@@ -306,9 +306,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
             request.setAttribute("infos", infos);
     
             // add RP set # total item in HUB
-            long numItems = DatabaseManager.querySingle(context,
-                    "select count(*) as count from Item where in_archive = true")
-                    .getLongColumn("count");
+            long numItems = (Integer)(dao.getHibernateSession().createSQLQuery("select count(*) as count from Item where in_archive = true").addScalar("count").uniqueResult());
             request.setAttribute("numItems", numItems);
     
             log.info(LogManager.getHeader(context, "show_main_page",
@@ -317,7 +315,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
         }
         else
         {
-            ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+            ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
             Set<String> authorityNames = cam.getAuthorities();
             List<String> listnames = new LinkedList<String>();
             
@@ -333,9 +331,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
             request.setAttribute("infos", infos);
     
             // add RP set # total item in HUB
-            long numItems = DatabaseManager.querySingle(context,
-                    "select count(*) as count from Item where in_archive = true")
-                    .getLongColumn("count");
+            long numItems = (Integer)(dao.getHibernateSession().createSQLQuery("select count(*) as count from Item where in_archive = true").addScalar("count").uniqueResult());
             request.setAttribute("numItems", numItems);
     
             log.info(LogManager.getHeader(context, "show_main_page",
@@ -348,7 +344,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
             HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException
     {
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+    	ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
         int page = UIUtil.getIntParameter(request, "page");
         if (page < 0)
@@ -381,128 +377,48 @@ public class AuthorityManagementServlet extends DSpaceServlet
             HttpServletResponse response) throws ServletException, IOException,
             SQLException, AuthorizeException
     {
-        MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
-        AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
-
-        // ItemIterator itemsIter = dao.findIssuedByAuthorityValue(issued,
-        // authkey);
-        ItemIterator itemsIter_cf_uncertain = dao
-                .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                        Choices.CF_UNCERTAIN);
-        ItemIterator itemsIter_cf_ambiguos = dao
-                .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                        Choices.CF_AMBIGUOUS);
-        ItemIterator itemsIter_cf_novalue = dao
-                .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                        Choices.CF_NOVALUE);
-        ItemIterator itemsIter_cf_failed = dao
-        .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                Choices.CF_FAILED);
-        ItemIterator itemsIter_cf_notfound = dao
-                .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                        Choices.CF_NOTFOUND);
-        ItemIterator itemsIter_cf_unset = dao
-                .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                        Choices.CF_UNSET);
-        ItemIterator itemsIter_cf_reject = dao
-                .findIssuedByAuthorityValueAndConfidence(issued, authkey,
-                        Choices.CF_REJECTED);
-
-        List<Item> items_uncertain = new ArrayList<Item>();
-        while (itemsIter_cf_uncertain.hasNext())
-        {
-            Item item = itemsIter_cf_uncertain.next();
-            items_uncertain.add(item);
-        }
-        Item[] arrItems_uncertain = new Item[items_uncertain.size()];
-        arrItems_uncertain = items_uncertain.toArray(arrItems_uncertain);
-
-        List<Item> items_ambiguos = new ArrayList<Item>();
-        while (itemsIter_cf_ambiguos.hasNext())
-        {
-            Item item = itemsIter_cf_ambiguos.next();
-            items_ambiguos.add(item);
-        }
-        Item[] arrItems_ambiguos = new Item[items_ambiguos.size()];
-        arrItems_ambiguos = items_ambiguos.toArray(arrItems_ambiguos);
-
-        List<Item> items_novalue = new ArrayList<Item>();
-        while (itemsIter_cf_novalue.hasNext())
-        {
-            Item item = itemsIter_cf_novalue.next();
-            items_novalue.add(item);
-        }
-        Item[] arrItems_novalue = new Item[items_novalue.size()];
-        arrItems_novalue = items_novalue.toArray(arrItems_novalue);
-
-        List<Item> items_failed = new ArrayList<Item>();
-        while (itemsIter_cf_failed.hasNext())
-        {
-            Item item = itemsIter_cf_failed.next();
-            items_failed.add(item);
-        }
-        Item[] arrItems_failed = new Item[items_failed.size()];
-        arrItems_failed = items_failed.toArray(arrItems_failed);
-
-        List<Item> items_notfound = new ArrayList<Item>();
-        while (itemsIter_cf_notfound.hasNext())
-        {
-            Item item = itemsIter_cf_notfound.next();
-            items_notfound.add(item);
-        }
-        Item[] arrItems_notfound = new Item[items_notfound.size()];
-        arrItems_notfound = items_notfound.toArray(arrItems_notfound);
+    	MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+        ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         
-        List<Item> items_unset = new ArrayList<Item>();
-        while (itemsIter_cf_unset.hasNext())
-        {
-            Item item = itemsIter_cf_unset.next();
-            items_unset.add(item);
-        }
-        Item[] arrItems_unset = new Item[items_unset.size()];
-        arrItems_unset = items_unset.toArray(arrItems_unset);
-
-        List<Item> items_reject = new ArrayList<Item>();
-        while (itemsIter_cf_reject.hasNext())
-        {
-            Item item = itemsIter_cf_reject.next();
-            items_reject.add(item);
-        }
-        Item[] arrItems_reject = new Item[items_reject.size()];
-        arrItems_reject = items_reject.toArray(arrItems_reject);
+		List<Item> items_uncertain = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_UNCERTAIN);
+		List<Item> items_ambiguos = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_AMBIGUOUS);
+		List<Item> items_novalue = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_NOVALUE);
+		List<Item> items_failed = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_FAILED);
+		List<Item> items_notfound = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_NOTFOUND);
+		List<Item> items_unset = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_UNSET);
+		List<Item> items_reject = mam.findIssuedByAuthorityValueAndConfidence(issued, authkey, Choices.CF_REJECTED);
 
         String label = cam.getLabel(issued.replaceAll("\\.", "_"), authkey,
                 UIUtil.getSessionLocale(request).toString());
         String[] md = issued.split("\\.");
 
-        List<String> variants = cam.getVariants(md[0], md[1],
+        MetadataValue metadataValue = new MetadataValue(md[0], md[1],
                 md.length > 2 ? md[2] : null, authkey, UIUtil.getSessionLocale(
                         request).toString());
+        List<String> variants = cam.getVariants(metadataValue);
 
-        String nextKey = dao.findNextIssuedAuthorityKey(issued, authkey);
-        String prevKey = dao.findPreviousIssuedAuthorityKey(issued, authkey);
+        String nextKey = mam.findNextIssuedAuthorityKey(issued, authkey);
+        String prevKey = mam.findPreviousIssuedAuthorityKey(issued, authkey);
 
-        request.setAttribute("items_uncertain", arrItems_uncertain);
-        request.setAttribute("items_ambiguos", arrItems_ambiguos);
-        request.setAttribute("items_novalue", arrItems_novalue);
-        request.setAttribute("items_failed", arrItems_failed);
-        request.setAttribute("items_notfound", arrItems_notfound);
-        request.setAttribute("items_unset", arrItems_unset);
-        request.setAttribute("items_reject", arrItems_reject);
+        request.setAttribute("items_uncertain", items_uncertain);
+        request.setAttribute("items_ambiguos", items_ambiguos);
+        request.setAttribute("items_novalue", items_novalue);
+        request.setAttribute("items_failed", items_failed);
+        request.setAttribute("items_notfound", items_notfound);
+        request.setAttribute("items_unset", items_unset);
+        request.setAttribute("items_reject", items_reject);
         request.setAttribute("authKey", authkey);
         request.setAttribute("label", label);
         request.setAttribute("variants", variants);
         request.setAttribute("next", nextKey);
         request.setAttribute("previous", prevKey);
-        request.setAttribute("required", mam.isAuthorityRequired(md[0], md[1],
-                md.length > 2 ? md[2] : null));
+        request.setAttribute("required", mam.isAuthorityRequired(issued));
 
         log.info(LogManager.getHeader(context, "show_key_issues", "metadata: "
                 + issued + ", key: " + authkey + ", #items: "
-                + arrItems_uncertain.length + arrItems_ambiguos.length
-                + arrItems_novalue.length + arrItems_failed.length
-                + arrItems_unset.length));
+                + items_uncertain.size() + items_ambiguos.size()
+                + items_novalue.size() + items_failed.size()
+                + items_unset.size()));
 
         JSPManager
                 .showJSP(request, response, "/dspace-admin/authority-key.jsp");
@@ -512,109 +428,44 @@ public class AuthorityManagementServlet extends DSpaceServlet
             String authority, String authkey, HttpServletRequest request,
             HttpServletResponse response) throws SQLException, AuthorizeException, IOException, ServletException
     {
-        MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+    	MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+        ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
 
-        // ItemIterator itemsIter = dao.findIssuedByAuthorityValue(issued,
-        // authkey);
-        ItemIterator itemsIter_cf_uncertain = dao
+        List<Item> arrItems_uncertain = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority, authkey,
                         Choices.CF_UNCERTAIN);
-        ItemIterator itemsIter_cf_ambiguos = dao
+        List<Item> arrItems_ambiguos = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority, authkey,
                         Choices.CF_AMBIGUOUS);
-        ItemIterator itemsIter_cf_novalue = dao
+        List<Item> arrItems_novalue = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority, authkey,
                         Choices.CF_NOVALUE);
-        ItemIterator itemsIter_cf_failed = dao
+        List<Item> arrItems_failed = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority, authkey,
                         Choices.CF_FAILED);
-        ItemIterator itemsIter_cf_notfound = dao
+        List<Item> arrItems_notfound = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority,
                         authkey, Choices.CF_NOTFOUND);
-
-        ItemIterator itemsIter_cf_unset = dao
+        List<Item> arrItems_unset = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority, authkey,
                         Choices.CF_UNSET);
-        ItemIterator itemsIter_cf_reject = dao
+        List<Item> arrItems_reject = mam
                 .findIssuedByAuthorityValueAndConfidenceInAuthority(authority, authkey,
                         Choices.CF_REJECTED);
 
-        List<Item> items_uncertain = new ArrayList<Item>();
-        while (itemsIter_cf_uncertain.hasNext())
-        {
-            Item item = itemsIter_cf_uncertain.next();
-            items_uncertain.add(item);
-        }
-        Item[] arrItems_uncertain = new Item[items_uncertain.size()];
-        arrItems_uncertain = items_uncertain.toArray(arrItems_uncertain);
-
-        List<Item> items_ambiguos = new ArrayList<Item>();
-        while (itemsIter_cf_ambiguos.hasNext())
-        {
-            Item item = itemsIter_cf_ambiguos.next();
-            items_ambiguos.add(item);
-        }
-        Item[] arrItems_ambiguos = new Item[items_ambiguos.size()];
-        arrItems_ambiguos = items_ambiguos.toArray(arrItems_ambiguos);
-
-        List<Item> items_novalue = new ArrayList<Item>();
-        while (itemsIter_cf_novalue.hasNext())
-        {
-            Item item = itemsIter_cf_novalue.next();
-            items_novalue.add(item);
-        }
-        Item[] arrItems_novalue = new Item[items_novalue.size()];
-        arrItems_novalue = items_novalue.toArray(arrItems_novalue);
-
-        List<Item> items_failed = new ArrayList<Item>();
-        while (itemsIter_cf_failed.hasNext())
-        {
-            Item item = itemsIter_cf_failed.next();
-            items_failed.add(item);
-        }
-        Item[] arrItems_failed = new Item[items_failed.size()];
-        arrItems_failed = items_failed.toArray(arrItems_failed);
-
-        List<Item> items_notfound = new ArrayList<Item>();
-        while (itemsIter_cf_notfound.hasNext())
-        {
-            Item item = itemsIter_cf_notfound.next();
-            items_notfound.add(item);
-        }
-        Item[] arrItems_notfound = new Item[items_notfound.size()];
-        arrItems_notfound = items_notfound.toArray(arrItems_notfound);
-        
-        
-        List<Item> items_unset = new ArrayList<Item>();
-        while (itemsIter_cf_unset.hasNext())
-        {
-            Item item = itemsIter_cf_unset.next();
-            items_unset.add(item);
-        }
-        Item[] arrItems_unset = new Item[items_unset.size()];
-        arrItems_unset = items_unset.toArray(arrItems_unset);
-
-        List<Item> items_reject = new ArrayList<Item>();
-        while (itemsIter_cf_reject.hasNext())
-        {
-            Item item = itemsIter_cf_reject.next();
-            items_reject.add(item);
-        }
-        Item[] arrItems_reject = new Item[items_reject.size()];
-        arrItems_reject = items_reject.toArray(arrItems_reject);
-
-        String label = cam.getLabel(cam.getAuthorityMetadataForAuthority(authority).get(0).replaceAll("\\.", "_"), authkey,
+        String mdString = (String)(cam.getAuthorityMetadataForAuthority(authority).get(0));
+		String label = cam.getLabel(mdString.replaceAll("\\.", "_"), authkey,
                 UIUtil.getSessionLocale(request).toString());
-        String[] md = cam.getAuthorityMetadataForAuthority(authority).get(0).split("\\.");
+        String[] md = mdString.split("\\.");
 
-        List<String> variants = cam.getVariants(md[0], md[1],
+        MetadataValue metadataValue = new MetadataValue(md[0], md[1],
                 md.length > 2 ? md[2] : null, authkey, UIUtil.getSessionLocale(
                         request).toString());
+        List<String> variants = cam.getVariants(metadataValue);
 
-        String nextKey = dao.findNextIssuedAuthorityKeyInAuthority(authority, authkey);
-        String prevKey = dao.findPreviousIssuedAuthorityKeyInAuthority(authority, authkey);
+        String nextKey = mam.findNextIssuedAuthorityKeyInAuthority(authority, authkey);
+        String prevKey = mam.findPreviousIssuedAuthorityKeyInAuthority(authority, authkey);
 
         request.setAttribute("items_uncertain", arrItems_uncertain);
         request.setAttribute("items_ambiguos", arrItems_ambiguos);
@@ -628,14 +479,13 @@ public class AuthorityManagementServlet extends DSpaceServlet
         request.setAttribute("variants", variants);
         request.setAttribute("next", nextKey);
         request.setAttribute("previous", prevKey);
-        request.setAttribute("required", mam.isAuthorityRequired(md[0], md[1],
-                md.length > 2 ? md[2] : null));
+        request.setAttribute("required", mam.isAuthorityRequired(mdString));
 
         log.info(LogManager.getHeader(context, "show_key_issues", "authority: "
                 + authority + ", key: " + authkey + ", #items: "
-                + arrItems_uncertain.length + arrItems_ambiguos.length
-                + arrItems_novalue.length + arrItems_failed.length
-                + arrItems_unset.length));
+                + arrItems_uncertain.size() + arrItems_ambiguos.size()
+                + arrItems_novalue.size() + arrItems_failed.size()
+                + arrItems_unset.size()));
 
         JSPManager
                 .showJSP(request, response, "/dspace-admin/authority-key.jsp");
@@ -645,7 +495,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
             String authority, HttpServletRequest request,
             HttpServletResponse response) throws SQLException, ServletException, IOException
     {
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+    	ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
         int page = UIUtil.getIntParameter(request, "page");
         if (page < 0)

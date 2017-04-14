@@ -7,12 +7,6 @@
  */
 package org.dspace.app.cris.integration;
 
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-
 import java.beans.PropertyEditor;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,11 +21,18 @@ import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.authority.MetadataAuthorityManager;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.utils.DSpace;
+
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
 
 public class CrisItemEnhancerUtility {
 	private static final Logger log = Logger.getLogger(CrisItemEnhancerUtility.class);
@@ -50,7 +51,7 @@ public class CrisItemEnhancerUtility {
 		return result;
 	}
 
-	public static List<Metadatum> getCrisMetadata(Item item, String metadata) {
+	public static List<MetadataValue> getCrisMetadata(Item item, String metadata) {
 		StringTokenizer dcf = new StringTokenizer(metadata, ".");
 
 		String[] tokens = { "", "", "" };
@@ -71,21 +72,21 @@ public class CrisItemEnhancerUtility {
 		}
 
 		List<CrisItemEnhancer> enhancers = getEnhancers(element);
-		List<Metadatum> result = new ArrayList<Metadatum>();
+		List<MetadataValue> result = new ArrayList<MetadataValue>();
 		if (Item.ANY.equals(qualifier)) {
 			for (CrisItemEnhancer enh : enhancers) {
 				Set<String> qualifiers = enh.getQualifiers2path().keySet();
 				for (String qual : qualifiers) {
 					List<String[]> vals = getCrisMetadata(item, enh, qual);
 					for (String[] e : vals) {
-						Metadatum dc = new Metadatum();
+						MetadataValue dc = new MetadataValue();
 						dc.schema = "crisitem";
 						dc.element = enh.getAlias();
 						dc.qualifier = qual;
-						dc.value = e[0];
-						if (StringUtils.isNotBlank(dc.value)) {
-							dc.authority = e[1];
-							dc.confidence = StringUtils.isNotEmpty(e[1]) ? Choices.CF_ACCEPTED : Choices.CF_UNSET;
+						dc.setValue(e[0]);
+						if (StringUtils.isNotBlank(dc.getValue())) {
+							dc.setAuthority(e[1]);
+							dc.setConfidence(StringUtils.isNotEmpty(e[1]) ? Choices.CF_ACCEPTED : Choices.CF_UNSET);
 							result.add(dc);
 						}
 					}
@@ -102,14 +103,14 @@ public class CrisItemEnhancerUtility {
 			for (CrisItemEnhancer enh : enhancers) {
 				List<String[]> vals = getCrisMetadata(item, enh, qualifier);
 				for (String[] e : vals) {
-					Metadatum dc = new Metadatum();
+					MetadataValue dc = new MetadataValue();
 					dc.schema = "crisitem";
 					dc.element = enh.getAlias();
 					dc.qualifier = qualifier;
-					dc.value = e[0];
-					if (StringUtils.isNotBlank(dc.value)) {
-						dc.authority = e[1];
-						dc.confidence = StringUtils.isNotEmpty(e[1]) ? Choices.CF_ACCEPTED : Choices.CF_UNSET;
+					dc.setValue(e[0]);
+					if (StringUtils.isNotBlank(dc.getValue())) {
+						dc.setAuthority(e[1]);
+						dc.setConfidence(StringUtils.isNotEmpty(e[1]) ? Choices.CF_ACCEPTED : Choices.CF_UNSET);
 						result.add(dc);
 					}
 				}
@@ -121,18 +122,18 @@ public class CrisItemEnhancerUtility {
 	private static List<String[]> getCrisMetadata(Item item, CrisItemEnhancer enh, String qualifier) {
 		List<String> mdList = enh.getMetadata();
 		Set<String> validAuthorities = new HashSet<String>();
-		MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
+		MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
 
 		for (String md : mdList) {
-			Metadatum[] Metadatums = item.getMetadataByMetadataString(md);
-			for (Metadatum dc : Metadatums) {
+			List<MetadataValue> MetadataValues = item.getMetadataValueInDCFormat(md);
+			for (MetadataValue dc : MetadataValues) {
 				try {
 					ACrisObject newInstance = enh.getClazz().newInstance();
-					if (dc.authority != null
-							&& ((newInstance instanceof ResearchObject) ? dc.authority.startsWith(enh.getType())
-									: dc.authority.startsWith(newInstance.getAuthorityPrefix()))) {
-						if (mam.getMinConfidence(dc.schema, dc.element, dc.qualifier) <= dc.confidence) {
-							validAuthorities.add(dc.authority);
+					if (dc.getAuthority() != null
+							&& ((newInstance instanceof ResearchObject) ? dc.getAuthority().startsWith(enh.getType())
+									: dc.getAuthority().startsWith(newInstance.getAuthorityPrefix()))) {
+						if (mam.getMinConfidence(dc.getMetadataField()) <= dc.getConfidence()) {
+							validAuthorities.add(dc.getAuthority());
 						}
 					}
 				} catch (InstantiationException e) {

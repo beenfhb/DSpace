@@ -119,4 +119,5 @@ public class MetadataValueServiceImpl implements MetadataValueService {
     public int countTotal(Context context) throws SQLException {
         return metadataValueDAO.countRows(context);
     }
+
 }

@@ -7,14 +7,20 @@
  */
 package org.dspace.content;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -25,12 +31,17 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.EPerson;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -49,13 +60,16 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="item")
-public class Item extends DSpaceObject implements DSpaceObjectLegacySupport
+public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
 {
     /**
      * Wild card for Dublin Core metadata qualifiers/languages
      */
     public static final String ANY = "*";
-
+    
+    @Transient
+	public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
+    
     @Column(name="item_id", insertable = false, updatable = false)
     private Integer legacyId;
 
@@ -400,4 +414,27 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport
         return wrapperService.getWrapper(this);    
     }
 
+	@Override
+	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return getItemService().getMetadata(this, schema, element, qualifier, lang);
+	}
+
+	public Map<String, Object> getExtraInfo() {
+		return extraInfo;
+	}
+
+	@Override
+	public DSpaceObjectService getDSpaceObjectService() {
+		return getItemService();
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return getItemService().getMetadata(this, field);
+	}   
 }

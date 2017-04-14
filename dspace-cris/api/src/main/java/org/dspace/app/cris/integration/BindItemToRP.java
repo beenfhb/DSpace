@@ -12,14 +12,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.configuration.RelationPreferenceConfiguration;
+import org.dspace.app.cris.model.CrisPotentialMatch;
 import org.dspace.app.cris.model.RelationPreference;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.RestrictedField;
@@ -28,22 +31,21 @@ import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowseException;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
 
 /**
  * Utility class for performing Item to ReseacherPage binding
@@ -89,8 +91,8 @@ public class BindItemToRP
             }
         }
 
-        EPerson eperson = EPerson.find(context, rp.getEpersonID());
-        ItemIterator items = Item.findBySubmitter(context, eperson);
+        EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context, rp.getEpersonID());
+        Iterator<Item> items = ContentServiceFactory.getInstance().getItemService().findBySubmitter(context, eperson);
         List<MetadataField> mfs = metadataFieldWithAuthorityRP(context);
         int count = 0;
         while (items.hasNext())
@@ -101,34 +103,32 @@ public class BindItemToRP
                 boolean found = false;
                 for (MetadataField mf : mfs)
                 {
-                    String schema = MetadataSchema.find(context,
-                            mf.getSchemaID()).getName();
+                    String schema = mf.getMetadataSchema().getName();
                     String element = mf.getElement();
                     String qualifier = mf.getQualifier();
-                    Metadatum[] values = item.getMetadata(schema, element,
+                    List<MetadataValue> values = item.getMetadata(schema, element,
                             qualifier, Item.ANY);
-                    item.clearMetadata(schema, element, qualifier, Item.ANY);
+                    ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, schema, element, qualifier, Item.ANY);
 
-                    for (Metadatum val : values)
+                    for (MetadataValue val : values)
                     {
-                        if (val.authority == null
-                                && val.value != null
-                                && StringUtils.containsIgnoreCase(val.value,
+                        if (val.getAuthority() == null
+                                && val.getValue() != null
+                                && StringUtils.containsIgnoreCase(val.getValue(),
                                         eperson.getLastName().trim()))
                         {
-                            val.authority = ResearcherPageUtils
-                                    .getPersistentIdentifier(rp);
-                            val.confidence = Choices.CF_ACCEPTED;
+                            val.setAuthority(ResearcherPageUtils
+                                    .getPersistentIdentifier(rp));
+                            val.setConfidence(Choices.CF_ACCEPTED);
                             found = true;
                         }
-                        item.addMetadata(schema, element, qualifier,
-                                val.language, val.value, val.authority,
-                                val.confidence);
+                        ContentServiceFactory.getInstance().getItemService().addMetadata(context, item, schema, element, qualifier,
+                                val.getLanguage(), val.getValue(), val.getAuthority(),
+                                val.getConfidence());
                     }
                 }
                 if (found)
                 {
-                    item.update();
                     count++;
                 }
             }
@@ -152,25 +152,15 @@ public class BindItemToRP
                 ResearcherPageUtils.getPersistentIdentifier(rp));
     }
 
-    public static Set<Integer> getPotentialMatch(Context context,
+    public static Set<UUID> getPotentialMatch(Context context,
             ResearcherPage researcher) throws SQLException, AuthorizeException,
             IOException
     {
-        Set<Integer> invalidIds = new HashSet<Integer>();
-        ItemIterator iter = null;
-        try
-        {
-            iter = getPendingMatch(context, researcher);
-            while (iter.hasNext())
-            {
-                invalidIds.add(iter.nextID());
-            }
-        }
-        finally
-        {
-            if (iter != null)
-                iter.close();
-        }
+        Set<UUID> invalidIds = new HashSet<UUID>();
+        List<Item> iter = getPendingMatch(context, researcher);
+		for (Item item : iter) {
+			invalidIds.add(item.getID());
+		}
 
         DSpace dspace = new DSpace();
         ApplicationService applicationService = dspace.getServiceManager()
@@ -205,7 +195,7 @@ public class BindItemToRP
 
         IRetrievePotentialMatchPlugin plugin = dspace
                 .getSingletonService(IRetrievePotentialMatchPlugin.class);
-        Set<Integer> result = plugin.retrieve(context, invalidIds, researcher);
+        Set<UUID> result = plugin.retrieve(context, invalidIds, researcher);
 
         return result;
     }
@@ -214,11 +204,11 @@ public class BindItemToRP
             Context context) throws SQLException
     {
         // find all metadata with authority support
-        MetadataField[] fields = MetadataField.findAll(context);
+        List<MetadataField> fields = ContentServiceFactory.getInstance().getMetadataFieldService().findAll(context);
         List<MetadataField> fieldsWithAuthoritySupport = new LinkedList<MetadataField>();
         for (MetadataField mf : fields)
         {
-            String schema = (MetadataSchema.find(context, mf.getSchemaID()))
+            String schema = mf.getMetadataSchema()
                     .getName();
             String mdstring = schema
                     + "."
@@ -238,7 +228,7 @@ public class BindItemToRP
         return fieldsWithAuthoritySupport;
     }
 
-    public static ItemIterator getPendingMatch(Context context,
+    public static List<Item> getPendingMatch(Context context,
             ResearcherPage rp) throws SQLException, AuthorizeException,
             IOException
     {
@@ -281,10 +271,10 @@ public class BindItemToRP
 
         List<NameResearcherPage> names = new ArrayList<NameResearcherPage>();
 
-        Map<String, Set<Integer>> mapInvalids = new HashMap<String, Set<Integer>>();
+        Map<String, Set<UUID>> mapInvalids = new HashMap<String, Set<UUID>>();
         for (ResearcherPage researcher : rps)
         {
-            Set<Integer> invalidIds = new HashSet<Integer>();
+            Set<UUID> invalidIds = new HashSet<UUID>();
 
             List<RelationPreference> rejected = new ArrayList<RelationPreference>();
             for (RelationPreferenceConfiguration configuration : relationPreferenceService
@@ -315,17 +305,17 @@ public class BindItemToRP
         try
         {
             context = new Context();
-            context.setIgnoreAuthorization(true);
+            context.turnOffAuthorisationSystem();
 
             List<MetadataField> fieldsWithAuthoritySupport = metadataFieldWithAuthorityRP(context);
             IRetrievePotentialMatchPlugin plugin = new DSpace()
                     .getSingletonService(IRetrievePotentialMatchPlugin.class);
 
-            Map<NameResearcherPage, Item[]> result = plugin
+            Map<NameResearcherPage, List<Item>> result = plugin
                     .retrieveGroupByName(context, mapInvalids, rps);
             for (NameResearcherPage tempName : result.keySet())
             {
-                if(result.get(tempName).length>0) {
+                if(result.get(tempName).size()>0) {
                     bindItemsToRP(relationPreferenceService, context,
                             fieldsWithAuthoritySupport, tempName,
                             result.get(tempName));
@@ -350,13 +340,13 @@ public class BindItemToRP
 
     public static void bindItemsToRP(
             RelationPreferenceService relationPreferenceService,
-            Context context, ResearcherPage researcher, Item[] items)
+            Context context, ResearcherPage researcher, List<Item> items)
             throws SQLException, BrowseException, AuthorizeException
     {
         String authority = researcher.getCrisID();
         int id = researcher.getId();
         List<NameResearcherPage> names = new LinkedList<NameResearcherPage>();
-        Set<Integer> invalidIds = new HashSet<Integer>();
+        Set<UUID> invalidIds = new HashSet<UUID>();
 
         List<RelationPreference> rejected = new ArrayList<RelationPreference>();
         for (RelationPreferenceConfiguration configuration : relationPreferenceService
@@ -418,7 +408,7 @@ public class BindItemToRP
     private static void bindItemsToRP(
             RelationPreferenceService relationPreferenceService,
             Context context, List<MetadataField> fieldsWithAuthoritySupport,
-            NameResearcherPage tempName, Item[] items) throws BrowseException,
+            NameResearcherPage tempName, List<Item> items) throws BrowseException,
             SQLException, AuthorizeException
     {
         context.turnOffAuthorisationSystem();
@@ -435,32 +425,31 @@ public class BindItemToRP
             {
                 boolean modified = false;
 
-                Metadatum[] values = null;
+                List<MetadataValue> values = null;
                 for (MetadataField md : fieldsWithAuthoritySupport)
                 {
-                    String schema = (MetadataSchema.find(context,
-                            md.getSchemaID())).getName();
+                    String schema = md.getMetadataSchema().getName();
 
                     values = item.getMetadata(schema, md.getElement(),
                             md.getQualifier(), Item.ANY);
-                    item.clearMetadata(schema, md.getElement(),
+                    item.getItemService().clearMetadata(context, item, schema, md.getElement(),
                             md.getQualifier(), Item.ANY);
-                    for (Metadatum value : values)
+                    for (MetadataValue value : values)
                     {
 
                         int matches = 0;
 
-                        if (value.authority == null
-                                && (value.value.equals(tempName.getName()) || value.value
+                        if (value.getAuthority() == null
+                                && (value.getValue().equals(tempName.getName()) || value.getValue()
                                         .startsWith(tempName.getName() + ";")))
                         {
                             matches = countNamesMatching(cacheCount,
                                     tempName.getName());
-                            item.addMetadata(
+                            item.getItemService().addMetadata(context, item,
                                     value.schema,
                                     value.element,
                                     value.qualifier,
-                                    value.language,
+                                    value.getLanguage(),
                                     tempName.getName(),
                                     tempName.getPersistentIdentifier(),
                                     matches >= 1 ? Choices.CF_AMBIGUOUS
@@ -470,10 +459,10 @@ public class BindItemToRP
                         }
                         else
                         {
-                            item.addMetadata(value.schema, value.element,
-                                    value.qualifier, value.language,
-                                    value.value, value.authority,
-                                    value.confidence);
+                        	item.getItemService().addMetadata(context, item, value.schema, value.element,
+                                    value.qualifier, value.getLanguage(),
+                                    value.getValue(), value.getAuthority(),
+                                    value.getConfidence());
                         }
                     }
                     values = null;
@@ -481,10 +470,8 @@ public class BindItemToRP
                 if (modified)
                 {
                     log.debug("Update item with id " + item.getID());
-                    item.update();
                 }
                 context.commit();
-                context.clearCache();
             }
         }
         context.restoreAuthSystemState();
@@ -497,9 +484,8 @@ public class BindItemToRP
         {
             return cacheCount.get(name);
         }
-        ChoiceAuthority ca = (ChoiceAuthority) PluginManager.getNamedPlugin(
-                ChoiceAuthority.class, RPAuthority.RP_AUTHORITY_NAME);
-        Choices choices = ca.getBestMatch(null, name, 0, null);
+        ChoiceAuthority ca = (ChoiceAuthority) ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getChoiceAuthority(RPAuthority.RP_AUTHORITY_NAME);
+        Choices choices = ca.getBestMatch(null, name, null, null);
         cacheCount.put(name, choices.total);
         return choices.total;
     }
@@ -508,26 +494,27 @@ public class BindItemToRP
             ResearcherPage researcher) throws SQLException, AuthorizeException,
             IOException
     {
-        Set<Integer> ids = getPotentialMatch(context, researcher);
+    	
+    	DSpace dspace = new DSpace();
+    	ApplicationService applicationService = dspace.getServiceManager()
+                .getServiceByName("applicationService",
+                        ApplicationService.class);
+    	
+        Set<UUID> ids = getPotentialMatch(context, researcher);
         String crisID = researcher.getCrisID();
 		deletePotentialMatch(context, crisID);
-        for (Integer id : ids)
-        {
-            TableRow pmTableRow = DatabaseManager.create(context,
-                    "potentialmatches");
-            pmTableRow.setColumn("rp", researcher.getCrisID());
-            pmTableRow.setColumn("item_id", id);
-            DatabaseManager.update(context, pmTableRow);
+        for (UUID id : ids)
+        {	
+        	CrisPotentialMatch cpm = new CrisPotentialMatch();
+        	cpm.setItem_id(id);
+        	cpm.setRp(researcher.getCrisID());
+        	applicationService.saveOrUpdate(CrisPotentialMatch.class, cpm);
         }
         context.commit();
     }
 
 	public static void deletePotentialMatch(Context context, String crisID) throws SQLException {
-		DatabaseManager
-                .updateQuery(
-                        context,
-                        "DELETE FROM potentialmatches WHERE rp like ? AND pending IS NULL",
-                        crisID);
+    	getHibernateSession(context).createQuery("DELETE FROM CrisPotentialMatches WHERE rp like :par0 AND pending IS NULL").setParameter(0, crisID).executeUpdate();
 	}
 	
 	
@@ -565,4 +552,8 @@ public class BindItemToRP
         }
 
     }
+    
+	public static Session getHibernateSession(Context context) throws SQLException {
+		return ((Session) context.getDBConnection().getSession());
+	}
 }

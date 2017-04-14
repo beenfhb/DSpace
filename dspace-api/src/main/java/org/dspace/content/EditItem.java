@@ -11,32 +11,28 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Collection;
-import org.dspace.content.InProgressSubmission;
-import org.dspace.content.Item;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
 public class EditItem implements InProgressSubmission {
+	
 	private Item item;
+	
+	private Context context;
 
-	public EditItem(Item item) {
+	public EditItem(Context context, Item item) {
+		this.context = context;
 		this.item = item;
 	}
 
 	@Override
-	public int getID() {
-		return item.getID();
-	}
-
-	@Override
-	public void deleteWrapper() throws SQLException, IOException, AuthorizeException {
-		// nothing to delete
-		return;
+	public Integer getID() {
+		return item.getLegacyId();
 	}
 
 	@Override
 	public void update() throws SQLException, AuthorizeException {
-		item.update();
+		item.getItemService().update(context, item);
 	}
 
 	@Override
@@ -47,7 +43,7 @@ public class EditItem implements InProgressSubmission {
 	@Override
 	public Collection getCollection() {
 		try {
-			return item.getParentObject();
+			return (Collection)item.getItemService().getParentObject(context, item);
 		} catch (SQLException e) {
 			throw new RuntimeException();
 		}

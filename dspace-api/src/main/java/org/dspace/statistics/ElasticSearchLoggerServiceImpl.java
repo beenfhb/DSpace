@@ -16,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
 import org.dspace.core.ConfigurationManager;
@@ -185,7 +186,7 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
     }
 
     @Override
-    public void post(DSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) {
+    public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) {
         //log.info("DS-ES post for type:"+dspaceObject.getType() + " -- " + dspaceObject.getName());
 
         client = getClient();
@@ -280,7 +281,9 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
                 docBuilder.endArray();
             }
 
-            storeParents(docBuilder, getParents(dspaceObject));
+            if(dspaceObject.haveHierarchy()) {
+            	storeParents(docBuilder, getParents((DSpaceObject)dspaceObject));
+            }
 
             docBuilder.endObject();
 
@@ -305,7 +308,7 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
     }
 
     @Override
-    public void post(DSpaceObject dspaceObject, String ip, String userAgent, String xforwardedfor, EPerson currentUser) {
+    public void post(BrowsableDSpaceObject dspaceObject, String ip, String userAgent, String xforwardedfor, EPerson currentUser) {
         //log.info("DS-ES post for type:"+dspaceObject.getType() + " -- " + dspaceObject.getName());
 
         client = getClient();
@@ -397,8 +400,10 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
                 }
                 docBuilder.endArray();
             }
-
-            storeParents(docBuilder, getParents(dspaceObject));
+            
+            if(dspaceObject.haveHierarchy()) {
+            	storeParents(docBuilder, getParents((DSpaceObject)dspaceObject));
+            }
 
             docBuilder.endObject();
 

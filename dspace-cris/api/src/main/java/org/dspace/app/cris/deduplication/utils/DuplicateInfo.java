@@ -10,11 +10,12 @@ package org.dspace.app.cris.deduplication.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 
 public abstract class DuplicateInfo {
 	private String signatureId;
-	private List<DSpaceObject> items;
+	private List<BrowsableDSpaceObject> items;
 	private String signature;
 	private List<String> otherSignature;
 	
@@ -22,9 +23,9 @@ public abstract class DuplicateInfo {
 		return items.size();
 	}
 
-	public List<DSpaceObject> getItems() {
+	public List<BrowsableDSpaceObject> getItems() {
 		if(items==null) {
-			items = new ArrayList<DSpaceObject>();
+			items = new ArrayList<BrowsableDSpaceObject>();
 		}
 		return items;
 	}
@@ -41,7 +42,7 @@ public abstract class DuplicateInfo {
 		this.signatureId = signatureId;
 	}
 
-	public void setItems(List<DSpaceObject> items) {
+	public void setItems(List<BrowsableDSpaceObject> items) {
 		this.items = items;
 	}
 

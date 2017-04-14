@@ -7,6 +7,16 @@
  */
 package org.dspace.eperson;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -31,9 +41,6 @@ import org.dspace.util.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Service implementation for the Group object.
@@ -671,4 +678,10 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     public List<Group> findByMetadataField(final Context context, final String searchValue, final MetadataField metadataField) throws SQLException {
         return groupDAO.findByMetadataField(context, searchValue, metadataField);
     }
+
+	@Override
+	public void addMetadata(Context context, Group dso, MetadataField metadataField, String lang, List<String> values,
+			List<String> authorities, List<Integer> confidences) throws SQLException {
+		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);
+	}
 }

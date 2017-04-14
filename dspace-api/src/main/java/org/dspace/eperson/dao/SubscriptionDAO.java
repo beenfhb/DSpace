@@ -8,6 +8,7 @@
 package org.dspace.eperson.dao;
 
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.eperson.EPerson;
@@ -28,12 +29,20 @@ public interface SubscriptionDAO extends GenericDAO<Subscription> {
     public void deleteByCollection(Context context, Collection collection) throws SQLException;
 
     public List<Subscription> findByEPerson(Context context, EPerson eperson) throws SQLException;
-
+    public List<Collection> findByEPersonWithCollection(Context context, EPerson eperson) throws SQLException;
+    public List<Community> findByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException;
+    
     public Subscription findByCollectionAndEPerson(Context context, EPerson eperson, Collection collection) throws SQLException;
 
     public void deleteByEPerson(Context context, EPerson eperson) throws SQLException;
+    public void deleteByEPersonWithCollection(Context context, EPerson eperson) throws SQLException;
+    public void deleteByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException;
+    
 
     public void deleteByCollectionAndEPerson(Context context, Collection collection, EPerson eperson) throws SQLException;
 
     public List<Subscription> findAllOrderedByEPerson(Context context) throws SQLException;
+    
+    public void deleteByCommunity(Context context, Community community) throws SQLException;
+    public void deleteByCommunityAndEPerson(Context context, Community community, EPerson eperson) throws SQLException;
 }

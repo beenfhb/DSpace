@@ -12,7 +12,7 @@ import java.text.MessageFormat;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 
 /**
@@ -40,7 +40,7 @@ public class VirtualFieldCrossrefAuthor implements VirtualFieldDisseminator,
             {
                 return new String[] { fieldCache.get(fieldName) };
             }
-            Metadatum md = item.getMetadata("dc", "contributor", "author", Item.ANY)[0];
+            MetadataValue md = item.getMetadata("dc", "contributor", "author", Item.ANY)[0];
             String element = "<given_name>{0}</given_name><surname>{1}</surname>";
                 
             String firstname = "";

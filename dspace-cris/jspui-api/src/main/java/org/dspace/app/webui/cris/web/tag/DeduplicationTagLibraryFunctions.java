@@ -10,6 +10,7 @@ package org.dspace.app.webui.cris.web.tag;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,9 +50,9 @@ public class DeduplicationTagLibraryFunctions {
 	}
 
 	static class DTODCValueComparator implements Comparator<DTODCValue>{
-		private Integer masterID;
+		private UUID masterID;
 		
-		public DTODCValueComparator(Integer masterID) {
+		public DTODCValueComparator(UUID masterID) {
 			this.masterID = masterID;
 		}
 		
@@ -72,7 +73,7 @@ public class DeduplicationTagLibraryFunctions {
 	 * @param masterID
 	 * @return
 	 */
-	public static List<DTODCValue> groupDeduplication(List elements, Integer masterID) {
+	public static List<DTODCValue> groupDeduplication(List elements, UUID masterID) {
 
 		Comparator<DTODCValue> mycom = new DeduplicationTagLibraryFunctions.DTODCValueComparator(masterID);
 		//WARNING different behaviour between JDK6 vs JDK7 (if use JDK7 reverse the value returned from compare method in DTODCValueComparator)   

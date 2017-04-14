@@ -39,6 +39,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.SolrLogger;
 
@@ -77,7 +78,7 @@ public class StatSubscribeService
             DSpaceObject currDSO;
             if (statSub.getTypeDef() < 9)
             {
-                currDSO = HandleManager.resolveToObject(context,
+                currDSO = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context,
                         statSub.getUid());
             }
             else
@@ -298,7 +299,7 @@ public class StatSubscribeService
             else 
             {
                 
-                DSpaceObject dso = HandleManager.resolveToObject(context,
+                DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context,
                         uuid);
                 if (dso == null)
                 {

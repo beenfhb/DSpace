@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.model.orcid;
 
+import java.util.UUID;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -44,7 +46,7 @@ public class OrcidQueue extends IdentifiableObject {
     
     private String owner;
     
-    private Integer entityId;
+    private UUID entityId;
     
     private Integer typeId;
     
@@ -73,11 +75,11 @@ public class OrcidQueue extends IdentifiableObject {
 		this.mode = mode;
 	}
 
-	public Integer getEntityId() {
+	public UUID getEntityId() {
 		return entityId;
 	}
 
-	public void setEntityId(Integer entityId) {
+	public void setEntityId(UUID entityId) {
 		this.entityId = entityId;
 	}
 

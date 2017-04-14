@@ -9,6 +9,7 @@ package org.dspace.app.cris.statistics.plugin;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -42,7 +43,7 @@ public abstract class AStatsIndicatorsPlugin implements StatsIndicatorsPlugin
     }
 
     public static void buildIndicator(MetricsPersistenceService pService, ApplicationService applicationService,
-            String uuid, Integer resourceType, Integer resourceId, Object value,
+            String uuid, Integer resourceType, UUID resourceId, Object value,
             String metricsType, Date startDate, Date endDate,
             Map<String, String> maps)
     {

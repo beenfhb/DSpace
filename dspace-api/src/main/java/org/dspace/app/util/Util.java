@@ -20,9 +20,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -451,7 +450,7 @@ public class Util {
      * @param item
      *            The Dspace Item
      * @param values
-     *            A Metadatum[] array of the specific "stored-value(s)"
+     *            A List<MetadataValue> array of the specific "stored-value(s)"
      * @param schema
      *            A String with the schema name of the metadata field
      * @param element
@@ -492,7 +491,7 @@ public class Util {
 
         DCInputSet inputSet = inputsReader.getInputs(col_handle);
 
-        // Replace the values of Metadatum[] with the correct ones in case of
+        // Replace the values of List<MetadataValue> with the correct ones in case of
         // controlled vocabularies
         String currentField = schema + "." + element
                 + (qualifier == null ? "" : "." + qualifier);

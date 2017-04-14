@@ -31,6 +31,7 @@ import org.dspace.app.cris.util.UtilsXSD;
 import org.dspace.app.webui.cris.dto.ImportDTO;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
@@ -132,7 +133,7 @@ public class ImportFormController  <ACO extends ACrisObject<P, TP, NP, NTP, ACNO
 				if (fileDTO != null && !fileDTO.getOriginalFilename().isEmpty()) {
 					Boolean defaultStatus = ConfigurationManager
 							.getBooleanProperty(CrisConstants.CFG_MODULE,"file.import.defaultstatus."+object.getTargetEntity());
-					if (AuthorizeManager.isAdmin(dspaceContext)) {
+					if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(dspaceContext)) {
 						dspaceContext.turnOffAuthorisationSystem();
 					}
 					ACO cris = (ACO)obj.getClass().newInstance();

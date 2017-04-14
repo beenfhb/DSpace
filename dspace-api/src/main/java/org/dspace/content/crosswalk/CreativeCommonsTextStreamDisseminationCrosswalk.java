@@ -7,16 +7,16 @@
  */
 package org.dspace.content.crosswalk;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Bitstream;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
@@ -60,7 +60,7 @@ public class CreativeCommonsTextStreamDisseminationCrosswalk
     }
 
     @Override
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException
     {
         if (dso.getType() == Constants.ITEM)

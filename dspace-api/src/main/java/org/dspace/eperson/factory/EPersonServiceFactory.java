@@ -7,7 +7,12 @@
  */
 package org.dspace.eperson.factory;
 
-import org.dspace.eperson.service.*;
+import org.dspace.eperson.service.AccountService;
+import org.dspace.eperson.service.EPersonService;
+import org.dspace.eperson.service.GroupService;
+import org.dspace.eperson.service.RegistrationDataService;
+import org.dspace.eperson.service.SubscribeService;
+import org.dspace.eperson.service.SupervisorService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**

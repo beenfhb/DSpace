@@ -2,16 +2,10 @@ package org.dspace.app.cris.statistics.plugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.solr.common.SolrDocument;
-import org.dspace.app.cris.metrics.common.model.CrisMetrics;
-import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
-import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.Context;
+import org.dspace.browse.BrowsableDSpaceObject;
 
-public abstract class AIndicatorMetricSolrBuilder<ACO extends DSpaceObject>
+public abstract class AIndicatorMetricSolrBuilder<ACO extends BrowsableDSpaceObject>
         extends AIndicatorBuilder<ACO>
 {
 

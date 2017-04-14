@@ -2,15 +2,17 @@ package org.dspace.app.webui.cris.util;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 import it.cilea.osd.jdyna.model.AuthorizationContext;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
@@ -52,7 +54,7 @@ public class CrisAuthorizeManager
             }
 
             // check admin authorization
-            if (AuthorizeManager.isAdmin(context))
+            if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
             {
                 if (VisibilityTabConstant.ADMIN.equals(visibility)
                         || VisibilityTabConstant.STANDARD.equals(visibility))
@@ -88,7 +90,7 @@ public class CrisAuthorizeManager
                     String data = object.getMetadata(policy.getShortName());
                     if (StringUtils.isNotBlank(data))
                     {
-                        if (currUser.getID() == Integer.parseInt(data))
+                        if (currUser.getID() == UUID.fromString(data))
                         {
                             return true;
                         }
@@ -108,19 +110,15 @@ public class CrisAuthorizeManager
                 {
                     if (StringUtils.isNotBlank(data))
                     {
-                        Group group = Group.find(context,
-                                Integer.parseInt(data));
+                        Group group = EPersonServiceFactory.getInstance().getGroupService().find(context,
+                                UUID.fromString(data));
                         if (group != null)
                         {
-                            if (currUser == null && group.getID() == 0)
+                            if (currUser == null)
                             {
-                                boolean isMember = Group.isMember(context, 0);
-                                if (isMember)
-                                {
-                                    return true;
-                                }
+                                return false;
                             }
-                            if (Group.isMember(context, group.getID()))
+                            else if (EPersonServiceFactory.getInstance().getGroupService().isMember(context, group))
                             {
                                 return true;
                             }

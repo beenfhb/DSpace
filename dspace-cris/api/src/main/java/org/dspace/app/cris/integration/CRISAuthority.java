@@ -20,6 +20,8 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.dto.CrisAnagraficaObjectDTO;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
@@ -104,7 +106,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
      * 
      * @return a Choices of RPs where a name form match the query string
      */
-    public Choices getMatches(String field, String query, int collection,
+    public Choices getMatches(String field, String query, Collection collection,
             int start, int limit, String locale)
     {
         try
@@ -153,7 +155,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
 
                 List<Choice> choiceList = new ArrayList<Choice>();
 
-                for (DSpaceObject dso : result.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
                 {
                     T cris = (T) dso;
                     choiceList.add(new Choice(ResearcherPageUtils
@@ -212,7 +214,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
      * 
      * @return an empty Choices
      */
-    public Choices getBestMatch(String field, String text, int collection,
+    public Choices getBestMatch(String field, String text, Collection collection,
             String locale)
     {
         try
@@ -251,7 +253,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
                 DiscoverResult result = searchService.search(null,
                         discoverQuery, true);
                 totalResult = (int) result.getTotalSearchResults();
-                for (DSpaceObject dso : result.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
                 {
                     T cris = (T) dso;
                     choiceList.add(new Choice(ResearcherPageUtils

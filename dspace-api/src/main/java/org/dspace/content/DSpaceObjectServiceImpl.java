@@ -182,6 +182,16 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     }
 
     @Override
+    public List<String> getAllMetadata(T dso, String value) {
+        List<MetadataValue> metadataValues = getMetadataByMetadataString(dso, value);
+        List<String> results = new ArrayList<String>();
+        for(MetadataValue val : metadataValues) {
+        	results.add(val.getValue());
+        }
+        return null;
+    }
+    
+    @Override
     public List<MetadataValue> getMetadata(T dso, String mdString, String authority) {
         String[] elements = getElements(mdString);
         return getMetadata(dso, elements[0], elements[1], elements[2], elements[3], authority);
@@ -221,11 +231,11 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         if (metadataField == null) {
             throw new SQLException("bad_dublin_core schema=" + schema + "." + element + "." + qualifier + ". Metadata field does not exist!");
         }
-        addMetadata(context, dso, metadataField, lang, values, authorities, confidences);
+        addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);
     }
 
     @Override
-    public void addMetadata(Context context, T dso, MetadataField metadataField, String lang, List<String> values, List<String> authorities, List<Integer> confidences) throws SQLException {
+    public void addMetadata(Context context, T dso, MetadataField metadataField, String lang, List<String> values, List<String> authorities, List<Integer> confidences, List<Integer> places) throws SQLException {
         boolean authorityControlled = metadataAuthorityService.isAuthorityControlled(metadataField);
         boolean authorityRequired = metadataAuthorityService.isAuthorityRequired(metadataField);
 
@@ -291,9 +301,14 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 
     @Override
     public void addMetadata(Context context, T dso, MetadataField metadataField, String language, String value, String authority, int confidence) throws SQLException {
-        addMetadata(context, dso, metadataField, language, Arrays.asList(value), Arrays.asList(authority), Arrays.asList(confidence));
+        addMetadata(context, dso, metadataField, language, Arrays.asList(value), Arrays.asList(authority), Arrays.asList(confidence), null);
     }
 
+    @Override
+    public void addMetadata(Context context, T dso, MetadataField metadataField, String language, String value, String authority, int confidence, int place) throws SQLException {
+        addMetadata(context, dso, metadataField, language, Arrays.asList(value), Arrays.asList(authority), Arrays.asList(confidence), Arrays.asList(place));
+    }
+    
     @Override
     public void addMetadata(Context context, T dso, String schema, String element, String qualifier, String lang, String value) throws SQLException {
         addMetadata(context, dso, schema, element, qualifier, lang, Arrays.asList(value));
@@ -318,9 +333,9 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                         getAuthoritiesAndConfidences(fieldKey, null, values, authorities, confidences, i);
                     }
                 }
-                addMetadata(context, dso, metadataField, language, values, authorities, confidences);
+                addMetadata(context, dso, metadataField, language, values, authorities, confidences, null);
             } else {
-                addMetadata(context, dso, metadataField, language, values, null, null);
+                addMetadata(context, dso, metadataField, language, values, null, null, null);
             }
         }
     }
@@ -329,7 +344,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     public void addMetadata(Context context, T dso, String schema, String element, String qualifier, String lang, String value, String authority, int confidence) throws SQLException {
         addMetadata(context, dso, schema, element, qualifier, lang, Arrays.asList(value), Arrays.asList(authority), Arrays.asList(confidence));
     }
-
+    
     @Override
     public void clearMetadata(Context context, T dso, String schema, String element, String qualifier, String lang) throws SQLException {
         Iterator<MetadataValue> metadata = dso.getMetadata().iterator();

@@ -11,9 +11,12 @@ package org.dspace.app.cris.statistics.batch;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -21,11 +24,12 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.statistics.SolrLogger;
 import org.dspace.statistics.SolrStatsIndexPlugin;
+import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.utils.DSpace;
 
 public class RebuildDerivateStatisticsMetadata
@@ -42,8 +46,7 @@ public class RebuildDerivateStatisticsMetadata
     {
         DSpace dspace = new DSpace();
 
-        SolrLogger indexer = dspace.getServiceManager().getServiceByName(SolrLogger.class.getName(),SolrLogger.class);
-
+        SolrLoggerService indexer = dspace.getServiceManager().getServiceByName(SolrLoggerService.class.getName(),SolrLoggerService.class);
         
         SolrDocumentList sdl = indexer.getRawData(Constants.ITEM);
         System.out.println("Found " + sdl.getNumFound()
@@ -61,10 +64,10 @@ public class RebuildDerivateStatisticsMetadata
             System.out.println("Processed access #" + i + " of "
                     + sdl.getNumFound());
             SolrInputDocument sdi = ClientUtils.toSolrInputDocument(sd);
-            Integer id = (Integer) sd.getFieldValue("id");
+            String id = (String) sd.getFieldValue("id");
             Integer type = (Integer) sd.getFieldValue("type");
-
-            DSpaceObject dso = DSpaceObject.find(context, type, id);
+            
+            BrowsableDSpaceObject dso = (BrowsableDSpaceObject)ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, UUID.fromString(id));
             
             // Do any additional indexing, depends on the plugins
             List<SolrStatsIndexPlugin> solrServiceIndexPlugins = new DSpace()
@@ -75,9 +78,6 @@ public class RebuildDerivateStatisticsMetadata
                 solrServiceIndexPlugin.additionalIndex(null, dso,
                         sdi);
             }
-
-            
-            context.removeCached(dso, id);
             solr.add(sdi);
         }
         solr.commit();
@@ -122,4 +122,5 @@ public class RebuildDerivateStatisticsMetadata
         rpsolr.commit();
         rpsolr.optimize();
     }
+    
 }

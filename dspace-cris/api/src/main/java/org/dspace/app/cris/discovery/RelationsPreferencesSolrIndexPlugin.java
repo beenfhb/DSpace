@@ -14,6 +14,7 @@ import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
@@ -74,7 +75,7 @@ public class RelationsPreferencesSolrIndexPlugin implements
         if (!(dso instanceof Item))
             return;
         Item item = (Item) dso;
-        int itemID = item.getID();
+        UUID itemID = item.getID();
         List<RelationPreference> preferences = applicationService
                 .findRelationsPreferencesForItemID(itemID);
         if (preferences != null)

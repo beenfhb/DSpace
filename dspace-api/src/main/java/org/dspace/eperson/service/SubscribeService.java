@@ -7,14 +7,16 @@
  */
 package org.dspace.eperson.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Subscription;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the Subscription object.
@@ -54,8 +56,14 @@ public interface SubscribeService {
      *            Collection to unsubscribe from
      */
     public void unsubscribe(Context context, EPerson eperson,
+            DSpaceObject collection) throws SQLException, AuthorizeException;
+    
+    public void unsubscribeCollection(Context context, EPerson eperson,
             Collection collection) throws SQLException, AuthorizeException;
 
+    public void unsubscribeCommunity(Context context, EPerson eperson,
+            Community community) throws SQLException, AuthorizeException;
+    
     /**
      * Find out which collections an e-person is subscribed to
      *
@@ -104,6 +112,10 @@ public interface SubscribeService {
             Collection collection) throws SQLException;
 
     public void deleteByCollection(Context context, Collection collection) throws SQLException;
+    public void deleteByCommunity(Context context, Community community) throws SQLException;
 
     public void deleteByEPerson(Context context, EPerson ePerson) throws SQLException;
+
+	public List<Collection> getSubscriptionsCollection(Context context, EPerson eperson) throws SQLException;
+	public List<Community> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException;
 }

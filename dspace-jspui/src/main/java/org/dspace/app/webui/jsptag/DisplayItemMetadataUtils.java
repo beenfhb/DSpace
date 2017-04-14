@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.util.MetadataExposure;
+import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.webui.util.DateDisplayStrategy;
 import org.dspace.app.webui.util.DefaultDisplayStrategy;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
@@ -31,20 +31,20 @@ import org.dspace.app.webui.util.StyleSelection;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 
 public class DisplayItemMetadataUtils {
 	/** log4j logger */
 	private static Logger log = Logger.getLogger(ItemTag.class);
 
 	/** Default DC fields to display, in absence of configuration */
-	private static String defaultFields = "dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier";
+	private static String[] defaultFields = new String[] {"dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier"};
 
-	private static StyleSelection styleSelection = (StyleSelection) PluginManager.getSinglePlugin(StyleSelection.class);
+	private static StyleSelection styleSelection = (StyleSelection) CoreServiceFactory.getInstance().getPluginService().getSinglePlugin(StyleSelection.class);
 
 	/** Hashmap of linked metadata to browse, from dspace.cfg */
 	private static Map<String, String> linkedMetadata;
@@ -138,7 +138,7 @@ public class DisplayItemMetadataUtils {
 		List<DisplayMetadata> metadata = new ArrayList<DisplayMetadata>();
 
 		String style = styleSelection.getStyleForItem(item);
-		String configLine = "";
+		String[] configLine;
 		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(style + "." + postfix)) {
 			configLine = styleSelection.getConfigurationForStyle(style + "." + postfix);
 		} else {
@@ -156,10 +156,10 @@ public class DisplayItemMetadataUtils {
 		 * to a more efficient intermediate class, but then it would become more
 		 * difficult to reload the configuration "on the fly".
 		 */
-		StringTokenizer st = new StringTokenizer(configLine, ",");
+		
 
-		while (st.hasMoreTokens()) {
-			String field = st.nextToken().trim();
+		for(String st : configLine) {
+			String field = st.trim();
 			String displayStrategyName = null;
 			Matcher fieldStyleMatcher = fieldStylePatter.matcher(field);
 			if (fieldStyleMatcher.matches()) {
@@ -197,14 +197,14 @@ public class DisplayItemMetadataUtils {
 			}
 
 			// check for hidden field, even if it's configured..
-			if (MetadataExposure.isHidden(context, schema, element, qualifier)) {
+			if (UtilServiceFactory.getInstance().getMetadataExposureService().isHidden(context, schema, element, qualifier)) {
 				continue;
 			}
 
 			// FIXME: Still need to fix for metadata language?
-			Metadatum[] values = item.getMetadata(schema, element, qualifier, Item.ANY);
+			List<MetadataValue> values = item.getMetadata(schema, element, qualifier, Item.ANY);
 
-			if (values.length > 0) {
+			if (values!=null && values.size() > 0) {
 
 				String label = null;
 				try {
@@ -216,7 +216,7 @@ public class DisplayItemMetadataUtils {
 					label = I18nUtil.getMessage("metadata." + field, context);
 				}
 
-				IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) PluginManager
+				IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) CoreServiceFactory.getInstance().getPluginService()
 						.getNamedPlugin(IDisplayMetadataValueStrategy.class, displayStrategyName);
 
 				if (strategy == null) {

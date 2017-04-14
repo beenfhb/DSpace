@@ -34,9 +34,10 @@ import org.dspace.app.cris.statistics.bean.MapPointBean;
 import org.dspace.app.cris.statistics.bean.PieStatisticBean;
 import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 
-public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
+public abstract class ASolrStatsConfigurerComponent<T extends BrowsableDSpaceObject>
 {
 
     /** log4j logger */

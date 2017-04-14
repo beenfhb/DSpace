@@ -7,7 +7,7 @@
  */
 
 /**
- * Contains the classes used to map between retrieved records and actual usable {@link org.dspace.importer.external.metadatamapping.MetadatumDTO}
+ * Contains the classes used to map between retrieved records and actual usable {@link org.dspace.importer.external.metadatamapping.MetadataValueDTO}
  * Classes are used in the spring config of implementations of {@link org.dspace.importer.external.metadatamapping.AbstractMetadataFieldMapping}
  * which query to an element in the retrieved record and map it to a metadatafield.
  * @author Roeland Dillen (roeland at atmire dot com)

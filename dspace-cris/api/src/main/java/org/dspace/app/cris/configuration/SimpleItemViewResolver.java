@@ -17,6 +17,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.util.ItemUtils;
 
 public class SimpleItemViewResolver implements ISimpleViewResolver
@@ -47,7 +48,7 @@ public class SimpleItemViewResolver implements ISimpleViewResolver
             submitter.add(item.getSubmitter().getNetid());
             submitter.add(""+item.getSubmitter().getID());
             //handle
-            dto.setHandle(HandleManager.findHandle(context, item));
+            dto.setHandle(HandleServiceFactory.getInstance().getHandleService().findHandle(context, item));
         }
         catch (SQLException e)
         {

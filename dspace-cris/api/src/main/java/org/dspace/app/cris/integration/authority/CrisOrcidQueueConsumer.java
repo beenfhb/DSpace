@@ -14,11 +14,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.ORCIDAuthority;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
-import org.dspace.content.authority.ChoiceAuthorityManager;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
@@ -40,20 +41,20 @@ public class CrisOrcidQueueConsumer implements Consumer {
 			Item item = (Item) dso;
 			if (item.isArchived()) {
 				// 1)check the internal contributors
-				Set<String> listAuthoritiesManager = ChoiceAuthorityManager.getManager().getAuthorities();
+				Set<String> listAuthoritiesManager = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getAuthorities();
 				for (String crisAuthority : listAuthoritiesManager) {
-					List<String> listMetadata = ChoiceAuthorityManager.getManager()
+					List<String> listMetadata = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
 							.getAuthorityMetadataForAuthority(crisAuthority);
 
 					for (String metadata : listMetadata) {
-						ChoiceAuthority choiceAuthority = ChoiceAuthorityManager.getManager()
+						ChoiceAuthority choiceAuthority = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
 								.getChoiceAuthority(metadata);
 						if (ORCIDAuthority.class.isAssignableFrom(choiceAuthority.getClass())) {
 							// 2)check for each internal contributors if has
 							// authority
-							Metadatum[] Metadatums = item.getMetadataByMetadataString(metadata);
-							for (Metadatum dcval : Metadatums) {
-								String authority = dcval.authority;
+							List<MetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
+							for (MetadataValue dcval : MetadataValues) {
+								String authority = dcval.getAuthority();
 								if (StringUtils.isNotBlank(authority)) {
 									// 3)check the orcid preferences
 									boolean isAPreferiteWork = orcidPreferencesUtils
@@ -61,7 +62,7 @@ public class CrisOrcidQueueConsumer implements Consumer {
 									// 4)if the publications match the
 									// preference add publication to queue
 									if (isAPreferiteWork) {
-										orcidPreferencesUtils.prepareOrcidQueue(authority, dso);
+										orcidPreferencesUtils.prepareOrcidQueue(authority, (BrowsableDSpaceObject)dso);
 									}
 								}
 							}

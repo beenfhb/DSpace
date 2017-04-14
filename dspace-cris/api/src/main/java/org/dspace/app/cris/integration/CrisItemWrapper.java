@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.content.Item;
 import org.dspace.content.ItemWrapperIntegration;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
@@ -78,30 +78,30 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
                 lang = Item.ANY;
             }
             if("item".equals(schema)) {
-            	Metadatum[] basic = (Metadatum[]) invocation.proceed();
-                Metadatum[] Metadatums = addEnhancedMetadata(
+            	List<MetadataValue> basic = (List<MetadataValue>) invocation.proceed();
+                List<MetadataValue> MetadataValues = addEnhancedMetadata(
                         (Item) invocation.getThis(), basic, schema,
                         element, qualifier, lang);
-               return Metadatums;
+               return MetadataValues;
             }
             else if ("crisitem".equals(schema))
             {
-                Metadatum[] basic = (Metadatum[]) invocation.proceed();
-                Metadatum[] Metadatums = addCrisEnhancedMetadata(
+                List<MetadataValue> basic = (List<MetadataValue>) invocation.proceed();
+                List<MetadataValue> MetadataValues = addCrisEnhancedMetadata(
                         (Item) invocation.getThis(), basic, schema,
                         element, qualifier, lang);
-                return Metadatums;
+                return MetadataValues;
             }
             else if (schema == Item.ANY)
             {
-            	Metadatum[] basic = (Metadatum[]) invocation.proceed();
-            	Metadatum[] MetadatumsItem = addEnhancedMetadata(
+            	List<MetadataValue> basic = (List<MetadataValue>) invocation.proceed();
+            	List<MetadataValue> MetadataValuesItem = addEnhancedMetadata(
                         (Item) invocation.getThis(), basic, schema,
                         element, qualifier, lang);
-                Metadatum[] MetadatumsCris = addCrisEnhancedMetadata(
-                        (Item) invocation.getThis(), MetadatumsItem, schema,
+                List<MetadataValue> MetadataValuesCris = addCrisEnhancedMetadata(
+                        (Item) invocation.getThis(), MetadataValuesItem, schema,
                         element, qualifier, lang);
-                return MetadatumsCris;
+                return MetadataValuesCris;
             }
         }
         return invocation.proceed();
@@ -112,10 +112,10 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
 				CrisConstants.CFG_MODULE, "global.item.typing");
 		if (StringUtils.isNotBlank(metadata)) {
 			Item item = (Item) invocation.getThis();
-			Metadatum[] Metadatums = item.getMetadataByMetadataString(metadata);
-			if (Metadatums != null && Metadatums.length > 0) {
-				for (Metadatum dcval : Metadatums) {
-					String value = dcval.value;					
+			List<MetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
+			if (MetadataValues != null && MetadataValues.size() > 0) {
+				for (MetadataValue dcval : MetadataValues) {
+					String value = dcval.getValue();					
 					if (StringUtils.isNotBlank(value)) {
 						 String valueWithoutWhitespace = StringUtils.deleteWhitespace(value);
 				    	 String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
@@ -131,10 +131,10 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
         return Constants.typeText[Constants.ITEM].toLowerCase();
 	}
 
-	private Metadatum[] addCrisEnhancedMetadata(Item item, Metadatum[] basic,
+	private List<MetadataValue> addCrisEnhancedMetadata(Item item, List<MetadataValue> basic,
             String schema, String element, String qualifier, String lang)
     {
-        List<Metadatum> extraMetadata = new ArrayList<Metadatum>();
+        List<MetadataValue> extraMetadata = new ArrayList<MetadataValue>();
         if (schema == Item.ANY)
         {
             List<String> crisMetadata = CrisItemEnhancerUtility
@@ -160,20 +160,17 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
         }
         else
         {
-            Metadatum[] result = new Metadatum[basic.length
-                    + extraMetadata.size()];
-            List<Metadatum> resultList = new ArrayList<Metadatum>();
-            resultList.addAll(Arrays.asList(basic));
+            List<MetadataValue> resultList = new ArrayList<MetadataValue>();
+            resultList.addAll(basic);
             resultList.addAll(extraMetadata);
-            result = resultList.toArray(result);
-            return result;
+            return resultList;
         }
     }
     
-    private Metadatum[] addEnhancedMetadata(Item item, Metadatum[] basic,
+    private List<MetadataValue> addEnhancedMetadata(Item item, List<MetadataValue> basic,
             String schema, String element, String qualifier, String lang)
     {
-        List<Metadatum> extraMetadata = new ArrayList<Metadatum>();
+        List<MetadataValue> extraMetadata = new ArrayList<MetadataValue>();
         
 
 		extraMetadata = ItemEnhancerUtility.getMetadata(item, schema + "." + element
@@ -185,13 +182,10 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
         }
         else
         {
-            Metadatum[] result = new Metadatum[basic.length
-                    + extraMetadata.size()];
-            List<Metadatum> resultList = new ArrayList<Metadatum>();
-            resultList.addAll(Arrays.asList(basic));
+            List<MetadataValue> resultList = new ArrayList<MetadataValue>();
+            resultList.addAll(basic);
             resultList.addAll(extraMetadata);
-            result = resultList.toArray(result);
-            return result;
+            return resultList;
         }
     }
 
@@ -209,7 +203,7 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
             declaredField = ReflectionUtils.findField(Item.class, "modifiedMetadata");
             boolean accessible = declaredField.isAccessible();
             declaredField.setAccessible(true);
-            declaredField.set(proxy, item.isModifiedMetadata());
+            declaredField.set(proxy, item.isMetadataModified());
             declaredField.setAccessible(accessible);
 
         } catch (Exception ex) {

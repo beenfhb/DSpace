@@ -7,6 +7,7 @@
  */
 package org.dspace.handle.service;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 

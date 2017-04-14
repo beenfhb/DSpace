@@ -22,7 +22,7 @@ public class LastLoggedInAction implements PostLoggedInAction {
 		try
 		{
 			eperson.setLastActive(new Date());
-			eperson.update();
+			eperson.getDSpaceObjectService().update(context, eperson);
 			context.commit();
 		}
 		catch (Exception e)

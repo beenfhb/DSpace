@@ -9,6 +9,7 @@ package org.dspace.app.cris.model.listener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.Transient;
 
@@ -25,6 +26,7 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.value.RPPointer;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.hibernate.event.spi.PostLoadEvent;
@@ -158,7 +160,7 @@ public class OrcidQueueListener implements NativePostUpdateEventListener, PostLo
 					try {
 						context = new Context();
 
-						Item item = Item.find(context, relPref.getItemID());
+						Item item = ContentServiceFactory.getInstance().getItemService().find(context, relPref.getItemID());
 						boolean isAPreferiteWork = orcidPreferencesUtils.isAPreferiteToSendToOrcid(authority, item,
 								ORCID_PUBLICATIONS_PREFS);
 						// 4)if the publications match the preference add
@@ -179,8 +181,8 @@ public class OrcidQueueListener implements NativePostUpdateEventListener, PostLo
 					if (relPref.getRelationType().equals(RELATION_CRISPJ_PROJECTS)) {
 						// check if the project is in the set of preferences to
 						// send
-						Integer projectId = relPref.getItemID();
-						Project project = orcidPreferencesUtils.getApplicationService().get(Project.class, projectId);
+						UUID projectId = relPref.getItemID();
+						Project project = (Project)orcidPreferencesUtils.getApplicationService().getEntityByUUID(uuid.toString());
 
 						boolean isAPreferiteProject = orcidPreferencesUtils.isAPreferiteToSendToOrcid(authority,
 								project, ORCID_PROJECTS_PREFS);

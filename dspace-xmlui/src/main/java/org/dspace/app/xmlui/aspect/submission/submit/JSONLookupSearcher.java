@@ -26,7 +26,7 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.core.Context;
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.dspace.importer.external.service.ImportService;
 import org.dspace.utils.DSpace;
 import org.w3c.dom.Element;
@@ -116,16 +116,16 @@ public class JSONLookupSearcher extends AbstractGenerator {
                 Element recordNode = document.createElement("record");
                 recordNode.setAttribute("namedObject", "true");
 
-                HashMap<String,Element> metadatumValueNodes = new HashMap();
+                HashMap<String,Element> MetadataValueValueNodes = new HashMap();
 
-                for (MetadatumDTO metadatum : record.getValueList()) {
-                    if(!metadatumValueNodes.containsKey(getField(metadatum))) {
-                        Element metadatumNode = document.createElement(getField(metadatum));
-                        metadatumNode.setAttribute("array", "true");
-                        metadatumValueNodes.put(getField(metadatum), metadatumNode);
+                for (MetadataValueDTO MetadataValue : record.getValueList()) {
+                    if(!MetadataValueValueNodes.containsKey(getField(MetadataValue))) {
+                        Element MetadataValueNode = document.createElement(getField(MetadataValue));
+                        MetadataValueNode.setAttribute("array", "true");
+                        MetadataValueValueNodes.put(getField(MetadataValue), MetadataValueNode);
 
-                        if (getField(metadatum).equals(importIdField.getField())) {
-                                Iterator<Item> iterator = itemService.findByMetadataField(context, importIdField.getSchema(), importIdField.getElement(), importIdField.getQualifier(), metadatum.getValue());
+                        if (getField(MetadataValue).equals(importIdField.getField())) {
+                                Iterator<Item> iterator = itemService.findByMetadataField(context, importIdField.getSchema(), importIdField.getElement(), importIdField.getQualifier(), MetadataValue.getValue());
 
                             if(iterator.hasNext()){
                                 Element existsInDSpaceNode = document.createElement("imported");
@@ -135,13 +135,13 @@ public class JSONLookupSearcher extends AbstractGenerator {
                         }
                     }
 
-                    Element metadatumValueNode = document.createElement("metadatumValue");
-                    metadatumValueNode.setTextContent(metadatum.getValue());
+                    Element MetadataValueValueNode = document.createElement("MetadataValueValue");
+                    MetadataValueValueNode.setTextContent(MetadataValue.getValue());
 
-                    metadatumValueNodes.get(getField(metadatum)).appendChild(metadatumValueNode);
+                    MetadataValueValueNodes.get(getField(MetadataValue)).appendChild(MetadataValueValueNode);
                 }
 
-                for (Element element : metadatumValueNodes.values()) {
+                for (Element element : MetadataValueValueNodes.values()) {
                     recordNode.appendChild(element);
                 }
 
@@ -157,8 +157,8 @@ public class JSONLookupSearcher extends AbstractGenerator {
         }
     }
 
-    private String getField(MetadatumDTO metadatum) {
-        return metadatum.getSchema()+"."+metadatum.getElement()+((metadatum.getQualifier()!=null)?"."+metadatum.getQualifier():"");
+    private String getField(MetadataValueDTO MetadataValue) {
+        return MetadataValue.getSchema()+"."+MetadataValue.getElement()+((MetadataValue.getQualifier()!=null)?"."+MetadataValue.getQualifier():"");
     }
 
     public String getLookupURI() {

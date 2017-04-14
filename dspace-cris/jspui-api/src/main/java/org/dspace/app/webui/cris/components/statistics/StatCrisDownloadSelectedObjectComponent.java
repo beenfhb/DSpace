@@ -7,8 +7,6 @@
  */
 package org.dspace.app.webui.cris.components.statistics;
 
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,7 +14,6 @@ import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.statistics.bean.PieStatisticBean;
 import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
@@ -24,7 +21,9 @@ import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
+
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
 
 public abstract class StatCrisDownloadSelectedObjectComponent extends
         StatSelectedObjectComponent
@@ -103,7 +102,7 @@ public abstract class StatCrisDownloadSelectedObjectComponent extends
     }
     
     @Override
-    public Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger,
+    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger,
             DSpaceObject object, String dateType, String dateStart,
             String dateEnd, int gap) throws SolrServerException
     {

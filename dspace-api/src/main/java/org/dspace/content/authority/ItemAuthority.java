@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
@@ -83,7 +84,7 @@ public class ItemAuthority implements ChoiceAuthority
 			        discoverQuery, false);
 			List<Choice> choiceList = new ArrayList<Choice>();
 
-	        for (DSpaceObject dso : resultSearch.getDspaceObjects())
+	        for (BrowsableDSpaceObject dso : resultSearch.getDspaceObjects())
 	        {
 	            choiceList.add(new Choice(dso.getHandle(), dso.getName(),  dso.getName()));
 	        }

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -96,10 +97,10 @@ public class DoiFactoryServlet extends DSpaceServlet
                 // Pass the results to the display JSP
                 List<Item> results = DoiFactoryUtils.getItemsFromSolrResult(
                         docs, context);
-                Map<Integer, String> customDoiMaps = new HashMap<Integer, String>();
+                Map<UUID, String> customDoiMaps = new HashMap<UUID, String>();
                 for (Item ii : results)
                 {
-                    int id = ii.getID();
+                    UUID id = ii.getID();
                     fillDoiMap(request, customDoiMaps, id);
                 }
                 try
@@ -118,10 +119,10 @@ public class DoiFactoryServlet extends DSpaceServlet
             else if (submit == DOI_ANY)
             {
 
-                int[] items = UIUtil.getIntParameters(request, "builddoi");
+                List<UUID> items = UIUtil.getUUIDParameters(request, "builddoi");
 
-                Map<Integer, String> customDoiMaps = new HashMap<Integer, String>();
-                for (Integer id : items)
+                Map<UUID, String> customDoiMaps = new HashMap<UUID, String>();
+                for (UUID id : items)
                 {
                     fillDoiMap(request, customDoiMaps, id);
                 }
@@ -143,11 +144,11 @@ public class DoiFactoryServlet extends DSpaceServlet
             else if (submit == EXCLUDE_ANY)
             {
 
-                int[] items = UIUtil.getIntParameters(request, "builddoi");
+                List<UUID> items = UIUtil.getUUIDParameters(request, "builddoi");
 
                 List<Item> results = DoiFactoryUtils.getItems(context, items);
-                Map<Integer, String> customDoiMaps = new HashMap<Integer, String>();
-                for (Integer id : items)
+                Map<UUID, String> customDoiMaps = new HashMap<UUID, String>();
+                for (UUID id : items)
                 {
                     fillDoiMap(request, customDoiMaps, id);
                 }
@@ -211,7 +212,7 @@ public class DoiFactoryServlet extends DSpaceServlet
 
             // Pass the result
             Item[] realresult = null;
-            Map<Integer, String> doi2items = new HashMap<Integer, String>();
+            Map<UUID, String> doi2items = new HashMap<UUID, String>();
 
             if (results != null && !results.isEmpty())
             {
@@ -245,7 +246,7 @@ public class DoiFactoryServlet extends DSpaceServlet
     }
 
     private void fillDoiMap(HttpServletRequest request,
-            Map<Integer, String> customDoiMaps, Integer ii)
+            Map<UUID, String> customDoiMaps, UUID ii)
     {
         String customdoi = request.getParameter("custombuilddoi_" + ii);
         if (customdoi != null && !customdoi.isEmpty())
@@ -269,7 +270,7 @@ public class DoiFactoryServlet extends DSpaceServlet
      * @throws SearchServiceException
      */
     private void excludeFromList(Context context, List<Item> results,
-            Map<Integer, String> dois) throws SQLException, AuthorizeException,
+            Map<UUID, String> dois) throws SQLException, AuthorizeException,
             SearchServiceException
     {
         for (Item item : results)
@@ -281,11 +282,11 @@ public class DoiFactoryServlet extends DSpaceServlet
             }
             if (doi != null && !doi.isEmpty())
             {
-                item.clearMetadata("dc", "identifier", "doi", Item.ANY);
-                item.addMetadata("dc", "identifier", "doi", Item.ANY, doi);
+                item.getItemService().clearMetadata(context, item, "dc", "identifier", "doi", Item.ANY);
+                item.getItemService().addMetadata(context, item, "dc", "identifier", "doi", Item.ANY, doi);
             }
-            item.addMetadata("dc", "utils", "nodoi", null, "true");
-            item.update();
+            item.getItemService().addMetadata(context, item, "dc", "utils", "nodoi", null, "true");
+            item.getItemService().update(context, item);
         }
 
         context.commit();
@@ -342,7 +343,7 @@ public class DoiFactoryServlet extends DSpaceServlet
     protected void buildDOIAndAddToQueue(Context context,
             HttpServletRequest request, HttpServletResponse response,
             List<Item> items, EPerson eperson, String type,
-            Map<Integer, String> mapDoi) throws IOException, ServletException,
+            Map<UUID, String> mapDoi) throws IOException, ServletException,
             SQLException, AuthorizeException, SearchServiceException
     {
 

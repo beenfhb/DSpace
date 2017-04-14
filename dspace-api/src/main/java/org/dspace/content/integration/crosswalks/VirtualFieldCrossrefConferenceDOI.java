@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
 import org.dspace.storage.rdbms.DatabaseManager;
@@ -48,16 +48,16 @@ public class VirtualFieldCrossrefConferenceDOI implements VirtualFieldDisseminat
             
             String result = "";
             
-            Metadatum md = item.getMetadata("dc", "contributor", "author", Item.ANY)[0];
+            MetadataValue md = item.getMetadata("dc", "contributor", "author", Item.ANY)[0];
             String mdValue = md.value.toLowerCase();
             mdValue = mdValue.replaceAll("[^a-z]+", "-");
             result += mdValue;
              
             
-            Metadatum mddate = item.getMetadata("dc", "date", "issued", Item.ANY)[0];
+            MetadataValue mddate = item.getMetadata("dc", "date", "issued", Item.ANY)[0];
             result += mddate.value;
            
-            Metadatum mdtitle = item.getMetadata("dc", "title", null, Item.ANY)[0];
+            MetadataValue mdtitle = item.getMetadata("dc", "title", null, Item.ANY)[0];
             String mdtitleValue = mdtitle.value.toLowerCase();
             mdtitleValue = mdtitleValue.replaceAll("[^a-z]+", "-");
             

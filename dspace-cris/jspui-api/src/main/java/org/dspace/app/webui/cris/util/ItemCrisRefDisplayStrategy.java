@@ -9,29 +9,29 @@ package org.dspace.app.webui.cris.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.PageContext;
-import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.ASimpleDisplayStrategy;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authority.AuthorityValueGenerator;
-import org.dspace.content.Metadatum;
+import org.dspace.authority.service.AuthorityValueService;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
-import org.dspace.content.authority.ChoiceAuthorityManager;
-import org.dspace.content.authority.MetadataAuthorityManager;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
@@ -52,22 +52,26 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-			boolean viewFull, String browseType, int colIdx, int itemId,
-			String field, Metadatum[] metadataArray, boolean disableCrossLinks,
+			boolean viewFull, String browseType, int colIdx, UUID itemId,
+			String field, List<MetadataValue> metadataArray, boolean disableCrossLinks,
 			boolean emph) throws JspException {
     	String publicPath = null;
     	int minConfidence = -1;
-		if (metadataArray.length > 0) {
-			ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
-			ChoiceAuthority ca = cam.getChoiceAuthority(metadataArray[0].schema, metadataArray[0].element, metadataArray[0].qualifier);
-			minConfidence = MetadataAuthorityManager.getManager().getMinConfidence(metadataArray[0].schema, metadataArray[0].element, metadataArray[0].qualifier);
+		if (metadataArray.size() > 0) {
+			ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
+			ChoiceAuthority ca = cam.getChoiceAuthority(metadataArray.get(0).schema, metadataArray.get(0).element, metadataArray.get(0).qualifier);
+			try {
+				minConfidence = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService().getMinConfidence(UIUtil.obtainContext(hrq), metadataArray.get(0).schema, metadataArray.get(0).element, metadataArray.get(0).qualifier);
+			} catch (SQLException e) {
+				throw new JspException(e);
+			}
 			if (ca != null && ca instanceof CRISAuthority) {
 				CRISAuthority crisAuthority = (CRISAuthority) ca;
 				publicPath = crisAuthority.getPublicPath();
 				if (publicPath == null) {
 					publicPath = ConfigurationManager.getProperty("ItemCrisRefDisplayStrategy.publicpath."+field);
 					if (publicPath == null) {
-						publicPath = metadataArray[0].qualifier;
+						publicPath = metadataArray.get(0).qualifier;
 					}
 				}
 			}
@@ -81,12 +85,12 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
         // limit the number of records if this is the author field (if
         // -1, then the limit is the full list)
         boolean truncated = false;
-        int loopLimit = metadataArray.length;
+        int loopLimit = metadataArray.size();
         if (limit != -1)
         {
-            loopLimit = (limit > metadataArray.length ? metadataArray.length
+            loopLimit = (limit > metadataArray.size() ? metadataArray.size()
                     : limit);
-            truncated = (limit < metadataArray.length);
+            truncated = (limit < metadataArray.size());
         }
 
         StringBuffer sb = new StringBuffer();
@@ -94,7 +98,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
         {
             buildBrowseLink(hrq, viewFull, browseType, metadataArray, minConfidence,
                     disableCrossLinks, sb, j);
-            if (StringUtils.isNotBlank(metadataArray[j].authority) && metadataArray[j].confidence >= minConfidence) {
+            if (StringUtils.isNotBlank(metadataArray.get(j).getAuthority()) && metadataArray.get(j).getConfidence() >= minConfidence) {
             	buildAuthority(hrq, metadataArray, publicPath, sb, j);
             }
             if (j < (loopLimit - 1))
@@ -135,7 +139,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
     }
 
     private void buildBrowseLink(HttpServletRequest hrq, boolean viewFull,
-            String browseType, Metadatum[] metadataArray, int minConfidence,
+            String browseType, List<MetadataValue> metadataArray, int minConfidence,
             boolean disableCrossLinks, StringBuffer sb, int j)
     {
         String startLink = "";
@@ -144,9 +148,9 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
         {
             String argument;
             String value;
-            String authority = metadataArray[j].authority;
+            String authority = metadataArray.get(j).getAuthority();
 			if (authority != null &&
-                    metadataArray[j].confidence >= minConfidence && !(authority.startsWith(AuthorityValueGenerator.GENERATE)))
+                    metadataArray.get(j).getConfidence() >= minConfidence && !(authority.startsWith(AuthorityValueService.GENERATE)))
             {
                 argument = "authority";
                 value = authority;
@@ -154,7 +158,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
             else
             {
                 argument = "value";
-                value = metadataArray[j].value;
+                value = metadataArray.get(j).getValue();
             }
             if (viewFull)
             {
@@ -171,12 +175,12 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
                 throw new RuntimeException(e.getMessage(), e);
             }
 
-            if (metadataArray[j].language != null)
+            if (metadataArray.get(j).getLanguage() != null)
             {
                 try
                 {
                     startLink = startLink + "&amp;" + argument + "_lang="
-                            + URLEncoder.encode(metadataArray[j].language, "UTF-8");
+                            + URLEncoder.encode(metadataArray.get(j).getLanguage(), "UTF-8");
                 }
                 catch (UnsupportedEncodingException e)
                 {
@@ -195,25 +199,25 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
             endLink = "</a>";
         }
         sb.append(startLink);
-        sb.append(Utils.addEntities(metadataArray[j].value));
+        sb.append(Utils.addEntities(metadataArray.get(j).getValue()));
         sb.append(endLink);
     }
 
     private void buildAuthority(HttpServletRequest hrq,
-            Metadatum[] metadataArray, String publicPath, StringBuffer sb, int j)
+            List<MetadataValue> metadataArray, String publicPath, StringBuffer sb, int j)
     {
         String startLink = "";
         String endLink = "";
 
-        String authority = metadataArray[j].authority;
+        String authority = metadataArray.get(j).getAuthority();
 		if (StringUtils.isNotBlank(authority)) {
-			if (authority.startsWith(AuthorityValueGenerator.GENERATE)) {
-				String[] split = StringUtils.split(authority, AuthorityValueGenerator.SPLIT);
+			if (authority.startsWith(AuthorityValueService.GENERATE)) {
+				String[] split = StringUtils.split(authority, AuthorityValueService.SPLIT);
 				String type = null, info = null;
 				if (split.length == 3) {
 					type = split[1];
 					info = split[2];
-					String externalContextPath = ConfigurationManager.getProperty("cris","external.domainname.authority.service."+type);
+					String externalContextPath = ConfigurationManager.getProperty("cris","external.domainname.getAuthority().service."+type);
 					startLink = "<a target=\"_blank\" href=\"" + externalContextPath + info;
 					startLink += "\" class=\"authority\">&nbsp;<img style=\"width: 16px; height: 16px;\" src=\""+ hrq.getContextPath() +"/images/mini-icon-orcid.png\" alt=\"\">";
 					endLink = "</a>";

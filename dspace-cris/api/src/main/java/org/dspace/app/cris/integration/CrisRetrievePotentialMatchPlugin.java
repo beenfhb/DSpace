@@ -12,16 +12,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
-import org.dspace.browse.BrowseItem;
 import org.dspace.browse.BrowserScope;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
@@ -38,7 +39,7 @@ public class CrisRetrievePotentialMatchPlugin implements
             .getLogger(CrisRetrievePotentialMatchPlugin.class);
 
     @Override
-    public Set<Integer> retrieve(Context context, Set<Integer> invalidIds,
+    public Set<UUID> retrieve(Context context, Set<UUID> invalidIds,
             ResearcherPage researcher)
     {
 
@@ -49,7 +50,7 @@ public class CrisRetrievePotentialMatchPlugin implements
         List<NameResearcherPage> names = ResearcherPageUtils.getAllVariantsName(invalidIds,
                 researcher);
 
-        Set<Integer> result = new HashSet<Integer>();
+        Set<UUID> result = new HashSet<UUID>();
         try
         {
             String researcherPotentialMatchLookupBrowserIndex = ConfigurationManager
@@ -99,7 +100,7 @@ public class CrisRetrievePotentialMatchPlugin implements
                 BrowseInfo binfo = be.browse(scope);
                 log.debug("Find " + binfo.getResultCount()
                         + "item(s) in browsing...");
-                for (BrowseItem bitem : binfo.getBrowseItemResults())
+                for (BrowseDSpaceObject bitem : binfo.getBrowseItemResults())
                 {
                     if (!invalidIds.contains(bitem.getID()))
                     {
@@ -120,11 +121,11 @@ public class CrisRetrievePotentialMatchPlugin implements
  
 
     @Override
-    public Map<NameResearcherPage, Item[]> retrieveGroupByName(Context context,
-            Map<String, Set<Integer>> mapInvalids, List<ResearcherPage> rps)
+    public Map<NameResearcherPage, List<Item>> retrieveGroupByName(Context context,
+            Map<String, Set<UUID>> mapInvalids, List<ResearcherPage> rps)
     {
       
-        Map<NameResearcherPage, Item[]> result = new HashMap<NameResearcherPage, Item[]>();
+        Map<NameResearcherPage, List<Item>> result = new HashMap<NameResearcherPage, List<Item>>();
 
         for (ResearcherPage researcher : rps)
         {

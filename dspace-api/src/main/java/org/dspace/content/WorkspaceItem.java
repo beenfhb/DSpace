@@ -8,6 +8,8 @@
 package org.dspace.content;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
@@ -188,7 +190,7 @@ public class WorkspaceItem implements InProgressSubmission, Serializable, Reload
         return collection;
     }
 
-    void setCollection(Collection collection) {
+    public void setCollection(Collection collection) {
         this.collection = collection;
     }
 
@@ -247,4 +249,19 @@ public class WorkspaceItem implements InProgressSubmission, Serializable, Reload
     {
         supervisorGroups.add(group);
     }
+
+	@Override
+	public void update() throws SQLException, AuthorizeException {
+		
+		Context context = null; 
+		try {
+			context = new Context();
+			ContentServiceFactory.getInstance().getWorkspaceItemService().update(context, this);
+		}
+		finally {
+			if(context!=null && context.isValid()) {
+				context.abort();
+			}
+		}
+	}
 }

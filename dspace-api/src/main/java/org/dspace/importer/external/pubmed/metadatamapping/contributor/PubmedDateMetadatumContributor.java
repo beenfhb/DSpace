@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.DCDate;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -29,8 +29,8 @@ import java.util.List;
  *
  * @author Philip Vissenaekens (philip at atmire dot com)
  */
-public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T> {
-    Logger log = Logger.getLogger(PubmedDateMetadatumContributor.class);
+public class PubmedDateMetadataValueContributor<T> implements MetadataContributor<T> {
+    Logger log = Logger.getLogger(PubmedDateMetadataValueContributor.class);
 
     private MetadataFieldMapping<T, MetadataContributor<T>> metadataFieldMapping;
 
@@ -63,9 +63,9 @@ public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T>
         year.setMetadataFieldMapping(metadataFieldMapping);
     }
     /**
-     * Initialize an empty PubmedDateMetadatumContributor object
+     * Initialize an empty PubmedDateMetadataValueContributor object
      */
-    public PubmedDateMetadatumContributor() {
+    public PubmedDateMetadataValueContributor() {
     }
 
     /**
@@ -75,7 +75,7 @@ public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T>
      * @param month a {@link MetadataContributor}, representing a month
      * @param year a {@link MetadataContributor}, representing a year
      */
-    public PubmedDateMetadatumContributor(MetadataFieldConfig field, MetadataContributor day, MetadataContributor month, MetadataContributor year) {
+    public PubmedDateMetadataValueContributor(MetadataFieldConfig field, MetadataContributor day, MetadataContributor month, MetadataContributor year) {
         this.field = field;
         this.day = day;
         this.month = month;
@@ -90,14 +90,14 @@ public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T>
      * @return a collection of import records. Only the identifier of the found records may be put in the record.
      */
     @Override
-    public Collection<MetadatumDTO> contributeMetadata(T t) {
-        List<MetadatumDTO> values = new LinkedList<>();
+    public Collection<MetadataValueDTO> contributeMetadata(T t) {
+        List<MetadataValueDTO> values = new LinkedList<>();
 
 
         try {
-            LinkedList<MetadatumDTO> yearList = (LinkedList<MetadatumDTO>) year.contributeMetadata(t);
-            LinkedList<MetadatumDTO> monthList = (LinkedList<MetadatumDTO>) month.contributeMetadata(t);
-            LinkedList<MetadatumDTO> dayList = (LinkedList<MetadatumDTO>) day.contributeMetadata(t);
+            LinkedList<MetadataValueDTO> yearList = (LinkedList<MetadataValueDTO>) year.contributeMetadata(t);
+            LinkedList<MetadataValueDTO> monthList = (LinkedList<MetadataValueDTO>) month.contributeMetadata(t);
+            LinkedList<MetadataValueDTO> dayList = (LinkedList<MetadataValueDTO>) day.contributeMetadata(t);
 
             for (int i = 0; i < yearList.size(); i++) {
                 DCDate dcDate = null;
@@ -137,7 +137,7 @@ public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T>
     }
 
     /**
-     * Return the MetadataFieldConfig used while retrieving MetadatumDTO
+     * Return the MetadataFieldConfig used while retrieving MetadataValueDTO
      * @return MetadataFieldConfig
      */
     public MetadataFieldConfig getField() {
@@ -146,7 +146,7 @@ public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T>
 
     /**
      * Setting the MetadataFieldConfig
-     * @param field MetadataFieldConfig used while retrieving MetadatumDTO
+     * @param field MetadataFieldConfig used while retrieving MetadataValueDTO
      */
     public void setField(MetadataFieldConfig field) {
         this.field = field;

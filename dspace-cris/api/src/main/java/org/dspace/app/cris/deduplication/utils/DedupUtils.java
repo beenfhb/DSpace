@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -30,18 +31,20 @@ import org.dspace.app.cris.deduplication.service.DedupService;
 import org.dspace.app.cris.deduplication.service.impl.SolrDedupServiceImpl;
 import org.dspace.app.cris.deduplication.service.impl.SolrDedupServiceImpl.DeduplicationFlag;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.CrisDeduplication;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
 
 public class DedupUtils
 {
@@ -229,46 +232,44 @@ public class DedupUtils
         return dupsInfo;
     }
 
-    public boolean rejectAdminDups(Context context, Integer firstId,
-            Integer secondId, Integer type) throws SQLException, AuthorizeException
+    public boolean rejectAdminDups(Context context, UUID firstId,
+            UUID secondId, Integer type) throws SQLException, AuthorizeException
     {
         if (firstId == secondId)
         {
             return false;
         }
-        if (!AuthorizeManager.isAdmin(context))
+        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             throw new AuthorizeException(
                     "Only the administrator can reject the duplicate in the administrative section");
         }
-        Integer[] sortedIds = new Integer[] { firstId, secondId };
+        UUID[] sortedIds = new UUID[] { firstId, secondId };
         Arrays.sort(sortedIds);
         
-        TableRow row = null;
+        CrisDeduplication row = null;
         try
         {
-            row = DatabaseManager.querySingleTable(context, "dedup_reject",
-                    "select * from dedup_reject where first_item_id = ? and second_item_id = ?",
-                    sortedIds[0], sortedIds[1]);
+
+            row = (CrisDeduplication)getHibernateSession(context).createQuery("select * from CrisDeduplication where first_item_id = :par0 and second_item_id = :par1").setParameter(0, sortedIds[0]).setParameter(1, sortedIds[1]).uniqueResult();
             if (row != null)
             {
-                row.setColumn("admin_id", context.getCurrentUser().getID());
-                row.setColumn("admin_time", new Date());
-                row.setColumn("resource_type_id", type);
-                row.setColumn(SolrDedupServiceImpl.COLUMN_ADMIN_DECISION, DeduplicationFlag.REJECTADMIN.getDescription());
+                row.setAdmin_id(context.getCurrentUser().getID());
+                row.setAdmin_time(new Date());
+                row.setResource_type_id(type);
+                row.setAdmin_decision(DeduplicationFlag.REJECTADMIN.getDescription());
             }
             else
             {
-                row = DatabaseManager.create(context, "dedup_reject");
-                row.setColumn("first_item_id", sortedIds[0]);
-                row.setColumn("second_item_id", sortedIds[1]);
-                row.setColumn("admin_id", context.getCurrentUser().getID());
-                row.setColumn("admin_time", new Date());
-                row.setColumn("resource_type_id", type);
-                row.setColumn(SolrDedupServiceImpl.COLUMN_ADMIN_DECISION, DeduplicationFlag.REJECTADMIN.getDescription());
+                row = new CrisDeduplication();
+                row.setFirst_item_id(sortedIds[0]);
+                row.setSecond_item_id(sortedIds[1]);
+                row.setAdmin_id(context.getCurrentUser().getID());
+                row.setAdmin_time(new Date());
+                row.setResource_type_id(type);
+                row.setAdmin_decision(DeduplicationFlag.REJECTADMIN.getDescription());
             }
-            DatabaseManager.update(context, row);
-            
+            applicationService.saveOrUpdate(CrisDeduplication.class, row);
             dedupService.buildReject(context, firstId, secondId, type, DeduplicationFlag.REJECTADMIN, null);
             return true;
         }
@@ -291,7 +292,7 @@ public class DedupUtils
      * @throws AuthorizeException
      * @throws SearchServiceException
      */
-    public boolean rejectAdminDups(Context context, int itemID,
+    public boolean rejectAdminDups(Context context, UUID itemID,
             String signatureType, int resourceType) throws SQLException,
                     AuthorizeException, SearchServiceException
     {
@@ -300,7 +301,7 @@ public class DedupUtils
                 signatureType, resourceType, itemID);
 
         boolean found = false;
-        for (DSpaceObject item : dsi.getItems())
+        for (BrowsableDSpaceObject item : dsi.getItems())
         {
             if(item!=null) {
                 if (item.getID() == itemID)
@@ -312,7 +313,7 @@ public class DedupUtils
         }
         if (found && dsi.getNumItems() > 1)
         {
-            for (DSpaceObject item : dsi.getItems())
+            for (BrowsableDSpaceObject item : dsi.getItems())
             {
                 if (item != null)
                 {
@@ -338,48 +339,50 @@ public class DedupUtils
         }
     }
 
-    public void verify(Context context, int dedupId, int firstId,
-            int secondId, int type, boolean toFix, String note, boolean check)
+    public void verify(Context context, int dedupId, UUID firstId,
+            UUID secondId, int type, boolean toFix, String note, boolean check)
                     throws SQLException, AuthorizeException
     {
-        Integer[] sortedIds = new Integer[] { firstId, secondId };
+        UUID[] sortedIds = new UUID[] { firstId, secondId };
         Arrays.sort(sortedIds);
         firstId = sortedIds[0];
         secondId = sortedIds[1];
-        Item firstItem = Item.find(context, firstId);
-        Item secondItem = Item.find(context, secondId);
-        if (AuthorizeManager.authorizeActionBoolean(context, firstItem,
+        Item firstItem = ContentServiceFactory.getInstance().getItemService().find(context, firstId);
+        Item secondItem = ContentServiceFactory.getInstance().getItemService().find(context, secondId);
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, firstItem,
                 Constants.WRITE)
-                || AuthorizeManager.authorizeActionBoolean(context, secondItem,
+                || AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, secondItem,
                         Constants.WRITE))
         {
-            TableRow row = DatabaseManager.querySingle(context, "select * from dedup_reject where first_item_id = ? and second_item_id = ?", firstId, secondId);
+            CrisDeduplication row = (CrisDeduplication)getHibernateSession(context).createQuery("select * from CrisDeduplication where first_item_id = :par0 and second_item_id = :par1").setParameter(0, firstId).setParameter(1, secondId);
             
-            if(row!=null) {                
-                int identifierRow = row.getIntColumn("dedup_reject_id");
-                String submitterDecision = row.getStringColumn("submitter_decision");
-                row = DatabaseManager.row("dedup_reject");
-                row.setColumn("dedup_reject_id", identifierRow);
+            if(row!=null) {               
+                String submitterDecision = row.getSubmitter_decision();                
                 if(check && StringUtils.isNotBlank(submitterDecision)) {
-                    row.setColumn(SolrDedupServiceImpl.COLUMN_SUBMITTER_DECISION, submitterDecision);
+                    row.setSubmitter_decision(submitterDecision);
                 }                
             }
             else {
-                row = DatabaseManager.create(context, "dedup_reject");
+                row = new CrisDeduplication();
             }
             
-            row.setColumn("first_item_id", firstId);
-            row.setColumn("second_item_id", secondId);
-            row.setColumn("resource_type_id", type);
-            row.setColumn("tofix", toFix);
-            row.setColumn("fake", false);
-            row.setColumn("reader_note", note);
-            row.setColumn("reader_id", context.getCurrentUser().getID());
-            row.setColumn("reader_time", new Date());
-            row.setColumn("resource_type_id", type);
-            row.setColumn(check?SolrDedupServiceImpl.COLUMN_WORKFLOW_DECISION:SolrDedupServiceImpl.COLUMN_SUBMITTER_DECISION, check?DeduplicationFlag.VERIFYWF.getDescription():DeduplicationFlag.VERIFYWS.getDescription());
+            row.setFirst_item_id(firstId);
+            row.setSecond_item_id(secondId);
+            row.setResource_type_id(type);
+            row.setTofix(toFix);
+            row.setFake(false);
+            row.setReader_note(note);
+            row.setReader_id(context.getCurrentUser().getID());
+            row.setReader_time(new Date());
+            row.setResource_type_id(type);
+            if(check) {
+            	row.setWorkflow_decision(DeduplicationFlag.VERIFYWF.getDescription());
+            }
+            else {
+            	row.setSubmitter_decision(DeduplicationFlag.VERIFYWS.getDescription());
+            }
 
-            DatabaseManager.update(context, row);
+            applicationService.saveOrUpdate(CrisDeduplication.class, row);
             dedupService.buildReject(context, firstId, secondId, type, check?DeduplicationFlag.VERIFYWF:DeduplicationFlag.VERIFYWS, note);
         }
         else
@@ -389,59 +392,53 @@ public class DedupUtils
         }
     }
 
-    public boolean rejectDups(Context context, Integer firstId,
-            Integer secondId, Integer type, boolean notDupl, String note,
+    public boolean rejectDups(Context context, UUID firstId,
+            UUID secondId, Integer type, boolean notDupl, String note,
             boolean check) throws SQLException
     {
-        Integer[] sortedIds = new Integer[] { firstId, secondId };
+        UUID[] sortedIds = new UUID[] { firstId, secondId };
         Arrays.sort(sortedIds);
-        TableRow row = null;
+        CrisDeduplication row = null;
         try
         {
-            row = DatabaseManager.querySingle(context,
-                    "select * from dedup_reject where first_item_id = ? and second_item_id = ?",
-                    sortedIds[0], sortedIds[1]);
+        	row = (CrisDeduplication)getHibernateSession(context).createQuery("select * from dedup_reject where first_item_id = :par0 and second_item_id = :par1").setParameter(0, sortedIds[0]).setParameter(1, sortedIds[1]);
 
-            Item firstItem = Item.find(context, firstId);
-            Item secondItem = Item.find(context, secondId);
-            if (AuthorizeManager.authorizeActionBoolean(context, firstItem,
+            Item firstItem = ContentServiceFactory.getInstance().getItemService().find(context, firstId);
+            Item secondItem = ContentServiceFactory.getInstance().getItemService().find(context, secondId);
+            if (AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, firstItem,
                     Constants.WRITE)
-                    || AuthorizeManager.authorizeActionBoolean(context,
+                    || AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context,
                             secondItem, Constants.WRITE))
             {
 
                 if(row!=null) {                
-                    int identifierRow = row.getIntColumn("dedup_reject_id");
-                    String submitterDecision = row.getStringColumn("submitter_decision");
-                    row = DatabaseManager.row("dedup_reject");
-                    row.setColumn("dedup_reject_id", identifierRow);
+                    String submitterDecision = row.getSubmitter_decision();                
                     if(check && StringUtils.isNotBlank(submitterDecision)) {
-                        row.setColumn(SolrDedupServiceImpl.COLUMN_SUBMITTER_DECISION, submitterDecision);
-                    }                
+                        row.setSubmitter_decision(submitterDecision);
+                    }    
                 }
                 else {
-                    row = DatabaseManager.create(context, "dedup_reject");
+                	 row = new CrisDeduplication();
                 }
                 
-                row.setColumn("first_item_id", sortedIds[0]);
-                row.setColumn("second_item_id", sortedIds[1]);
-                row.setColumn("eperson_id", context.getCurrentUser().getID());
-                row.setColumn("reject_time", new Date());
-                row.setColumn("note", note);
-                row.setColumn("fake", notDupl);
-                row.setColumn("resource_type_id", type);
+                row.setFirst_item_id(sortedIds[0]);
+                row.setSecond_item_id(sortedIds[1]);
+                row.setEperson_id(context.getCurrentUser().getID());
+                row.setReject_time(new Date());
+                row.setNote(note);
+                row.setFake(notDupl);
+                row.setResource_type_id(type);
                 if (check)
                 {
-                    row.setColumn(SolrDedupServiceImpl.COLUMN_WORKFLOW_DECISION,
+                    row.setWorkflow_decision(
                             DeduplicationFlag.REJECTWF.getDescription());
                 }
                 else
                 {
-                    row.setColumn(
-                            SolrDedupServiceImpl.COLUMN_SUBMITTER_DECISION,
+                    row.setSubmitter_decision(
                             DeduplicationFlag.REJECTWS.getDescription());
                 }
-                DatabaseManager.update(context, row);
+                applicationService.saveOrUpdate(CrisDeduplication.class, row);
                 dedupService.buildReject(context, firstId, secondId, type,
                         check ? DeduplicationFlag.REJECTWF
                                 : DeduplicationFlag.REJECTWS,
@@ -574,8 +571,7 @@ public class DedupUtils
     
                                 for (String obj : ids)
                                 {
-                                    Item item = Item.find(context,
-                                            Integer.parseInt(obj));
+                                	Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(obj));
                                     if (item != null)
                                     {
                                         if (!(dsi.getItems().contains(item)))
@@ -589,7 +585,7 @@ public class DedupUtils
                             {
                                 for (String obj : ids)
                                 {
-                                    DSpaceObject dspaceObject = getApplicationService()
+                                	BrowsableDSpaceObject dspaceObject = getApplicationService()
                                             .getEntityByCrisId(obj);
                                     if (!(dsi.getItems().contains(dspaceObject)))
                                     {
@@ -615,7 +611,7 @@ public class DedupUtils
     }
 
     private DuplicateSignatureInfo findPotentialMatchByID(Context context,
-            String signatureType, int resourceType, int itemID)
+            String signatureType, int resourceType, UUID itemID)
                     throws SearchServiceException, SQLException
     {
         if (StringUtils.isNotEmpty(signatureType))
@@ -663,7 +659,7 @@ public class DedupUtils
 
                 for (String obj : ids)
                 {
-                    Item item = Item.find(context, Integer.parseInt(obj));
+                    Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(obj));
                     if (!(dsi.getItems().contains(item)))
                     {
                         dsi.getItems().add(item);
@@ -674,7 +670,7 @@ public class DedupUtils
             {
                 for (String obj : ids)
                 {
-                    DSpaceObject dspaceObject = getApplicationService()
+                	BrowsableDSpaceObject dspaceObject = getApplicationService()
                             .getEntityByCrisId(obj);
                     if (!(dsi.getItems().contains(dspaceObject)))
                     {
@@ -784,7 +780,7 @@ public class DedupUtils
 
                 for (String obj : ids)
                 {
-                    Item item = Item.find(context, Integer.parseInt(obj));
+                	Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(obj));
                     if (item != null)
                     {
                         if (!(dsi.getItems().contains(item)))
@@ -798,7 +794,7 @@ public class DedupUtils
             {
                 for (String obj : ids)
                 {
-                    DSpaceObject dspaceObject = getApplicationService()
+                	BrowsableDSpaceObject dspaceObject = getApplicationService()
                             .getEntityByCrisId(obj);
                     if (!(dsi.getItems().contains(dspaceObject)))
                     {
@@ -816,4 +812,7 @@ public class DedupUtils
         return dil;
     }
     
+    protected Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 
@@ -18,13 +19,13 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.hibernate.Session;
 
 public class DoiFactoryUtils {
 	
@@ -52,7 +53,7 @@ public class DoiFactoryUtils {
 	 * @throws AuthorizeException
 	 */
 	public static void internalBuildDOIAndAddToQueue(Context context,
-			List<Item> items, EPerson eperson, String type, Map<Integer,String> dois)
+			List<Item> items, EPerson eperson, String type, Map<UUID,String> dois)
 			throws IOException, ServletException, SQLException,
 			AuthorizeException {
 
@@ -69,15 +70,12 @@ public class DoiFactoryUtils {
 				doi = buildDoi(context, type, target);
 			}
 			try {
-				result = DatabaseManager
-						.updateQuery(
-								context,
-								getQuery(),
-								target.getID(), eperson.getID(), doi.trim(), type);
+				result = getHibernateSession(context).createSQLQuery(
+								getQuery()).setParameter(0, target.getID()).setParameter(1, eperson.getID()).setParameter(2, doi.trim()).setParameter(3, type).executeUpdate();
 								
-				target.addMetadata("dc", "utils", "processdoi", null, "pending");
+				target.getItemService().addMetadata(context, target, "dc", "utils", "processdoi", null, "pending");
 				
-				target.update();				
+				target.getItemService().update(context, target);				
 			} catch (SQLException e) {
 				DoiFactoryServlet.log.error(e.getMessage(), e);
 			}
@@ -103,7 +101,7 @@ public class DoiFactoryUtils {
 			configurationCitation = ConfigurationManager
 					.getProperty("tool.doi.citation.default");
 		}
-		final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+		final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
 				.getNamedPlugin(StreamDisseminationCrosswalk.class,
 						configurationCitation);
 		try {
@@ -130,32 +128,15 @@ public class DoiFactoryUtils {
 		if (docs != null) {
 
 			for (SolrDocument doc : docs) {
-				Integer resourceId = (Integer) doc
-						.getFieldValue("search.resourceid");
-				resultsItems.add(Item.find(context, resourceId));
+				UUID resourceId = UUID.fromString((String) doc
+						.getFieldValue("search.resourceid"));
+				resultsItems.add(ContentServiceFactory.getInstance().getItemService().find(context, resourceId));
 
 			}
 		}
 		return resultsItems;
 	}
 
-	/**
-	 * Get items from arrays of ids 
-	 * 
-	 * @param context
-	 * @param items
-	 * @return
-	 * @throws SQLException
-	 */
-	public static List<Item> getItems(Context context, int[] items)
-			throws SQLException {
-		List<Item> result = new ArrayList<Item>();
-		for (int i = 0; i < items.length; i++) {
-			Item item = Item.find(context, items[i]);
-			result.add(item);
-		}
-		return result;
-	}
 	
 	
 	/**
@@ -166,11 +147,11 @@ public class DoiFactoryUtils {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static List<Item> getItems(Context context, List<Integer> items)
+	public static List<Item> getItems(Context context, List<UUID> items)
 			throws SQLException {
 		List<Item> result = new ArrayList<Item>();
-		for (Integer i : items) {
-			Item item = Item.find(context, i);
+		for (UUID i : items) {
+			Item item = ContentServiceFactory.getInstance().getItemService().find(context, i);
 			result.add(item);
 		}
 		return result;
@@ -189,9 +170,8 @@ public class DoiFactoryUtils {
 	}
 
 
-	public static String getDoiFromDoi2Item(Context context, Integer itemId) throws SQLException {
-		TableRow row = DatabaseManager.querySingle(context, "select identifier_doi from "+ TABLE_NAME +" where item_id = ?", itemId);
-		return row.getStringColumn("identifier_doi");
+	public static String getDoiFromDoi2Item(Context context, UUID itemId) throws SQLException {
+		return (String)getHibernateSession(context).createSQLQuery("select identifier_doi from "+ TABLE_NAME +" where item_id = :par0").addScalar("identifier_doi").setParameter(0, itemId).uniqueResult();
 	}
 
 	private static String getQuery() {
@@ -202,4 +182,8 @@ public class DoiFactoryUtils {
 	    return "INSERT INTO "+ TABLE_NAME +" (ID, ITEM_ID, EPERSON_ID, REQUEST_DATE, LAST_MODIFIED, IDENTIFIER_DOI, CRITERIA, RESPONSE_CODE, NOTE) "
         + "VALUES (nextval(\'doi2item_seq\'),?,?,CURRENT_TIMESTAMP,NULL,?, ?, NULL, NULL)";
 	}
+	
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

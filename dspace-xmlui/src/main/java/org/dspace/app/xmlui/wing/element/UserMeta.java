@@ -42,7 +42,7 @@ public class UserMeta extends AbstractWingElement implements
     private boolean authenticated = false;
 
     /** The metadata contents of this UserMeta element */
-    private List<Metadata> metadatum = new ArrayList<Metadata>();
+    private List<Metadata> MetadataValue = new ArrayList<Metadata>();
 
     /**
      * Construct a new userMeta
@@ -87,7 +87,7 @@ public class UserMeta extends AbstractWingElement implements
             String language, boolean allowMultiple) throws WingException
     {
         Metadata metadata = new Metadata(context, element, qualifier, language, allowMultiple);
-        metadatum.add(metadata);
+        MetadataValue.add(metadata);
         return metadata;
     }
 
@@ -198,7 +198,7 @@ public class UserMeta extends AbstractWingElement implements
     		String language = attributes.getValue(Metadata.A_LANGUAGE);
     		
     		List<Metadata> remove = new ArrayList<Metadata>();
-    		for (Metadata metadata : metadatum)
+    		for (Metadata metadata : MetadataValue)
     		{
     			if (metadata.equals(element,qualifier,language) && !metadata.allowMultiple())
     			{
@@ -210,7 +210,7 @@ public class UserMeta extends AbstractWingElement implements
     		for (Metadata metadata : remove)
     		{
     			metadata.dispose();
-    			metadatum.remove(metadata);
+    			MetadataValue.remove(metadata);
     		}
     	}
     	
@@ -298,7 +298,7 @@ public class UserMeta extends AbstractWingElement implements
             startElement(contentHandler, namespaces, E_USER_META, attributes);
         }
 
-        for (Metadata metadata : metadatum)
+        for (Metadata metadata : MetadataValue)
         {
             metadata.toSAX(contentHandler, lexicalHandler, namespaces);
         }
@@ -315,12 +315,12 @@ public class UserMeta extends AbstractWingElement implements
     @Override
     public void dispose()
     {
-        for (AbstractWingElement content : metadatum)
+        for (AbstractWingElement content : MetadataValue)
         {
             content.dispose();
         }
-        metadatum.clear();
-        metadatum = null;
+        MetadataValue.clear();
+        MetadataValue = null;
         super.dispose();
     }
 }

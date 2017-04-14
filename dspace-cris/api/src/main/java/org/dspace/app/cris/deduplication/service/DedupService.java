@@ -10,22 +10,22 @@ package org.dspace.app.cris.deduplication.service;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.dspace.app.cris.deduplication.service.impl.SolrDedupServiceImpl.DeduplicationFlag;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 
 public interface DedupService
 {
 
-    public void indexContent(Context ctx, DSpaceObject dso, boolean force) throws SearchServiceException;
+    public void indexContent(Context ctx, BrowsableDSpaceObject dso, boolean force) throws SearchServiceException;
 
-    public void unIndexContent(Context context, DSpaceObject dso);
+    public void unIndexContent(Context context, BrowsableDSpaceObject dso);
 
     public QueryResponse find(String query, String... filters) throws SearchServiceException;
 
@@ -37,7 +37,7 @@ public interface DedupService
 
     public void updateIndex(Context context, boolean force);
 
-    public void indexContent(Context context, List<Integer> ids, boolean force,
+    public void indexContent(Context context, List<UUID> ids, boolean force,
             int type);
 
     public void updateIndex(Context context, boolean b, Integer type);
@@ -46,11 +46,11 @@ public interface DedupService
 
     public void unIndexContent(Context context, String handleOrUuid) throws IllegalStateException, SQLException;
     
-    public void unIndexContent(Context context, Integer id, Integer type) throws IllegalStateException, SQLException;
+    public void unIndexContent(Context context, UUID id, Integer type) throws IllegalStateException, SQLException;
     
     public QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
 
-    public void buildReject(Context context, Integer firstId, Integer secondId, Integer type,
+    public void buildReject(Context context, UUID firstId, UUID secondId, Integer type,
             DeduplicationFlag flag, String note);
 
     public void commit();

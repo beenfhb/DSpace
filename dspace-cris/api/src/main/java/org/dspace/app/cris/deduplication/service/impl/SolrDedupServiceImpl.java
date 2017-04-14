@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -35,23 +36,28 @@ import org.dspace.app.cris.deduplication.service.SearchDeduplication;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
 import org.dspace.app.cris.deduplication.utils.Signature;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.CrisDeduplication;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.util.Util;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.handle.HandleManager;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.ImmutableList;
 
 public class SolrDedupServiceImpl implements DedupService
 {
@@ -126,6 +132,9 @@ public class SolrDedupServiceImpl implements DedupService
     
     public static final String QUERY_REMOVE = RESOURCE_IDS_FIELD + ":{0}" + " AND " + RESOURCE_RESOURCETYPE_FIELD + ":{1}";
 
+    @Autowired(required = true)
+    protected ItemService itemService;
+    
     public enum DeduplicationFlag {
 
         FAKE("fake", 0), MATCH("match", 1), REJECTWS("reject_ws", 2), REJECTWF(
@@ -219,7 +228,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void indexContent(Context ctx, DSpaceObject iu, boolean force)
+    public void indexContent(Context ctx, BrowsableDSpaceObject iu, boolean force)
             throws SearchServiceException
     {
 
@@ -261,7 +270,7 @@ public class SolrDedupServiceImpl implements DedupService
         
     }
 
-    private void fillSignature(Context ctx, DSpaceObject iu,
+    private void fillSignature(Context ctx, BrowsableDSpaceObject iu,
             Map<String, List<String>> tmpMapFilter, List<String> tmpFilter)
     {
         // get all algorithms to build signature
@@ -318,7 +327,7 @@ public class SolrDedupServiceImpl implements DedupService
         }
     }
 
-    private void buildPotentialMatch(Context ctx, DSpaceObject iu,
+    private void buildPotentialMatch(Context ctx, BrowsableDSpaceObject iu,
             Map<String, List<String>> tmpMapFilter, List<String> tmpFilter,
             SearchDeduplication searchSignature) throws SearchServiceException
     {
@@ -335,11 +344,11 @@ public class SolrDedupServiceImpl implements DedupService
             // build the MATCH identifier
             Collection<Object> matchIds = (Collection<Object>) resultDoc
                     .getFieldValues(RESOURCE_IDS_FIELD);
-            Integer matchId = null;
+            UUID matchId = null;
 
             internal: for (Object matchIdObj : matchIds)
             {
-                matchId = Integer.parseInt((String) matchIdObj);
+                matchId = UUID.fromString((String) matchIdObj);
 
                 if (iu.getID() != matchId)
                 {
@@ -396,7 +405,7 @@ public class SolrDedupServiceImpl implements DedupService
         delete(queryDeleteFake);
     }
 
-    private void removeMatch(Integer id, Integer type)
+    private void removeMatch(UUID id, Integer type)
             throws SearchServiceException
     {
         // remove all MATCH related this deduplication item
@@ -407,7 +416,7 @@ public class SolrDedupServiceImpl implements DedupService
         delete(queryDeleteMatch);
     }
 
-    public void build(Context ctx, Integer firstId, Integer secondId,
+    public void build(Context ctx, UUID firstId, UUID secondId,
             DeduplicationFlag flag, Integer type,
             Map<String, List<String>> signatures, SearchDeduplication searchSignature, String note)
     {
@@ -416,7 +425,7 @@ public class SolrDedupServiceImpl implements DedupService
         // build upgraded document
         doc.addField(LAST_INDEXED_FIELD, new Date());
         
-        Integer[] sortedIds = new Integer[] { firstId, secondId };
+        UUID[] sortedIds = new UUID[] { firstId, secondId };
         Arrays.sort(sortedIds);
         
         String dedupID = sortedIds[0] + "-" + sortedIds[1];
@@ -493,7 +502,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void unIndexContent(Context context, DSpaceObject dso)
+    public void unIndexContent(Context context, BrowsableDSpaceObject dso)
     {
         try
         {
@@ -618,8 +627,7 @@ public class SolrDedupServiceImpl implements DedupService
 
                     for (Object id : ids)
                     {
-                        DSpaceObject o = DSpaceObject.find(context, type,
-                                (Integer) id);
+                        DSpaceObject o = ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, UUID.fromString((String)id));
 
                         if (o == null)
                         {
@@ -628,7 +636,7 @@ public class SolrDedupServiceImpl implements DedupService
                              * Use IndexWriter to delete, its easier to manage
                              * write.lock
                              */
-                            unIndexContent(context, o);
+                            unIndexContent(context, (BrowsableDSpaceObject)o);
                         }
                     }
                 }
@@ -646,7 +654,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void indexContent(Context context, List<Integer> ids, boolean force,
+    public void indexContent(Context context, List<UUID> ids, boolean force,
             int type)
     {
         try
@@ -654,7 +662,7 @@ public class SolrDedupServiceImpl implements DedupService
             switch (type)
             {
             case Constants.ITEM:
-                startMultiThreadIndex(force, ids);
+                startMultiThreadIndex(context, force, ids);
                 break;
             case CrisConstants.RP_TYPE_ID:
                 List<ResearcherPage> rps = getApplicationService()
@@ -714,10 +722,9 @@ public class SolrDedupServiceImpl implements DedupService
             switch (type)
             {
             case Constants.ITEM:
-                List<Integer> ids = Item.findAllItemIDs(context);
-                startMultiThreadIndex(true, ids);
+                startMultiThreadIndex(context, true, null);
                 commit();
-                startMultiThreadIndex(false, ids);
+                startMultiThreadIndex(context, false, null);
                 commit();
                 break;
             case CrisConstants.RP_TYPE_ID:
@@ -793,7 +800,7 @@ public class SolrDedupServiceImpl implements DedupService
     public void unIndexContent(Context context, String handleOrUuid)
             throws IllegalStateException, SQLException
     {
-        DSpaceObject dso = null;
+    	BrowsableDSpaceObject dso = null;
         if (StringUtils.isNotEmpty(handleOrUuid))
         {
             String handlePrefix = ConfigurationManager
@@ -801,7 +808,7 @@ public class SolrDedupServiceImpl implements DedupService
             if (handleOrUuid.startsWith(handlePrefix)
                     || handleOrUuid.startsWith("123456789/"))
             {
-                dso = HandleManager.resolveToObject(context, handleOrUuid);
+                dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handleOrUuid);
             }
             else
             {
@@ -821,13 +828,21 @@ public class SolrDedupServiceImpl implements DedupService
                 "applicationService", ApplicationService.class);
     }
 
-    private void startMultiThreadIndex(boolean onlyFake, List<Integer> ids)
+    private void startMultiThreadIndex(Context context, boolean onlyFake, List<UUID> ids) throws SQLException
     {
         int numThreads = ConfigurationManager.getIntProperty("dedup",
-                "indexer.items.threads", 5);        
-        List<Integer>[] arrayIDList = Util.splitList(ids, numThreads);
+                "indexer.items.threads", 5);
+        
+        if(ids==null) {
+            ids = new ArrayList<>();
+            Iterator<Item> items = itemService.findAllUnfiltered(context);
+            for(Item item : ImmutableList.copyOf(items)) {
+                ids.add(item.getID());
+            }
+        }
+        List<UUID>[] arrayIDList = Util.splitList(ids, numThreads);
         List<IndexerThread> threads = new ArrayList<IndexerThread>();
-        for (List<Integer> hl : arrayIDList)
+        for (List<UUID> hl : arrayIDList)
         {
             IndexerThread thread = new IndexerThread(hl, onlyFake);
             thread.start();
@@ -848,9 +863,9 @@ public class SolrDedupServiceImpl implements DedupService
     {
         private boolean onlyFake;
 
-        private List<Integer> itemids;
+        private List<UUID> itemids;
 
-        public IndexerThread(List<Integer> itemids, boolean onlyFake)
+        public IndexerThread(List<UUID> itemids, boolean onlyFake)
         {
             this.onlyFake = onlyFake;
             this.itemids = itemids;
@@ -867,15 +882,14 @@ public class SolrDedupServiceImpl implements DedupService
                 int idx = 1;
                 final String head = this.getName() + "#" + this.getId();
                 final int size = itemids.size();
-                for (Integer id : itemids)
+                for (UUID id : itemids)
                 {
                     try
                     {
-                        Item item = Item.find(context, id);
-                        
+                    	Item item = ContentServiceFactory.getInstance().getItemService().find(context, id);
                         Map<String, List<String>> tmpMapFilter = new HashMap<String, List<String>>();
                         List<String> tmpFilter = new ArrayList<String>();
-                        fillSignature(context, item, tmpMapFilter, tmpFilter);
+                        fillSignature(context, (BrowsableDSpaceObject)item, tmpMapFilter, tmpFilter);
                         if(!tmpFilter.isEmpty()) {
                             // retrieve all search plugin to build search document in the same index
                             SearchDeduplication searchSignature = dspace.getServiceManager()
@@ -891,7 +905,6 @@ public class SolrDedupServiceImpl implements DedupService
                                 buildPotentialMatch(context, item, tmpMapFilter, tmpFilter, searchSignature);
                             }
                         }
-                        item.decache();
                     }
                     catch (Exception ex)
                     {
@@ -915,32 +928,27 @@ public class SolrDedupServiceImpl implements DedupService
         }
     }
 
-    private void buildFromDedupReject(Context ctx, DSpaceObject iu,
+    private void buildFromDedupReject(Context ctx, BrowsableDSpaceObject iu,
             Map<String, List<String>> tmpMapFilter, List<String> tmpFilter,
             SearchDeduplication searchSignature)
     {
 
-        TableRowIterator tri = null;
-
         try
         {
-            tri = DatabaseManager.queryTable(ctx, "dedup_reject",
-                    "select * from dedup_reject where (first_item_id = ? or second_item_id = ?)",
-                    iu.getID(), iu.getID());
+        	List<CrisDeduplication> tri = getHibernateSession(ctx).createQuery("select * from CrisDeduplication where (first_item_id = :par0 or second_item_id = :par1)").setParameter(0, iu.getID()).setParameter(1, iu.getID()).list();
 
-            while (tri.hasNext())
+            for (CrisDeduplication row : tri) 
             {
-                TableRow row = tri.next();
                 
-                String submitterDecision = row.getStringColumn(COLUMN_SUBMITTER_DECISION);
-                String workflowDecision = row.getStringColumn(COLUMN_WORKFLOW_DECISION);
-                String adminDecision = row.getStringColumn(COLUMN_ADMIN_DECISION);
-                String readerNote = row.getStringColumn(COLUMN_READER_NOTE);
-                String adminNote = row.getStringColumn(COLUMN_ADMIN_NOTE);
+                String submitterDecision = row.getSubmitter_decision();
+                String workflowDecision = row.getWorkflow_decision();
+                String adminDecision = row.getAdmin_decision();
+                String readerNote = row.getReader_note();
+                String adminNote = row.getNote();
                 
-                int firstId = row.getIntColumn("first_item_id");
-                int secondId = row.getIntColumn("second_item_id");
-                int resourceTypeId = row.getIntColumn("resource_type_id");
+                UUID firstId = row.getFirst_item_id();
+                UUID secondId = row.getSecond_item_id();
+                int resourceTypeId = row.getResource_type_id();
                 if(StringUtils.isNotBlank(submitterDecision)) {
                     buildReject(ctx, firstId,
                             secondId,
@@ -964,19 +972,11 @@ public class SolrDedupServiceImpl implements DedupService
         {
             log.error(ex.getMessage(), ex);
         }
-        finally
-
-        {
-            if (tri != null)
-            {
-                tri.close();
-            }
-        }
 
     }
 
     @Override
-    public void buildReject(Context context, Integer firstId, Integer secondId,
+    public void buildReject(Context context, UUID firstId, UUID secondId,
             Integer type, DeduplicationFlag flag, String note)
     {
         build(context, firstId, secondId, flag, type, null, null, note);
@@ -999,7 +999,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void unIndexContent(Context context, Integer id, Integer type)
+    public void unIndexContent(Context context, UUID id, Integer type)
             throws IllegalStateException, SQLException
     {
         try
@@ -1013,4 +1013,12 @@ public class SolrDedupServiceImpl implements DedupService
         }
  
     }
+    
+    protected Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
+
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
+	}
 }

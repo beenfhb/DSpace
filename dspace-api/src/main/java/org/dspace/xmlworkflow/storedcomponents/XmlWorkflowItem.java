@@ -7,12 +7,15 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 import javax.persistence.*;
 import java.sql.SQLException;
@@ -134,5 +137,19 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer> 
     {
         this.publishedBefore = b;
     }
-
+    
+	@Override
+	public void update() throws SQLException, AuthorizeException {
+		
+		Context context = null; 
+		try {
+			context = new Context();
+			WorkflowServiceFactory.getInstance().getWorkflowItemService().update(context, this);
+		}
+		finally {
+			if(context!=null && context.isValid()) {
+				context.abort();
+			}
+		}
+	}
 }

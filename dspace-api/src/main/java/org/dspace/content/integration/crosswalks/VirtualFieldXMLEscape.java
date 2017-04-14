@@ -7,11 +7,12 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 
 /**
  * Implementazione del virtual field processing per effettuare l'escape xml dei
@@ -30,11 +31,11 @@ public class VirtualFieldXMLEscape implements VirtualFieldDisseminator,
 			return fieldCache.get(fieldName).split("\\|");
 		
 		String[] virtualFieldName = fieldName.split("\\.", 3);
-		Metadatum[] dcvs = item.getMetadataByMetadataString(virtualFieldName[2]);
+		List<MetadataValue> dcvs = item.getMetadataByMetadataString(virtualFieldName[2]);
 		StringBuffer out = null;
-		if (dcvs != null && dcvs.length > 0) {
+		if (dcvs != null && dcvs.size() > 0) {
 			out = new StringBuffer();
-			for (Metadatum dc : dcvs)
+			for (MetadataValue dc : dcvs)
 			{
 				out.append(StringEscapeUtils.escapeXml(dc.value)).append("|");
 			}

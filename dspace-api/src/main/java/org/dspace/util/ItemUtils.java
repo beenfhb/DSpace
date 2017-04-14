@@ -22,9 +22,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 public class ItemUtils
 {
@@ -113,11 +111,11 @@ public class ItemUtils
             throws SQLException, AuthorizeException, IOException
     {
         // Find item in workspace or workflow...
-        InProgressSubmission inprogress = WorkspaceItem.findByItem(context,
+        InProgressSubmission inprogress = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context,
                 item);
         if (inprogress == null)
         {
-            inprogress = WorkflowItem.findByItem(context, item);
+            inprogress = WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context, item);
         }
         // if we have an item that has been public at some time, better to keep
         // it for history
@@ -129,20 +127,20 @@ public class ItemUtils
             {
                 item.setOwningCollection(inprogress.getCollection());
             }
-            item.withdraw();
-            item.update();
+            item.getItemService().withdraw(context, item);
+            item.getItemService().update(context, item);
 
             // Delete wrapper
             if (inprogress != null)
             {
-                inprogress.deleteWrapper();
+                ContentServiceFactory.getInstance().getInProgressSubmissionService(inprogress).deleteWrapper(context, inprogress);
             }
 
         }
         else
         {
-            inprogress.deleteWrapper();
-            item.delete();
+            ContentServiceFactory.getInstance().getInProgressSubmissionService(inprogress).deleteWrapper(context, inprogress);
+            ContentServiceFactory.getInstance().getItemService().delete(context, item);
 
         }
     }

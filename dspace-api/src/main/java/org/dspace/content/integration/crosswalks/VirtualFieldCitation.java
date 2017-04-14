@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 
 /**
  * Implements virtual field processing for citation information (based on Grahamt version).
@@ -28,7 +29,7 @@ public class VirtualFieldCitation implements VirtualFieldDisseminator, VirtualFi
     
     public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName)
     {   
-        StreamDisseminationCrosswalk crosswalk = (StreamDisseminationCrosswalk)PluginManager.getNamedPlugin(StreamDisseminationCrosswalk.class, fieldName);
+        StreamDisseminationCrosswalk crosswalk = (StreamDisseminationCrosswalk)CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, fieldName);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         
         String[] result = null;

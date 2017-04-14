@@ -10,6 +10,7 @@ package org.dspace.app.cris.dao;
 import it.cilea.osd.common.dao.PaginableObjectDao;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.CrisSubscription;
 
@@ -21,8 +22,8 @@ import org.dspace.app.cris.model.CrisSubscription;
  */
 public interface CrisSubscriptionDao extends PaginableObjectDao<CrisSubscription, Integer> {
 	public long countByUUID(String uuid);
-	public List<String> findUUIDByEpersonID(int epersonID);
-	public CrisSubscription uniqueByEpersonIDandUUID(int epersonID, String uuid);
-	public void deleteByEpersonID(int id);
-	public long countByEpersonIDandUUID(int epersonID, String uuid);
+	public List<String> findUUIDByEpersonID(UUID epersonID);
+	public CrisSubscription uniqueByEpersonIDandUUID(UUID epersonID, String uuid);
+	public void deleteByEpersonID(UUID id);
+	public long countByEpersonIDandUUID(UUID epersonID, String uuid);
 }

@@ -8,6 +8,7 @@
 package org.dspace.statistics;
 
 import org.apache.log4j.Logger;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.model.Event;
@@ -39,7 +40,7 @@ public class ElasticSearchLoggerEventListener extends AbstractUsageEventListener
                 EPerson currentUser = ue.getContext() == null ? null : ue.getContext().getCurrentUser();
 
                 StatisticsServiceFactory.getInstance().getElasticSearchLoggerService().post(ue.getObject(), ue.getRequest(), currentUser);
-                log.info("Successfully logged " + contentServiceFactory.getDSpaceObjectService(ue.getObject()).getTypeText(ue.getObject()) + "_" + ue.getObject().getID() + " " + ue.getObject().getName());
+                log.info("Successfully logged " + ue.getObject().getTypeText() + "_" + ue.getObject().getID() + " " + ue.getObject().getName());
             }
             catch(Exception e)
             {

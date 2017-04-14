@@ -42,6 +42,9 @@
 		<mapping class="it.cilea.osd.common.core.TimeStampInfo" />
 		<mapping class="it.cilea.osd.common.core.SingleTimeStampInfo" />
 
+		<mapping class="org.dspace.app.cris.model.CrisPotentialMatches" />
+		<mapping class="org.dspace.app.cris.model.CrisDeduplication" />
+
 		<mapping class="org.dspace.app.cris.model.ResearcherPage" />
 		<mapping class="org.dspace.app.cris.model.Project" />
 		<mapping class="org.dspace.app.cris.model.OrganizationUnit" />

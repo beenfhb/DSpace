@@ -442,4 +442,10 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     public int countTotal(Context context) throws SQLException {
         return bundleDAO.countRows(context);
     }
+
+	@Override
+	public void addMetadata(Context context, Bundle dso, MetadataField metadataField, String lang, List<String> values,
+			List<String> authorities, List<Integer> confidences) throws SQLException {
+		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
+	}
 }

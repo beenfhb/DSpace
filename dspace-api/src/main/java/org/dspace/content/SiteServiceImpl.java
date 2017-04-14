@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -108,4 +109,10 @@ public class SiteServiceImpl extends DSpaceObjectServiceImpl<Site> implements Si
     public int getSupportsTypeConstant() {
         return Constants.SITE;
     }
+
+	@Override
+	public void addMetadata(Context context, Site dso, MetadataField metadataField, String lang, List<String> values,
+			List<String> authorities, List<Integer> confidences) throws SQLException {
+		//NOTHING		
+	}
 }

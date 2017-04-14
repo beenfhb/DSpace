@@ -663,7 +663,7 @@ public class DSpaceCSV implements Serializable
      *
      * The list can be configured via the key ignore-on-export in bulkedit.cfg
      *
-     * @param md The Metadatum to examine
+     * @param md The MetadataValue to examine
      * @return Whether or not it is OK to export this element
      */
     protected boolean okToExport(MetadataField md)

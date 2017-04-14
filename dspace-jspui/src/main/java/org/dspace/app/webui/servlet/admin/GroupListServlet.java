@@ -69,13 +69,13 @@ public class GroupListServlet extends DSpaceServlet
         String search = request.getParameter("search");
         if (search != null && !search.equals(""))
         {
-            groups = Group.search(context, search);
+            groups = EPersonServiceFactory.getInstance().getGroupService().search(context, search);
             request.setAttribute("offset", Integer.valueOf(offset));
         }
         else
         {
             // Retrieve the e-people in the specified order
-            groups = Group.findAll(context, sortBy);
+            groups = EPersonServiceFactory.getInstance().getGroupService().findAll(context, sortBy);
             request.setAttribute("offset", Integer.valueOf(0));
         }    
         

@@ -10,6 +10,7 @@ package org.dspace.app.webui.servlet;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -17,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.util.Researcher;
@@ -26,9 +26,11 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Subscribe;
+import org.dspace.eperson.service.SubscribeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -43,6 +45,9 @@ public class SubscribeServlet extends DSpaceServlet
     /** Logger */
     private static Logger log = Logger.getLogger(SubscribeServlet.class);
 
+    @Autowired
+    private SubscribeService subscribeService;
+    
     protected void doDSGet(Context context, HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException,
             SQLException, AuthorizeException
@@ -72,7 +77,7 @@ public class SubscribeServlet extends DSpaceServlet
         if (submit.equals("submit_clear_comm"))
         {
             // unsubscribe user from everything
-            Subscribe.unsubscribeCommunity(context, e, null);
+        	subscribeService.unsubscribeCommunity(context, e, null);
 
             // Show the list of subscriptions
             showSubscriptions(context, request, response, true);
@@ -82,7 +87,7 @@ public class SubscribeServlet extends DSpaceServlet
         else if (submit.equals("submit_clear_coll"))
         {
             // unsubscribe user from everything
-            Subscribe.unsubscribeCollection(context, e, null);
+            subscribeService.unsubscribeCollection(context, e, null);
 
             // Show the list of subscriptions
             showSubscriptions(context, request, response, true);
@@ -101,28 +106,28 @@ public class SubscribeServlet extends DSpaceServlet
         }
         else if (submit.equals("submit_unsubscribe"))
         {
-            int collID = UIUtil.getIntParameter(request, "collection");
-            int commID = UIUtil.getIntParameter(request, "community");
+            UUID collID = UIUtil.getUUIDParameter(request, "collection");
+            UUID commID = UIUtil.getUUIDParameter(request, "community");
             String crisobjectUUID = request.getParameter("crisobject");
             
-            if (collID != -1)
+            if (collID != null)
             {
-                Collection c = Collection.find(context, collID);
+                Collection c = ContentServiceFactory.getInstance().getCollectionService().find(context, collID);
 
                 // Sanity check - ignore duff values
                 if (c != null)
                 {
-                    Subscribe.unsubscribe(context, e, c);
+                    subscribeService.unsubscribe(context, e, c);
                 }
             }
-            if (commID != -1)
+            if (commID != null)
             {
-                Community c = Community.find(context, commID);
+                Community c = ContentServiceFactory.getInstance().getCommunityService().find(context, commID);
 
                 // Sanity check - ignore duff values
                 if (c != null)
                 {
-                    Subscribe.unsubscribe(context, e, c);
+                    subscribeService.unsubscribe(context, e, c);
                 }
             }
             if (crisobjectUUID != null && !crisobjectUUID.isEmpty())
@@ -166,10 +171,10 @@ public class SubscribeServlet extends DSpaceServlet
         ApplicationService applicationService = researcher.getApplicationService();
            
         // Subscribed collections
-        Collection[] subs = Subscribe.getSubscriptions(context, context
+        List<Collection> subs = subscribeService.getSubscriptionsCollection(context, context
                 .getCurrentUser());
         // Subscribed communities
-        Community[] subsComm = Subscribe.getCommunitySubscriptions(context, context
+        List<Community> subsComm = subscribeService.getSubscriptionsCommunity(context, context
                 .getCurrentUser());
         
         List<String> subsRP = rpsubscribe.getSubscriptions(context
@@ -182,4 +187,12 @@ public class SubscribeServlet extends DSpaceServlet
 
         JSPManager.showJSP(request, response, "/mydspace/subscriptions.jsp");
     }
+
+	public SubscribeService getSubscribeService() {
+		return subscribeService;
+	}
+
+	public void setSubscribeService(SubscribeService subscribeService) {
+		this.subscribeService = subscribeService;
+	}
 }

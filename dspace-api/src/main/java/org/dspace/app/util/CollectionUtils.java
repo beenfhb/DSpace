@@ -16,23 +16,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.webui.jsptag.ConfigurationService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.utils.DSpace;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class CollectionUtils {
     
     private static ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     
-	public static CollectionsTree getCollectionsTree(Collection[] collections, boolean skipCollection)
+	public static CollectionsTree getCollectionsTree(Context context, List<Collection> collections, boolean skipCollection)
 			throws SQLException {
 		
-		if (collections == null || collections.length == 0) {
+		if (collections == null || collections.isEmpty()) {
 			return null;
 		}
 		
@@ -47,7 +44,7 @@ public class CollectionUtils {
 			if (skipCollection && StringUtils.contains(handle, skipHandles)) {
 				continue;
 			} 
-			Community com = (Community) col.getParentObject();
+			Community com = (Community) col.getDSpaceObjectService().getParentObject(context, col);
 			if (map.containsKey(com)) {
 				map.get(com).add(col);
 			} else {
@@ -64,10 +61,10 @@ public class CollectionUtils {
 			trees.add(tree);
 		}
 		Collections.sort(trees);
-		return getCollectionsTree(trees);
+		return getCollectionsTree(context, trees);
 	}
 
-	private static CollectionsTree getCollectionsTree(
+	private static CollectionsTree getCollectionsTree(Context context,
 			List<CollectionsTree> trees) throws SQLException {
 		if (trees.size() == 1) {
 			return trees.get(0);
@@ -78,7 +75,7 @@ public class CollectionUtils {
 			Community com = null;
 			if (current != null)
 			{
-				com = current.getParentCommunity();
+				com = (Community) current.getDSpaceObjectService().getParentObject(context, current);
 			}
 			if (map.containsKey(com)) {
 				map.get(com).getSubTree().add(tree);
@@ -104,6 +101,6 @@ public class CollectionUtils {
 			result.add(t);
 		}
 
-		return getCollectionsTree(result);
+		return getCollectionsTree(context, result);
 	}
 }

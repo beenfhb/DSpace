@@ -8,30 +8,21 @@
 package org.dspace.app.webui.cris.components.statistics;
 
 import java.sql.SQLException;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.dspace.app.cris.discovery.CrisSearchService;
-import org.dspace.app.cris.statistics.CrisSolrLogger;
 import org.dspace.app.cris.statistics.bean.PieStatisticBean;
 import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.content.Bitstream;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.discovery.SolrServiceImpl;
-import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
 
 public class StatBitstreamTopObjectComponent extends StatTopObjectComponent
 {
@@ -61,8 +52,8 @@ public class StatBitstreamTopObjectComponent extends StatTopObjectComponent
             {
                 for (StatisticDatasBeanRow row : myvalue.getLimitedDataTable())
                 {
-                    Bitstream bitstream = Bitstream.find(context,
-                            Integer.parseInt(row.getLabel()));
+                    Bitstream bitstream = ContentServiceFactory.getInstance().getBitstreamService().find(context,
+                            UUID.fromString(row.getLabel()));
 
                     SolrQuery solrQuery = new SolrQuery();
                     solrQuery.setQuery(getFromField() +":"+ Constants.BITSTREAM + "-"+ bitstream.getID());

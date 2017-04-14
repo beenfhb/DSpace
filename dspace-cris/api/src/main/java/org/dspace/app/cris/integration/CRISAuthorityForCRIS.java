@@ -20,6 +20,7 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.dto.CrisAnagraficaObjectDTO;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
@@ -146,7 +147,7 @@ public abstract class CRISAuthorityForCRIS<T extends ACrisObject> implements Cho
 
                 List<Choice> choiceList = new ArrayList<Choice>();
 
-                for (DSpaceObject dso : result.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
                 {
                     T cris = (T) dso;
                     choiceList.add(new Choice(ResearcherPageUtils
@@ -244,7 +245,7 @@ public abstract class CRISAuthorityForCRIS<T extends ACrisObject> implements Cho
                 DiscoverResult result = searchService.search(null,
                         discoverQuery, true);
                 totalResult = (int) result.getTotalSearchResults();
-                for (DSpaceObject dso : result.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
                 {
                     T cris = (T) dso;
                     choiceList.add(new Choice(ResearcherPageUtils

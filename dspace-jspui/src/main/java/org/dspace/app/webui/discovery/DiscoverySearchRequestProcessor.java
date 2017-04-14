@@ -39,6 +39,7 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -149,7 +150,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
         }
 
         // then the rest - we are processing the query
-        DSpaceObject container;
+        BrowsableDSpaceObject container;
         try
         {
             container = DiscoverUtility.getSearchScope(context,
@@ -186,7 +187,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 
         // format and return results
         Map<String, String> labelMap = getLabels(request);
-        List<DSpaceObject> dsoResults = qResults.getDspaceObjects();
+        List<BrowsableDSpaceObject> dsoResults = qResults.getDspaceObjects();
         Document resultsDoc = openSearchService.getResultsDoc(context, format, query,
                 (int) qResults.getTotalSearchResults(), qResults.getStart(),
                 qResults.getMaxResults(), container, dsoResults, labelMap);
@@ -236,10 +237,16 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
             IOException, ServletException
     {
         init();
+        
+		String configurationName = request.getParameter("location");
+		if (DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME.equals(configurationName)) {
+			doGlobalSearch(context, request, response);
+			return;
+		}
         List<Item> resultsItems;
         List<Collection> resultsCollections;
         List<Community> resultsCommunities;
-        DSpaceObject scope;
+        BrowsableDSpaceObject scope;
         try
         {
             scope = DiscoverUtility.getSearchScope(context, request);
@@ -252,109 +259,6 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
         {
             throw new SearchProcessorException(e.getMessage(), e);
         }
-
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils
-                .getDiscoveryConfiguration(scope);
-        List<DiscoverySortFieldConfiguration> sortFields = discoveryConfiguration
-                .getSearchSortConfiguration().getSortFields();
-        List<String> sortOptions = new ArrayList<String>();
-        for (DiscoverySortFieldConfiguration sortFieldConfiguration : sortFields)
-        {
-            String sortField = SearchUtils.getSearchService().toSortFieldIndex(
-                    sortFieldConfiguration.getMetadataField(),
-                    sortFieldConfiguration.getType());
-            sortOptions.add(sortField);
-	}
-        request.setAttribute("sortOptions", sortOptions);
-
-        DiscoverQuery queryArgs = DiscoverUtility.getDiscoverQuery(context,
-                request, scope, true);
-
-        queryArgs.setSpellCheck(discoveryConfiguration.isSpellCheckEnabled()); 
-
-        List<DiscoverySearchFilterFacet> availableFacet = discoveryConfiguration
-                .getSidebarFacets();
-        
-        request.setAttribute("facetsConfig",
-                availableFacet != null ? availableFacet
-                        : new ArrayList<DiscoverySearchFilterFacet>());
-        int etal = UIUtil.getIntParameter(request, "etal");
-        if (etal == -1)
-        {
-            etal = ConfigurationManager
-                    .getIntProperty("webui.itemlist.author-limit");
-		}
-
-        request.setAttribute("etal", etal);
-
-        String query = queryArgs.getQuery();
-        request.setAttribute("query", query);
-        request.setAttribute("queryArgs", queryArgs);
-        List<DiscoverySearchFilter> availableFilters = discoveryConfiguration
-                .getSearchFilters();
-        request.setAttribute("availableFilters", availableFilters);
-
-        List<String[]> appliedFilters = DiscoverUtility.getFilters(request);
-        request.setAttribute("appliedFilters", appliedFilters);
-        List<String> appliedFilterQueries = new ArrayList<String>();
-        for (String[] filter : appliedFilters)
-        {
-            appliedFilterQueries.add(filter[0] + "::" + filter[1] + "::"
-                    + filter[2]);
-        }
-        request.setAttribute("appliedFilterQueries", appliedFilterQueries);
-        List<DSpaceObject> scopes = new ArrayList<DSpaceObject>();
-        if (scope == null)
-        {
-            List<Community> topCommunities;
-            try
-            {
-                topCommunities = communityService.findAllTop(context);
-            }
-            catch (SQLException e)
-            {
-                throw new SearchProcessorException(e.getMessage(), e);
-            }
-            for (Community com : topCommunities)
-            {
-                scopes.add(com);
-            }
-        }
-        else
-        {
-            try
-            {
-				DSpaceObject pDso = ContentServiceFactory.getInstance().getDSpaceObjectService(scope)
-						.getParentObject(context, scope);
-                while (pDso != null)
-                {
-                    // add to the available scopes in reverse order
-                    scopes.add(0, pDso);
-                    pDso = ContentServiceFactory.getInstance().getDSpaceObjectService(pDso)
-    						.getParentObject(context, pDso);
-                }
-                scopes.add(scope);
-                if (scope instanceof Community)
-                {
-                    List<Community> comms = ((Community) scope).getSubcommunities();
-                    for (Community com : comms)
-                    {
-                        scopes.add(com);
-                    }
-                    List<Collection> colls = ((Community) scope).getCollections();
-                    for (Collection col : colls)
-                    {
-                        scopes.add(col);
-                    }
-                }
-            }
-            catch (SQLException e)
-            {
-                throw new SearchProcessorException(e.getMessage(), e);
-            }
-        }
-        request.setAttribute("scope", scope);
-        request.setAttribute("scopes", scopes);
 
 		DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfigurationByName(configurationName);
 		List<DiscoverySortFieldConfiguration> sortFields = discoveryConfiguration.getSearchSortConfiguration()
@@ -404,11 +308,11 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			appliedFilterQueries.add(filter[0] + "::" + filter[1] + "::" + filter[2]);
 		}
 		request.setAttribute("appliedFilterQueries", appliedFilterQueries);
-		List<DSpaceObject> scopes = new ArrayList<DSpaceObject>();
+		List<BrowsableDSpaceObject> scopes = new ArrayList<BrowsableDSpaceObject>();
 		if (scope == null) {
-			Community[] topCommunities;
+			List<Community> topCommunities;
 			try {
-				topCommunities = Community.findAllTop(context);
+				topCommunities = communityService.findAllTop(context);
 			} catch (SQLException e) {
 				throw new SearchProcessorException(e.getMessage(), e);
 			}
@@ -417,19 +321,21 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			}
 		} else {
 			try {
-				DSpaceObject pDso = scope.getParentObject();
+				BrowsableDSpaceObject pDso = (BrowsableDSpaceObject)ContentServiceFactory.getInstance().getDSpaceObjectService((DSpaceObject)scope)
+						.getParentObject(context, (DSpaceObject)scope);
 				while (pDso != null) {
 					// add to the available scopes in reverse order
 					scopes.add(0, pDso);
-					pDso = pDso.getParentObject();
+					pDso = (BrowsableDSpaceObject)ContentServiceFactory.getInstance().getDSpaceObjectService((DSpaceObject)pDso).getParentObject(context,
+							(DSpaceObject)pDso);
 				}
 				scopes.add(scope);
 				if (scope instanceof Community) {
-					Community[] comms = ((Community) scope).getSubcommunities();
+					List<Community> comms = ((Community) scope).getSubcommunities();
 					for (Community com : comms) {
 						scopes.add(com);
 					}
-					Collection[] colls = ((Community) scope).getCollections();
+					List<Collection> colls = ((Community) scope).getCollections();
 					for (Collection col : colls) {
 						scopes.add(col);
 					}
@@ -440,7 +346,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 		}
 		request.setAttribute("scope", scope);
 		request.setAttribute("scopes", scopes);
-
+	        
 		// Perform the search
 		DiscoverResult qResults = null;
 		try {
@@ -450,9 +356,9 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			List<Collection> resultsListColl = new ArrayList<Collection>();
 			List<Item> resultsListItem = new ArrayList<Item>();
 
-			Map<Integer, List<DSpaceObject>> resultsListOther = new HashMap<Integer, List<DSpaceObject>>();
+			Map<Integer, List<BrowseDSpaceObject>> resultsListOther = new HashMap<Integer, List<BrowseDSpaceObject>>();
 
-			for (DSpaceObject dso : qResults.getDspaceObjects()) {
+			for (BrowsableDSpaceObject dso : qResults.getDspaceObjects()) {
 				if (dso instanceof Item) {
 					resultsListItem.add((Item) dso);
 				} else if (dso instanceof Collection) {
@@ -461,11 +367,11 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 				} else if (dso instanceof Community) {
 					resultsListComm.add((Community) dso);
 				} else if (dso instanceof BrowsableDSpaceObject) {
-					List<DSpaceObject> currList = resultsListOther.get(dso.getType());
+					List<BrowseDSpaceObject> currList = resultsListOther.get(dso.getType());
 					if (currList != null) {
 						currList.add(new BrowseDSpaceObject(context, (BrowsableDSpaceObject) dso));
 					} else {
-						List<DSpaceObject> newlist = new ArrayList<DSpaceObject>();
+						List<BrowseDSpaceObject> newlist = new ArrayList<BrowseDSpaceObject>();
 						resultsListOther.put(dso.getType(), newlist);
 						newlist.add(new BrowseDSpaceObject(context, (BrowsableDSpaceObject) dso));
 					}
@@ -473,22 +379,19 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			}
 
 			// Make objects from the handles - make arrays, fill them out
-			resultsCommunities = new Community[resultsListComm.size()];
-			resultsCollections = new Collection[resultsListColl.size()];
-			resultsItems = new Item[resultsListItem.size()];
 			Map<Integer, BrowseDSpaceObject[]> resultsMapOthers = new HashMap<Integer, BrowseDSpaceObject[]>();
 			for (Integer key : resultsListOther.keySet()) {
 				BrowseDSpaceObject[] resultsOther = new BrowseDSpaceObject[resultsListOther.get(key).size()];
 				resultsOther = resultsListOther.get(key).toArray(resultsOther);
 				resultsMapOthers.put(key, resultsOther);
 			}
-			resultsCommunities = resultsListComm.toArray(resultsCommunities);
-			resultsCollections = resultsListColl.toArray(resultsCollections);
-			resultsItems = resultsListItem.toArray(resultsItems);
 
 			// Log
-			log.info(LogManager.getHeader(context, "search", "scope=" + scope + ",query=\"" + query + "\",results=("
-					+ resultsCommunities.length + "," + resultsCollections.length + "," + resultsItems.length + ")"));
+            log.info(LogManager.getHeader(context, "search", "scope=" + scope
+                    + ",query=\"" + query + "\",results=("
+                    + resultsListComm.size() + ","
+                    + resultsListColl.size() + "," + resultsListItem.size()
+                    + ")"));
 
 			// Pass in some page qualities
 			// total number of pages
@@ -537,7 +440,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			         //TODO
 			    }
 			    else {
-			        exportMetadata(context, response, resultsItems);
+			        exportMetadata(context, response, resultsListItem);
 			    }
 			}
 		}
@@ -575,12 +478,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
                 "exporting_search"));
 
 		// Export a search view
-		ArrayList iids = new ArrayList();
-		for (Item item : items) {
-			iids.add(item.getID());
-		}
-		ItemIterator ii = new ItemIterator(context, iids);
-		MetadataExport exporter = new MetadataExport(context, ii, false);
+        MetadataExport exporter = new MetadataExport(context, items.iterator(), false);
 
 		// Perform the export
 		DSpaceCSV csv = exporter.export();
@@ -653,8 +551,8 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 
         Map<String, Item> items = new HashMap<String, Item>();
 
-        List<DSpaceObject> resultDSOs = results.getDspaceObjects();
-        for (DSpaceObject dso : resultDSOs)
+        List<BrowsableDSpaceObject> resultDSOs = results.getDspaceObjects();
+        for (BrowsableDSpaceObject dso : resultDSOs)
         {
             if (dso != null && dso.getType() == Constants.ITEM)
             {
@@ -750,7 +648,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 		DiscoverResult qResults = null;
 		try {
 			qResults = SearchUtils.getSearchService().search(context, null, queryArgs);
-			Map<String, List<DSpaceObject>> results = qResults.getCollapsingResults();
+			Map<String, List<BrowsableDSpaceObject>> results = qResults.getCollapsingResults();
 			
 			// Log
 			log.info(LogManager.getHeader(context, "search", "query=\"" + query + "\",results=("

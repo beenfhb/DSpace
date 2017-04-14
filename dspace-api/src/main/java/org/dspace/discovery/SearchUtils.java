@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -50,7 +51,7 @@ public class SearchUtils {
         return getDiscoveryConfiguration(null);
     }
 
-    public static DiscoveryConfiguration getDiscoveryConfiguration(DSpaceObject dso){
+    public static DiscoveryConfiguration getDiscoveryConfiguration(BrowsableDSpaceObject dso){
         return getDiscoveryConfigurationByName(dso!=null?dso.getHandle():null);
     }
 

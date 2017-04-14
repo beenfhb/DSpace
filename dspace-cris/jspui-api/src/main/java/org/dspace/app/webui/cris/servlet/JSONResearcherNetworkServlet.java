@@ -7,8 +7,6 @@
  */
 package org.dspace.app.webui.cris.servlet;
 
-import flexjson.JSONSerializer;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -27,11 +25,13 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.json.JSONRequest;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.utils.DSpace;
+
+import flexjson.JSONSerializer;
 
 public class JSONResearcherNetworkServlet extends JSONRequest
 {
@@ -60,7 +60,7 @@ public class JSONResearcherNetworkServlet extends JSONRequest
         try
         {
             if (rp == null  && // cv is hide
-                    !(AuthorizeManager.isAdmin(context) || // the user logged in is
+                    !(AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context) || // the user logged in is
                                                            // not an admin
                     (currUser != null && (rp.getEpersonID() != null && currUser
                             .getID() == rp.getEpersonID())))) // the user logged
@@ -80,7 +80,7 @@ public class JSONResearcherNetworkServlet extends JSONRequest
 
         String connection = req.getParameter("connection");
 
-        NetworkPlugin plugin = (NetworkPlugin) PluginManager.getNamedPlugin(NetworkPlugin.CFG_MODULE,
+        NetworkPlugin plugin = (NetworkPlugin) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(
                 NetworkPlugin.class, connection);
 
         String showEXT = req.getParameter("showexternal");

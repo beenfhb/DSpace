@@ -10,6 +10,7 @@ package org.dspace.app.cris.metrics.common.model;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -65,7 +66,7 @@ public class CrisMetrics implements Identifiable, HasTimeStampInfo
 
     private String uuid;
 
-    private Integer resourceId;
+    private UUID resourceId;
 
     private Integer resourceTypeId;
     
@@ -95,12 +96,12 @@ public class CrisMetrics implements Identifiable, HasTimeStampInfo
         this.id = id;
     }
 
-    public Integer getResourceId()
+    public UUID getResourceId()
     {
         return resourceId;
     }
 
-    public void setResourceId(Integer objectId)
+    public void setResourceId(UUID objectId)
     {
         this.resourceId = objectId;
     }

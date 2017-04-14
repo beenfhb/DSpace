@@ -25,19 +25,17 @@ import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authenticate.ExtraLoggedInAction;
 import org.dspace.authenticate.PostLoggedInAction;
 import org.dspace.authenticate.PostLoggedOutAction;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authenticate.service.AuthenticationService;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.utils.DSpace;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.utils.DSpace;
 
 /**
  * Methods for authenticating the user. This is DSpace platform code, as opposed

@@ -45,6 +45,7 @@ import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.statistics.StatsComponent;
 import org.dspace.app.webui.util.UIUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.springframework.web.servlet.ModelAndView;
@@ -274,7 +275,7 @@ public class CrisStatisticsController<T extends ACrisObject<P, TP, NP, NTP, ACNO
     }
 
     @Override
-    public DSpaceObject getObject(HttpServletRequest request)
+    public BrowsableDSpaceObject getObject(HttpServletRequest request)
     {
         String uuid = request.getParameter("id");
         return getApplicationService().getEntityByUUID(uuid);

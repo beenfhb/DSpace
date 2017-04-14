@@ -3,14 +3,15 @@ package org.dspace.app.cris.statistics.plugin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.solr.common.SolrDocument;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 
-public abstract class AIndicatorBuilder<ACO extends DSpaceObject>
+public abstract class AIndicatorBuilder<ACO extends BrowsableDSpaceObject>
         implements IIndicatorBuilder<ACO>
 {
 
@@ -63,7 +64,7 @@ public abstract class AIndicatorBuilder<ACO extends DSpaceObject>
             Map<String, Integer> mapNumberOfValueComputed,
             Map<String, Double> mapValueComputed, Map<String, Double> additionalValueComputed, Map<String, List<Double>> mapElementsValueComputed, 
             ACO aco, SolrDocument doc, Integer resourceType,
-            Integer resourceId, String uuid)
+            UUID resourceId, String uuid)
     {
         //default nothing to apply
     }
@@ -74,7 +75,7 @@ public abstract class AIndicatorBuilder<ACO extends DSpaceObject>
             Map<String, Integer> mapNumberOfValueComputed,
             Map<String, Double> mapValueComputed, Map<String, List<Double>> mapElementsValueComputed,
             ACO aco, SolrDocument doc, Integer resourceType,
-            Integer resourceId, String uuid) throws Exception;
+            UUID resourceId, String uuid) throws Exception;
 
     public String getName() {
         if(this.name==null) {

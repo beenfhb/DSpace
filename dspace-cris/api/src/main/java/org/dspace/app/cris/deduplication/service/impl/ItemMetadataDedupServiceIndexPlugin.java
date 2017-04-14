@@ -18,7 +18,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
@@ -58,7 +58,7 @@ public class ItemMetadataDedupServiceIndexPlugin
 
             for (String meta : metadata)
             {
-                for (Metadatum mm : item.getMetadataByMetadataString(meta))
+                for (MetadataValue mm : item.getMetadataByMetadataString(meta))
                 {
                     if (StringUtils.isNotEmpty(field))
                     {

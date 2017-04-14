@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
@@ -42,9 +43,11 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.value.OUPointer;
 import org.dspace.app.cris.model.listener.RPListener;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 /**
  * This class models the HKU Researcher Page concept. Almost all the field of
@@ -100,7 +103,7 @@ public class ResearcherPage extends
     private static final String NAME = "fullName";
 
 	@Column(unique = true, nullable = true)
-    private Integer epersonID;
+    private UUID epersonID;
 
     /** log4j logger */
     @Transient
@@ -512,7 +515,7 @@ public class ResearcherPage extends
             context = new Context();
             if (epersonID != null)
             {
-                eperson = EPerson.find(context, epersonID);
+                eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context, epersonID);
             }
         }
         catch (SQLException e)
@@ -530,12 +533,12 @@ public class ResearcherPage extends
         return eperson;
     }
 
-    public Integer getEpersonID()
+    public UUID getEpersonID()
     {
         return epersonID;
     }
 
-    public void setEpersonID(Integer idEPerson)
+    public void setEpersonID(UUID idEPerson)
     {
         this.epersonID = idEPerson;
     }

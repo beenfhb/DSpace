@@ -9,6 +9,7 @@ package org.dspace.app.webui.cris.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,11 +20,10 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authority.AuthorityValueGenerator;
+import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.browse.BrowseItem;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
@@ -34,14 +34,14 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
     @Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, Metadatum[] metadataArray, BrowseItem item, boolean disableCrossLinks,
+			int colIdx, String field, List<MetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks,
 			boolean emph) {
 		ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item).getBrowsableDSpaceObject();
 		String metadata = "-";
-		if (metadataArray.length > 0) {
+		if (metadataArray.size() > 0) {
 			metadata = "<a href=\"" + hrq.getContextPath() + "/cris/" + crisObject.getPublicPath() + "/"
 					+ ResearcherPageUtils.getPersistentIdentifier(crisObject) + "\">"
-					+ Utils.addEntities(metadataArray[0].value) + "</a>";
+					+ Utils.addEntities(metadataArray.get(0).getValue()) + "</a>";
 		}
 		metadata = (emph ? "<strong>" : "") + metadata + (emph ? "</strong>" : "");
 		return metadata;
@@ -49,20 +49,20 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
+			int colIdx, String field, List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
 		String metadata;
 		// limit the number of records if this is the author field (if
 		// -1, then the limit is the full list)
 		boolean truncated = false;
-		int loopLimit = metadataArray.length;
+		int loopLimit = metadataArray.size();
 		if (limit != -1) {
-			loopLimit = (limit > metadataArray.length ? metadataArray.length : limit);
-			truncated = (limit < metadataArray.length);
+			loopLimit = (limit > metadataArray.size() ? metadataArray.size() : limit);
+			truncated = (limit < metadataArray.size());
 		}
 
 		StringBuffer sb = new StringBuffer();
 		for (int j = 0; j < loopLimit; j++) {
-			if (metadataArray[j].confidence != Choices.CF_ACCEPTED) {
+			if (metadataArray.get(j).getConfidence() != Choices.CF_ACCEPTED) {
 				continue;
 			}
 			buildBrowseLink(hrq, viewFull, browseType, metadataArray, disableCrossLinks, sb, j);
@@ -97,7 +97,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 		return metadata;
 	}
 
-	private void buildBrowseLink(HttpServletRequest hrq, boolean viewFull, String browseType, Metadatum[] metadataArray,
+	private void buildBrowseLink(HttpServletRequest hrq, boolean viewFull, String browseType, List<MetadataValue> metadataArray,
 			boolean disableCrossLinks, StringBuffer sb, int j) {
 		String startLink = "";
 		String endLink = "";
@@ -107,13 +107,13 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 		String argument;
 		String value;
 		argument = "authority";
-		String authority = metadataArray[j].authority;
-		value = metadataArray[j].value;
+		String authority = metadataArray.get(j).getAuthority();
+		value = metadataArray.get(j).getValue();
 		if (viewFull) {
 			argument = "vfocus";
 		}
 		try {
-			if(authority.startsWith(AuthorityValueGenerator.GENERATE)) {
+			if(authority.startsWith(AuthorityValueService.GENERATE)) {
 				startLink = "<a target=\"_blank\" href=\"" + hrq.getContextPath() + "/browse?type=" + browseType + "&amp;";
 			}
 			else {
@@ -124,10 +124,10 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 
-		if (metadataArray[j].language != null) {
+		if (metadataArray.get(j).getLanguage() != null) {
 			try {
 				startLink = startLink + "&amp;" + argument + "_lang="
-						+ URLEncoder.encode(metadataArray[j].language, "UTF-8");
+						+ URLEncoder.encode(metadataArray.get(j).getLanguage(), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				throw new RuntimeException(e.getMessage(), e);
 			}
@@ -146,14 +146,14 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 	}
 
 	private void buildAuthority(HttpServletRequest hrq,
-            Metadatum[] metadataArray, StringBuffer sb, int j)
+			List<MetadataValue> metadataArray, StringBuffer sb, int j)
     {
         String startLink = "";
         String endLink = "";
-		String authority = metadataArray[j].authority;
+		String authority = metadataArray.get(j).getAuthority();
 		if (StringUtils.isNotBlank(authority)) {
-			if (authority.startsWith(AuthorityValueGenerator.GENERATE)) {
-				String[] split = StringUtils.split(authority, AuthorityValueGenerator.SPLIT);
+			if (authority.startsWith(AuthorityValueService.GENERATE)) {
+				String[] split = StringUtils.split(authority, AuthorityValueService.SPLIT);
 				String type = null, info = null;
 				if (split.length > 0) {
 					type = split[1];
@@ -184,20 +184,20 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
 	@Override
 	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, BrowseItem browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
 		return null;
 	}
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			int colIdx, String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException {
 		ACrisObject crisObject = (ACrisObject) item;
 		String metadata = "-";
-		if (metadataArray.length > 0) {
+		if (metadataArray.size() > 0) {
 			metadata = "<a href=\"" + hrq.getContextPath() + "/cris/" + crisObject.getPublicPath() + "/"
 					+ ResearcherPageUtils.getPersistentIdentifier(crisObject) + "\">"
-					+ Utils.addEntities(metadataArray[0].value) + "</a>";
+					+ Utils.addEntities(metadataArray.get(0).getValue()) + "</a>";
 		}
 		metadata = (emph ? "<strong>" : "") + metadata + (emph ? "</strong>" : "");
 		return metadata;
@@ -206,7 +206,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;

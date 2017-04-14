@@ -30,7 +30,6 @@ import org.dspace.app.cris.network.ConstantNetwork;
 import org.dspace.app.cris.network.NetworkPlugin;
 import org.dspace.app.cris.network.VisualizationGraphSolrService;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.statistics.CrisSolrLogger;
 import org.dspace.app.cris.statistics.util.StatsConfig;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
@@ -38,7 +37,7 @@ import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
@@ -133,8 +132,7 @@ public class ResearcherNetworkServlet extends DSpaceServlet
                 if (checkAvailableData(request, conn, authority))
                 {
                     availableConnections.add(conn);
-                    NetworkPlugin plugin = (NetworkPlugin) (PluginManager.getNamedPlugin(NetworkPlugin.CFG_MODULE,
-                            NetworkPlugin.class, conn));
+                    NetworkPlugin plugin = (NetworkPlugin) (CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(NetworkPlugin.class, conn));
                     colorsNodes.put(conn, plugin.getNodeCustomColor());
                     colorsEdges.put(conn, plugin.getEdgeCustomColor());
                     maxDepths.put(conn, plugin.getCustomMaxDepth());

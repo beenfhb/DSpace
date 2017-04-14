@@ -67,17 +67,28 @@ public class MetadataValue implements ReloadableEntity<Integer>
     @JoinColumn(name="dspace_object_id")
     protected DSpaceObject dSpaceObject;
 
+    @Transient
+    public String schema;
+    @Transient
+    public String element;
+    @Transient
+    public String qualifier;
+    
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.MetadataValueService#create(Context, DSpaceObject, MetadataField)}
      *
      */
-    protected MetadataValue()
+    public MetadataValue()
     {
         id = 0;
     }
 
-    /**
+    public MetadataValue(String string, String string2, String string3, String authkey, String string4) {
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
      * Get the field ID the metadata value represents.
      *
      * @return metadata value ID

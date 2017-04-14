@@ -10,6 +10,7 @@ package org.dspace.app.webui.components;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -17,11 +18,13 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
-import org.dspace.utils.DSpace;
+import org.dspace.statistics.SolrLoggerServiceImpl;
+import org.dspace.statistics.service.SolrLoggerService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class MostViewedBitstreamManager
 {
@@ -30,18 +33,16 @@ public class MostViewedBitstreamManager
 
     private final String TYPE = "0";
 
-    private final String STATISTICS_TYPE = SolrLogger.StatisticsType.VIEW
+    private final String STATISTICS_TYPE = SolrLoggerServiceImpl.StatisticsType.VIEW
             .text();
 
     private int maxResults;
 
     private String time_period;
 
-    DSpace dspace = new DSpace();
-
-    SolrLogger solrLogger = dspace.getServiceManager()
-            .getServiceByName(SolrLogger.class.getName(), SolrLogger.class);
-
+    @Autowired
+    private SolrLoggerService solrLoggerService;
+    
     public MostViewedBitstreamManager(int max, String period)
     {
         maxResults = max;
@@ -67,15 +68,15 @@ public class MostViewedBitstreamManager
             filterQuery += " AND time:[" + time_period + " TO *]";
         }
 
-        ObjectCount[] oc = solrLogger.queryFacetField(query, filterQuery, "id",
+        ObjectCount[] oc = solrLoggerService.queryFacetField(query, filterQuery, "id",
                 maxResults, false, null);
 
         List<MostViewedItem> viewedList = new ArrayList<MostViewedItem>();
         for (int x = 0; x < oc.length; x++)
         {
-            int id = Integer.parseInt(oc[x].getValue());
-            Bitstream bitstream = Bitstream.find(context, id);
-            DSpaceObject dspaceObj = bitstream.getParentObject();
+            UUID id = UUID.fromString(oc[x].getValue());
+            Bitstream bitstream = ContentServiceFactory.getInstance().getBitstreamService().find(context, id);
+            DSpaceObject dspaceObj = ContentServiceFactory.getInstance().getBitstreamService().getParentObject(context, bitstream);
             if (dspaceObj != null)
             {
                 if (Constants.ITEM == dspaceObj.getType())
@@ -119,5 +120,13 @@ public class MostViewedBitstreamManager
     {
         this.time_period = time_period;
     }
+
+	public SolrLoggerService getSolrLoggerService() {
+		return solrLoggerService;
+	}
+
+	public void setSolrLoggerService(SolrLoggerService solrLoggerService) {
+		this.solrLoggerService = solrLoggerService;
+	}
 
 }

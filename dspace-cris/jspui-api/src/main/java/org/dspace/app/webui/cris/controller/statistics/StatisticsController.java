@@ -32,15 +32,14 @@ import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.constants.Constants;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Site;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.springframework.web.servlet.ModelAndView;
 
 public class StatisticsController extends AStatisticsController
@@ -173,7 +172,7 @@ public class StatisticsController extends AStatisticsController
 	private boolean canSeeStatistics(Context c, DSpaceObject dso)
 			throws SQLException {
 			if(dso != null){
-				return ConfigurationManager.getBooleanProperty("usage-statistics", "webui.statistics."+dso.getTypeText().toLowerCase()+".public", "webui.statistics.item.public") || AuthorizeManager.isAdmin(c, dso);
+				return ConfigurationManager.getBooleanProperty("usage-statistics", "webui.statistics."+dso.getTypeText().toLowerCase()+".public", "webui.statistics.item.public") || AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(c, dso);
 			}
 			return false;
 			
@@ -186,7 +185,7 @@ public class StatisticsController extends AStatisticsController
 			return ConfigurationManager
 					.getBooleanProperty("usage-statistics", "webui.statistics.upload."
 							+ dso.getTypeText().toLowerCase() + ".public")
-					|| AuthorizeManager.isAdmin(c, dso);
+					|| AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(c, dso);
 		}
 		return false;
 	}
@@ -212,7 +211,7 @@ public class StatisticsController extends AStatisticsController
         {
             return _getObject(request, id);
         }else {
-        	id = HandleManager.getPrefix() + "/" + String.valueOf(Site.SITE_ID);
+        	id = HandleServiceFactory.getInstance().getHandleService().getPrefix() + "/" + String.valueOf(Site.SITE_ID);
         	return _getObject(request, id);
         }
     }
@@ -220,7 +219,7 @@ public class StatisticsController extends AStatisticsController
     private DSpaceObject _getObject(HttpServletRequest request, String id) throws IllegalStateException, SQLException
     {
 		DSpaceObject dso;
-		dso = HandleManager.resolveToObject(UIUtil.obtainContext(request), id);
+		dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(UIUtil.obtainContext(request), id);
 		return dso;
     }
 

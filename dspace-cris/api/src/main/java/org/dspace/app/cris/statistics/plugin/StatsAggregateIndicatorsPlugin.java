@@ -120,11 +120,11 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
 
             Date timestamp = new Date();
             buildIndicator(pService, applicationService, rp.getUuid(), rp.getType(),
-                    rp.getId(), citations,
+                    rp.getID(), citations,
                     type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AGGREGATE,
                     null, timestamp, null);
             buildIndicator(pService, applicationService, rp.getUuid(), rp.getType(),
-                    rp.getId(), itemsCited,
+                    rp.getID(), itemsCited,
                     type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT,
                     null, timestamp, null);
             
@@ -142,19 +142,19 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
                     median = IndicatorsUtils.median(elementsArray);
 
                     buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), average,
+                            rp.getType(), rp.getID(), average,
                             type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE,
                             null, timestamp, null);
                     buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), max,
+                            rp.getType(), rp.getID(), max,
                             type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX,
                             null, timestamp, null);
                     buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), min,
+                            rp.getType(), rp.getID(), min,
                             type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN,
                             null, timestamp, null);
                     buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), median,
+                            rp.getType(), rp.getID(), median,
                             type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN,
                             null, timestamp, null);
                 }

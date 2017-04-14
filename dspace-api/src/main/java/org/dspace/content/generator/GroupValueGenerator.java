@@ -8,13 +8,18 @@
 package org.dspace.content.generator;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 public class GroupValueGenerator implements TemplateValueGenerator
 {
@@ -22,8 +27,8 @@ public class GroupValueGenerator implements TemplateValueGenerator
     private static Logger log = Logger.getLogger(GroupValueGenerator.class);
 
     @Override
-    public Metadatum[] generator(Context context, Item targetItem, Item templateItem,
-            Metadatum metadatum, String extraParams)
+    public List<MetadataValue> generator(Context context, Item targetItem, Item templateItem,
+            MetadataValue MetadataValue, String extraParams)
     {
         String[] params = StringUtils.split(extraParams, "\\.");
         String prefix = params[0];
@@ -40,15 +45,16 @@ public class GroupValueGenerator implements TemplateValueGenerator
                 String metadata = prefix.substring("community[".length(),
                         prefix.length() - 1);
 
-                value = templateItem.getParentObject().getParentObject()
-                        .getMetadata(metadata);
+                Collection collection = (Collection)templateItem.getItemService().getParentObject(context, templateItem);
+                value = ((Community)collection.getDSpaceObjectService().getParentObject(context, collection)).getMetadata(metadata);
 
             }
             else if (StringUtils.startsWith(prefix, "collection"))
             {
                 String metadata = prefix.substring("collection[".length(),
                         prefix.length() - 1);
-                value = templateItem.getParentObject().getMetadata(metadata);
+                Collection collection = (Collection)templateItem.getItemService().getParentObject(context, templateItem);
+                value = collection.getMetadata(metadata);
             }
             else if (StringUtils.startsWith(prefix, "item"))
             {
@@ -65,12 +71,12 @@ public class GroupValueGenerator implements TemplateValueGenerator
             value = value + "-" + suffix;
         }
 
-        Metadatum[] m = new Metadatum[1];
-        m[0] = metadatum;
+        List<MetadataValue> m = new ArrayList<>();
+        m.add(MetadataValue);
         Group group = null;
         try
         {
-            group = Group.findByName(context, value);
+            group = EPersonServiceFactory.getInstance().getGroupService().findByName(context, value);
         }
         catch (SQLException e)
         {
@@ -80,7 +86,7 @@ public class GroupValueGenerator implements TemplateValueGenerator
         if(group!=null) {
             result = "" + group.getID();
         }        
-        metadatum.value = result;
+        MetadataValue.setValue(result);
         return m;
     }
 }

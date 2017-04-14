@@ -7,8 +7,10 @@
  */
 package org.dspace.content;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -23,11 +25,15 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.Group;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -42,7 +48,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="community")
-public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
+public class Community extends DSpaceObject implements BrowsableDSpaceObject, DSpaceObjectLegacySupport, IGlobalSearchResult
 {
     /** log4j category */
     private static final Logger log = Logger.getLogger(Community.class);
@@ -267,4 +273,40 @@ public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
         }
         return communityService;
     }
+
+	@Override
+	public DSpaceObjectService getDSpaceObjectService() {
+		return getCommunityService();
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isArchived() {
+		return true;
+	}
+
+	@Override
+	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return getCommunityService().getMetadata(this, schema, element, qualifier, lang);
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return true;
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return getCommunityService().getMetadata(this, field);
+	}
 }

@@ -26,7 +26,7 @@ public class CrisSubscribeSolrIndexer implements SolrServiceIndexPlugin {
             Item item = (Item) dso;
             
 			Date lastModified = item.getLastModified();
-			String dateAccessioned = item.getMetadata("dc.date.accessioned");
+			String dateAccessioned = item.getItemService().getMetadata(item, "dc.date.accessioned");
 
 			if (lastModified != null)
 			{

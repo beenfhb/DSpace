@@ -195,11 +195,11 @@ public abstract class AbstractSwordContentIngester
 
     /**
      * Utility method to turn given metadata fields of the form
-     schema.element.qualifier into Metadatum objects which can be
+     schema.element.qualifier into MetadataValue objects which can be
      used to access metadata in items.
      *
      * The def parameter should be null, * or "" depending on how
-     you intend to use the Metadatum object.
+     you intend to use the MetadataValue object.
      *
      * @param config
      * @param def

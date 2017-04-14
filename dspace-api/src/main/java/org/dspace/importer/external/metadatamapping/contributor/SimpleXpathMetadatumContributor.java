@@ -13,7 +13,7 @@ import org.apache.axiom.om.OMText;
 import org.apache.axiom.om.xpath.AXIOMXPath;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.jaxen.JaxenException;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Metadata contributor that takes an axiom OMElement and turns it into a metadatum
+ * Metadata contributor that takes an axiom OMElement and turns it into a MetadataValue
  * @author Roeland Dillen (roeland at atmire dot com)
  */
-public class SimpleXpathMetadatumContributor implements MetadataContributor<OMElement> {
+public class SimpleXpathMetadataValueContributor implements MetadataContributor<OMElement> {
     private MetadataFieldConfig field;
 
     /**
@@ -49,7 +49,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
     }
 
     /**
-     * Set the metadataFieldMapping of this SimpleXpathMetadatumContributor
+     * Set the metadataFieldMapping of this SimpleXpathMetadataValueContributor
      * @param metadataFieldMapping
      */
     public void setMetadataFieldMapping(MetadataFieldMapping<OMElement,MetadataContributor<OMElement>> metadataFieldMapping) {
@@ -68,28 +68,28 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
     private Map<String,String> prefixToNamespaceMapping;
 
     /**
-     * Initialize SimpleXpathMetadatumContributor with a query, Map<String, String>(prefixToNamespaceMapping) and MetadataFieldConfig(field)
+     * Initialize SimpleXpathMetadataValueContributor with a query, Map<String, String>(prefixToNamespaceMapping) and MetadataFieldConfig(field)
      * @param query String
      * @param prefixToNamespaceMapping Map<String, String>
      * @param field MetadataFieldConfig
      */
-    public SimpleXpathMetadatumContributor(String query, Map<String, String> prefixToNamespaceMapping, MetadataFieldConfig field) {
+    public SimpleXpathMetadataValueContributor(String query, Map<String, String> prefixToNamespaceMapping, MetadataFieldConfig field) {
         this.query = query;
         this.prefixToNamespaceMapping = prefixToNamespaceMapping;
         this.field = field;
     }
 
     /**
-     * Empty constructor for SimpleXpathMetadatumContributor
+     * Empty constructor for SimpleXpathMetadataValueContributor
      */
-    public SimpleXpathMetadatumContributor() {
+    public SimpleXpathMetadataValueContributor() {
 
     }
 
     private String query;
 
     /**
-     * Return the MetadataFieldConfig used while retrieving MetadatumDTO
+     * Return the MetadataFieldConfig used while retrieving MetadataValueDTO
      * @return MetadataFieldConfig
      */
     public MetadataFieldConfig getField() {
@@ -97,7 +97,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
     }
     /**
      * Setting the MetadataFieldConfig
-     * @param field MetadataFieldConfig used while retrieving MetadatumDTO
+     * @param field MetadataFieldConfig used while retrieving MetadataValueDTO
      */
     @Required
     public void setField(MetadataFieldConfig field) {
@@ -118,13 +118,13 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
 
     /**
      * Retrieve the metadata associated with the given object.
-     * Depending on the retrieved node (using the query), different types of values will be added to the MetadatumDTO list
+     * Depending on the retrieved node (using the query), different types of values will be added to the MetadataValueDTO list
      * @param t A class to retrieve metadata from.
      * @return a collection of import records. Only the identifier of the found records may be put in the record.
      */
     @Override
-    public Collection<MetadatumDTO> contributeMetadata(OMElement t) {
-        List<MetadatumDTO> values=new LinkedList<>();
+    public Collection<MetadataValueDTO> contributeMetadata(OMElement t) {
+        List<MetadataValueDTO> values=new LinkedList<>();
         try {
             AXIOMXPath xpath=new AXIOMXPath(query);
             for(String ns:prefixToNamespaceMapping.keySet()){

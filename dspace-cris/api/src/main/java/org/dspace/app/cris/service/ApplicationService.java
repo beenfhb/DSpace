@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.dao.CrisObjectDao;
@@ -206,33 +207,33 @@ public class ApplicationService extends ExtendedTabService
         return crisSubscriptionDao.countByUUID(uuid);
     }
 
-    public List<String> getCrisSubscriptionsByEPersonID(int eid)
+    public List<String> getCrisSubscriptionsByEPersonID(UUID eid)
     {
         return crisSubscriptionDao.findUUIDByEpersonID(eid);
     }
 
-    public CrisSubscription getCrisStatSubscriptionByEPersonIDAndUUID(int eid, String uuid)
+    public CrisSubscription getCrisStatSubscriptionByEPersonIDAndUUID(UUID eid, String uuid)
     {
         return crisSubscriptionDao.uniqueByEpersonIDandUUID(eid, uuid);
     }
     
 
-    public boolean isSubscribed(int epersonID, String uuid)
+    public boolean isSubscribed(UUID epersonID, String uuid)
     {
         return crisSubscriptionDao.uniqueByEpersonIDandUUID(epersonID, uuid) != null;
     }
 
-    public CrisSubscription getSubscription(int epersonID, String uuid)
+    public CrisSubscription getSubscription(UUID epersonID, String uuid)
     {
         return crisSubscriptionDao.uniqueByEpersonIDandUUID(epersonID, uuid);
     }
 
-    public void deleteSubscriptionByEPersonID(int id)
+    public void deleteSubscriptionByEPersonID(UUID id)
     {
         crisSubscriptionDao.deleteByEpersonID(id);
     }
 
-    public long countByEpersonIDandUUID(int epersonID, String uuid,
+    public long countByEpersonIDandUUID(UUID epersonID, String uuid,
             Class<CrisSubscription> className)
     {
         CrisSubscriptionDao dao = (CrisSubscriptionDao) getDaoByModel(className);
@@ -540,12 +541,12 @@ public class ApplicationService extends ExtendedTabService
         return statSubscriptionDao.findByFreq(freq);
     }
 
-    public List<StatSubscription> getAllStatSubscriptionByEPersonID(int eid)
+    public List<StatSubscription> getAllStatSubscriptionByEPersonID(UUID eid)
     {
         return statSubscriptionDao.findByEPersonID(eid);
     }
 
-    public List<StatSubscription> getStatSubscriptionByEPersonIDAndUID(int id,
+    public List<StatSubscription> getStatSubscriptionByEPersonIDAndUID(UUID id,
             String uid)
     {
         return statSubscriptionDao.findByEPersonIDandUID(id, uid);
@@ -556,7 +557,7 @@ public class ApplicationService extends ExtendedTabService
         return statSubscriptionDao.findByFreqAndType(freq, type);
     }
 
-    public void deleteStatSubscriptionsByEPersonID(int id)
+    public void deleteStatSubscriptionsByEPersonID(UUID id)
     {
         statSubscriptionDao.deleteByEPersonID(id);
     }
@@ -567,13 +568,13 @@ public class ApplicationService extends ExtendedTabService
         return applicationDao.getList(model, ids);
     }
 
-    public ResearcherPage getResearcherPageByEPersonId(Integer id)
+    public ResearcherPage getResearcherPageByEPersonId(UUID id)
     {
 		if (cacheRpByEPerson != null) {
 			Element element = cacheRpByEPerson.getQuiet(id);
 			if (element != null) {
 				ResearcherPage rp = (ResearcherPage) element.getValue();
-				if (!isExpiredCache(ResearcherPage.class, element, id, rp)) {
+				if (!isExpiredCache(ResearcherPage.class, element, rp.getId(), rp)) {
 					return rp;
 				}
 				else if (rp != null) {
@@ -748,7 +749,7 @@ public class ApplicationService extends ExtendedTabService
         return researcherPageDao.findAllResearcherPageID();
     }
 
-    public List<RelationPreference> findRelationsPreferencesForItemID(int itemID)
+    public List<RelationPreference> findRelationsPreferencesForItemID(UUID itemID)
     {
         return relationPreferenceDao.findByTargetItemID(itemID);
     }
@@ -781,7 +782,7 @@ public class ApplicationService extends ExtendedTabService
     }
 
     public RelationPreference getRelationPreferenceForUUIDItemID(String UUID,
-            int itemID, String relationType)
+            UUID itemID, String relationType)
     {
         return relationPreferenceDao.uniqueByUUIDItemID(UUID, itemID,
                 relationType);
@@ -901,7 +902,7 @@ public class ApplicationService extends ExtendedTabService
             }
         }
 		if (cacheRpByEPerson != null && object instanceof ResearcherPage) {
-			Integer eid = ((ResearcherPage) object).getEpersonID();
+			UUID eid = ((ResearcherPage) object).getEpersonID();
 			if (eid != null) {
 				cacheRpByEPerson.put(new Element(eid, object));
 			}
@@ -972,10 +973,10 @@ public class ApplicationService extends ExtendedTabService
 	public List<OrcidQueue> findOrcidQueueByResearcherId(String crisId) {
 		return orcidQueueDao.findOrcidQueueByOwner(crisId);
 	}
-	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwnerId(Integer entityID, Integer typeId, String ownerId) {
+	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwnerId(UUID entityID, Integer typeId, String ownerId) {
 		return orcidQueueDao.uniqueOrcidQueueByEntityIdAndTypeIdAndOwner(entityID, typeId, ownerId);
 	}
-	public List<OrcidHistory> findOrcidHistoryByEntityIdAndTypeId(Integer entityId, Integer typeId) {	
+	public List<OrcidHistory> findOrcidHistoryByEntityIdAndTypeId(UUID entityId, Integer typeId) {	
 		return orcidHistoryDao.findOrcidHistoryByEntityIdAndTypeId(entityId, typeId);
 	}
 
@@ -995,11 +996,11 @@ public class ApplicationService extends ExtendedTabService
 		return orcidHistoryDao.findOrcidHistoryInSuccessByOwnerAndTypeId(crisID, type);
 	}
 	
-	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(String crisID, int entityID, int typeID) {
+	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(String crisID, UUID entityID, int typeID) {
 		return orcidHistoryDao.uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(crisID, entityID, typeID);
 	}
 	
-	public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(String crisID, int entityID, int typeID) {
+	public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(String crisID, UUID entityID, int typeID) {
 		return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(crisID, entityID, typeID);
 	}
 

@@ -9,6 +9,7 @@ package org.dspace.app.cris.statistics.plugin;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -75,8 +76,8 @@ public class StatsPercentileIndicatorsPlugin extends AStatsIndicatorsPlugin
         {
             Integer resourceType = (Integer) doc
                     .getFirstValue("search.resourcetype");
-            Integer resourceId = (Integer) doc
-                    .getFirstValue("search.resourceid");
+            UUID resourceId = UUID.fromString((String)doc
+                    .getFirstValue("search.resourceid"));
 
             String uuid = (String) doc
                     .getFirstValue(resourceType == Constants.ITEM

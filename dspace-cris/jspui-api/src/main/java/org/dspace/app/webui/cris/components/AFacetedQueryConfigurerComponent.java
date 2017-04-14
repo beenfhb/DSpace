@@ -23,6 +23,8 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
@@ -37,7 +39,7 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 
-public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
+public abstract class AFacetedQueryConfigurerComponent<T extends BrowseDSpaceObject>
         extends ASolrConfigurerComponent<T, ICrisBeanComponent> implements
         IFacetedQueryConfigurerComponent
 {
@@ -104,7 +106,7 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
             start = 0;
         }
         String authority = cris.getCrisID();
-        String uuid = cris.getUuid();
+        String uuid = cris.getUuid().toString();
 
         String query = MessageFormat.format(getRelationConfiguration()
                 .getQuery(), authority, uuid);

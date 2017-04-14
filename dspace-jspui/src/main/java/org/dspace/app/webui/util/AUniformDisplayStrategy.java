@@ -7,40 +7,43 @@
  */
 package org.dspace.app.webui.util;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.PageContext;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 
 public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
 {
     /** log4j category */
     private static Logger log = Logger.getLogger(AUniformDisplayStrategy.class);
     
+    @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, int itemid, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph)
+            boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
+            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata;
         // limit the number of records if this is the author field (if
         // -1, then the limit is the full list)
         boolean truncated = false;
-        int loopLimit = metadataArray.length;
+        int loopLimit = metadataArray.size();
         if (limit != -1)
         {
-            loopLimit = (limit > metadataArray.length ? metadataArray.length
+            loopLimit = (limit > metadataArray.size() ? metadataArray.size()
                     : limit);
-            truncated = (limit < metadataArray.length);
+            truncated = (limit < metadataArray.size());
             log.debug("Limiting output of field " + field + " to "
                     + Integer.toString(loopLimit) + " from an original "
-                    + Integer.toString(metadataArray.length));
+                    + Integer.toString(metadataArray.size()));
         }
 
         StringBuffer sb = new StringBuffer();
         for (int j = 0; j < loopLimit; j++)
         {
-            sb.append(getDisplayForValue(hrq, metadataArray[j].value, itemid));
+            sb.append(getDisplayForValue(hrq, metadataArray.get(j).getValue(), itemid));
             if (j < (loopLimit - 1))
             {
                 if (colIdx != -1) // we are showing metadata in a table row
@@ -83,5 +86,5 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
         return metadata;
     }
 
-    protected abstract String getDisplayForValue(HttpServletRequest hrq, String value,int itemid);
+    protected abstract String getDisplayForValue(HttpServletRequest hrq, String value,UUID itemid);
 }

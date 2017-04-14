@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
@@ -55,9 +56,7 @@ public abstract class MappingMetadata {
 
 	private final static Logger log = Logger.getLogger(MappingMetadata.class);
     
-	protected DSpaceObjectService<DSpaceObject> dspaceObjectService;
-	
-	protected DSpaceObject item;
+	protected BrowsableDSpaceObject item;
 
 	protected String itemURL;
 
@@ -197,7 +196,7 @@ public abstract class MappingMetadata {
 	 * @param item
 	 * @return URL that the PDF can be directly downloaded from
 	 */
-	private String getPDFSimpleUrl(DSpaceObject item) {
+	private String getPDFSimpleUrl(BrowsableDSpaceObject item) {
 		try {
 			Bitstream bitstream = findLinkableFulltext(item);
 			if (bitstream != null) {
@@ -319,7 +318,7 @@ public abstract class MappingMetadata {
             {
 
                 components = parseComponents(field);
-                values = dspaceObjectService.getMetadata(item, components[0], components[1],
+                values = item.getMetadata(components[0], components[1],
                         components[2], Item.ANY);
 
                 if (values.size() > 0)
@@ -544,7 +543,7 @@ public abstract class MappingMetadata {
                 }
             }
 
-            List<MetadataValue> allMD = dspaceObjectService.getMetadata(item, components[0], components[1],
+            List<MetadataValue> allMD = item.getMetadata(components[0], components[1],
                     components[2], Item.ANY);
 
             ArrayList<String> expandedDC = new ArrayList<String>();
@@ -573,10 +572,10 @@ public abstract class MappingMetadata {
     }
     
     /**
-     * Construct metadata field name out of Metadatum components
+     * Construct metadata field name out of MetadataValue components
      * 
      * @param v
-     *            The Metadatum to construct a name for.
+     *            The MetadataValue to construct a name for.
      * @return The complete metadata field name.
      */
     protected String buildFieldName(MetadataValue v)
@@ -658,7 +657,7 @@ public abstract class MappingMetadata {
      * @return a linkable bitstream or null if none found
      * @throws SQLException if database error
      */
-    protected Bitstream findLinkableFulltext(DSpaceObject dso) throws SQLException {
+    protected Bitstream findLinkableFulltext(BrowsableDSpaceObject dso) throws SQLException {
         Bitstream bestSoFar = null;
         if (item instanceof Item)
         {
@@ -1069,16 +1068,4 @@ public abstract class MappingMetadata {
 			return false;
 		}
 	}
-
-    public DSpaceObjectService<DSpaceObject> getDspaceObjectService()
-    {
-        return dspaceObjectService;
-    }
-
-    public void setDspaceObjectService(
-            DSpaceObjectService dspaceObjectService)
-    {
-        this.dspaceObjectService = dspaceObjectService;
-    }
-
 }

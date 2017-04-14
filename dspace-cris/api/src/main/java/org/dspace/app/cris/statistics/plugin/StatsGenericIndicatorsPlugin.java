@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -150,14 +151,14 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
             Integer resourceType = (Integer) doc
                     .getFirstValue("search.resourcetype");
-            Integer resourceId = (Integer) doc
-                    .getFirstValue("search.resourceid");
-            String uuid = "";
+            UUID resourceId = UUID.fromString((String)doc
+                    .getFirstValue("search.resourceid"));
+            String uuid = null;
             if (resourceType != Constants.ITEM)
                 uuid = (String) doc.getFirstValue("cris-uuid");
             else
             {
-                uuid = (String) doc.getFirstValue("handle");
+                uuid = (String) doc.getFirstValue("id");
             }
 
             if (resourceId != null)
@@ -197,7 +198,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
             buildIndicator(applicationService, pService,
                     mapNumberOfValueComputed, mapValueComputed,
                     mapAdditionalValueComputed, mapElementsValueComputed,
-                    rp.getType(), rp.getId(), rp.getUuid());
+                    rp.getType(), rp.getID(), rp.getUuid());
         }
     }
 
@@ -207,7 +208,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
             Map<String, Double> mapValueComputed,
             Map<String, Double> mapAdditionalValueComputed,
             Map<String, List<Double>> mapElementsValueComputed,
-            Integer resourceType, Integer resourceId, String uuid)
+            Integer resourceType, UUID resourceId, String uuid)
     {
         for (IIndicatorBuilder<ACO> indicator : indicators)
         {

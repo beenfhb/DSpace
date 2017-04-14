@@ -62,7 +62,7 @@ public class MetadataUtilities {
 
     /**      
      * 
-     *  Working around Item API to delete a value-specific Metadatum
+     *  Working around Item API to delete a value-specific MetadataValue
   For a given element/qualifier/lang:
       get all DCValues
       clear (i.e. delete) all of these DCValues
@@ -471,10 +471,10 @@ public class MetadataUtilities {
     }
 
     /**
-     *    Get display of Metadatum    
+     *    Get display of MetadataValue    
 	 *
      * @param dcv MetadataValue
-     * @return string displaying elements of the Metadatum
+     * @return string displaying elements of the MetadataValue
      */
     public static String getDCValueString(MetadataValue dcv)
     {

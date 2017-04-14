@@ -9,40 +9,40 @@ package org.dspace.importer.external.metadatamapping.contributor;
 
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Wrapper class used to accommodate for the possibility of correlations between multiple MetadatumContributor objects
+ * Wrapper class used to accommodate for the possibility of correlations between multiple MetadataValueContributor objects
  * @author Philip Vissenaekens (philip at atmire dot com)
  */
-public class CombinedMetadatumContributor<T> implements MetadataContributor<T> {
+public class CombinedMetadataValueContributor<T> implements MetadataContributor<T> {
     private MetadataFieldConfig field;
 
-    private LinkedList<MetadataContributor> metadatumContributors;
+    private LinkedList<MetadataContributor> MetadataValueContributors;
 
     private String separator;
 
     private MetadataFieldMapping<T,MetadataContributor<T>> metadataFieldMapping;
 
     /**
-     * Initialize an empty CombinedMetadatumContributor object
+     * Initialize an empty CombinedMetadataValueContributor object
      */
-    public CombinedMetadatumContributor() {
+    public CombinedMetadataValueContributor() {
     }
 
     /**
      *
      * @param field {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} used in mapping
-     * @param metadatumContributors A list of MetadataContributor
+     * @param MetadataValueContributors A list of MetadataContributor
      * @param separator A separator used to differentiate between different values
      */
-    public CombinedMetadatumContributor(MetadataFieldConfig field, List<MetadataContributor> metadatumContributors, String separator) {
+    public CombinedMetadataValueContributor(MetadataFieldConfig field, List<MetadataContributor> MetadataValueContributors, String separator) {
         this.field = field;
-        this.metadatumContributors = (LinkedList<MetadataContributor>) metadatumContributors;
+        this.MetadataValueContributors = (LinkedList<MetadataContributor>) MetadataValueContributors;
         this.separator = separator;
     }
 
@@ -54,37 +54,37 @@ public class CombinedMetadatumContributor<T> implements MetadataContributor<T> {
     public void setMetadataFieldMapping(MetadataFieldMapping<T, MetadataContributor<T>> metadataFieldMapping) {
         this.metadataFieldMapping = metadataFieldMapping;
 
-        for (MetadataContributor metadatumContributor : metadatumContributors) {
-            metadatumContributor.setMetadataFieldMapping(metadataFieldMapping);
+        for (MetadataContributor MetadataValueContributor : MetadataValueContributors) {
+            MetadataValueContributor.setMetadataFieldMapping(metadataFieldMapping);
         }
     }
 
     /**
-     * a separate Metadatum object is created for each index of Metadatum returned from the calls to
-     * MetadatumContributor.contributeMetadata(t) for each MetadatumContributor in the metadatumContributors list.
-     * We assume that each contributor returns the same amount of Metadatum objects
+     * a separate MetadataValue object is created for each index of MetadataValue returned from the calls to
+     * MetadataValueContributor.contributeMetadata(t) for each MetadataValueContributor in the MetadataValueContributors list.
+     * We assume that each contributor returns the same amount of MetadataValue objects
      * @param t the object we are trying to translate
      * @return a collection of metadata composed by each MetadataContributor
      */
     @Override
-    public Collection<MetadatumDTO> contributeMetadata(T t) {
-        List<MetadatumDTO> values=new LinkedList<>();
+    public Collection<MetadataValueDTO> contributeMetadata(T t) {
+        List<MetadataValueDTO> values=new LinkedList<>();
 
-        LinkedList<LinkedList<MetadatumDTO>> metadatumLists = new LinkedList<>();
+        LinkedList<LinkedList<MetadataValueDTO>> MetadataValueLists = new LinkedList<>();
 
-        for (MetadataContributor metadatumContributor : metadatumContributors) {
-            LinkedList<MetadatumDTO> metadatums = (LinkedList<MetadatumDTO>) metadatumContributor.contributeMetadata(t);
-            metadatumLists.add(metadatums);
+        for (MetadataContributor MetadataValueContributor : MetadataValueContributors) {
+            LinkedList<MetadataValueDTO> MetadataValues = (LinkedList<MetadataValueDTO>) MetadataValueContributor.contributeMetadata(t);
+            MetadataValueLists.add(MetadataValues);
         }
 
-        for (int i = 0; i<metadatumLists.getFirst().size();i++) {
+        for (int i = 0; i<MetadataValueLists.getFirst().size();i++) {
 
             StringBuilder value = new StringBuilder();
 
-            for (LinkedList<MetadatumDTO> metadatums : metadatumLists) {
-                value.append(metadatums.get(i).getValue());
+            for (LinkedList<MetadataValueDTO> MetadataValues : MetadataValueLists) {
+                value.append(MetadataValues.get(i).getValue());
 
-                if(!metadatums.equals(metadatumLists.getLast())) {
+                if(!MetadataValues.equals(MetadataValueLists.getLast())) {
                     value.append(separator);
                 }
             }
@@ -95,7 +95,7 @@ public class CombinedMetadatumContributor<T> implements MetadataContributor<T> {
     }
 
     /**
-     * Return the MetadataFieldConfig used while retrieving MetadatumDTO
+     * Return the MetadataFieldConfig used while retrieving MetadataValueDTO
      * @return MetadataFieldConfig
      */
     public MetadataFieldConfig getField() {
@@ -104,7 +104,7 @@ public class CombinedMetadatumContributor<T> implements MetadataContributor<T> {
 
     /**
      * Setting the MetadataFieldConfig
-     * @param field MetadataFieldConfig used while retrieving MetadatumDTO
+     * @param field MetadataFieldConfig used while retrieving MetadataValueDTO
      */
     public void setField(MetadataFieldConfig field) {
         this.field = field;
@@ -112,18 +112,18 @@ public class CombinedMetadatumContributor<T> implements MetadataContributor<T> {
 
     /**
      * Return the List of MetadataContributor objects set to this class
-     * @return metadatumContributors, list of MetadataContributor
+     * @return MetadataValueContributors, list of MetadataContributor
      */
-    public LinkedList<MetadataContributor> getMetadatumContributors() {
-        return metadatumContributors;
+    public LinkedList<MetadataContributor> getMetadataValueContributors() {
+        return MetadataValueContributors;
     }
 
     /**
      * Set the List of MetadataContributor objects set to this class
-     * @param metadatumContributors A list of MetadatumContributor classes
+     * @param MetadataValueContributors A list of MetadataValueContributor classes
      */
-    public void setMetadatumContributors(LinkedList<MetadataContributor> metadatumContributors) {
-        this.metadatumContributors = metadatumContributors;
+    public void setMetadataValueContributors(LinkedList<MetadataContributor> MetadataValueContributors) {
+        this.MetadataValueContributors = MetadataValueContributors;
     }
 
     /**

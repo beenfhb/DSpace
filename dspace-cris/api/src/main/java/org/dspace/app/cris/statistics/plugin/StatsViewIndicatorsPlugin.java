@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -89,8 +90,8 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
                                 ? "handle" : "cris-uuid");
                 Integer resourceType = (Integer) doc
                         .getFirstValue("search.resourcetype");
-                Integer resourceId = (Integer) doc
-                        .getFirstValue("search.resourceid");
+                UUID resourceId = UUID.fromString((String) doc
+                        .getFirstValue("search.resourceid"));
                 try
                 {
 

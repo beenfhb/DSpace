@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.model.orcid;
 
+import java.util.UUID;
+
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -46,7 +48,7 @@ public class OrcidHistory extends IdentifiableObject {
     @SequenceGenerator(name = "CRIS_ORCIDHISTORY_SEQ", sequenceName = "CRIS_ORCIDHISTORY_SEQ", allocationSize = 1)
     private Integer id;
     
-    private Integer entityId;
+    private UUID entityId;
     
     private Integer typeId;
     
@@ -101,11 +103,11 @@ public class OrcidHistory extends IdentifiableObject {
 		this.responseMessage = responseMessage;
 	}
 
-	public Integer getEntityId() {
+	public UUID getEntityId() {
 		return entityId;
 	}
 
-	public void setEntityId(Integer entityId) {
+	public void setEntityId(UUID entityId) {
 		this.entityId = entityId;
 	}
 

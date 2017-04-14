@@ -10,19 +10,16 @@ package org.dspace.app.cris.statistics;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.app.cris.statistics.util.StatsConfig;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.StatisticsMetadataGenerator;
-import org.dspace.utils.DSpace;
 
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
@@ -78,7 +75,7 @@ public class GeoRefAdditionalStatisticsData implements
 
     @Override
     public void addMetadata(SolrInputDocument doc1, HttpServletRequest request,
-            DSpaceObject dspaceObject)
+    		BrowsableDSpaceObject dspaceObject)
     {
         String ip = (String) doc1.getFieldValue("ip");
         if (ip == null)
@@ -86,7 +83,7 @@ public class GeoRefAdditionalStatisticsData implements
         // Save the location information if valid, save the event without
         // location information if not valid
         if (ConfigurationManager.getBooleanProperty(
-                SolrLogger.CFG_USAGE_MODULE, "randomize-localhost", false)
+                "randomize-localhost", false)
                 && ip.equals("127.0.0.1"))
         {
             ip = "";
@@ -162,7 +159,7 @@ public class GeoRefAdditionalStatisticsData implements
             LookupService service = null;
             // Get the db file for the location
             String dbfile = ConfigurationManager.getProperty(
-                    SolrLogger.CFG_USAGE_MODULE, "dbfile");
+                    SolrLoggerServiceImpl.CFG_USAGE_MODULE, "dbfile");
             if (dbfile != null)
             {
                 try

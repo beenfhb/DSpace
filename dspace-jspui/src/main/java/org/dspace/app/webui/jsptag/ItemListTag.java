@@ -7,24 +7,20 @@
  */
 package org.dspace.app.webui.jsptag;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 import javax.servlet.jsp.tagext.TagSupport;
-import org.apache.commons.lang.ArrayUtils;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.DateDisplayStrategy;
@@ -34,30 +30,18 @@ import org.dspace.app.webui.util.LinkDisplayStrategy;
 import org.dspace.app.webui.util.ResolverDisplayStrategy;
 import org.dspace.app.webui.util.ThumbDisplayStrategy;
 import org.dspace.app.webui.util.TitleDisplayStrategy;
-import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.CrossLinks;
-import org.dspace.content.Bitstream;
-import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.Thumbnail;
-import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
-import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.core.Utils;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.core.service.PluginService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 
 /**
@@ -147,10 +131,10 @@ public class ItemListTag extends TagSupport {
     static
     {
 
-        showThumbs = DSpaceServicesFactory.getInstance().getConfigurationService().
+        showThumbs = DSpaceServicesFactory.getInstance().getConfigurationService()
                 .getBooleanProperty("webui.browse.thumbnail.show");
         
-        thumbItemListMaxWidth = DSpaceServicesFactory.getInstance().getConfigurationService().
+        thumbItemListMaxWidth = DSpaceServicesFactory.getInstance().getConfigurationService()
                 .getIntProperty("webui.browse.thumbnail.maxwidth");
         
         if (showThumbs)
@@ -263,6 +247,7 @@ public class ItemListTag extends TagSupport {
 
         // Arrays used to hold the information we will require when outputting each row
         boolean isDate[]   = new boolean[browseFields.length];
+        String useRender[] = new String[browseFields.length];
         boolean emph[]     = new boolean[browseFields.length];
         boolean isAuthor[] = new boolean[browseFields.length];
         boolean viewFull[] = new boolean[browseFields.length];
@@ -443,6 +428,7 @@ public class ItemListTag extends TagSupport {
 
             out.print("</tr>");
 
+            int i = 0;
             // now output each item row
             for (Item item : items)
             {
@@ -460,7 +446,7 @@ public class ItemListTag extends TagSupport {
 					out.print("<input type=\""
 							+ (radioButton ? "radio" : "checkbox")
 							+ "\" name=\"");
-					out.print(inputName + "\" value=\"" + items[i].getID()
+					out.print(inputName + "\" value=\"" + item.getID()
 							+ "\" />");
 					out.print("</td>");
                 }
@@ -491,12 +477,12 @@ public class ItemListTag extends TagSupport {
                     String qualifier = tokens[2];
                     
                     // first get hold of the relevant metadata for this column
-                    List<MetadataValue> metadataArray;
+                    List<MetadataValue> metadataArray = null;
                     
                     if (schema.equalsIgnoreCase("extra")) {
                     	
                     	String val = null;
-                    	Object obj = items[i].extraInfo.get(element);
+                    	Object obj = item.extraInfo.get(element);
 						if (obj != null) {
 							val = String.valueOf(obj);
 						}
@@ -504,8 +490,8 @@ public class ItemListTag extends TagSupport {
                     		metadataArray = new ArrayList<>();
                     		MetadataValue metadataValue = new MetadataValue();
                     		metadataValue.setValue(val);
-                    		metadataValue.setSchema("extra");
-                    		metadataValue.setElement(element);
+                    		metadataValue.schema = "extra";
+                    		metadataValue.element = element;
                     		metadataArray.add(metadataValue);
                     	}
                     }
@@ -532,7 +518,7 @@ public class ItemListTag extends TagSupport {
                     // now prepare the content of the table division
                     int limit = -1;
 					if (isAuthor[colIdx]) {
-                        limit = (authorLimit <= 0 ? metadataArray.length
+                        limit = (authorLimit <= 0 ? metadataArray.size()
                                 : authorLimit);
                     }
                     
@@ -544,7 +530,7 @@ public class ItemListTag extends TagSupport {
                     // prepare extra special layout requirements for dates
                     String extras = strategy.getExtraCssDisplay(hrq, limit,
 							viewFull[colIdx], browseType[colIdx], colIdx,
-							field, metadataArray, items[i], disableCrossLinks,
+							field, metadataArray, item, disableCrossLinks,
 							emph[colIdx]);
 
                     String markClass = "";
@@ -579,7 +565,7 @@ public class ItemListTag extends TagSupport {
 								+ "<input class=\"btn btn-default\" type=\"button\" value=\"Edit Item\" onclick=\"javascript:self.location='"
 								+ hrq.getContextPath()
 								+ "/tools/edit-item?handle="
-								+ items[i].getHandle() + "'\"" + "/>" + "</td>");
+								+ item.getHandle() + "'\"" + "/>" + "</td>");
 					} else {
 						out.print("<td headers=\""
 								+ id
@@ -592,7 +578,7 @@ public class ItemListTag extends TagSupport {
 								+ hrq.getContextPath()
 								+ "/tools/edit-item\">"
 								+ "<input type=\"hidden\" name=\"handle\" value=\""
-								+ items[i].getHandle()
+								+ item.getHandle()
 								+ "\" />"
                             + "<input type=\"submit\" value=\"Edit Item\" /></form>"
                             + "</td>");
@@ -600,6 +586,7 @@ public class ItemListTag extends TagSupport {
 				}
 
                 out.println("</tr>");
+                i++;
             }
 
             // close the table
@@ -779,19 +766,19 @@ public class ItemListTag extends TagSupport {
 
     private String getMetadataDisplayByStrategy(HttpServletRequest hrq,
             boolean[] emph, boolean[] viewFull, String[] browseType, int i,
-            int colIdx, String field, Metadatum[] metadataArray, int limit,
+            int colIdx, String field, List<MetadataValue> metadataArray, int limit,
             IDisplayMetadataValueStrategy strategy)
     {
         String metadata = "";
         try
         {
             metadata = strategy.getMetadataDisplay(hrq, limit, viewFull[colIdx],
-                    browseType[colIdx], colIdx, field, metadataArray, items[i],
+                    browseType[colIdx], colIdx, field, metadataArray, items.get(i),
                     disableCrossLinks, emph[colIdx]);
         }
         catch (Exception e)
         {
-            log.error("Error getMetadataDisplay on " + items[i].getHandle());
+            log.error("Error getMetadataDisplay on " + items.get(i).getHandle());
         }
         return metadata;
     }
@@ -825,10 +812,6 @@ public class ItemListTag extends TagSupport {
             else if (useRender[colIdx].equalsIgnoreCase("default"))
             {
                 strategy = new DefaultDisplayStrategy();
-            }
-            else if (useRender[colIdx].startsWith("mark_"))
-            {
-                strategy = new MarkingDisplayStrategy();
             }
             else
             {

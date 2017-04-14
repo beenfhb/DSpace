@@ -10,40 +10,40 @@ package org.dspace.content.packager;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.Utils;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 import edu.harvard.hul.ois.mets.Agent;
+import edu.harvard.hul.ois.mets.Div;
 import edu.harvard.hul.ois.mets.Loctype;
 import edu.harvard.hul.ois.mets.Mets;
 import edu.harvard.hul.ois.mets.MetsHdr;
+import edu.harvard.hul.ois.mets.Mptr;
 import edu.harvard.hul.ois.mets.Name;
 import edu.harvard.hul.ois.mets.Role;
-import edu.harvard.hul.ois.mets.Div;
-import edu.harvard.hul.ois.mets.Mptr;
 import edu.harvard.hul.ois.mets.StructMap;
 import edu.harvard.hul.ois.mets.Type;
 import edu.harvard.hul.ois.mets.helper.MetsException;
 import edu.harvard.hul.ois.mets.helper.PCData;
-import java.util.Date;
-import org.apache.commons.lang.ArrayUtils;
-import org.dspace.core.Utils;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Subclass of the METS packager framework to disseminate a DSpace
@@ -258,14 +258,14 @@ public class DSpaceAIPDisseminator extends AbstractMETSDisseminator
      * @throws AuthorizeException if authorization error
      */
     @Override
-    public String [] getDmdTypes(Context context, DSpaceObject dso, PackageParameters params)
+    public String[] getDmdTypes(Context context, DSpaceObject dso, PackageParameters params)
         throws SQLException, IOException, AuthorizeException
     {
         
-        String dmdTypes = ConfigurationManager.getArrayProperty(dso.getTypeText().toLowerCase()+".aip.disseminate.dmd");
+        String[] dmdTypes = configurationService.getArrayProperty(dso.getTypeText().toLowerCase()+".aip.disseminate.dmd");
         if (dmdTypes == null)
         {
-            dmdTypes = ConfigurationManager.getArrayProperty("aip.disseminate.dmd");
+            dmdTypes = configurationService.getArrayProperty("aip.disseminate.dmd");
         }
         if (dmdTypes == null)
         {
@@ -298,10 +298,10 @@ public class DSpaceAIPDisseminator extends AbstractMETSDisseminator
     public String[] getTechMdTypes(Context context, DSpaceObject dso, PackageParameters params)
         throws SQLException, IOException, AuthorizeException
     {
-        String techTypes = ConfigurationManager.getArrayProperty(dso.getTypeText().toLowerCase()+".aip.disseminate.techMD");
+        String[] techTypes = configurationService.getArrayProperty(dso.getTypeText().toLowerCase()+".aip.disseminate.techMD");
         if (techTypes == null)
         {
-            techTypes = ConfigurationManager.getArrayProperty("aip.disseminate.techMD");
+            techTypes = configurationService.getArrayProperty("aip.disseminate.techMD");
         }
         if (techTypes == null)
         {
@@ -342,10 +342,10 @@ public class DSpaceAIPDisseminator extends AbstractMETSDisseminator
     public String[] getSourceMdTypes(Context context, DSpaceObject dso, PackageParameters params)
         throws SQLException, IOException, AuthorizeException
     {
-        String sourceTypes = ConfigurationManager.getArrayProperty(dso.getTypeText().toLowerCase()+".aip.disseminate.sourceMD");
+        String[] sourceTypes = configurationService.getArrayProperty(dso.getTypeText().toLowerCase()+".aip.disseminate.sourceMD");
         if (sourceTypes == null)
         {
-            sourceTypes = ConfigurationManager.getArrayProperty("aip.disseminate.sourceMD");
+            sourceTypes = configurationService.getArrayProperty("aip.disseminate.sourceMD");
         }
         
         if (sourceTypes == null)

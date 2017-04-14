@@ -12,6 +12,8 @@ import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.statistics.IStatsComponent;
 import org.dspace.app.webui.cris.components.statistics.CrisStatBitstreamTopObjectComponent;
 import org.dspace.app.webui.cris.components.statistics.CrisStatTopObjectComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
@@ -19,7 +21,7 @@ import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 
 public class ItemsConfigurerComponent extends
-        AFacetedQueryConfigurerComponent<Item>
+        AFacetedQueryConfigurerComponent<BrowseDSpaceObject>
 {
 
     /** log4j logger */
@@ -27,19 +29,19 @@ public class ItemsConfigurerComponent extends
             .getLogger(ItemsConfigurerComponent.class);
 
     @Override
-    public Item[] getObjectFromSolrResult(DiscoverResult docs, Context context)
-            throws Exception
+    public BrowseDSpaceObject[] getObjectFromSolrResult(DiscoverResult docs,
+            Context context) throws Exception
     {
-        Item[] result = new Item[docs.getDspaceObjects().size()];
+    	BrowseDSpaceObject[] result = new BrowseDSpaceObject[docs.getDspaceObjects().size()];
         int i = 0;
-        for (DSpaceObject obj : docs.getDspaceObjects())
+        for (BrowsableDSpaceObject obj : docs.getDspaceObjects())
         {
-            result[i] = (Item) obj;
+            result[i] = new BrowseDSpaceObject(context, obj);
             i++;
         }
         return result;
     }
-
+    
     @Override
     public IStatsComponent getStatsDownloadComponent()
     {

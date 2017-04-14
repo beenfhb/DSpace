@@ -41,6 +41,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.core.ConfigurationManager;
@@ -144,7 +145,7 @@ public class ResearcherPageDetailsController
             model.put("isLoggedIn", new Boolean(false));
         }
         
-        boolean isAdmin = AuthorizeManager.isAdmin(context);
+        boolean isAdmin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
       
         
         if (isAdmin

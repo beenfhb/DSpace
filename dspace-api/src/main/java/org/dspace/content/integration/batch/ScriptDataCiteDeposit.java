@@ -49,6 +49,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.event.Event;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
@@ -355,7 +356,7 @@ public class ScriptDataCiteDeposit
             AuthorizeException
     {
 
-        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                 .getNamedPlugin(StreamDisseminationCrosswalk.class, criteria);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

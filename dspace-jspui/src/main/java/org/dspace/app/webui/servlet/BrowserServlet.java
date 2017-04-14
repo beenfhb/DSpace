@@ -10,7 +10,6 @@ package org.dspace.app.webui.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -22,8 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.dspace.app.bulkedit.DSpaceCSV;
 import org.dspace.app.bulkedit.MetadataExport;
-import org.dspace.app.webui.jsptag.ConfigurationService;
-import org.dspace.app.webui.jsptag.ItemService;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -31,15 +28,15 @@ import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
-import org.dspace.browse.BrowseItem;
 import org.dspace.browse.BrowserScope;
-import org.dspace.content.ItemIterator;
-import org.dspace.content.authority.ChoiceAuthorityManager;
-import org.dspace.content.authority.MetadataAuthorityManager;
 import org.dspace.content.Item;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.apache.log4j.Logger;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Servlet for browsing through indices, as they are defined in 
@@ -235,7 +232,7 @@ public class BrowserServlet extends AbstractBrowserServlet
             .getPropertyAsType(
                     "discovery.browse.authority.multilanguage."
                             + bidx.getName(),
-                    new configurationService
+                    configurationService
                             .getPropertyAsType(
                                     "discovery.browse.authority.multilanguage",
                                     new Boolean(false)),

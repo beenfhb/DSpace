@@ -25,12 +25,11 @@ import org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfigu
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 
@@ -67,11 +66,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
 
     @Override
     public boolean allowsUpdate(Context ctx, Item item,
-            List<Metadatum> metadatumList, String authorityKey, ACrisObject rp)
+            List<MetadataValue> MetadataValueList, String authorityKey, ACrisObject rp)
     {
-        if (metadatumList != null && metadatumList.size() > 0)
+        if (MetadataValueList != null && MetadataValueList.size() > 0)
         {
-            Metadatum m = metadatumList.get(0);
+            MetadataValue m = MetadataValueList.get(0);
             String mdString = m.schema + "." + m.element
                     + (m.qualifier != null ? "." + m.qualifier : "");
             ItemMetadataImportFillerConfiguration conf = configurations
@@ -89,11 +88,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     }
 
     @Override
-    public void fillRecord(Context context, Item item, List<Metadatum> metadata,
+    public void fillRecord(Context context, Item item, List<MetadataValue> metadata,
             String hashedValue, ACrisObject crisObject)
     {
         int idx = 0;
-        for (Metadatum m : metadata)
+        for (MetadataValue m : metadata)
         {
             String mdString = m.schema + "." + m.element
                     + (m.qualifier != null ? "." + m.qualifier : "");
@@ -140,7 +139,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                 String pdefKey = prefix + crisObject.getMetadataFieldTitle();
                 ResearcherPageUtils.cleanPropertyByPropertyDefinition(crisObject, pdefKey);
                 applicationService.saveOrUpdate(crisObject.getCRISTargetClass(), crisObject);
-                ResearcherPageUtils.buildTextValue(crisObject,m.value,pdefKey);
+                ResearcherPageUtils.buildTextValue(crisObject,m.getValue(),pdefKey);
                 
                 for (Entry<String, MappingDetails> entry : conf.getMapping()
                         .entrySet())
@@ -158,11 +157,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                             "fillRecord -> conf -> " + details.getShortName());
                     List<? extends Property> props = (List<? extends Property>) crisObject
                             .getAnagrafica4view().get(details.getShortName());
-                    Metadatum[] inputs = item
-                            .getMetadataByMetadataString(mdInput);
+                    List<MetadataValue> inputs = item.getItemService()
+                            .getMetadataByMetadataString(item, mdInput);
                     if (details.isUseAll())
                     {
-                        for (Metadatum value : inputs)
+                        for (MetadataValue value : inputs)
                         {
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
@@ -179,12 +178,12 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                     {
                         try
                         {
-                            Metadatum value = null;
+                            MetadataValue value = null;
                             try {
-                                value = inputs[m.getPlace()];
+                                value = inputs.get(m.getPlace());
                             }
                             catch (Exception ex) {
-                                value = inputs[idx];
+                                value = inputs.get(idx);
                             }
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
@@ -213,11 +212,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     }
 
     public static void buildMetric(Context context, Item item,
-            ACrisObject crisObject, Metadatum m, String mdInput,
+            ACrisObject crisObject, MetadataValue m, String mdInput,
             MetricsMappingDetails mmd, MetricsPersistenceService metricService)
     {
-        Metadatum[] mm = item.getMetadataByMetadataString(mdInput);
-        if (mm != null && mm.length > 0)
+        List<MetadataValue> mm = item.getItemService().getMetadataByMetadataString(item, mdInput);
+        if (mm != null && mm.size() > 0)
         {
             try
             {
@@ -242,7 +241,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                 Date end = null;
                 if (StringUtils.isNotBlank(mmd.getRangeByYear()))
                 {
-                    String acquisitionYear = item.getMetadata(mmd.getRangeByYear());
+                    String acquisitionYear = item.getItemService().getMetadata(item, mmd.getRangeByYear());
 
                     int year = -1;
                     if (StringUtils.isNotBlank(acquisitionYear))
@@ -284,10 +283,9 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                             && StringUtils.isNotBlank(mmd.getEndDate()))
                     {
                         start = (Date) formatAsDate(context, item,
-                                item.getMetadataByMetadataString(
-                                        mmd.getStartDate())[0]);
-                        end = (Date) formatAsDate(context, item, item
-                                .getMetadataByMetadataString(mmd.getEndDate())[0]);
+                                item.getItemService().getMetadataByMetadataString(item,
+                                        mmd.getStartDate()).get(0));
+                        end = (Date) formatAsDate(context, item, item.getItemService().getMetadataByMetadataString(item,mmd.getEndDate()).get(0));
                     }
                 }
                 metric.setStartDate(start);
@@ -302,34 +300,34 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     }
 
     private Object buildGenericValue(Context context, Item item,
-            Metadatum value, MappingDetails details)
+            MetadataValue value, MappingDetails details)
     {
-        Object dcvalue = value.value;
+        Object dcvalue = value.getValue();
         if (details.formatAsDate())
         {
             dcvalue = formatAsDate(context, item, value);
         }
-        else if (value.authority != null)
+        else if (value.getAuthority() != null)
         {
-            dcvalue = applicationService.getEntityByCrisId(value.authority);
+            dcvalue = applicationService.getEntityByCrisId(value.getAuthority());
         }
         else if (details.isFormatAsInteger()) {
-            if(StringUtils.isNotBlank(value.value)) {
-                dcvalue = Integer.parseInt(value.value);
+            if(StringUtils.isNotBlank(value.getValue())) {
+                dcvalue = Integer.parseInt(value.getValue());
             }
         }
         return dcvalue;
     }
 
-    private static Object formatAsDate(Context context, Item item, Metadatum value)
+    private static Object formatAsDate(Context context, Item item, MetadataValue value)
     {
         Object dcvalue;
         SimpleDateFormat sdf;
-        if (value.value.length() == 4)
+        if (value.getValue().length() == 4)
         {
             sdf = new SimpleDateFormat("yyyy");
         }
-        else if (value.value.length() == 7)
+        else if (value.getValue().length() == 7)
         {
             sdf = new SimpleDateFormat("yyyy-MM");
         }
@@ -339,14 +337,14 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
         }
         try
         {
-            dcvalue = sdf.parse(value.value);
+            dcvalue = sdf.parse(value.getValue());
         }
         catch (ParseException e)
         {
             log.warn(
                     LogManager
                             .getHeader(context, "fillRecord",
-                                    "Mangled date value " + value.value
+                                    "Mangled date value " + value.getValue()
                                             + " item_id=" + item.getID()),
                     e);
             dcvalue = null;

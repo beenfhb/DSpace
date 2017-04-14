@@ -22,6 +22,7 @@ import org.dspace.app.webui.cris.dto.ManageRelationDTO;
 import org.dspace.app.webui.cris.util.RelationPreferenceUtil;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -106,7 +107,7 @@ public class FormRelationManagementController extends BaseFormController
     {
         Context context = UIUtil.obtainContext(request);
         ACrisObject cris = getCRISObject(request);
-        AuthorizeManager.authorizeAction(context, cris, Constants.ADMIN, false);
+        AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(context, cris, Constants.ADMIN, false);
         
         String relationType = getRelationType(request);
         Map<String, Object> data = new HashMap<String, Object>();
@@ -123,7 +124,7 @@ public class FormRelationManagementController extends BaseFormController
         data.put("cris", cris);
         data.put("confName", confName);
         data.put("relationType", relationType);
-        boolean admin = AuthorizeManager.isAdmin(context);
+        boolean admin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
         data.put("isSelectEnabled", conf.isActionEnabled(RelationPreference.SELECTED, admin));
         data.put("isHideEnabled", conf.isActionEnabled(RelationPreference.HIDED, admin));
         data.put("isUnlinkEnabled", conf.isActionEnabled(RelationPreference.UNLINKED, admin));

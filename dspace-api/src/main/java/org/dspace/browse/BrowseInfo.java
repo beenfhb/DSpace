@@ -36,7 +36,7 @@ public class BrowseInfo
      * The results of the browse.
      * FIXME: Unable to generify due to mixed usage
      */
-    private List results;
+    private List<BrowseDSpaceObject> results;
 
     /**
      * The position of the first element of results within the Browse index.
@@ -513,43 +513,29 @@ public class BrowseInfo
      *
      * @return The results of the Browse as an Item array.
      */
-    public Item[] getItemResults(Context context)
-    	throws BrowseException
-    {
-    	try
-    	{
-    		BrowseItem[] bis = getBrowseItemResults();
-    		List<Item> itemList = new ArrayList<Item>();
-    		
-    		for (int i = 0; i < bis.length; i++)
-    		{
-    			if (!(bis[i] instanceof BrowsableDSpaceObject))
-    			{
-    				Item item = Item.find(context, bis[i].getID());
-    				if (item != null)
-    				{
-    					itemList.add(item);
-    				}
-    			}
-    		}
-    		Item[] items = new Item[itemList.size()];
-    		items = itemList.toArray(items);
-    		return items;
-    	}
-    	catch (SQLException e)
-    	{
-    		throw new BrowseException(e);
-    	}
-    }
+	public List<Item> getItemResults(Context context) throws BrowseException {
+		List<BrowseDSpaceObject> bis = getBrowseItemResults();
+		List<Item> itemList = new ArrayList<Item>();
+
+		for (BrowseDSpaceObject bi : bis) {
+			if (!(bi.getBrowsableDSpaceObject() instanceof Item)) {
+				Item item = (Item) bi.getBrowsableDSpaceObject();
+				if (item != null) {
+					itemList.add(item);
+				}
+			}
+		}
+		return itemList;
+	}
 
     /**
      * Return the results of the Browse as a BrowseItem array
      *
      * @return		the results of the browse as a BrowseItem array
      */
-    public BrowseItem[] getBrowseItemResults()
+    public List<BrowseDSpaceObject> getBrowseItemResults()
     {
-        return (BrowseItem[]) results.toArray(new BrowseItem[results.size()]);
+        return results;
     }
 
     /**
@@ -889,7 +875,7 @@ public class BrowseInfo
 		Iterator itr = results.iterator();
 		while (itr.hasNext())
 		{
-			BrowseItem bi = (BrowseItem) itr.next();
+			BrowsableDSpaceObject bi = (BrowsableDSpaceObject) itr.next();
 			if (bi == null)
 			{
 				sb.append("{{ NULL ITEM }}");
@@ -905,7 +891,7 @@ public class BrowseInfo
     				sb.append("{{ NULL METADATA }}");
     				break;
     			}
-				List<MetadataValue> values = itemService.getMetadata(bi, md[0], md[1], md[2], Item.ANY);
+				List<MetadataValue> values = bi.getMetadata(md[0], md[1], md[2], Item.ANY);
 				StringBuffer value = new StringBuffer();
 				if (values != null)
 				{

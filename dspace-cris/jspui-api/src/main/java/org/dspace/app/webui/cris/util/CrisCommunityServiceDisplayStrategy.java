@@ -22,9 +22,8 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.browse.BrowseItem;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
@@ -43,7 +42,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, BrowseItem item, boolean disableCrossLinks, boolean emph) {
+			String field, List<MetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks, boolean emph) {
 		ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item).getBrowsableDSpaceObject();
 		String metadata = internalDisplay(hrq, metadataArray, crisObject);
 		return metadata;
@@ -51,26 +50,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
-		// not used
-		return null;
-	}
-
-	@Override
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph) throws JspException {
-		return null;
-	}
-
-	@Override
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, BrowseItem browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
-		return null;
-	}
-
-	@Override
-	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks, boolean emph) throws JspException {
 
 		ACrisObject crisObject = (ACrisObject) item;
 		String metadata = internalDisplay(hrq, metadataArray, crisObject);
@@ -78,10 +58,10 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 	}
 	
     private String internalDisplay(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject)
+    		List<MetadataValue> metadataArray, ACrisObject crisObject)
     {
         String metadata = "N/A";
-        if (metadataArray!=null && metadataArray.length > 0) {
+        if (metadataArray!=null && metadataArray.size() > 0) {
             String publicPath = crisObject.getAuthorityPrefix();
             String authority = crisObject.getCrisID();
             
@@ -101,16 +81,16 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
     }
 
     private String prepareContributors(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+    		List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata = "</br>";
-        Metadatum[] contributors = crisObject.getMetadataValueInDCFormat("communityservicecontributors");
-        for(Metadatum metadatum : contributors) {
-            String auth = metadatum.authority;
+        List<MetadataValue> contributors = crisObject.getMetadataValueInDCFormat("communityservicecontributors");
+        for(MetadataValue MetadataValue : contributors) {
+            String auth = MetadataValue.getAuthority();
             if(StringUtils.isNotBlank(auth)) {
                 ACrisObject rp = applicationService.getEntityByCrisId(auth, ResearcherPage.class);                
-                metadata += internalContributorsDisplay(hrq, metadatum, rp);
+                metadata += internalContributorsDisplay(hrq, MetadataValue, rp);
                 metadata += "</br>";
             }
             
@@ -119,10 +99,10 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
     }
     
     private String internalContributorsDisplay(HttpServletRequest hrq,
-            Metadatum metadatum, ACrisObject crisObject)
+            MetadataValue MetadataValue, ACrisObject crisObject)
     {
         String metadata = "N/A";
-        if (metadatum!=null) {
+        if (MetadataValue!=null) {
             String publicPath = crisObject.getAuthorityPrefix();
             String authority = crisObject.getCrisID();
 
@@ -150,7 +130,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
                     icon = I18nUtil.getMessage("ItemCrisRefDisplayStrategy.default.icon");
                 }
             }
-            metadata += Utils.addEntities(metadatum.value);
+            metadata += Utils.addEntities(MetadataValue.getValue());
             metadata += "&nbsp;";
             metadata += icon;
             metadata += endLink;
@@ -160,7 +140,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 
 
     private String prepareDateOfConference(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+    		List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata = "";
@@ -172,7 +152,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
     }
 
     private String preparePlaceOfConference(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+    		List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata = "";
@@ -185,7 +165,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
     }
 
     private String prepareTitle(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+    		List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         
@@ -199,7 +179,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
     }
 
     private String prepareName(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+    		List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata;
@@ -208,9 +188,33 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
         startLink += "\" class=\"authority\">";
         String endLink = "</a>";
         metadata = startLink;
-        metadata += Utils.addEntities(metadataArray[0].value);
+        metadata += Utils.addEntities(metadataArray.get(0).getValue());
         metadata += endLink;
         return metadata;
     }
+
+	@Override
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
+			String field, List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
+			throws JspException {
+		// noop
+		return null;
+	}
+
+	@Override
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
+			String field, List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem, boolean disableCrossLinks,
+			boolean emph) throws JspException {
+		// noop
+		return null;
+	}
+
+	@Override
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
+			String field, List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
+			throws JspException {
+		// noop
+		return null;
+	}
 
 }

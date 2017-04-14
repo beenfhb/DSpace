@@ -20,7 +20,7 @@ import org.dspace.sort.OrderFormat;
  *
  * The DCValues to be compared are specified by the element, qualifier and
  language parameters to the constructor. If the Item has more than one
- matching Metadatum, then the max parameter to the constructor specifies whether
+ matching MetadataValue, then the max parameter to the constructor specifies whether
  the maximum or minimum lexicographic value will be used.
  *
  * @author Peter Breton
@@ -53,7 +53,7 @@ public class ItemComparator implements Comparator, Serializable
      * @param language
      *            The language for the DCValues
      * @param max
-     *            If true, and there is more than one Metadatum for element,
+     *            If true, and there is more than one MetadataValue for element,
             qualifier and language, then use the maximum value
             lexicographically; otherwise use the minimum value.
      */
@@ -195,7 +195,7 @@ public class ItemComparator implements Comparator, Serializable
         }
 
         // We want to sort using Strings, but also keep track of
-        // which Metadatum the value came from.
+        // which MetadataValue the value came from.
         Map<String, Integer> values = new HashMap<>();
 
         for (int i = 0; i < dcvalues.size(); i++)
@@ -223,7 +223,7 @@ public class ItemComparator implements Comparator, Serializable
     }
 
     /**
-     * Normalize the title of a Metadatum.
+     * Normalize the title of a MetadataValue.
      * @param value
      * @return normalized title
      */

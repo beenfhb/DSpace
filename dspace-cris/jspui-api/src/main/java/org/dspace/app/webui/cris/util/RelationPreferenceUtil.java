@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -28,9 +29,10 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.webui.cris.dto.RelatedObject;
 import org.dspace.app.webui.cris.dto.RelatedObjects;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.DSpaceObject;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -74,14 +76,14 @@ public class RelationPreferenceUtil
         List<RelationPreference> relations = applicationService
                 .findSelectedRelationsPreferencesOfUUID(cris.getUuid(),
                         configurationName);
-        List<DSpaceObject> dsoList = new ArrayList<DSpaceObject>();
+        List<BrowsableDSpaceObject> dsoList = new ArrayList<BrowsableDSpaceObject>();
         for (RelationPreference rp : relations)
         {
             if (rp.getTargetUUID() == null)
             {
                 try
                 {
-                    dsoList.add(Item.find(context, rp.getItemID()));
+                    dsoList.add(ContentServiceFactory.getInstance().getItemService().find(context, rp.getItemID()));
                 }
                 catch (SQLException e)
                 {
@@ -98,7 +100,7 @@ public class RelationPreferenceUtil
         RelationPreferenceConfiguration configuration = preferenceService
                 .getConfigurationService().getRelationPreferenceConfiguration(
                         configurationName);
-        for (DSpaceObject dso : dsoList)
+        for (BrowsableDSpaceObject dso : dsoList)
         {
             related.add(convert(context, dso, configuration,
                     RelationPreference.SELECTED));
@@ -126,7 +128,7 @@ public class RelationPreferenceUtil
                 .getRelationConfiguration().getQuery(), cris.getCrisID(), cris
                 .getUuid());
 
-        boolean sysAdmin = AuthorizeManager.isAdmin(context);
+        boolean sysAdmin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
 
         SolrQuery solrQuery = new SolrQuery();
         if (StringUtils.isNotEmpty(userQuery))
@@ -244,8 +246,8 @@ public class RelationPreferenceUtil
                 try
                 {
                     dsoList.add(new Object[] {
-                            Item.find(context, (Integer) doc
-                                    .getFieldValue("search.resourceid")),
+                            ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString((String)doc
+                                    .getFieldValue("search.resourceid"))),
                             relStatus });
                 }
                 catch (SQLException e)
@@ -262,7 +264,7 @@ public class RelationPreferenceUtil
         }
         for (Object[] dso : dsoList)
         {
-            related.add(convert(context, (DSpaceObject) dso[0], configuration,
+            related.add(convert(context, (BrowsableDSpaceObject) dso[0], configuration,
                     (String) dso[1]));
         }
         return result;
@@ -288,7 +290,7 @@ public class RelationPreferenceUtil
                 cris.getUuid());
     }
 
-    private RelatedObject convert(Context context, DSpaceObject dso,
+    private RelatedObject convert(Context context, BrowsableDSpaceObject dso,
             RelationPreferenceConfiguration configuration, String status)
     {
         RelatedObject rel = new RelatedObject();

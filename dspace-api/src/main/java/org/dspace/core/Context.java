@@ -7,7 +7,19 @@
  */
 package org.dspace.core;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.EmptyStackException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Stack;
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
+import org.dspace.content.EPersonCRISIntegration;
+import org.dspace.content.Item;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -19,9 +31,6 @@ import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.utils.DSpace;
 import org.springframework.util.CollectionUtils;
-
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Class representing the context of a particular DSpace operation. This stores
@@ -213,7 +222,7 @@ public class Context
     {
         currentUser = user;
 
-		EPersonCRISIntegration plugin = (EPersonCRISIntegration) PluginManager
+		EPersonCRISIntegration plugin = (EPersonCRISIntegration) CoreServiceFactory.getInstance().getPluginService()
 				.getSinglePlugin(org.dspace.content.EPersonCRISIntegration.class);
 		if (plugin != null) {
 			if (user != null) {

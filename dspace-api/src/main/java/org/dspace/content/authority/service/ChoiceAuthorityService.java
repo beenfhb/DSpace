@@ -13,6 +13,7 @@ import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Broker for ChoiceAuthority plugins, and for other information configured
@@ -135,4 +136,23 @@ public interface ChoiceAuthorityService
      * @return List of variants
      */
     public List<String> getVariants(MetadataValue metadataValue);
+    
+    
+    public void notifyAccept(int itemID, String schema, String element,
+			String qualifier, String authorityKey, int confidence);
+    public void notifyReject(int itemID, String schema, String element,
+            String qualifier, String authorityKey);
+	public void notifyReject(int[] ids, String schema, String element, String qualifier, String key);
+	public Set<String> getAuthorities();
+	public List<String> getAuthorityMetadataForAuthority(String authorityName);
+	
+    
+    public ChoiceAuthority getChoiceAuthority(String metadata);
+
+    public ChoiceAuthority getChoiceAuthority(String schema, String element,
+            String qualifier);
+	
+    public String getLabel(String schema, String element, String qualifier, String authKey, String locale);
+	public List<String> getVariants(String schema, String element, String qualifier, String authKey, String locale);    
+    
 }

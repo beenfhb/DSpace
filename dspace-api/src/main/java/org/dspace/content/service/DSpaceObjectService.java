@@ -185,7 +185,7 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
      *                if the requested metadata field doesn't exist
      */
     public String getMetadata(T dSpaceObject, String value);
-
+    public List<String> getAllMetadata(T dso, String value);
 
     public List<MetadataValue> getMetadata(T dSpaceObject, String mdString, String authority);
 
@@ -271,8 +271,10 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
      * @throws SQLException if database error
      */
     public void addMetadata(Context context, T dso, MetadataField metadataField, String lang, List<String> values, List<String> authorities, List<Integer> confidences) throws SQLException;
+    public void addMetadata(Context context, T dso, MetadataField metadataField, String lang, List<String> values, List<String> authorities, List<Integer> confidences, List<Integer> places) throws SQLException;
 
     public void addMetadata(Context context, T dso, MetadataField metadataField, String language, String value, String authority, int confidence) throws SQLException;
+    public void addMetadata(Context context, T dso, MetadataField metadataField, String language, String value, String authority, int confidence, int place) throws SQLException;
 
     public void addMetadata(Context context, T dso, MetadataField metadataField, String language, String value) throws SQLException;
 

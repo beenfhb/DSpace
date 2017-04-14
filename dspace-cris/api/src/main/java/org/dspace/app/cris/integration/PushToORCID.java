@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.mail.MessagingException;
 import javax.xml.bind.JAXBElement;
@@ -42,7 +43,6 @@ import org.dspace.app.cris.model.RelationPreference;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.RPNestedObject;
-import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPNestedProperty;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
@@ -68,7 +68,6 @@ import org.dspace.authority.orcid.jaxb.Contributor;
 import org.dspace.authority.orcid.jaxb.ContributorAttributes;
 import org.dspace.authority.orcid.jaxb.ContributorEmail;
 import org.dspace.authority.orcid.jaxb.Country;
-import org.dspace.authority.orcid.jaxb.CreatedDate;
 import org.dspace.authority.orcid.jaxb.CreditName;
 import org.dspace.authority.orcid.jaxb.CurrencyCode;
 import org.dspace.authority.orcid.jaxb.Day;
@@ -118,22 +117,21 @@ import org.dspace.authority.orcid.jaxb.Year;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.util.SimpleMapConverter;
 import org.dspace.utils.DSpace;
 
 import it.cilea.osd.common.core.SingleTimeStampInfo;
-import it.cilea.osd.jdyna.model.ANestedObject;
 import it.cilea.osd.jdyna.value.BooleanValue;
 import it.cilea.osd.jdyna.value.DateValue;
 import it.cilea.osd.jdyna.value.EmbeddedLinkValue;
-import it.cilea.osd.jdyna.value.PointerValue;
 import it.cilea.osd.jdyna.value.TextValue;
 import it.cilea.osd.jdyna.widget.WidgetLink;
 import it.cilea.osd.jdyna.widget.WidgetPointer;
@@ -162,8 +160,8 @@ public class PushToORCID {
 
 		Map<String, Map<String, List<String>>> mapResearcherMetadataToSend = new HashMap<String, Map<String, List<String>>>();
 		Map<String, Map<String, List<Map<String, List<String>>>>> mapResearcherMetadataNestedToSend = new HashMap<String, Map<String, List<Map<String, List<String>>>>>();
-		Map<String, Map<Integer, String>> mapPublicationsToSend = new HashMap<String, Map<Integer, String>>();
-		Map<String, Map<Integer, String>> mapProjectsToSend = new HashMap<String, Map<Integer, String>>();
+		Map<String, Map<UUID, String>> mapPublicationsToSend = new HashMap<String, Map<UUID, String>>();
+		Map<String, Map<UUID, String>> mapProjectsToSend = new HashMap<String, Map<UUID, String>>();
 
 		boolean byPassManualMode = ConfigurationManager.getBooleanProperty("cris",
 				"system.script.pushtoorcid.force", false);
@@ -191,8 +189,8 @@ public class PushToORCID {
 		external: for (ResearcherPage researcher : rps) {
 
 			String crisID = researcher.getCrisID();
-			List<Integer> itemIDsToSend = new ArrayList<Integer>();
-			List<Integer> projectsIDsToSend = new ArrayList<Integer>();
+			List<UUID> itemIDsToSend = new ArrayList<UUID>();
+			List<UUID> projectsIDsToSend = new ArrayList<UUID>();
 
 			boolean isManualMode = false;
 			if (!byPassManualMode) {
@@ -465,7 +463,7 @@ public class PushToORCID {
                                                 .getWorkExternalIdentifierId()
                                                 .trim();
 
-                                        DSpaceObject dso = HandleManager
+                                        DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService()
                                                 .resolveToObject(context,
                                                         handle);
                                         OrcidHistory orcidHistory = applicationService
@@ -542,14 +540,14 @@ public class PushToORCID {
                                     OrcidHistory orcidHistory = applicationService
                                             .uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(
                                                     crisId,
-                                                    pj.getId(),
+                                                    pj.getID(),
                                                     CrisConstants.PROJECT_TYPE_ID);
                                     if (orcidHistory == null)
                                     {
                                         orcidHistory = new OrcidHistory();
                                     }
                                     orcidHistory.setEntityId(
-                                            pj.getId());
+                                            pj.getID());
                                     orcidHistory
                                             .setEntityUuid(uuid);
                                     orcidHistory.setTypeId(
@@ -651,8 +649,8 @@ public class PushToORCID {
 	}
 
 	private static void prepareFundings(ApplicationService applicationService, RelationPreferenceService relationPreferenceService,
-			SearchService searchService, Map<String, Map<Integer, String>> mapProjectsToSend, ResearcherPage researcher,
-			String crisID, List<Integer> projectsIDsToSend, String projectsPrefs) {
+			SearchService searchService, Map<String, Map<UUID, String>> mapProjectsToSend, ResearcherPage researcher,
+			String crisID, List<UUID> projectsIDsToSend, String projectsPrefs) {
 		if (StringUtils.isNotBlank(projectsPrefs)) {
 			if (Integer.parseInt(projectsPrefs) != ORCID_PROJECTS_PREFS_DISABLED) {
 				if (Integer.parseInt(projectsPrefs) == ORCID_PROJECTS_PREFS_ALL) {
@@ -669,7 +667,7 @@ public class PushToORCID {
 						Iterator<SolrDocument> solrDoc = docList.iterator();
 						while (solrDoc.hasNext()) {
 							SolrDocument doc = solrDoc.next();
-							Integer rpId = (Integer) doc.getFirstValue("search.resourceid");
+							UUID rpId = UUID.fromString((String) doc.getFirstValue("search.resourceid"));
 							projectsIDsToSend.add(rpId);
 						}
 					} catch (SearchServiceException e) {
@@ -700,8 +698,8 @@ public class PushToORCID {
 			}
 		}
 
-		Map<Integer, String> subResult = new HashMap<Integer, String>();
-        for (Integer id : projectsIDsToSend)
+		Map<UUID, String> subResult = new HashMap<UUID, String>();
+        for (UUID id : projectsIDsToSend)
         {
             OrcidHistory orcidHistory = applicationService
                     .uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(crisID, id,
@@ -718,8 +716,8 @@ public class PushToORCID {
 	}
 
 	private static void prepareWorks(ApplicationService applicationService, RelationPreferenceService relationPreferenceService, SearchService searchService,
-			Map<String, Map<Integer, String>> mapPublicationsToSend, ResearcherPage researcher, String crisID,
-			List<Integer> itemIDsToSend, String publicationsPrefs) {
+			Map<String, Map<UUID, String>> mapPublicationsToSend, ResearcherPage researcher, String crisID,
+			List<UUID> itemIDsToSend, String publicationsPrefs) {
 		if (publicationsPrefs != null) {
 			if (Integer.parseInt(publicationsPrefs) != ORCID_PUBLICATION_PREFS_DISABLED) {
 				if (Integer.parseInt(publicationsPrefs) == ORCID_PUBLICATION_PREFS_ALL) {
@@ -736,7 +734,7 @@ public class PushToORCID {
 						Iterator<SolrDocument> solrDoc = docList.iterator();
 						while (solrDoc.hasNext()) {
 							SolrDocument doc = solrDoc.next();
-							Integer rpId = (Integer) doc.getFirstValue("search.resourceid");
+							UUID rpId = UUID.fromString((String) doc.getFirstValue("search.resourceid"));
 							itemIDsToSend.add(rpId);
 						}
 					} catch (SearchServiceException e) {
@@ -767,8 +765,8 @@ public class PushToORCID {
 			}
 		}
 				
-		Map<Integer, String> subResult = new HashMap<Integer, String>();
-		for(Integer id : itemIDsToSend) {		    
+		Map<UUID, String> subResult = new HashMap<UUID, String>();
+		for(UUID id : itemIDsToSend) {		    
 		    
 		    OrcidHistory orcidHistory = applicationService.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(crisID, id, Constants.ITEM);
 		    if(orcidHistory!=null) {
@@ -831,7 +829,7 @@ public class PushToORCID {
                 // manage mapping configuration on nested object
                 List<RPNestedObject> nestedObjects = applicationService
                         .getNestedObjectsByParentIDAndShortname(
-                                researcher.getID(), metadataShortnameINTERNAL,
+                                researcher.getId(), metadataShortnameINTERNAL,
                                 researcher.getClassNested());
 
                 if (nestedObjects != null && !nestedObjects.isEmpty())
@@ -1153,10 +1151,10 @@ public class PushToORCID {
     }
 
 	private static FundingList buildOrcidFundings(Context context, ApplicationService applicationService, String crisId,
-			Map<String, Map<Integer, String>> mapProjectsToSend) throws SQLException {
+			Map<String, Map<UUID, String>> mapProjectsToSend) throws SQLException {
 		FundingList fundingList = new FundingList();
-        Map<Integer, String> listOfItems = mapProjectsToSend.get(crisId);
-        for (Integer ii : listOfItems.keySet())
+        Map<UUID, String> listOfItems = mapProjectsToSend.get(crisId);
+        for (UUID ii : listOfItems.keySet())
         {
             Project project = applicationService.get(Project.class, ii);
             Funding funding = buildOrcidFunding(context, applicationService, project, listOfItems.get(ii));
@@ -1325,22 +1323,22 @@ public class PushToORCID {
 	}
 
 	private static OrcidWorks buildOrcidWorks(Context context, String crisId,
-			Map<String, Map<Integer, String>> mapPublicationsToSend) throws SQLException {
+			Map<String, Map<UUID, String>> mapPublicationsToSend) throws SQLException {
 		OrcidWorks orcidWorks = new OrcidWorks();
-		Map<Integer, String> listOfItems = mapPublicationsToSend.get(crisId);
-		for (Integer ii : listOfItems.keySet()) {
+		Map<UUID, String> listOfItems = mapPublicationsToSend.get(crisId);
+		for (UUID ii : listOfItems.keySet()) {
 			orcidWorks.getOrcidWork().add(buildOrcidWork(context, ii, listOfItems.get(ii)));
 		}
 		return orcidWorks;
 	}
 
-	private static OrcidWork buildOrcidWork(Context context, Integer ii, String putCode) throws SQLException {
+	private static OrcidWork buildOrcidWork(Context context, UUID ii, String putCode) throws SQLException {
 		OrcidWork orcidWork = new OrcidWork();
 		if(StringUtils.isNotBlank(putCode)) {
 		    BigInteger bi = new BigInteger(putCode);
 		    orcidWork.setPutCode(bi);
 		}
-		Item item = Item.find(context, ii);
+		Item item = ContentServiceFactory.getInstance().getItemService().find(context, ii);
 
 		OrcidWorkMetadata itemMetadata = new OrcidWorkMetadata(context, item);
 
@@ -2223,7 +2221,7 @@ public class PushToORCID {
 				try {
 					String tokenCreateWork = PushToORCID.getTokenReleasedForSync(researcher,
 							"system-orcid-token-orcid-works-update");
-					DSpaceObject dso = HandleManager.resolveToObject(context, uuid);
+					DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, uuid);
 
 					orcidHistory = applicationService.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(
 							researcher.getCrisID(), dso.getID(), dso.getType());
@@ -2320,7 +2318,7 @@ public class PushToORCID {
 
 						if (orcidHistory == null) {
 							orcidHistory = new OrcidHistory();
-							orcidHistory.setEntityId(researcher.getId());
+							orcidHistory.setEntityId(researcher.getID());
 							orcidHistory.setEntityUuid(researcher.getUuid());
 							orcidHistory.setTypeId(researcher.getType());
 							orcidHistory.setOwner(researcher.getCrisID());
@@ -2465,7 +2463,7 @@ public class PushToORCID {
 
 						if (orcidHistory == null) {
 							orcidHistory = new OrcidHistory();
-							orcidHistory.setEntityId(project.getId());
+							orcidHistory.setEntityId(project.getID());
 							orcidHistory.setEntityUuid(project.getUuid());
 							orcidHistory.setTypeId(project.getType());
 							orcidHistory.setOwner(researcher.getCrisID());
@@ -2528,7 +2526,7 @@ public class PushToORCID {
 	}
 
 	public static boolean putOrcidFundings(ApplicationService applicationService, String owner,
-			Map<Integer, String> projects) {
+			Map<UUID, String> projects) {
 		boolean result = false;
 		log.debug("Create DSpace context");
 		Context context = null;
@@ -2557,7 +2555,7 @@ public class PushToORCID {
 							"system-orcid-token-funding-create");
 					if (tokenCreateWork != null) {
 
-					    Map<String, Map<Integer, String>> mapProjectsToSend = new HashMap<String, Map<Integer, String>>();
+					    Map<String, Map<UUID, String>> mapProjectsToSend = new HashMap<String, Map<UUID, String>>();
                         mapProjectsToSend.put(owner, projects);
 						FundingList works = PushToORCID.buildOrcidFundings(context, applicationService, owner,
 								mapProjectsToSend);
@@ -2574,8 +2572,8 @@ public class PushToORCID {
 								log.error("ERROR!!! (E1) ERROR for put Works for ResearcherPage crisID:" + owner);
 							}
 
-							for (Integer i : projects.keySet()) {
-								Project project = applicationService.get(Project.class, i);
+							for (UUID i : projects.keySet()) {
+								Project project = (Project)applicationService.getEntityByUUID(i.toString());
 								OrcidHistory orcidHistory = applicationService
 										.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(owner, i,
 												CrisConstants.PROJECT_TYPE_ID);
@@ -2620,7 +2618,7 @@ public class PushToORCID {
 		return result;
 	}
 
-	public static boolean putOrcidWorks(ApplicationService applicationService, String owner, Map<Integer, String> items) {
+	public static boolean putOrcidWorks(ApplicationService applicationService, String owner, Map<UUID, String> items) {
 		boolean result = false;
 		log.debug("Create DSpace context");
 		Context context = null;
@@ -2649,7 +2647,7 @@ public class PushToORCID {
 							"system-orcid-token-orcid-works-create");
 					if (tokenCreateWork != null) {
 
-						Map<String, Map<Integer, String>> mapPublicationsToSend = new HashMap<String, Map<Integer, String>>();
+						Map<String, Map<UUID, String>> mapPublicationsToSend = new HashMap<String, Map<UUID, String>>();
 						mapPublicationsToSend.put(owner, items);
 						OrcidWorks works = PushToORCID.buildOrcidWorks(context, owner, mapPublicationsToSend);
 						String error = null;
@@ -2665,8 +2663,8 @@ public class PushToORCID {
 								log.error("ERROR!!! (E1) ERROR for put Works for ResearcherPage crisID:" + owner);
 							}
 
-							for (Integer i : items.keySet()) {
-								Item item = Item.find(context, i);
+							for (UUID i : items.keySet()) {
+								Item item = ContentServiceFactory.getInstance().getItemService().find(context, i);
 								OrcidHistory orcidHistory = applicationService
 										.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(owner, i, Constants.ITEM);
 								if (orcidHistory == null) {

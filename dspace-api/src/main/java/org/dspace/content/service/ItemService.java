@@ -554,6 +554,8 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
      * @throws SQLException if database error
      */
     int countNotArchivedItems(Context context) throws SQLException;
+    
+    int countArchivedItems(Context context) throws SQLException;
 
      /**
      * counts all withdrawn items

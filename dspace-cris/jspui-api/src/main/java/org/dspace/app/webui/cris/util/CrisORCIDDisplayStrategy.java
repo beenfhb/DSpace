@@ -8,13 +8,15 @@
 package org.dspace.app.webui.cris.util;
 
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
-import org.dspace.browse.BrowseItem;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.discovery.IGlobalSearchResult;
 
@@ -23,7 +25,7 @@ public class CrisORCIDDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem item,
+            List<MetadataValue> metadataArray, BrowseDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
     {
         String metadata = "";
@@ -32,12 +34,12 @@ public class CrisORCIDDisplayStrategy implements IDisplayMetadataValueStrategy
     }
 
     private String internalDisplay(HttpServletRequest hrq,
-            Metadatum[] metadataArray, String metadata)
+            List<MetadataValue> metadataArray, String metadata)
     {
-        if (metadataArray!=null && metadataArray.length > 0)
+        if (metadataArray!=null && metadataArray.size() > 0)
         {
 		    String externalContextPath = ConfigurationManager.getProperty("cris","external.domainname.authority.service.orcid");
-			metadata += "<a target=\"_blank\" href=\"" + externalContextPath + metadataArray[0].value;
+			metadata += "<a target=\"_blank\" href=\"" + externalContextPath + metadataArray.get(0).getValue();
 			metadata += "\" class=\"authority\">&nbsp;<img style=\"width: 16px; height: 16px;\" src=\""+ hrq.getContextPath() +"/images/mini-icon-orcid.png\" alt=\"\">";
 			metadata += "</a>";
 
@@ -47,7 +49,7 @@ public class CrisORCIDDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph)
     {
         // not used
@@ -56,7 +58,7 @@ public class CrisORCIDDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;
@@ -65,7 +67,7 @@ public class CrisORCIDDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem browseItem,
+            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
             throws JspException
     {
@@ -74,7 +76,7 @@ public class CrisORCIDDisplayStrategy implements IDisplayMetadataValueStrategy
     
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			int colIdx, String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException {
         String metadata = "";
         metadata = internalDisplay(hrq, metadataArray, metadata);

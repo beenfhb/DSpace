@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.model.jdyna;
 
+import java.util.UUID;
+
 import javax.persistence.Embedded;
 import javax.persistence.MappedSuperclass;
 
@@ -33,8 +35,8 @@ public abstract class ACrisNestedObject<P extends ANestedProperty<TP>, TP extend
     	return "nested";
     }
     
-    public int getID() {
-        return super.getId();
+    public UUID getID() {
+		return UUID.fromString(getUuid());
     }
 
     public SourceReference getSourceReference()

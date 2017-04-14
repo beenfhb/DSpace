@@ -20,7 +20,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
 
 public class VisualizationGraphIndexer {
@@ -147,7 +147,7 @@ public class VisualizationGraphIndexer {
 	 * @throws Exception
 	 */
 	public void updateIndex(String connection) throws Exception {
-		NetworkPlugin plugin = (NetworkPlugin) PluginManager.getNamedPlugin(
+		NetworkPlugin plugin = (NetworkPlugin) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(
 				NetworkPlugin.class, connection);
 		List<String[]> discardedNode = new LinkedList<String[]>();		
 		Integer importedNodes = 0;

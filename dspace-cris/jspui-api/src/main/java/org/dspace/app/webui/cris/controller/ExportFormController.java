@@ -42,6 +42,7 @@ import org.dspace.app.webui.cris.dto.ExportParametersDTO;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.springframework.validation.BindException;
@@ -81,7 +82,7 @@ public class ExportFormController extends BaseFormController
             throws Exception
     {
         Context context = UIUtil.obtainContext(request);
-        if (!AuthorizeManager.isAdmin(context))
+        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             throw new AuthorizeException(
                     "Only system administrator can access to the export functionality");

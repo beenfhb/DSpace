@@ -12,10 +12,10 @@ import java.text.ParseException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 /**
@@ -48,7 +48,7 @@ public class DeleteMetadataAction extends UpdateMetadataAction {
 			ItemUpdate.pr("Metadata to be deleted: ");
 			for (MetadataValue dcv : ardcv)
 			{
-				ItemUpdate.pr("  " + MetadataUtilities.getMetadatumString(dcv));
+				ItemUpdate.pr("  " + MetadataUtilities.getDCValueString(dcv));
 			}
 
 			if (!isTest)

@@ -7,11 +7,13 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.generator.TemplateValueGenerator;
 import org.dspace.core.Context;
 
@@ -23,32 +25,32 @@ public class DSpaceTemplateItemService implements TemplateItemService {
 	}
 
 	@Override
-	public void applyTemplate(Context context, Item targetItem, Item templateItem) {
-        Metadatum[] md = templateItem.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+	public void applyTemplate(Context context, Item targetItem, Item templateItem) throws SQLException {
+        List<MetadataValue> mds = templateItem.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
-        for (int n = 0; n < md.length; n++)
+        for (MetadataValue md : mds)
         {
         	// replace ###SPECIAL-PLACEHOLDER### with the actual value, where the SPECIAL-PLACEHOLDER can be one of
         	// NOW.YYYY-MM-DD SUBMITTER RESEARCHER CURRENTUSER.fullname / email / phone
-            if (StringUtils.startsWith(md[n].value, "###") 
-            		&& StringUtils.endsWith(md[n].value, "###")) {
-            	String[] splitted = md[n].value.substring(3, md[n].value.length()-3).split("\\.", 2);
+            if (StringUtils.startsWith(md.getValue(), "###") 
+            		&& StringUtils.endsWith(md.getValue(), "###")) {
+            	String[] splitted = md.getValue().substring(3, md.getValue().length()-3).split("\\.", 2);
             	TemplateValueGenerator gen = generators.get(splitted[0]);
             	if (gen != null) {
 	            	String extraParams = null;
             		if (splitted.length == 2) {
 	            		extraParams = splitted[1];
 	            	}
-            		Metadatum[] genMetadata = gen.generator(context, targetItem, templateItem, md[n], extraParams);
-            		for (Metadatum gm : genMetadata) {
-            			targetItem.addMetadata(gm.schema, gm.element, gm.qualifier, gm.language,
-                                gm.value, gm.authority, gm.confidence);
+            		List<MetadataValue> genMetadata = gen.generator(context, targetItem, templateItem, md, extraParams);
+            		for (MetadataValue gm : genMetadata) {
+            			targetItem.getItemService().addMetadata(context, targetItem, gm.schema, gm.element, gm.qualifier, gm.getLanguage(),
+                                gm.getValue(), gm.getAuthority(), gm.getConfidence());
             		}
 	            	continue;
             	}
             }
-        	targetItem.addMetadata(md[n].schema, md[n].element, md[n].qualifier, md[n].language,
-                    md[n].value, md[n].authority, md[n].confidence);
+            targetItem.getItemService().addMetadata(context, targetItem, md.schema, md.element, md.qualifier, md.getLanguage(),
+                    md.getValue(), md.getAuthority(), md.getConfidence());
         }
 	}
 }

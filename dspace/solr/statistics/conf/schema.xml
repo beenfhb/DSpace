@@ -288,7 +288,7 @@
    <field name="search.uniqueid" type="string" indexed="true" stored="true" required="false" omitNorms="true" />
    <field name="sectionid" type="integer" indexed="true" stored="true" required="false" />
    <field name="type" type="integer" indexed="true" stored="true" required="false" />
-   <field name="id" type="integer" indexed="true" stored="true" required="false" />
+   <field name="id" type="string" indexed="true" stored="true" required="true" omitNorms="true" />
    <field name="ip" type="string" indexed="true" stored="true" required="false" docValues="true"/>
    <field name="time" type="date" indexed="true" stored="true" required="true" /> 
    <field name="epersonid" type="integer" indexed="true" stored="true" required="false" />

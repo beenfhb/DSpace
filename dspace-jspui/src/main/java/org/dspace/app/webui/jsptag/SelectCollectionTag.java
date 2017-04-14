@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -66,7 +67,7 @@ public class SelectCollectionTag extends TagSupport
             Context context = UIUtil.obtainContext(hrq);
             List<Collection> collections = (List<Collection>) hrq.getAttribute("collections");
             
-            CollectionsTree tree= CollectionUtils.getCollectionsTree(collections, false);
+            CollectionsTree tree = CollectionUtils.getCollectionsTree(context, collections, false);
 
             sb.append("<select");
             if (name != null)
@@ -141,7 +142,7 @@ public class SelectCollectionTag extends TagSupport
 		if (tree.getCollections() != null){
 			for (Collection col : tree.getCollections())
 			{
-				String selected= col.getID()==collection ? "selected":"";
+				String selected= col.getID()==UUID.fromString(collection) ? "selected":"";
 				out.print("<option value=\""+col.getID()+"\" "+ selected + ">"+col.getName()+"</option>");	
 			}
 		}

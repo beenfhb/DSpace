@@ -55,6 +55,7 @@ import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.core.PluginManager;
 import org.dspace.core.Utils;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.utils.DSpace;
 
@@ -180,7 +181,7 @@ public class ReferencesServlet extends DSpaceServlet
             throws Exception
     {
         boolean async = email || fulltext;
-        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                 .getNamedPlugin(StreamDisseminationCrosswalk.class, format);
         if (streamCrosswalkDefault == null)
         {
@@ -511,7 +512,7 @@ public class ReferencesServlet extends DSpaceServlet
 
                 if (type != null)
                 {
-                    streamCrosswalk = (StreamDisseminationCrosswalk) PluginManager
+                    streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                             .getNamedPlugin(StreamDisseminationCrosswalk.class,
                                     format + "-" + type);
                 }

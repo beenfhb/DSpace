@@ -9,38 +9,25 @@ package org.dspace.app.webui.cris.servlet;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.webui.json.JSONRequest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SearchServiceException;
-import org.dspace.eperson.AccountManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.PasswordHash;
-import org.dspace.kernel.ServiceManager;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.utils.DSpace;
-import org.apache.commons.lang.StringUtils;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 
@@ -56,21 +43,22 @@ public class ClaimRPJSONServlet extends JSONRequest{
 		ResearcherPage r=  applicationservice.getEntityByCrisId(rpKey, ResearcherPage.class);
 		int status=1;
 		if(StringUtils.equals(mail, r.getEmail().getValue() )){
-            context.setIgnoreAuthorization(true);
+            context.turnOffAuthorisationSystem();
             EPerson eperson;
 			try {
-				eperson = EPerson.create(context);
+				eperson = EPersonServiceFactory.getInstance().getEPersonService().create(context);
 				eperson.setEmail(mail);
 				eperson.setCanLogIn(true);
-				eperson.setFirstName("");
-				eperson.setLanguage("en");
-				eperson.setLastName("");
+				eperson.setFirstName(context, "");
+				eperson.setLanguage(context, "en");
+				eperson.setLastName(context, "");
 				eperson.setRequireCertificate(false);
 				eperson.setSelfRegistered(false);
-				eperson.update();
+				
+				EPersonServiceFactory.getInstance().getEPersonService().update(context, eperson);
                 log.info(LogManager.getHeader(context,
                         "sendtoken_forgotpw", "email=" + mail));
-                AccountManager.sendForgotPasswordInfo(context, mail);
+                EPersonServiceFactory.getInstance().getAccountService().sendForgotPasswordInfo(context, mail);
     			
 			} catch (SQLException e) {
 				status = -1;
@@ -85,7 +73,7 @@ public class ClaimRPJSONServlet extends JSONRequest{
 				status = -1;
 				log.error(e.getMessage(), e);
 			}finally{
-				context.setIgnoreAuthorization(false);
+				context.restoreAuthSystemState();
 				if(status<0){
 					context.abort();
 				}else{

@@ -23,7 +23,12 @@ import java.util.Properties;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.Site;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -462,18 +467,18 @@ public class MODSDisseminationCrosswalk extends SelfNamedPlugin
 
         if (identifier_uri != null)
         {
-            metadata.add(createMetadatum("identifier.uri", null, identifier_uri));
+            metadata.add(createDCValue("identifier.uri", null, identifier_uri));
         }
 
         //FIXME: adding two URIs for now (site handle and URL), in case site isn't using handles
         if (url != null)
         {
-            metadata.add(createMetadatum("identifier.uri", null, url));
+            metadata.add(createDCValue("identifier.uri", null, url));
         }
 
         if (title != null)
         {
-            metadata.add(createMetadatum("title", null, title));
+            metadata.add(createDCValue("title", null, title));
         }
 
         return metadata;
@@ -498,33 +503,33 @@ public class MODSDisseminationCrosswalk extends SelfNamedPlugin
         String rights = communityService.getMetadata(community,"copyright_text");
         String title = communityService.getMetadata(community,"name");
 
-		if (description != null)        
+		if (description != null) {        
 			metadata.add(createDCValue("description", null, description));
 		}
 
         if (description_abstract != null)
         {
-            metadata.add(createMetadatum("description", "abstract", description_abstract));
+            metadata.add(createDCValue("description", "abstract", description_abstract));
         }
 
         if (description_table != null)
         {
-            metadata.add(createMetadatum("description", "tableofcontents", description_table));
+            metadata.add(createDCValue("description", "tableofcontents", description_table));
         }
 
         if (identifier_uri != null)
         {
-            metadata.add(createMetadatum("identifier.uri", null, identifier_uri));
+            metadata.add(createDCValue("identifier.uri", null, identifier_uri));
         }
 
         if (rights != null)
         {
-            metadata.add(createMetadatum("rights", null, rights));
+            metadata.add(createDCValue("rights", null, rights));
         }
 
         if (title != null)
         {
-            metadata.add(createMetadatum("title", null, title));
+            metadata.add(createDCValue("title", null, title));
         }
 
         return metadata;
@@ -554,42 +559,42 @@ public class MODSDisseminationCrosswalk extends SelfNamedPlugin
 
         if (description != null)
         {
-            metadata.add(createMetadatum("description", null, description));
+            metadata.add(createDCValue("description", null, description));
         }
 
         if (description_abstract != null)
         {
-            metadata.add(createMetadatum("description", "abstract", description_abstract));
+            metadata.add(createDCValue("description", "abstract", description_abstract));
         }
 
         if (description_table != null)
         {
-            metadata.add(createMetadatum("description", "tableofcontents", description_table));
+            metadata.add(createDCValue("description", "tableofcontents", description_table));
         }
 
         if (identifier_uri != null)
         {
-            metadata.add(createMetadatum("identifier", "uri", identifier_uri));
+            metadata.add(createDCValue("identifier", "uri", identifier_uri));
         }
 
         if (provenance != null)
         {
-            metadata.add(createMetadatum("provenance", null, provenance));
+            metadata.add(createDCValue("provenance", null, provenance));
         }
 
         if (rights != null)
         {
-            metadata.add(createMetadatum("rights", null, rights));
+            metadata.add(createDCValue("rights", null, rights));
         }
 
         if (rights_license != null)
         {
-            metadata.add(createMetadatum("rights.license", null, rights_license));
+            metadata.add(createDCValue("rights.license", null, rights_license));
         }
 
         if (title != null)
         {
-            metadata.add(createMetadatum("title", null, title));
+            metadata.add(createDCValue("title", null, title));
         }
 
         return metadata;

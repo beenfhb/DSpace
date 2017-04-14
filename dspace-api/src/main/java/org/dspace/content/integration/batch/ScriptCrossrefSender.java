@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -43,11 +44,11 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.hibernate.Session;
 import org.xml.sax.SAXException;
 
 public class ScriptCrossrefSender
@@ -98,7 +99,7 @@ public class ScriptCrossrefSender
     {
         log.info("#### START Script crossref sender: -----" + new Date()
                 + " ----- ####");
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         CommandLineParser parser = new PosixParser();
 
@@ -170,25 +171,23 @@ public class ScriptCrossrefSender
 
                 int limit = 100;
 
-                List<TableRow> rows = null;
+                List<Object[]> rows = null;
 
                 if ("oracle".equals(dbName))
                 {
-                    rows = DatabaseManager
-                            .query(context,
-                                    "select * from "
+                    rows = getHibernateSession(context).createSQLQuery(
+                                    "select item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
                                             + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null OR d2i.last_modified < i.last_modified"
-                                            + " AND ROWNUM <= " + limit).toList();
+                                            + " AND ROWNUM <= " + limit).list();
                 }
                 else
                 {
-                    rows = DatabaseManager
-                            .query(context,
-                                    "select * from "
+                    rows = getHibernateSession(context).createSQLQuery(
+                                    "select item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
                                             + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null OR d2i.last_modified < i.last_modified"
-                                            + " LIMIT " + limit).toList();
+                                            + " LIMIT " + limit).list();
                 }
 
                 int offset = 0;
@@ -199,34 +198,32 @@ public class ScriptCrossrefSender
                     {
                         if ("oracle".equals(dbName))
                         {
-                            rows = DatabaseManager
-                                    .query(context,
-                                            "select * from "
+                            rows = getHibernateSession(context).createSQLQuery(
+                                            "select item_id, criteria, identifier_doi from "
                                                     + TABLE_NAME_DOI2ITEM
                                                     + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null OR d2i.last_modified < i.last_modified"
                                                     + " AND ROWNUM > " + limit
                                                     + " AND ROWNUM <= " + (limit + offset))
-                                    .toList();
+                            		.list();
                         }
                         else
                         {
-                            rows = DatabaseManager
-                                    .query(context,
-                                            "select * from "
+                            rows = getHibernateSession(context).createSQLQuery(
+                                            "select item_id, criteria, identifier_doi from "
                                                     + TABLE_NAME_DOI2ITEM
                                                     + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null OR d2i.last_modified < i.last_modified"
                                                     + " LIMIT " + limit
                                                     + " OFFSET " + offset)
-                                    .toList();
+                            		.list();
                         }
                     }
                     offset = limit + offset;
-                    for (TableRow row : rows)
+                    for (Object[] row : rows)
                     {
-                        Item item = Item.find(context,
-                                row.getIntColumn("item_id"));
-                        String criteria = row.getStringColumn("criteria");
-                        String doi = row.getStringColumn("identifier_doi");
+                    	
+                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString((String)row[0]));
+                        String criteria = (String)row[1];
+                        String doi = (String)row[2];
 
                         try
                         {
@@ -257,20 +254,19 @@ public class ScriptCrossrefSender
             {
                 if (line.hasOption('s'))
                 {
-                    Integer id = Integer.parseInt(line.getOptionValue("s"));
-                    TableRow row = DatabaseManager
-                            .querySingle(
-                                    context,
-                                    "SELECT * FROM "
+                    UUID id = UUID.fromString(line.getOptionValue("s"));
+                    List<Object[]> rows = getHibernateSession(context).createSQLQuery(
+                                    "SELECT item_id, criteria, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i left join item i on d2i.item_id = i.item_id where d2i.item_id = ? AND (d2i.last_modified is null OR d2i.last_modified < i.last_modified)",
-                                    id);
+                                            + " d2i left join item i on d2i.item_id = i.item_id where d2i.item_id = :par0 AND (d2i.last_modified is null OR d2i.last_modified < i.last_modified)").addScalar("item_id").addScalar("criteria").addScalar("identifier_doi").setParameter(0, id).list();
+                    
+                    for(Object[] row : rows) {
                     try
                     {
-                        String criteria = row.getStringColumn("criteria");
-                        String doi = row.getStringColumn("identifier_doi");
-                        Item item = Item.find(context,
-                                row.getIntColumn("item_id"));
+                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString((String)row[0]));
+                    	String criteria = (String)row[1];
+                        String doi = (String)row[2];
+
 
                         result.putAll(sendToCrossref(context, item, criteria,
                                 doi));
@@ -293,7 +289,7 @@ public class ScriptCrossrefSender
                                 "FOR item: " + id + " ERRORMESSAGE: "
                                         + e.getMessage(), e);
                     }
-
+                    }
                 }
                 else
                 {
@@ -318,7 +314,7 @@ public class ScriptCrossrefSender
 
         log.info("#### Import details ####");
 
-        for (Integer key : result.keySet())
+        for (UUID key : result.keySet())
         {
             log.info("ITEM: " + key + " RESULT: " + result.get(key));
         }
@@ -329,12 +325,12 @@ public class ScriptCrossrefSender
         System.exit(0);
     }
 
-    private static Map<Integer, String> sendToCrossref(Context context,
+    private static Map<UUID, String> sendToCrossref(Context context,
             Item item, String criteria, String doi) throws CrosswalkException,
             IOException, SQLException, AuthorizeException
     {
 
-        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                 .getNamedPlugin(StreamDisseminationCrosswalk.class, criteria);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -350,11 +346,11 @@ public class ScriptCrossrefSender
 
     }
 
-    protected static Map<Integer, String> send(Context context, Item target,
+    protected static Map<UUID, String> send(Context context, Item target,
             File targetFile, String option, String doi) throws SQLException
     {
         PostMethod post = null;
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         if (option.equals("DEPOSIT"))
             option = "doMDUpload";
@@ -411,13 +407,13 @@ public class ScriptCrossrefSender
             if (responseCode == 200)
             {
                 // target.addMetadata("dc", "identifier", "doi", null, doi);
-                target.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-                target.addMetadata("dc", "utils", "processdoi", null,
+                target.getItemService().clearMetadata(context, target, "dc", "utils", "processdoi", Item.ANY);
+                target.getItemService().addMetadata(context, target, "dc", "utils", "processdoi", null,
                         "crossref");
 
                 try
                 {
-                    target.update();
+                    target.getItemService().update(context, target);
                     context.commit();
                 }
                 catch (AuthorizeException e)
@@ -427,22 +423,19 @@ public class ScriptCrossrefSender
                 }
 
               
-                    DatabaseManager
-                            .updateQuery(
-                                    context,
+                    getHibernateSession(context).createSQLQuery(
                                     "UPDATE "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " SET LAST_MODIFIED = ?, RESPONSE_CODE = ?, NOTE = ?, FILENAME = ? WHERE ITEM_ID = ?",
-                                    new Date(), responseCode, result.get(target.getID()),
-                                    targetFile.getName(), target.getID());
+                                            + " SET LAST_MODIFIED = :par0, RESPONSE_CODE = :par1, NOTE = :par2, FILENAME = :par3 WHERE ITEM_ID = :par4").setParameter(0, 
+                                    new Date()).setParameter(1, responseCode).setParameter(2, result.get(target.getID())).setParameter(3, targetFile.getName()).setParameter(4, target.getID()).executeUpdate();
               
             }
             else
             {
-                DatabaseManager.updateQuery(context, "UPDATE "
+                getHibernateSession(context).createSQLQuery("UPDATE "
                         + TABLE_NAME_DOI2ITEM
-                        + " SET RESPONSE_CODE = ?, NOTE = ? WHERE ITEM_ID = ?",
-                        responseCode, result.get(target.getID()),
+                        + " SET RESPONSE_CODE = :par0, NOTE = :par1 WHERE ITEM_ID = :par2").setParameter(0, 
+                        responseCode).setParameter(1, result.get(target.getID())).setParameter(2, 
                         target.getID());
             }
 
@@ -464,5 +457,9 @@ public class ScriptCrossrefSender
         HttpClient client = new HttpClient(m_cManager);
 
         return client;
+    }
+    
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
     }
 }

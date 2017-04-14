@@ -76,7 +76,7 @@ import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -88,6 +88,7 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Subscribe;
 import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 
 /**
  * Class defining methods for sending new item e-mail alerts to users. Based on
@@ -268,14 +269,14 @@ public class ScriptCrisSubscribe
                     Item item = Item.find(context, (Integer) solrDoc
                             .getFieldValue("search.resourceid"));
 
-                    Metadatum[] titles = item.getDC("title", null, Item.ANY);
+                    List<MetadataValue> titles = item.getDC("title", null, Item.ANY);
                     emailText
                             .append("      ")
                             .append(I18nUtil.getMessage(
                                     "org.dspace.eperson.Subscribe.title",
                                     supportedLocale)).append(" ");
 
-                    if (titles.length > 0)
+                    if (titles.size() > 0)
                     {
                         emailText.append(titles[0].value);
                     }
@@ -286,10 +287,10 @@ public class ScriptCrisSubscribe
                                 supportedLocale));
                     }
 
-                    Metadatum[] authors = item.getDC("contributor", Item.ANY,
+                    List<MetadataValue> authors = item.getDC("contributor", Item.ANY,
                             Item.ANY);
 
-                    if (authors.length > 0)
+                    if (authors.size() > 0)
                     {
                         emailText
                                 .append("\n    ")
@@ -298,7 +299,7 @@ public class ScriptCrisSubscribe
                                         supportedLocale)).append(" ")
                                 .append(authors[0].value);
 
-                        for (int k = 1; k < authors.length; k++)
+                        for (int k = 1; k < authors.size(); k++)
                         {
                             emailText.append("\n             ").append(
                                     authors[k].value);
@@ -311,7 +312,7 @@ public class ScriptCrisSubscribe
                                     "org.dspace.eperson.Subscribe.id",
                                     supportedLocale))
                             .append(" ")
-                            .append(HandleManager.getCanonicalForm(item
+                            .append(HandleServiceFactory.getInstance().getHandleService().getCanonicalForm(item
                                     .getHandle())).append("\n\n");
                     context.removeCached(item, item.getID());
                 }

@@ -8,17 +8,16 @@
 package org.dspace.browse;
 
 import java.sql.SQLException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.sort.SortOption;
 import org.dspace.sort.OrderFormat;
+import org.dspace.sort.SortOption;
 
 /**
  * This class does most of the actual grunt work of preparing a browse
@@ -163,7 +162,7 @@ public class BrowseEngine
         dao.setOrderField(orderBy);
 
         // now run the query
-        List<Item> results = dao.doQuery();
+        List<BrowseDSpaceObject> results = dao.doQuery();
 
         // construct the mostly empty BrowseInfo object to pass back
         BrowseInfo browseInfo = new BrowseInfo(results, 0, scope.getResultsPerPage(), 0);
@@ -296,7 +295,7 @@ public class BrowseEngine
             dao.setLimit(scope.getResultsPerPage());
 
             // Holder for the results
-            List<Item> results = null;
+            List<BrowseDSpaceObject> results = null;
 
             // Does this browse have any contents?
             if (total > 0)

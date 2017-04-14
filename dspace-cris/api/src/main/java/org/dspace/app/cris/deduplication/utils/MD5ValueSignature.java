@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
@@ -37,7 +38,7 @@ public class MD5ValueSignature implements Signature
 
     protected String prefix;
 
-    public List<String> getSignature(DSpaceObject item, Context context)
+    public List<String> getSignature(BrowsableDSpaceObject item, Context context)
     {
         List<String> result = new ArrayList<String>();
         try
@@ -74,12 +75,12 @@ public class MD5ValueSignature implements Signature
         }
     }
 
-    protected String normalize(DSpaceObject item, Context context, String value)
+    protected String normalize(BrowsableDSpaceObject item, Context context, String value)
     {
         return normalize(item, value);
     }
 
-    protected String normalize(DSpaceObject item, String value)
+    protected String normalize(BrowsableDSpaceObject item, String value)
     {
         String result = value;
         if (StringUtils.isEmpty(value))
@@ -112,12 +113,12 @@ public class MD5ValueSignature implements Signature
         return result;
     }
 
-    protected String getSingleValue(DSpaceObject item, String metadata)
+    protected String getSingleValue(BrowsableDSpaceObject item, String metadata)
     {
         return item.getMetadata(metadata);
     }
 
-    protected List<String> getMultiValue(DSpaceObject item, String metadata)
+    protected List<String> getMultiValue(BrowsableDSpaceObject item, String metadata)
     {
         return item.getMetadataValue(metadata);
     }

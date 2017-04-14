@@ -30,7 +30,7 @@ import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.springframework.web.servlet.ModelAndView;
@@ -67,11 +67,11 @@ public class MyRPJSONController extends MultiActionController
             EPerson currentUser = getCurrentUser(request);
 			rp.setEpersonID(currentUser.getID());
             
-            Metadatum[] md = currentUser.getMetadata("eperson", "orcid", null, null);
-            if (md != null && md.length > 0) {
-            	Metadatum[] mdToken = currentUser.getMetadata("eperson", "orcid", "accesstoken", null);
+            List<MetadataValue> md = currentUser.getMetadata("eperson", "orcid", null, null);
+            if (md != null && md.size() > 0) {
+            	List<MetadataValue> mdToken = currentUser.getMetadata("eperson", "orcid", "accesstoken", null);
             	String token = null;
-            	if (mdToken != null && mdToken.length > 0) {
+            	if (mdToken != null && mdToken.size() > 0) {
             		token = mdToken[0].value;
             	}
             	String orcid = md[0].value;

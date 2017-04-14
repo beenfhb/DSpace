@@ -11,8 +11,8 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -23,11 +23,10 @@ import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
 import org.dspace.content.DSpaceObject;
-import org.dspace.core.Constants;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
-import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.SearchService;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 
 public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComponent<T> {
 
@@ -44,7 +43,7 @@ public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComp
             {
                 for (StatisticDatasBeanRow row : myvalue.getLimitedDataTable())
                 {                   
-                    DSpaceObject item = DSpaceObject.find(context, getRelationObjectType(), Integer.parseInt(row.getLabel()));
+                	DSpaceObject item = ContentServiceFactory.getInstance().getDSpaceObjectService(getRelationObjectType()).find(context, UUID.fromString(row.getLabel()));
                     if (item != null)
                     {
                         labels.addValue(type, row.getLabel(), item);
@@ -121,7 +120,7 @@ public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComp
 	}
 
 	@Override
-	public Map queryFacetDate(SolrLogger statsLogger, DSpaceObject object,
+	public Map queryFacetDate(SolrLoggerService statsLogger, DSpaceObject object,
 			String dateType, String dateStart, String dateEnd, int gap)
 			throws SolrServerException {
 		// TODO Auto-generated method stub

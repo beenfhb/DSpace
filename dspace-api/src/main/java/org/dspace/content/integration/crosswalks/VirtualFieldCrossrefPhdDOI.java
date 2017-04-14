@@ -8,10 +8,11 @@
 package org.dspace.content.integration.crosswalks;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -48,9 +49,9 @@ public class VirtualFieldCrossrefPhdDOI implements VirtualFieldDisseminator,
             }
             
             String result = ConfigurationManager.getProperty("doi.prefix");
-			Metadatum[] authors = item.getMetadata("dc", "contributor", "author", Item.ANY);
-			if (authors.length > 0) {
-				Metadatum md = authors[0];
+			List<MetadataValue> authors = item.getMetadata("dc", "contributor", "author", Item.ANY);
+			if (authors.size() > 0) {
+				MetadataValue md = authors[0];
 				String mdValue = md.value.toLowerCase();
 				mdValue = mdValue.replaceAll("[^a-z]+", "-");
 				result += mdValue;
@@ -58,7 +59,7 @@ public class VirtualFieldCrossrefPhdDOI implements VirtualFieldDisseminator,
            
             result += "_"+PREFIX;
             
-            Metadatum mddate = item.getMetadata("dc", "date", "issued", Item.ANY)[0];
+            MetadataValue mddate = item.getMetadata("dc", "date", "issued", Item.ANY)[0];
             result += mddate.value;
             
             TableRow row = DatabaseManager.querySingle(context,

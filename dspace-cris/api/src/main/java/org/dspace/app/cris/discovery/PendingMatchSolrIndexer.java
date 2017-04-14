@@ -11,11 +11,11 @@ import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.integration.RPAuthority;
-import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.authority.ChoiceAuthorityManager;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
 
@@ -31,22 +31,22 @@ public class PendingMatchSolrIndexer implements SolrServiceIndexPlugin
         {
             Item item = (Item) dso;
 
-            List<String> listMetadata = ChoiceAuthorityManager.getManager()
+            List<String> listMetadata = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
                     .getAuthorityMetadataForAuthority(
                             RPAuthority.RP_AUTHORITY_NAME);
 
             for (String metadata : listMetadata)
             {
-                Metadatum[] values = item.getMetadataByMetadataString(metadata);
-                for (Metadatum val : values)
+                List<MetadataValue> values = item.getItemService().getMetadataByMetadataString(item, metadata);
+                for (MetadataValue val : values)
                 {
                     if (val != null)
                     {
-                        if (val.authority != null && !(val.authority.isEmpty()))
+                        if (val.getAuthority() != null && !(val.getAuthority().isEmpty()))
                         {
-                            if (val.confidence != Choices.CF_ACCEPTED)
+                            if (val.getConfidence() != Choices.CF_ACCEPTED)
                             {
-                                document.addField("authority." + RPAuthority.RP_AUTHORITY_NAME + "." + metadata +".pending", val.authority);
+                                document.addField("authority." + RPAuthority.RP_AUTHORITY_NAME + "." + metadata +".pending", val.getAuthority());
                             }
                         }
                     }

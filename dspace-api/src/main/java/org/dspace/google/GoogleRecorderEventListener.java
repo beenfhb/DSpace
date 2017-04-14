@@ -16,6 +16,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -136,7 +137,7 @@ public class GoogleRecorderEventListener extends AbstractUsageEventListener {
 
     private String getParentType(UsageEvent ue) {
         try {
-            int parentType = contentServiceFactory.getDSpaceObjectService(ue.getObject()).getParentObject(ue.getContext(), ue.getObject()).getType();
+            int parentType = contentServiceFactory.getDSpaceObjectService((DSpaceObject)ue.getObject()).getParentObject(ue.getContext(), (DSpaceObject)ue.getObject()).getType();
             if (parentType == Constants.ITEM) {
                 return "item";
             } else if (parentType == Constants.COLLECTION) {
@@ -157,7 +158,7 @@ public class GoogleRecorderEventListener extends AbstractUsageEventListener {
         try {
             if (ue.getObject().getType() == Constants.BITSTREAM) {
                 // For a bitstream download we really want to know the title of the owning item rather than the bitstream name.
-                return contentServiceFactory.getDSpaceObjectService(ue.getObject()).getParentObject(ue.getContext(), ue.getObject()).getName();
+                return contentServiceFactory.getDSpaceObjectService((DSpaceObject)ue.getObject()).getParentObject(ue.getContext(), (DSpaceObject)ue.getObject()).getName();
             }  else {
                 return ue.getObject().getName();
             }

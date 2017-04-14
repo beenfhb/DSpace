@@ -7,6 +7,18 @@
  */
 package org.dspace.app.webui.servlet.admin;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
@@ -18,13 +30,6 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Servlet for editing groups
@@ -290,13 +295,13 @@ public class GroupEditServlet extends DSpaceServlet
         String search = request.getParameter("search");
         if (search != null && !search.equals(""))
         {
-            groups = Group.search(c, search);
+            groups = EPersonServiceFactory.getInstance().getGroupService().search(c, search);
         }
         // All groups are shown to the System admin
         else
         {
             // Retrieve the e-people in the specified order
-            groups = Group.findAll(c,Group.NAME);
+            groups = EPersonServiceFactory.getInstance().getGroupService().findAll(c, null);
 
         }
         // In case the user is a community or collection admin, only the groups

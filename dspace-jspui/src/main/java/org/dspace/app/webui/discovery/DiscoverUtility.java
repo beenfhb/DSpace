@@ -19,13 +19,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.UIUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
+import org.dspace.discovery.DiscoverHitHighlightingField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
-import org.dspace.discovery.DiscoverHitHighlightingField;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.DiscoverViewField;
 import org.dspace.discovery.SearchServiceException;
@@ -38,12 +39,11 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
-import org.dspace.handle.HandleManager;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.dspace.handle.service.HandleService;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
 
 
 public class DiscoverUtility
@@ -62,7 +62,7 @@ public class DiscoverUtility
      * @throws IllegalStateException
      * @throws SQLException
      */
-    public static DSpaceObject getSearchScope(Context context,
+    public static BrowsableDSpaceObject getSearchScope(Context context,
             HttpServletRequest request) throws IllegalStateException,
             SQLException
     {
@@ -81,12 +81,12 @@ public class DiscoverUtility
             return null;
         }
         HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
-        DSpaceObject scope = handleService.resolveToObject(context, location);
+        BrowsableDSpaceObject scope = handleService.resolveToObject(context, location);
         return scope;
     }
 
     public static DiscoverQuery getDiscoverQuery(Context context,
-            HttpServletRequest request, DSpaceObject scope, 
+            HttpServletRequest request, BrowsableDSpaceObject scope, 
             boolean enableFacet)
     {
         return getDiscoverQuery(context, request, scope,
@@ -100,7 +100,7 @@ public class DiscoverUtility
      * @throws SearchServiceException
      */
     public static DiscoverQuery getDiscoverQuery(Context context,
-            HttpServletRequest request, DSpaceObject scope, 
+            HttpServletRequest request, BrowsableDSpaceObject scope, 
             String configurationName, boolean enableFacet)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
@@ -180,7 +180,7 @@ public class DiscoverUtility
      * @throws SearchServiceException
      */
     public static DiscoverQuery getTagCloudDiscoverQuery(Context context,
-            HttpServletRequest request, DSpaceObject scope, boolean enableFacet)
+            HttpServletRequest request, BrowsableDSpaceObject scope, boolean enableFacet)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
         DiscoveryConfiguration discoveryConfiguration = SearchUtils
@@ -213,7 +213,7 @@ public class DiscoverUtility
      * @return the query.
      */
     public static DiscoverQuery getDiscoverAutocomplete(Context context,
-            HttpServletRequest request, DSpaceObject scope)
+            HttpServletRequest request, BrowsableDSpaceObject scope)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
         DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration();
@@ -487,7 +487,7 @@ public class DiscoverUtility
     }
 
     private static void setFacet(Context context, HttpServletRequest request,
-            DSpaceObject scope, DiscoverQuery queryArgs,
+            BrowsableDSpaceObject scope, DiscoverQuery queryArgs,
             DiscoveryConfiguration discoveryConfiguration,
             List<String> userFilters, List<DiscoverySearchFilterFacet> currentFacets, int type)
     {

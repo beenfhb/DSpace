@@ -31,7 +31,7 @@ import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
@@ -255,7 +255,7 @@ public class ScriptDeleteRP
         String authorityKey = ResearcherPageUtils.getPersistentIdentifier(rpId, ResearcherPage.class);
         for (Item item : items)
         {
-            Metadatum[] values = null;
+            List<MetadataValue> values = null;
             for (MetadataField md : fieldsWithAuthoritySupport)
             {
                 String schema = (MetadataSchema.find(dspaceContext, md
@@ -264,7 +264,7 @@ public class ScriptDeleteRP
                 values = item.getMetadata(schema, md.getElement(), md.getQualifier(), Item.ANY);
                 item.clearMetadata(schema, md.getElement(), md.getQualifier(),
                         Item.ANY);
-                for (Metadatum value : values)
+                for (MetadataValue value : values)
                 {
                     if (authorityKey.equals(value.authority))
                     {

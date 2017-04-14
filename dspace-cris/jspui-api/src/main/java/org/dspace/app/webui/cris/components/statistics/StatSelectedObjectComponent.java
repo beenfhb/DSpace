@@ -24,7 +24,7 @@ import org.dspace.app.webui.cris.components.BeanFacetComponent;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 
 public class StatSelectedObjectComponent<T extends DSpaceObject> extends
         StatsComponent<T>
@@ -99,7 +99,7 @@ public class StatSelectedObjectComponent<T extends DSpaceObject> extends
     }
 
     @Override
-    public Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger,
+    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger,
             DSpaceObject object, String dateType, String dateStart,
             String dateEnd, int gap) throws SolrServerException
     {

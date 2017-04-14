@@ -8,6 +8,7 @@
 package org.dspace.app.cris.integration;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Support class to build the full list of names to process in the BindItemToRP
@@ -27,10 +28,10 @@ public class NameResearcherPage
     private int id;
 
     /** the ids of previous rejected matches */
-    private Set<Integer> rejectItems;
+    private Set<UUID> rejectItems;
 
     public NameResearcherPage(String name, String authority, int id,
-            Set<Integer> rejectItems)
+            Set<UUID> rejectItems)
     {
         this.name = name;
         this.persistentIdentifier = authority;
@@ -68,12 +69,12 @@ public class NameResearcherPage
         this.id = id;
     }
 
-    public Set<Integer> getRejectItems()
+    public Set<UUID> getRejectItems()
     {
         return rejectItems;
     }
 
-    public void setRejectItems(Set<Integer> rejectItems)
+    public void setRejectItems(Set<UUID> rejectItems)
     {
         this.rejectItems = rejectItems;
     }

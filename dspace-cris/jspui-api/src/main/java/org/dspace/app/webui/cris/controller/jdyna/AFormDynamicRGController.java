@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 
 /**
@@ -70,7 +71,7 @@ public abstract class AFormDynamicRGController<P extends Property<TP>, TP extend
         Project grant = getApplicationService().get(
                     Project.class, id);
         Context context = UIUtil.obtainContext(request);        
-        if (AuthorizeManager.isAdmin(context))        
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))        
         {
             reference.put("grant_page_menu", new Boolean(true));
             reference.put("project", grant);         

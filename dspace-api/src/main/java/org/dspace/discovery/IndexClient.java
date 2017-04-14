@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -178,12 +179,12 @@ public class IndexClient {
         	String optionValue = line.getOptionValue("u");
 			String[] identifiers = optionValue.split("\\s*,\\s*");
 			for (String id : identifiers) {
-				DSpaceObject dso;
+				BrowsableDSpaceObject dso;
 				if (id.startsWith(ConfigurationManager.getProperty("handle.prefix")) || id.startsWith("123456789/")) {
-					dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, id);
+					dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, id);
 				} else {
 
-					dso = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(ExternalService.class.getName(), ExternalService.class).getObject(id);
+					dso = (BrowsableDSpaceObject)DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(ExternalService.class.getName(), ExternalService.class).getObject(id);
 				}
 				indexer.indexContent(context, dso, line.hasOption("f"));
 			}
@@ -220,7 +221,7 @@ public class IndexClient {
             }
         } else if(line.hasOption('i')) {
             final String handle = line.getOptionValue('i');
-            final DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
+            final BrowsableDSpaceObject dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
             if (dso == null) {
                 throw new IllegalArgumentException("Cannot resolve " + handle + " to a DSpace object");
             }
@@ -247,7 +248,7 @@ public class IndexClient {
     private static long indexAll(final IndexingService indexingService,
                                  final ItemService itemService,
                                  final Context context,
-                                 final DSpaceObject dso) throws IOException, SearchServiceException, SQLException {
+                                 final BrowsableDSpaceObject dso) throws IOException, SearchServiceException, SQLException {
         long count = 0;
 
         indexingService.indexContent(context, dso, true, true);

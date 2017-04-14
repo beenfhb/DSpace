@@ -12,6 +12,7 @@ import java.util.*;
 
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BundleService;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.hibernate.proxy.HibernateProxyHelper;
@@ -207,7 +208,7 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
         return Constants.BUNDLE;
     }
 
-    private BundleService getBundleService()
+    public BundleService getBundleService()
     {
         if(bundleService == null)
         {
@@ -215,5 +216,15 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
         }
         return bundleService;
     }
+
+	@Override
+	public String getTypeText() {
+		return Constants.typeText[Constants.BUNDLE];
+	}
+
+	@Override
+	public DSpaceObjectService getDSpaceObjectService() {
+		return getBundleService();
+	}
 
 }

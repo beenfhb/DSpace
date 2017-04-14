@@ -7,27 +7,35 @@
  */
 package org.dspace.content;
 
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.handle.Handle;
 import org.hibernate.annotations.GenericGenerator;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.UUID;
-
-import javax.persistence.*;
 
 /**
  * Abstract base class for DSpace objects
@@ -35,22 +43,14 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(name = "dspaceobject")
-public abstract class DSpaceObject implements Serializable, ReloadableEntity<java.util.UUID>, IGlobalSearchResult
+public abstract class DSpaceObject implements Serializable, ReloadableEntity<java.util.UUID>, IGlobalSearchResult, UsageEventEntity
 {
     @Id
     @GeneratedValue(generator = "system-uuid")
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @Column(name = "uuid", unique = true, nullable = false, insertable = true, updatable = false)
     protected java.util.UUID id;
-	public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
-	
-	public Map<String, Object> getExtraInfo() {
-		return extraInfo;
-	}
-	
-    /** Our context */
-    protected Context ourContext;
-
+    
     // accumulate information to add to "detail" element of content Event,
     // e.g. to document metadata fields touched, etc.
     @Transient
@@ -212,13 +212,32 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     protected void setModified() {
         this.modified = true;
     }
-
-    
-
     
 	@Override
 	public boolean isWithdrawn() {	
 		return false;
 	}
 
+	@Override
+	public List<String> getMetadataValue(String mdString) {
+		return getDSpaceObjectService().getAllMetadata(this, mdString);
+	}
+
+	@Override
+	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+		return getDSpaceObjectService().getMetadataByMetadataString(this, mdString);
+	}
+	
+	public void clearMetadata(Context context, String schema, String element, String qualifier, String lang) throws SQLException {
+		getDSpaceObjectService().clearMetadata(context, this, schema, element, qualifier, lang);
+	}
+
+	public static DSpaceObject find(Context context, int resourceTypeID, UUID internalID) throws SQLException {
+		DSpaceObject dso = ContentServiceFactory.getInstance().getDSpaceObjectService(resourceTypeID).find(context, internalID);
+		return dso;
+	}
+
+	public DSpaceObjectService<DSpaceObject> getDSpaceObjectService() {
+		return ContentServiceFactory.getInstance().getDSpaceObjectService(this);
+	}
 }

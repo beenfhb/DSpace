@@ -81,13 +81,13 @@ public class EZIDIdentifierProviderTest
     private void dumpMetadata(Item eyetem)
     {
         List<MetadataValue> metadata = itemService.getMetadata(eyetem, "dc", Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue metadatum : metadata)
+        for (MetadataValue MetadataValue : metadata)
             System.out.printf("Metadata:  %s.%s.%s(%s) = %s\n",
-                    metadatum.getMetadataField().getMetadataSchema().getName(),
-                    metadatum.getMetadataField().getElement(),
-                    metadatum.getMetadataField().getQualifier(),
-                    metadatum.getLanguage(),
-                    metadatum.getValue());
+                    MetadataValue.getMetadataField().getMetadataSchema().getName(),
+                    MetadataValue.getMetadataField().getElement(),
+                    MetadataValue.getMetadataField().getQualifier(),
+                    MetadataValue.getLanguage(),
+                    MetadataValue.getValue());
     }
 
     /**
@@ -426,7 +426,7 @@ public class EZIDIdentifierProviderTest
 
         // Evaluate
         String target = (String) metadata.get("_target");
-        assertEquals("Generates correct _target metadatum",
+        assertEquals("Generates correct _target MetadataValue",
                 config.getProperty("dspace.url") + "/handle/" + handle,
                 target);
         assertTrue("Has title", metadata.containsKey("datacite.title"));
@@ -436,9 +436,9 @@ public class EZIDIdentifierProviderTest
 
         // Dump out the generated metadata for inspection
         System.out.println("Results:");
-        for (Entry metadatum : metadata.entrySet())
+        for (Entry MetadataValue : metadata.entrySet())
         {
-            System.out.printf("  %s : %s\n", metadatum.getKey(), metadatum.getValue());
+            System.out.printf("  %s : %s\n", MetadataValue.getKey(), MetadataValue.getValue());
         }
     }
 }

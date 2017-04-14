@@ -7,8 +7,8 @@
  */
 package org.dspace.browse;
 
-import org.dspace.core.Context;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
 
 /**
  * Factory class to allow us to load the correct DAO for registering

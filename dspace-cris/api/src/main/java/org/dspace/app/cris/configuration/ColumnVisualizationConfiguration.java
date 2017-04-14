@@ -10,7 +10,7 @@ package org.dspace.app.cris.configuration;
 import java.util.List;
 
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
@@ -108,9 +108,9 @@ public class ColumnVisualizationConfiguration
         for (String md : metadata)
         {
             String[] split = md.split("\\.");
-            Metadatum[] values = dso.getMetadata(split[0], split[1],
+            List<MetadataValue> values = dso.getMetadata(split[0], split[1],
                     split.length > 2 ? split[2] : null, Item.ANY);
-            for (Metadatum v : values)
+            for (MetadataValue v : values)
             {
                 sb.append(v.value).append(", ");
             }

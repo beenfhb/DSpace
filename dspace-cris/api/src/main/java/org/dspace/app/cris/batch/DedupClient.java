@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
@@ -24,13 +25,13 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.cris.deduplication.service.DedupService;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ExternalService;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.utils.DSpace;
 
 public class DedupClient
@@ -50,7 +51,7 @@ public class DedupClient
     public static void main(String[] args) throws SQLException, IOException, SearchServiceException, SolrServerException {
 
         Context context = new Context();
-        context.setIgnoreAuthorization(true);
+        context.turnOffAuthorisationSystem();
 
         String usage = "org.dspace.app.cris.batch.DedupClient [-chfueto[r <item handle/uuid>]] or nothing to update/clean an existing index.";
         Options options = new Options();
@@ -145,12 +146,12 @@ public class DedupClient
             String optionValue = line.getOptionValue("u");
             String[] identifiers = optionValue.split("\\s*,\\s*");
             for (String id : identifiers) {
-                DSpaceObject dso;
+                BrowsableDSpaceObject dso;
                 if (id.startsWith(ConfigurationManager.getProperty("handle.prefix")) || id.startsWith("123456789/")) {
-                    dso = HandleManager.resolveToObject(context, id);
+                    dso =(BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, id);
                 } else {
 
-                    dso = dspace.getSingletonService(ExternalService.class).getObject(id);
+                    dso =(BrowsableDSpaceObject)dspace.getSingletonService(ExternalService.class).getObject(id);
                 }
                 indexer.indexContent(context, dso, line.hasOption("f"));
             }
@@ -164,11 +165,11 @@ public class DedupClient
                 String strLine;
                 // Read File Line By Line
 
-                int item_id = 0;
-                List<Integer> ids = new ArrayList<Integer>();
+                UUID item_id = null;
+                List<UUID> ids = new ArrayList<UUID>();
 
                 while ((strLine = br.readLine()) != null) {
-                    item_id = Integer.parseInt(strLine.trim());
+                    item_id = UUID.fromString(strLine.trim());
                     ids.add(item_id);
                 }
 

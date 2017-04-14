@@ -32,7 +32,7 @@ import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.utils.DSpace;
 
@@ -96,8 +96,7 @@ public class DeptNetworkServlet extends DSpaceServlet
                 if (checkAvailableData(request, conn, dept))
                 {
                     availableConnections.add(conn);
-                    NetworkPlugin plugin = (NetworkPlugin) (PluginManager.getNamedPlugin(NetworkPlugin.CFG_MODULE,
-                            NetworkPlugin.class, conn));
+                    NetworkPlugin plugin = (NetworkPlugin) (CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(NetworkPlugin.class, conn));
                     colorsNodes.put(conn, plugin.getNodeCustomColor());
                     colorsEdges.put(conn, plugin.getEdgeCustomColor());
                     maxDepths.put(conn, plugin.getCustomMaxDepth());

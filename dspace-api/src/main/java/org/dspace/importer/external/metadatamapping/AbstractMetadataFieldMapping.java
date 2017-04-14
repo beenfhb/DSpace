@@ -63,11 +63,11 @@ public abstract class AbstractMetadataFieldMapping<RecordType> implements Metada
 
     /**
      * @param field MetadataFieldConfig representing what to map the value to
-     * @param value The value to map to a MetadatumDTO
-     * @return A metadatumDTO created from the field and value
+     * @param value The value to map to a MetadataValueDTO
+     * @return A MetadataValueDTO created from the field and value
      */
-    public MetadatumDTO toDCValue(MetadataFieldConfig field, String value) {
-        MetadatumDTO dcValue = new MetadatumDTO();
+    public MetadataValueDTO toDCValue(MetadataFieldConfig field, String value) {
+        MetadataValueDTO dcValue = new MetadataValueDTO();
 
         if (field == null) return null;
         MetadataProcessorService metadataProcessor = getMetadataProcessor(field);
@@ -90,8 +90,8 @@ public abstract class AbstractMetadataFieldMapping<RecordType> implements Metada
         return metadataFieldMap;
     }
 
-    /** Defines which metadatum is mapped on which metadatum. Note that while the key must be unique it
-     * only matters here for postprocessing of the value. The mapped MetadatumContributor has full control over
+    /** Defines which MetadataValue is mapped on which MetadataValue. Note that while the key must be unique it
+     * only matters here for postprocessing of the value. The mapped MetadataValueContributor has full control over
      * what metadatafield is generated.
      * @param metadataFieldMap The map containing the link between retrieve metadata and metadata that will be set to the item.
      */
@@ -103,13 +103,13 @@ public abstract class AbstractMetadataFieldMapping<RecordType> implements Metada
     }
 
     /**
-     * Loop over the MetadataContributors and return their concatenated retrieved metadatumDTO objects
-     * @param record Used to retrieve the MetadatumDTO
-     * @return Lit of metadatumDTO
+     * Loop over the MetadataContributors and return their concatenated retrieved MetadataValueDTO objects
+     * @param record Used to retrieve the MetadataValueDTO
+     * @return Lit of MetadataValueDTO
      */
     @Override
-    public Collection<MetadatumDTO> resultToDCValueMapping(RecordType record) {
-        List<MetadatumDTO> values=new LinkedList<MetadatumDTO>();
+    public Collection<MetadataValueDTO> resultToDCValueMapping(RecordType record) {
+        List<MetadataValueDTO> values=new LinkedList<MetadataValueDTO>();
 
 
         for(MetadataContributor<RecordType> query:getMetadataFieldMap().values()){

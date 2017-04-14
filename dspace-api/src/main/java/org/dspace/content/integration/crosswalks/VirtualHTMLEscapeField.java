@@ -7,11 +7,12 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 
 /**
  * Effettua l'escape html di un altro metadato
@@ -36,13 +37,13 @@ public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
         String metadata = virtualFieldName[2];
 
         // Get the metadatavalue
-        Metadatum[] dcvs = item.getMetadataByMetadataString(metadata);
+        List<MetadataValue> dcvs = item.getMetadataByMetadataString(metadata);
 
-        if (dcvs != null && dcvs.length > 0)
+        if (dcvs != null && dcvs.size() > 0)
         {
             StringBuffer sb = new StringBuffer();
             boolean start = true;
-            for (Metadatum dc : dcvs)
+            for (MetadataValue dc : dcvs)
             {
                 if (!start)
                 {

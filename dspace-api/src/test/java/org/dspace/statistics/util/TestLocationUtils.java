@@ -7,10 +7,12 @@
  */
 package org.dspace.statistics.util;
 
-import java.util.Locale;
-import org.dspace.AbstractDSpaceTest;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Locale;
+
+import org.dspace.AbstractDSpaceTest;
 import org.dspace.core.I18nUtil;
 import org.junit.Test;
 

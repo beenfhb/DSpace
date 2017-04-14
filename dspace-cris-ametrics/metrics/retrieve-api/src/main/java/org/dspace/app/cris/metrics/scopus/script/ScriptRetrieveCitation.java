@@ -27,7 +27,7 @@ import org.dspace.app.cris.metrics.scopus.services.ScopusService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -233,18 +233,18 @@ public class ScriptRetrieveCitation {
                     Item item = (Item) dso;
                     if (StringUtils.isNotBlank(citation.getIdentifier()))
                     {
-                        Metadatum[] metadatumEid = item
+                        List<MetadataValue> MetadataValueEid = item
                                 .getMetadataByMetadataString(fieldScopusID);
-                        if (metadatumEid != null && metadatumEid.length > 0)
+                        if (MetadataValueEid != null && MetadataValueEid.size() > 0)
                         {
-                            item.clearMetadata(metadatumEid[0].schema,
-                                    metadatumEid[0].element,
-                                    metadatumEid[0].qualifier,
-                                    metadatumEid[0].language);
-                            item.addMetadata(metadatumEid[0].schema,
-                                    metadatumEid[0].element,
-                                    metadatumEid[0].qualifier,
-                                    metadatumEid[0].language,
+                            item.clearMetadata(MetadataValueEid[0].schema,
+                                    MetadataValueEid[0].element,
+                                    MetadataValueEid[0].qualifier,
+                                    MetadataValueEid[0].language);
+                            item.addMetadata(MetadataValueEid[0].schema,
+                                    MetadataValueEid[0].element,
+                                    MetadataValueEid[0].qualifier,
+                                    MetadataValueEid[0].language,
                                     citation.getIdentifier());
                         }
                     }

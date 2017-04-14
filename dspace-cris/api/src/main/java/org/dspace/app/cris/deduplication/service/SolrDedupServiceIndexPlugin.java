@@ -7,11 +7,13 @@
  */
 package org.dspace.app.cris.deduplication.service;
 
+import java.util.UUID;
+
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
 public interface SolrDedupServiceIndexPlugin
 {
-    public void additionalIndex(Context context, Integer dsoFirst, Integer dsoSecond, Integer type, SolrInputDocument document);
+    public void additionalIndex(Context context, UUID dsoFirst, UUID dsoSecond, Integer type, SolrInputDocument document);
 }

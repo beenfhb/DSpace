@@ -23,9 +23,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,12 +57,23 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.luke.FieldFlag;
-import org.apache.solr.common.params.*;
-import org.dspace.content.*;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.MapSolrParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.ShardParams;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DCDate;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -69,6 +83,7 @@ import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.statistics.util.DnsLookup;
 import org.dspace.statistics.util.SpiderDetector;
 import org.dspace.usage.UsageWorkflowEvent;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -90,14 +105,17 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 	public static final String CFG_STAT_MODULE = "solr-statistics";
     
 	public static final String CFG_USAGE_MODULE = "usage-statistics";
-    
-
 
     private static final String MULTIPLE_VALUES_SPLITTER = "|";
 
     protected HttpSolrServer solr;
 
-    public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public HttpSolrServer getSolr() {
+		return solr;
+	}
+
+
+	public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public static final String DATE_FORMAT_DCDATE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
@@ -106,7 +124,6 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     private SpiderDetector spiderDetector;
 
     private List<String> statisticYearCores = new ArrayList<String>();
-    protected boolean useProxies;
 
     private boolean statisticYearCoresInit = false;
     
@@ -159,16 +176,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         log.info("solr-statistics.server:" + configurationService.getProperty("solr-statistics.server"));
         log.info("usage-statistics.dbfile:" + configurationService.getProperty("usage-statistics.dbfile"));
     	
-        HttpSolrServer server = null;
+        
         
         if (configurationService.getProperty("solr-statistics.server") != null)
         {
             String pcore = ConfigurationManager.getProperty(CFG_STAT_MODULE,
                     "server");
             log.info("solr-statistics.server:" + pcore);
-
             HttpSolrServer server = null;
-
+            
             if (pcore != null)
             {
                 try
@@ -207,7 +223,6 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             }
             solr = server;
         }
-        solr = server;
     }
 
     public SolrDocumentList getRawData(int type) throws SolrServerException
@@ -230,7 +245,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
      * @param request the current request context.
      * @param currentUser the current session's user.
      */
-    public void post(DSpaceObject dspaceObject, HttpServletRequest request,
+    public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
             EPerson currentUser)
     {
         postView(dspaceObject, request,  currentUser);
@@ -243,7 +258,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
      * @param request the current request context.
      * @param currentUser the current session's user.
      */
-    public void postView(DSpaceObject dspaceObject, HttpServletRequest request,
+    public void postView(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
                                 EPerson currentUser)
     {
     	if (solr == null)
@@ -285,39 +300,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
     
     @Override
-	public void postView(DSpaceObject dspaceObject,
-			String ip, String userAgent, String xforwardedfor, EPerson currentUser) {
-		if (solr == null || locationService == null) {
-			return;
-		}
-        initSolrYearCores();
-
-		try {
-			SolrInputDocument doc1 = getCommonSolrDocByFinalIP(dspaceObject, ip, dns, null, currentUser);
-			if (doc1 == null)
-				return;
-			if (dspaceObject instanceof Bitstream) {
-				Bitstream bit = (Bitstream) dspaceObject;
-				Bundle[] bundles = bit.getBundles();
-				for (Bundle bundle : bundles) {
-					doc1.addField("bundleName", bundle.getName());
-				}
-			}
-
-			doc1.addField("statistics_type", StatisticsType.VIEW.text());
-
-			solr.add(doc1);
-			// commits are executed automatically using the solr autocommit
-			// solr.commit(false, false);
-
-		} catch (RuntimeException re) {
-			throw re;
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-    
-	public void postView(DSpaceObject dspaceObject,
+	public void postView(BrowsableDSpaceObject dspaceObject,
 			String ip, String userAgent, String xforwarderfor, EPerson currentUser) {
 		if (getSolr() == null)
 		{
@@ -360,7 +343,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
      * @return a solr input document
      * @throws SQLException in case of a database exception
      */
-    private SolrInputDocument getCommonSolrDocByRequest(DSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) throws SQLException {
+    private SolrInputDocument getCommonSolrDocByRequest(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) throws SQLException {
         boolean isSpiderBot = request != null && SpiderDetector.isSpider(request);
         if(isSpiderBot &&
                 !configurationService.getBooleanProperty("usage-statistics.logBots", true))
@@ -414,7 +397,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         if(dspaceObject != null){
             doc1.addField("id", dspaceObject.getID());
             doc1.addField("type", dspaceObject.getType());
-            storeParents(doc1, dspaceObject);
+            if(dspaceObject.haveHierarchy()) {
+            	storeParents(doc1, (DSpaceObject)dspaceObject);
+            }
         }
         // Save the current time
         doc1.addField("time", DateFormatUtils.format(new Date(), DATE_FORMAT_8601));
@@ -436,7 +421,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         return doc1;
     }
 
-    private SolrInputDocument getCommonSolrDocByHeaders(DSpaceObject dspaceObject, String ip, String userAgent, String xforwarderfor, EPerson currentUser) throws SQLException {
+    private SolrInputDocument getCommonSolrDocByHeaders(BrowsableDSpaceObject dspaceObject, String ip, String userAgent, String xforwarderfor, EPerson currentUser) throws SQLException {
     	if (isUseProxies() && xforwarderfor != null) {
             /* This header is a comma delimited list */
             for (String xfip : xforwarderfor.split(",")) {
@@ -463,7 +448,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     	return getCommonSolrDocByFinalIP(dspaceObject, ip, dns, userAgent, currentUser);
     }
     
-    private SolrInputDocument getCommonSolrDocByFinalIP(DSpaceObject dspaceObject, String ip, String dns, String userAgent, EPerson currentUser) throws SQLException {
+    private SolrInputDocument getCommonSolrDocByFinalIP(BrowsableDSpaceObject dspaceObject, String ip, String dns, String userAgent, EPerson currentUser) throws SQLException {
         boolean isSpiderBot = SpiderDetector.isSpider(ip);
         if(isSpiderBot &&
                 !configurationService.getBooleanProperty("usage-statistics.logBots", true))
@@ -491,7 +476,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         if(dspaceObject != null){
             doc1.addField("id", dspaceObject.getID());
             doc1.addField("type", dspaceObject.getType());
-            storeParents(doc1, dspaceObject);
+            if(dspaceObject.haveHierarchy()) {
+            	storeParents(doc1, (DSpaceObject)dspaceObject);
+            }
         }
         // Save the current time
         doc1.addField("time", DateFormatUtils.format(new Date(), DATE_FORMAT_8601));
@@ -515,7 +502,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     
     @Override
-    public void postSearch(DSpaceObject resultObject, HttpServletRequest request, EPerson currentUser,
+    public void postSearch(BrowsableDSpaceObject resultObject, HttpServletRequest request, EPerson currentUser,
                                  List<String> queries, int rpp, String sortBy, String order, int page, DSpaceObject scope) {
         try
         {
@@ -940,7 +927,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, boolean showTotal) throws SolrServerException
+            String dateEnd, boolean showTotal, Context context) throws SolrServerException
     {
 		return queryFacetDate(query, filterQuery, max, dateType, dateStart,
 				dateEnd, 1, showTotal);
@@ -1003,7 +990,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         return objCount;
     }
 
-    protected String getDateView(String name, String type, Context context)
+    protected String getDateView(String name, String type)
     {
         if (name != null && name.matches("^[0-9]{4}\\-[0-9]{2}.*"))
         {
@@ -1688,4 +1675,33 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
         statisticYearCoresInit = true;
     }
+
+    
+    @Override
+    public Map<String, List<String>> queryField(String query,
+            List oldFieldVals, String field)
+    {
+        Map<String, List<String>> currentValsStored = new HashMap<String, List<String>>();
+        try
+        {
+            // Get one document (since all the metadata for all the values
+            // should be the same just get the first one we find
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("q", query);
+            params.put("rows", "1");
+            MapSolrParams solrParams = new MapSolrParams(params);
+            QueryResponse response = solr.query(solrParams);
+            // Make sure we at least got a document
+            if (response.getResults().getNumFound() == 0)
+            {
+                return currentValsStored;
+            }
+        }
+        catch (SolrServerException e)
+        {
+            e.printStackTrace();
+        }
+        return currentValsStored;
+    }
+
 }

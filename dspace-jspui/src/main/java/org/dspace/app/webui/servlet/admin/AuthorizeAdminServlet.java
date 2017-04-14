@@ -7,6 +7,18 @@
  */
 package org.dspace.app.webui.servlet.admin;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.app.webui.servlet.DSpaceServlet;
@@ -17,10 +29,18 @@ import org.dspace.authorize.PolicySet;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.*;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -30,13 +50,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Servlet for editing permissions
@@ -513,6 +526,7 @@ public class AuthorizeAdminServlet extends DSpaceServlet
                     .getUUIDParameter(request, "collection_id");
             UUID communityId = UIUtil.getUUIDParameter(request, "community_id");
             UUID itemId = UIUtil.getUUIDParameter(request, "item_id");
+
             Date startDate = null;
             try {
                 startDate = DateUtils.parseDate(request.getParameter("policy_start_date"),
@@ -527,20 +541,7 @@ public class AuthorizeAdminServlet extends DSpaceServlet
             } catch (Exception ex) {
                 //Ignore end date is already null
             }
-            Date startDate = null;
-            try {
-                startDate = DateUtils.parseDate(request.getParameter("policy_start_date"),
-                        new String[]{"yyyy-MM-dd", "yyyy-MM", "yyyy"});
-            } catch (Exception ex) {
-                //Ignore start date is already null
-            }
-            Date endDate = null;
-            try {
-                endDate = DateUtils.parseDate(request.getParameter("policy_end_date"),
-                        new String[]{"yyyy-MM-dd", "yyyy-MM", "yyyy"});
-            } catch (Exception ex) {
-                //Ignore end date is already null
-            }
+
 
             Item item = null;
             Collection collection = null;

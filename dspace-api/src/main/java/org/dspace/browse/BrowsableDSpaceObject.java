@@ -7,9 +7,12 @@
  */
 package org.dspace.browse;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
+import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 
 public interface BrowsableDSpaceObject extends IGlobalSearchResult
@@ -18,12 +21,16 @@ public interface BrowsableDSpaceObject extends IGlobalSearchResult
 
     public boolean isArchived();
 
-    public boolean isWithdrawn();
-
-    public Metadatum[] getMetadata(String schema, String element,
+    public List<MetadataValue> getMetadata(String schema, String element,
             String qualifier, String lang);
 
-    public int getID();
-
+    public String getMetadata(String field);
+    
 	public boolean isDiscoverable();
+	
+	public String getName();
+
+	public String findHandle(Context context) throws SQLException;
+
+	public boolean haveHierarchy();
 }

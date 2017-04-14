@@ -7,14 +7,15 @@
  */
 package org.dspace.statistics.util;
 
-import mockit.Mock;
-import mockit.MockUp;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.dspace.AbstractDSpaceTest;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import mockit.Mock;
+import mockit.MockUp;
 
 /**
  * @author mwood

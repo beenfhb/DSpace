@@ -201,7 +201,24 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
         }
         return null;
     }
-
+    
+    /**
+     * Wrapper to call plugin's getVariants().
+     */
+    public List<String> getVariants(String schema, String element,
+            String qualifier, String authorityKey, String language)
+    {
+        ChoiceAuthority ma = controller.get(makeFieldKey(schema, element,
+                qualifier));
+        if (ma instanceof AuthorityVariantsSupport)
+        {
+            AuthorityVariantsSupport avs = (AuthorityVariantsSupport) ma;
+            return avs.getVariants(authorityKey, language);
+        }
+        return null;
+    }
+    
+    
     protected String makeFieldKey(String schema, String element, String qualifier)
     {
         if (qualifier == null)
@@ -458,6 +475,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
         }
         return result;
     }
+    
     private ChoiceAuthority reloadCache(String fieldKey)
     {
         ChoiceAuthority ma = null;
@@ -499,5 +517,11 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
             }
         }
         return ma;
-    }        
+    }
+
+	@Override
+	public String getLabel(String schema, String element, String qualifier, String authKey, String locale) {
+		return getLabel(makeFieldKey(schema, element, qualifier), authKey, locale);
+	}
+
 }

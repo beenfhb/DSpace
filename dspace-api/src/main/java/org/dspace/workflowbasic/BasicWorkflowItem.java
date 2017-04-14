@@ -7,12 +7,14 @@
  */
 package org.dspace.workflowbasic;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 import javax.persistence.*;
 import java.sql.SQLException;
@@ -142,7 +144,7 @@ public class BasicWorkflowItem implements WorkflowItem, ReloadableEntity<Integer
         return collection;
     }
 
-    void setCollection(Collection collection) {
+    public void setCollection(Collection collection) {
         this.collection = collection;
     }
 
@@ -187,4 +189,19 @@ public class BasicWorkflowItem implements WorkflowItem, ReloadableEntity<Integer
     {
         this.publishedBefore = b;
     }
+    
+	@Override
+	public void update() throws SQLException, AuthorizeException {
+		
+		Context context = null; 
+		try {
+			context = new Context();
+			WorkflowServiceFactory.getInstance().getWorkflowItemService().update(context, this);
+		}
+		finally {
+			if(context!=null && context.isValid()) {
+				context.abort();
+			}
+		}
+	}
 }

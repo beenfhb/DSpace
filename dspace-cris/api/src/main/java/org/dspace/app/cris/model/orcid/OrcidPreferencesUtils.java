@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.Transient;
 
@@ -53,8 +54,10 @@ import org.dspace.authority.orcid.jaxb.PersonalDetails;
 import org.dspace.authority.orcid.jaxb.ResearcherUrl;
 import org.dspace.authority.orcid.jaxb.ResearcherUrls;
 import org.dspace.authority.orcid.jaxb.Visibility;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
@@ -85,7 +88,7 @@ public class OrcidPreferencesUtils {
 	private static final int ORCID_PREFS_SELECTED = 2;
 	private static final int ORCID_PREFS_VISIBLE = 3;
 
-	public void prepareOrcidQueue(String crisId, DSpaceObject obj) {
+	public void prepareOrcidQueue(String crisId, BrowsableDSpaceObject obj) {
 
 		OrcidHistory orcidHistory = getApplicationService()
 				.uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(crisId, obj.getID(), obj.getType());
@@ -174,9 +177,9 @@ public class OrcidPreferencesUtils {
 		return false;
 	}
 
-	public List<Integer> getPreferiteWorksToSendToOrcid(String crisID) {
+	public List<UUID> getPreferiteWorksToSendToOrcid(String crisID) {
 		ResearcherPage researcher = getApplicationService().getEntityByCrisId(crisID, ResearcherPage.class);
-		List<Integer> itemIDsToSend = new ArrayList<Integer>();
+		List<UUID> itemIDsToSend = new ArrayList<UUID>();
 		if (researcher != null) {
 			String publicationsPrefs = ResearcherPageUtils.getStringValue(researcher, ORCID_PUBLICATIONS_PREFS);
 
@@ -195,7 +198,7 @@ public class OrcidPreferencesUtils {
 							Iterator<SolrDocument> solrDoc = docList.iterator();
 							while (solrDoc.hasNext()) {
 								SolrDocument doc = solrDoc.next();
-								Integer rpId = (Integer) doc.getFirstValue("search.resourceid");
+								UUID rpId = UUID.fromString((String)doc.getFirstValue("search.resourceid"));
 								itemIDsToSend.add(rpId);
 							}
 						} catch (SearchServiceException e) {
@@ -219,7 +222,7 @@ public class OrcidPreferencesUtils {
 
 						} else {
 							if (Integer.parseInt(publicationsPrefs) == ORCID_PREFS_VISIBLE) {
-								List<Integer> itemIDsToSendTmp = new ArrayList<Integer>();
+								List<UUID> itemIDsToSendTmp = new ArrayList<UUID>();
 								log.debug("...it will work on all researcher...");
 								SolrQuery query = new SolrQuery("*:*");
 								query.addFilterQuery("{!field f=search.resourcetype}" + Constants.ITEM);
@@ -232,7 +235,7 @@ public class OrcidPreferencesUtils {
 									Iterator<SolrDocument> solrDoc = docList.iterator();
 									while (solrDoc.hasNext()) {
 										SolrDocument doc = solrDoc.next();
-										Integer rpId = (Integer) doc.getFirstValue("search.resourceid");
+										UUID rpId = UUID.fromString((String) doc.getFirstValue("search.resourceid"));
 										itemIDsToSendTmp.add(rpId);
 									}
 								} catch (SearchServiceException e) {
@@ -248,7 +251,7 @@ public class OrcidPreferencesUtils {
 														configuration.getRelationConfiguration().getRelationName(),
 														RelationPreference.HIDED);
 									}
-									for (Integer itemId : itemIDsToSendTmp) {
+									for (UUID itemId : itemIDsToSendTmp) {
 										boolean founded = false;
 										internal: for (RelationPreference hid : hided) {
 											if (hid.getItemID().equals(itemId)) {
@@ -276,7 +279,7 @@ public class OrcidPreferencesUtils {
 		return itemIDsToSend;
 	}
 
-	public boolean isAPreferiteToSendToOrcid(String crisID, DSpaceObject dso, String preferenceMetadataDefinition) {
+	public boolean isAPreferiteToSendToOrcid(String crisID, BrowsableDSpaceObject dso, String preferenceMetadataDefinition) {
 		ResearcherPage researcher = getApplicationService().getEntityByCrisId(crisID, ResearcherPage.class);
 		if (researcher != null) {
 			String publicationsPrefs = ResearcherPageUtils.getStringValue(researcher, preferenceMetadataDefinition);
@@ -514,7 +517,7 @@ public class OrcidPreferencesUtils {
 		List<String> pjIDs = getPreferiteFundingToSendToOrcid(owner);
 		List<OrcidHistory> orcidHistories = getOrcidHistoryInSuccessByOwnerAndTypeId(owner,
 				CrisConstants.PROJECT_TYPE_ID);
-		Map<Integer, String> putProjectIDs = new HashMap<Integer, String>();
+		Map<UUID, String> putProjectIDs = new HashMap<UUID, String>();
 		for (OrcidHistory history : orcidHistories) {
 			if (pjIDs.contains(history.getEntityUuid())) {
 				// PUT
@@ -546,9 +549,9 @@ public class OrcidPreferencesUtils {
 		ResearcherPage rp = getApplicationService().getEntityByCrisId(owner, ResearcherPage.class);
 		cleanPut(rp, ORCID_PUSH_ITEM_ACTIVATE_PUT);
 		// retrieve the preferite
-		List<Integer> itemIDs = getPreferiteWorksToSendToOrcid(owner);
+		List<UUID> itemIDs = getPreferiteWorksToSendToOrcid(owner);
 		List<OrcidHistory> orcidHistories = getOrcidHistoryInSuccessByOwnerAndTypeId(owner, Constants.ITEM);
-		Map<Integer, String> putItemIDs = new HashMap<Integer, String>();
+		Map<UUID, String> putItemIDs = new HashMap<UUID, String>();
 		for (OrcidHistory history : orcidHistories) {
 			if (itemIDs.contains(history.getEntityId())) {
 				// PUT
@@ -562,8 +565,8 @@ public class OrcidPreferencesUtils {
 		Context context = null;
 		try {
 			context = new Context();
-			for (Integer itemID : itemIDs) {
-				Item item = Item.find(context, itemID);
+			for (UUID itemID : itemIDs) {
+				Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
 				prepareOrcidQueue(owner, item);
 			}
 		} catch (Exception ex) {

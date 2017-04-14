@@ -30,7 +30,9 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 
 /**
@@ -74,7 +76,7 @@ public abstract class AFormDynamicOUController<P extends Property<TP>, TP extend
                     OrganizationUnit.class, id);
         Context context = UIUtil.obtainContext(request);
         
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             reference.put("ou_page_menu", new Boolean(true));
             reference.put("organizationunit", researcher);         

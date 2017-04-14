@@ -19,7 +19,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.importer.external.exception.MetadataSourceException;
 import org.dspace.importer.external.datamodel.ImportRecord;
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.dspace.importer.external.service.ImportService;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.utils.DSpace;
@@ -51,12 +51,12 @@ public class XMLUIStartSubmissionLookupStep extends AbstractProcessingStep {
             ImportRecord   record = importService.getRecord(getPublicationUrl(), publicationID);
 
 
-                for (MetadataValue metadatum : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
-                    itemService.clearMetadata(context, item, metadatum.getMetadataField().getMetadataSchema().getName(), metadatum.getMetadataField().getElement(), metadatum.getMetadataField().getQualifier(), metadatum.getLanguage());
+                for (MetadataValue MetadataValue : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
+                    itemService.clearMetadata(context, item, MetadataValue.getMetadataField().getMetadataSchema().getName(), MetadataValue.getMetadataField().getElement(), MetadataValue.getMetadataField().getQualifier(), MetadataValue.getLanguage());
                 }
 
-                for (MetadatumDTO metadatum : record.getValueList()) {
-                        itemService.addMetadata(context, item, metadatum.getSchema(), metadatum.getElement(), metadatum.getQualifier(),null, metadatum.getValue());
+                for (MetadataValueDTO MetadataValue : record.getValueList()) {
+                        itemService.addMetadata(context, item, MetadataValue.getSchema(), MetadataValue.getElement(), MetadataValue.getQualifier(),null, MetadataValue.getValue());
                 }
 
                 itemService.update(context, item);

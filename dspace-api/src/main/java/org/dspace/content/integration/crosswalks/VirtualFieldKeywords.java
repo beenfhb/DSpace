@@ -7,10 +7,11 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Map;
 
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 
 /**
@@ -28,7 +29,7 @@ public class VirtualFieldKeywords implements VirtualFieldDisseminator, VirtualFi
         if(ConfigurationManager.getProperty("crosswalk.virtualkeywords.value") != null) 
         	keywordsDC = ConfigurationManager.getProperty("crosswalk.virtualkeywords.value");
         
-        Metadatum[] dcvs = item.getMetadataValueInDCFormat(keywordsDC);
+        List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(keywordsDC);
         
 		String[] virtualFieldName = fieldName.split("\\.");
 
@@ -36,10 +37,10 @@ public class VirtualFieldKeywords implements VirtualFieldDisseminator, VirtualFi
 		String qualifier = virtualFieldName[2];
 
 		if ("single".equalsIgnoreCase(qualifier)) {
-			if (dcvs != null && dcvs.length > 0) {
-				if (dcvs.length > 1) {
-					String[] result = new String[dcvs.length];
-					for (int i = 0; i < dcvs.length; i++) {
+			if (dcvs != null && dcvs.size() > 0) {
+				if (dcvs.size() > 1) {
+					String[] result = new String[dcvs.size()];
+					for (int i = 0; i < dcvs.size(); i++) {
 						result[i] = dcvs[i].value;
 					}
 					return result;
@@ -50,10 +51,10 @@ public class VirtualFieldKeywords implements VirtualFieldDisseminator, VirtualFi
 				}
 			}
 		} else {
-			if (dcvs != null && dcvs.length > 0) {
-				if (dcvs.length > 1) {
+			if (dcvs != null && dcvs.size() > 0) {
+				if (dcvs.size() > 1) {
 					StringBuffer sb = new StringBuffer();
-					for (int i = 0; i < dcvs.length; i++) {
+					for (int i = 0; i < dcvs.size(); i++) {
 						sb.append(dcvs[i].value).append("; ");
 					}
 					

@@ -200,6 +200,4 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     int countBitstreamsWithoutPolicy(Context context) throws SQLException;
 
     List<Bitstream> getNotReferencedBitstreams(Context context) throws SQLException;
-    
-    public void setChecksum(Context context, Bitstream bitstream, String md5) throws SQLException;
 }

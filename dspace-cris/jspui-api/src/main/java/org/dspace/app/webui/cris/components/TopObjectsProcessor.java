@@ -7,6 +7,7 @@
  */
 package org.dspace.app.webui.cris.components;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.app.webui.components.RecentSubmissions;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
@@ -79,12 +80,11 @@ public class TopObjectsProcessor implements ExploreProcessor {
 		SearchService searchService = new DSpace().getSingletonService(SearchService.class);
 		
 		DiscoverResult result = searchService.search(context, query);
-		List<DSpaceObject> dsos = result.getDspaceObjects();
+		List<BrowsableDSpaceObject> dsos = result.getDspaceObjects();
 		if(dsos.isEmpty()) {
 		    return null;
 		}
-		DSpaceObject[] dsoArray = new DSpaceObject[dsos.size()];
-		dsoArray = dsos.toArray(dsoArray);
+		List<BrowsableDSpaceObject> dsoArray = new ArrayList<>();
 		
 		RecentSubmissions rs = new RecentSubmissions(dsoArray);
 		rs.setConfiguration(viewConfiguration);

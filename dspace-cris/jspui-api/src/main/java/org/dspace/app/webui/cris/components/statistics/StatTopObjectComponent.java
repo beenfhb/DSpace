@@ -12,6 +12,7 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -25,11 +26,11 @@ import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.Site;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 
 public class StatTopObjectComponent<T extends DSpaceObject> extends
         StatsComponent<T>
@@ -115,7 +116,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
             {
                 for (StatisticDatasBeanRow row : myvalue.getLimitedDataTable())
                 {                   
-                    DSpaceObject item = DSpaceObject.find(context, getRelationObjectType(), Integer.parseInt(row.getLabel()));
+                    DSpaceObject item = ContentServiceFactory.getInstance().getDSpaceObjectService(getRelationObjectType()).find(context, UUID.fromString(row.getLabel()));
 //                    if (item != null)
                     {
                         labels.addValue(type, row.getLabel(), item);
@@ -165,7 +166,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
     }
 
     @Override
-    public Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger, DSpaceObject object,
+    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger, DSpaceObject object,
             String dateType, String dateStart, String dateEnd, int gap) throws SolrServerException
     {
         String query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());

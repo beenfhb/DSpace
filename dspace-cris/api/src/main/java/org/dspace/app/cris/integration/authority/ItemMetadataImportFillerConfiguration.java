@@ -13,7 +13,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 
 public class ItemMetadataImportFillerConfiguration {
 	private Map<String, MappingDetails> mapping;
@@ -133,10 +133,10 @@ public class ItemMetadataImportFillerConfiguration {
             this.rangeByYear = rangeByYear;
         }
 
-        public void computeMetricCount(int idx, Metadatum[] mm, Item item, CrisMetrics metric)
+        public void computeMetricCount(int idx, List<MetadataValue> mm, Item item, CrisMetrics metric)
         {
-            Metadatum metricValue = null;
-            if (mm.length > 0)
+            MetadataValue metricValue = null;
+            if (mm.size() > 0)
             {
                 try
                 {
@@ -160,7 +160,7 @@ public class ItemMetadataImportFillerConfiguration {
             }            
         }
 
-        public void setupMetricCount(Metadatum metricValue, Metadatum[] mm, Item item, CrisMetrics metric)
+        public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
         {
             metric.setMetricCount(
                     Double.parseDouble(metricValue.value));
@@ -170,9 +170,9 @@ public class ItemMetadataImportFillerConfiguration {
     
     public static class MetricsMappingCountDetails extends MetricsMappingDetails {
         
-        public void setupMetricCount(Metadatum metricValue, Metadatum[] mm, Item item, CrisMetrics metric)
+        public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
         {
-            metric.setMetricCount(mm.length);
+            metric.setMetricCount(mm.size());
         }
     }
     
@@ -180,7 +180,7 @@ public class ItemMetadataImportFillerConfiguration {
         
         private List<String> mdFields;
         
-        public void setupMetricCount(Metadatum metricValue, Metadatum[] mm, Item item, CrisMetrics metric)
+        public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
         {
             double metriccount = 0;
             for(String mdField : mdFields) {

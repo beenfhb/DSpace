@@ -7,6 +7,13 @@
  */
 package org.dspace.content;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -23,13 +30,6 @@ import org.dspace.core.LogManager;
 import org.dspace.event.Event;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Service implementation for the Bitstream object.
@@ -447,4 +447,10 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     public List<Bitstream> getNotReferencedBitstreams(Context context) throws SQLException {
         return bitstreamDAO.getNotReferencedBitstreams(context);
     }
+
+	@Override
+	public void addMetadata(Context context, Bitstream dso, MetadataField metadataField, String lang,
+			List<String> values, List<String> authorities, List<Integer> confidences) throws SQLException {
+		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
+	}
 }

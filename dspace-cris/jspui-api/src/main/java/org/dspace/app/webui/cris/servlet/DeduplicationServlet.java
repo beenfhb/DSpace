@@ -9,6 +9,7 @@ package org.dspace.app.webui.cris.servlet;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -51,8 +52,8 @@ public class DeduplicationServlet extends DSpaceServlet
         
         if (action.equals("reject"))
         {
-            int firstId = UIUtil.getIntParameter(request, "itemID");
-            int secondId = UIUtil.getIntParameter(request, "duplicateID");
+            UUID firstId = UIUtil.getUUIDParameter(request, "itemID");
+            UUID secondId = UIUtil.getUUIDParameter(request, "duplicateID");
             boolean fake = UIUtil.getBoolParameter(request, "fake");
             String note = null;
             if (!fake)
@@ -67,8 +68,8 @@ public class DeduplicationServlet extends DSpaceServlet
         if (action.equals("verify"))
         {
             int dedupId = UIUtil.getIntParameter(request, "dedupID");
-            int firstId = UIUtil.getIntParameter(request, "itemID");
-            int secondId = UIUtil.getIntParameter(request, "duplicateID");
+            UUID firstId = UIUtil.getUUIDParameter(request, "itemID");
+            UUID secondId = UIUtil.getUUIDParameter(request, "duplicateID");
             boolean toFix = UIUtil.getBoolParameter(request, "toFix");
             String note = request.getParameter("note");
             dedupUtils.verify(context, dedupId, firstId, secondId, typeId, toFix, note, check);

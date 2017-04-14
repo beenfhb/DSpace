@@ -7,12 +7,13 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 
 /**
  * Costruisce i singoli autori a partire dalla stringa allauthor
@@ -27,11 +28,11 @@ public class VirtualFieldBibtexAuthors implements VirtualFieldDisseminator, Virt
 		String metadata = "dc.contributor.author";
 
 		// Get the citation from the item
-		Metadatum[] dcvs = item.getMetadataValueInDCFormat(metadata);
+		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
 
-		if (dcvs != null && dcvs.length > 0) {
+		if (dcvs != null && dcvs.size() > 0) {
 			StringBuffer sb = new StringBuffer();
-			for (Metadatum a : dcvs) {
+			for (MetadataValue a : dcvs) {
 				String[] split = a.value.split(", ");
 				int splitLength = split.length;
 				String str = (splitLength > 1) ? split[1] : "";

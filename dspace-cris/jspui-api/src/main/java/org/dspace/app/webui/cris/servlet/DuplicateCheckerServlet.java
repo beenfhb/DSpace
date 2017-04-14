@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -19,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -28,8 +28,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.dspace.app.cris.deduplication.service.DedupService;
 import org.dspace.app.cris.deduplication.service.impl.SolrDedupServiceImpl;
 import org.dspace.app.cris.deduplication.utils.DedupUtils;
 import org.dspace.app.cris.deduplication.utils.DuplicateInfo;
@@ -39,32 +37,38 @@ import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.Group;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
+import org.dspace.workflowbasic.BasicWorkflowItem;
+import org.hibernate.Session;
 
 /**
  * 
@@ -111,6 +115,9 @@ public class DuplicateCheckerServlet extends DSpaceServlet
     private DedupUtils dedupUtils = new DSpace().getServiceManager()
             .getServiceByName("dedupUtils", DedupUtils.class);
 
+	private final transient ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+	private final ResourcePolicyService resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+	
     /**
      * Load blocked metadata configuration.
      */
@@ -160,7 +167,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         if (resourceType == -1)
             resourceType = Constants.ITEM;
 
-        int targetDefault = -1;
+        UUID targetDefault = null;
         int optionInt = submitOptionMap.get(option);
         
         // if suggested duplicates go to SHOW_DUPLICATES
@@ -227,15 +234,15 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             }
             // parent grid is a container where key is the signature description
             // which we want to grouped item duplicates
-            Map<String, Map<Integer, String[]>> gridParent = new LinkedHashMap<String, Map<Integer, String[]>>();
+            Map<String, Map<UUID, String[]>> gridParent = new LinkedHashMap<String, Map<UUID, String[]>>();
             Map<String, List<String>> gridTwiceGroups = new LinkedHashMap<String, List<String>>();
 
             long count = 0;
             // List<DuplicateInfo> duplicateCouple = null;
-            Map<Integer, DSpaceObject> extraInfo = new LinkedHashMap<Integer, DSpaceObject>();
-            Map<Integer, String> itemTypeInfo = new LinkedHashMap<Integer, String>();
+            Map<UUID, BrowsableDSpaceObject> extraInfo = new LinkedHashMap<UUID, BrowsableDSpaceObject>();
+            Map<UUID, String> itemTypeInfo = new LinkedHashMap<UUID, String>();
             String idsListString = request.getParameter("itemid_list");
-            List<DSpaceObject> itemList = new ArrayList<DSpaceObject>();
+            List<BrowsableDSpaceObject> itemList = new ArrayList<BrowsableDSpaceObject>();
 
             if (StringUtils.isNotBlank(idsListString))
             {
@@ -243,10 +250,10 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 count = ids.length;
                 for (int j = 0; j < ids.length; j++)
                 {
-                    int currentId = 0;
+                    UUID currentId = null;
                     try
                     {
-                        currentId = Integer.parseInt(ids[j].trim());
+                        currentId = UUID.fromString(ids[j].trim());
                     }
                     catch (Exception e)
                     {
@@ -254,7 +261,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                         count--;
                         continue;
                     }
-                    DSpaceObject current = DSpaceObject.find(context, resourceType, currentId);
+                    BrowsableDSpaceObject current = (BrowsableDSpaceObject)ContentServiceFactory.getInstance().getDSpaceObjectService(resourceType).find(context, currentId);
                     if ((current == null) || (current.isWithdrawn()))
                     {
                         count--;
@@ -263,7 +270,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     itemList.add(current);
                 }
 
-                Map<Integer, String[]> grid = new LinkedHashMap<Integer, String[]>();
+                Map<UUID, String[]> grid = new LinkedHashMap<UUID, String[]>();
                 putItemsOnGrid(context, grid, extraInfo, itemList, request);
                 gridParent.put("items", grid);
             }
@@ -293,7 +300,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                             }
                         }
                         if(!found) {
-                            Map<Integer, String[]> grid = new LinkedHashMap<Integer, String[]>();
+                            Map<UUID, String[]> grid = new LinkedHashMap<UUID, String[]>();
                             putItemsOnGrid(context, grid, extraInfo,
                                     info.getItems(), request);
                             gridParent.put(info.getSignature(), grid);
@@ -311,10 +318,10 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 }
             }
 
-            Iterator<DSpaceObject> it = extraInfo.values().iterator();
+            Iterator<BrowsableDSpaceObject> it = extraInfo.values().iterator();
             while (it.hasNext())
             {
-                DSpaceObject current = it.next();
+            	BrowsableDSpaceObject current = it.next();
                 if (resourceType == Constants.ITEM)
                 {
                     String aliasForm = ItemUtils.getDCInputSet((Item) current)
@@ -344,9 +351,9 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         case SELECT_TARGET:
         {
             // choose target or go to merge
-            int[] items = UIUtil.getIntParameters(request, "itemstomerge");
+            List<UUID> items = UIUtil.getUUIDParameters(request, "itemstomerge");
             int rule = UIUtil.getIntParameter(request, "rule");
-            if (items == null || items.length < 2)
+            if (items == null || items.size() < 2)
             {
                 response.sendRedirect(request.getContextPath()
                         + "/tools/duplicate?submitcheck=" + rule + "&scope="
@@ -354,42 +361,42 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 return;
             }
 
-            Map<Integer, String[]> grid = new LinkedHashMap<Integer, String[]>();
-            Map<Integer, DSpaceObject> extraInfo = new LinkedHashMap<Integer, DSpaceObject>();
+            Map<UUID, String[]> grid = new LinkedHashMap<UUID, String[]>();
+            Map<UUID, BrowsableDSpaceObject> extraInfo = new LinkedHashMap<UUID, BrowsableDSpaceObject>();
 
             putItemsOnGrid(context, grid, extraInfo,
                     getDSpaceObjects(context, items, resourceType), request);
-            int oldestId = -1;
-            for (DSpaceObject item : getDSpaceObjects(context, items,
+            UUID oldestId = null;
+            for (BrowsableDSpaceObject item : getDSpaceObjects(context, items,
                     resourceType))
             {
                 if (((Item) item).isArchived())
                 {
-                    if (targetDefault == -1)
+                    if (targetDefault == null)
                     {
                         targetDefault = item.getID();
                     }
                     else
                     {
-                        if (item.getID() < targetDefault)
+                        if (item.getID().compareTo(targetDefault)<0)
                         {
                             targetDefault = item.getID();
                         }
                     }
                 }
-                if (targetDefault == -1)
+                if (targetDefault == null)
                 {
-                    if (oldestId == -1)
+                    if (oldestId == null)
                     {
                         oldestId = item.getID();
                     }
-                    if (item.getID() < oldestId)
+                    if (item.getID().compareTo(oldestId)<0)
                     {
                         oldestId = item.getID();
                     }
                 }
             }
-            if (targetDefault == -1)
+            if (targetDefault == null)
             {
                 targetDefault = oldestId;
             }
@@ -400,12 +407,12 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         case MANAGE_PREVIEW:
         {
             // manage preview
-            int[] items = UIUtil.getIntParameters(request, "itemstomerge");
+            List<UUID> items = UIUtil.getUUIDParameters(request, "itemstomerge");
             int rule = UIUtil.getIntParameter(request, "rule");
-            if (items != null && items.length == 1)
+            if (items != null && items.size() == 1)
             {
                 String itemstomerge = "";
-                for (int i : items)
+                for (UUID i : items)
                 {
                     itemstomerge += "&itemstomerge=" + i;
                 }
@@ -415,9 +422,9 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 return;
             }
 
-            int target = UIUtil.getIntParameter(request, "target");
+            UUID target = UIUtil.getUUIDParameter(request, "target");
 
-            if (target == -1)
+            if (target == null)
             {
                 target = targetDefault;
             }
@@ -456,9 +463,9 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 propertyDefaultStyle = "info";
             }
 
-            HashMap<Integer, String> legenda = new HashMap<Integer, String>();
+            HashMap<UUID, String> legenda = new HashMap<UUID, String>();
             int k = 0;
-            for (int i : items)
+            for (UUID i : items)
             {
                 if (i == target)
                     legenda.put(i, propertyTargetStyle);
@@ -469,19 +476,19 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 k++;
             }
 
-            Map<Integer, String> citations = new HashMap<Integer, String>();
-            for (int item : items)
+            Map<UUID, String> citations = new HashMap<UUID, String>();
+            for (UUID item : items)
             {
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-                final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+                final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                         .getNamedPlugin(StreamDisseminationCrosswalk.class,
                                 ConfigurationManager.getProperty("deduplication",
                                         "tool.duplicatechecker.citation"));
                 try
                 {
                     streamCrosswalkDefault.disseminate(context,
-                            Item.find(context, item), output);
+                            itemService.find(context, item), output);
                     citations.put(item, output.toString("UTF-8"));
                 }
                 catch (CrosswalkException e)
@@ -492,27 +499,26 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             }
 
             // All DC types in the registry
-            MetadataField[] types = MetadataField.findAll(context);
+            List<MetadataField> types = ContentServiceFactory.getInstance().getMetadataFieldService().findAll(context);
 
             // Get a HashMap of metadata field ids and a field name to display
             HashMap<Integer, String> metadataFields = new HashMap<Integer, String>();
 
             // Get all existing Schemas
-            MetadataSchema[] schemas = MetadataSchema.findAll(context);
-            for (int i = 0; i < schemas.length; i++)
+            List<MetadataSchema> schemas = ContentServiceFactory.getInstance().getMetadataSchemaService().findAll(context);
+            for (MetadataSchema schema : schemas)
             {
-                String schemaName = schemas[i].getName();
+                String schemaName = schema.getName();
                 // Get all fields for the given schema
-                MetadataField[] fields = MetadataField.findAllInSchema(context,
-                        schemas[i].getSchemaID());
-                for (int j = 0; j < fields.length; j++)
+                List<MetadataField> fields = ContentServiceFactory.getInstance().getMetadataFieldService().findAllInSchema(context,
+                        schema);
+                for (MetadataField field : fields)
                 {
-                    Integer fieldID = new Integer(fields[j].getFieldID());
                     String displayName = "";
-                    displayName = schemaName + "." + fields[j].getElement()
-                            + (fields[j].getQualifier() == null ? ""
-                                    : "." + fields[j].getQualifier());
-                    metadataFields.put(fieldID, displayName);
+                    displayName = schemaName + "." + field.getElement()
+                            + (field.getQualifier() == null ? ""
+                                    : "." + field.getQualifier());
+                    metadataFields.put(field.getID(), displayName);
                 }
             }
 
@@ -544,7 +550,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         case REJECT:
         {
             // unrelate item
-            int[] items = UIUtil.getIntParameters(request, "itemstomerge");
+            List<UUID> items = UIUtil.getUUIDParameters(request, "itemstomerge");
             int rule = UIUtil.getIntParameter(request, "rule");
             if (items == null)
             {
@@ -554,9 +560,9 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 break;
             }
 
-            for (int itemId : items)
+            for (UUID itemId : items)
             {
-                for (int itemId2 : items)
+                for (UUID itemId2 : items)
                 {
                     if (itemId2 == itemId)
                     {
@@ -583,26 +589,28 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         case MERGE:
         {
             // commit works
-            Item item = Item.find(context,
-                    UIUtil.getIntParameter(request, "item_id"));
+            Item item = itemService.find(context,
+                    UIUtil.getUUIDParameter(request, "item_id"));
 
-            int collectionOwner = UIUtil.getIntParameter(request,
+            UUID collectionOwner = UIUtil.getUUIDParameter(request,
                     "collectionOwner");
-            int[] otherCollections = UIUtil.getIntParameters(request,
+            List<UUID> otherCollections = UIUtil.getUUIDParameters(request,
                     "collectionOthers");
 
-            int[] toRemove = UIUtil.getIntParameters(request, "itemremove_id");
+            List<UUID> toRemove = UIUtil.getUUIDParameters(request, "itemremove_id");
 
             int rule = UIUtil.getIntParameter(request, "rule");
 
             Collection collection = null;
-            if (collectionOwner != -1)
+            if (collectionOwner != null)
             {
+            	List<UUID> ccc = new ArrayList<UUID>();
+            	ccc.add(collectionOwner);
                 collection = getCollections(context,
-                        new int[] { collectionOwner }, -1).get(0);
+                		ccc, null).get(0);
             }
             List<Collection> collections = new LinkedList<Collection>();
-            if (otherCollections != null && otherCollections.length > 0)
+            if (otherCollections != null && otherCollections.size() > 0)
             {
                 collections = getCollections(context, otherCollections,
                         collectionOwner);
@@ -610,15 +618,15 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             processUpdateItem(context, request, response, item, collection,
                     collections);
 
-            for (int remove : toRemove)
+            for (UUID remove : toRemove)
             {
                 if (remove != item.getID())
                 {
-                    Item itemRemove = Item.find(context, remove);
+                    Item itemRemove = itemService.find(context, remove);
                     if (itemRemove.isArchived() || itemRemove.isWithdrawn())
                     {
                         // add metadata replaced and go to withdrawn
-                        itemRemove.addMetadata(MetadataSchema.DC_SCHEMA,
+                        itemService.addMetadata(context, itemRemove, MetadataSchema.DC_SCHEMA,
                                 "relation", "isreplacedby", null,
                                 "hdl:" + item.getHandle());
 
@@ -626,7 +634,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 
                         dedupUtils.rejectAdminDups(context, item.getID(),
                                 remove, resourceType);
-                        for (int other : toRemove)
+                        for (UUID other : toRemove)
                         {
                             if (other != itemRemove.getID())
                             {
@@ -648,16 +656,16 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                                 throw new ServletException(e.getMessage(), e);
                             }
                         }
-                        itemRemove.update();
+                        itemService.update(context, itemRemove);
                     }
                     else
                     {
 
                         remove(context, request, itemRemove);
-
-                        DatabaseManager.updateQuery(context,
-                                "DELETE FROM dedup_reject WHERE first_item_id = ? OR second_item_id = ?",
-                                remove, remove);
+                        
+                        
+                        getHibernateSession(context).createSQLQuery(
+                                "DELETE FROM CrisDedupliaction WHERE first_item_id = :par0 OR second_item_id = :par1").setParameter(0, remove).setParameter(1, remove).executeUpdate();
                     }
                 }
             }
@@ -703,20 +711,20 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         switch (status)
         {
         case ItemUtils.ARCHIVE:
-            itemRemove.withdraw();
+            itemService.withdraw(context, itemRemove);
             break;
         case ItemUtils.WORKFLOW:
-            WorkflowItem wfi = WorkflowItem.findByItem(context, itemRemove);
-            Collection collectionParent = ((Collection) itemRemove.getParentObject());
+            WorkflowItem wfi = WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context, itemRemove);
+            Collection collectionParent = wfi.getCollection();
             if(collectionParent!=null) { 
-                collectionParent.removeItem(itemRemove);
+                collectionParent.getCollectionService().removeItem(context, collectionParent, itemRemove);
             }
-            wfi.deleteWrapper(); 
-            itemRemove.delete();
+            WorkflowServiceFactory.getInstance().getWorkflowItemService().deleteWrapper(context, wfi);
+            itemService.delete(context, itemRemove);
             break;
         case ItemUtils.WORKSPACE:
-            WorkspaceItem wsi = WorkspaceItem.findByItem(context, itemRemove);
-            wsi.deleteAll();
+            WorkspaceItem wsi = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context, itemRemove);
+            ContentServiceFactory.getInstance().getWorkspaceItemService().deleteAll(context, wsi);
             break;
         default:
             break;
@@ -745,39 +753,28 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                                                               // inprogresssubmission
                                                               // collection
 
-            TableRow trWsi = DatabaseManager.findByUnique(context,
-                    "workspaceitem", "item_id", targetItem.getID());
-            if (trWsi == null)
-            { // if item not in workspace then
-              // check if item
-              // is
-              // in workflow state
-                TableRow trWfi = DatabaseManager.findByUnique(context,
-                        "workflowitem", "item_id", targetItem.getID());
-                if (trWfi != null)
-                {
-                    Integer idWfi = trWfi.getIntColumn("workflow_id");
-                    WorkflowItem wfi = WorkflowItem.find(context, idWfi);
-                    if (!result.containsKey(wfi.getCollection()))
-                    {
-                        result.put(wfi.getCollection(),
-                                new Boolean[] { false, true });
-                    }
+            
+			WorkspaceItem wsi = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context,
+					targetItem);
 
-                }
-            }
-            else
-            {
+			if (wsi == null) { // if item not in workspace then
+								// check if item
+								// is
+								// in workflow state
+				WorkflowItem wfi = WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context,
+						targetItem);
+				if (wfi != null) {
+					if (!result.containsKey(wfi.getCollection())) {
+						result.put(wfi.getCollection(), new Boolean[] { false, false });
+					}
 
-                Integer idWsi = trWsi.getIntColumn("workspace_item_id");
-                WorkspaceItem wsi = WorkspaceItem.find(context, idWsi);
-                if (!result.containsKey(wsi.getCollection()))
-                {
-                    result.put(wsi.getCollection(),
-                            new Boolean[] { false, true });
-                }
+				}
+			} else {
+				if (!result.containsKey(wsi.getCollection())) {
+					result.put(wsi.getCollection(), new Boolean[] { false, false });
+				}
 
-            }
+			}		
         }
 
         for (Item other : otherItems)
@@ -799,40 +796,27 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             }
             else
             {
+				WorkspaceItem wsi = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context,
+						other);
 
-                TableRow trWsi = DatabaseManager.findByUnique(context,
-                        "workspaceitem", "item_id", other.getID());
-                if (trWsi == null)
-                { // if item not in workspace then
-                  // check if item
-                  // is
-                  // in workflow state
-                    TableRow trWfi = DatabaseManager.findByUnique(context,
-                            "workflowitem", "item_id", other.getID());
-                    if (trWfi != null)
-                    {
-                        Integer idWfi = trWfi.getIntColumn("workflow_id");
-                        WorkflowItem wfi = WorkflowItem.find(context, idWfi);
-                        if (!result.containsKey(wfi.getCollection()))
-                        {
-                            result.put(wfi.getCollection(),
-                                    new Boolean[] { false, false });
-                        }
+				if (wsi == null) { // if item not in workspace then
+									// check if item
+									// is
+									// in workflow state
+					WorkflowItem wfi = WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context,
+							other);
+					if (wfi != null) {
+						if (!result.containsKey(wfi.getCollection())) {
+							result.put(wfi.getCollection(), new Boolean[] { false, false });
+						}
 
-                    }
-                }
-                else
-                {
+					}
+				} else {
+					if (!result.containsKey(wsi.getCollection())) {
+						result.put(wsi.getCollection(), new Boolean[] { false, false });
+					}
 
-                    Integer idWsi = trWsi.getIntColumn("workspace_item_id");
-                    WorkspaceItem wsi = WorkspaceItem.find(context, idWsi);
-                    if (!result.containsKey(wsi.getCollection()))
-                    {
-                        result.put(wsi.getCollection(),
-                                new Boolean[] { false, false });
-                    }
-
-                }
+				}
             }
 
         }
@@ -863,16 +847,16 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @throws SQLException
      */
     private Item loadTarget(Context context, HttpServletRequest request,
-            int target, int[] items, MetadataField[] fields,
+            UUID target, List<UUID> items, List<MetadataField> fields,
             HashMap<Integer, String> metadataFields) throws SQLException
     {
         // get items
-        Item item = Item.find(context, target);
+        Item item = itemService.find(context, target);
 
         List<Item> others = getItems(context, items);
         // This map contains items which are owners of metadata (metadata
         // formkey -> owner item ID)
-        Map<String, Integer> metadataSourceInfo = new HashMap<String, Integer>();
+        Map<String, UUID> metadataSourceInfo = new HashMap<String, UUID>();
         // This map contains a field which correspond to the various types of
         // metadata (MetatadaField ID -> List of DTO's DCValues)
         Map<Integer, List<DTODCValue>> metadataExtraSourceInfo = new HashMap<Integer, List<DTODCValue>>();
@@ -882,14 +866,14 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         Map<Integer, DCInput> dcinputs = new HashMap<Integer, DCInput>();
 
         // fill other metadata on target object
-        outer: for (int i = 0; i < fields.length; i++)
+        outer: for (MetadataField field : fields)
         {
-            Integer fieldID = new Integer(fields[i].getFieldID());
+            Integer fieldID = new Integer(field.getID());
             List<DTODCValue> dtodcvalue = new LinkedList<DTODCValue>();
 
             String mdString = metadataFields.get(fieldID);
-            Metadatum[] value = item.getMetadataValueInDCFormat(mdString);
-            if (value != null && value.length > 0)
+            List<MetadataValue> value = item.getMetadataValueInDCFormat(mdString);
+            if (value != null && value.size() > 0)
             {
                 if (dcinputs.get(fieldID) == null)
                 {
@@ -897,8 +881,8 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     {
                         dcinputs.put(fieldID,
                                 ItemUtils.getDCInput(MetadataSchema.DC_SCHEMA,
-                                        fields[i].getElement(),
-                                        fields[i].getQualifier(),
+                                        field.getElement(),
+                                        field.getQualifier(),
                                         ItemUtils.getDCInputSet(item)));
                     }
                     catch (Exception e)
@@ -907,24 +891,24 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     }
                 }
             }
-            if (value == null || value.length == 0)
+            if (value == null || value.size() == 0)
             {
                 // get from the first match
                 inner: for (Item other : others)
                 {
 
-                    Metadatum[] valueOther = other
+                    List<MetadataValue> valueOther = other
                             .getMetadataValueInDCFormat(mdString);
-                    if (valueOther == null || valueOther.length == 0)
+                    if (valueOther == null || valueOther.size() == 0)
                     {
                         continue inner;
                     }
                     else
                     {
-                        for (Metadatum v : valueOther)
+                        for (MetadataValue v : valueOther)
                         {
-                            item.addMetadata(v.schema, v.element, v.qualifier,
-                                    v.language, v.value);
+                            itemService.addMetadata(context, item, v.schema, v.element, v.qualifier,
+                                    v.getLanguage(), v.getValue());
                             createDTODCValue(fieldID, dtodcvalue, other, v,
                                     false, mdString);
                         }
@@ -936,8 +920,8 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                             {
                                 dcinputs.put(fieldID, ItemUtils.getDCInput(
                                         MetadataSchema.DC_SCHEMA,
-                                        fields[i].getElement(),
-                                        fields[i].getQualifier(),
+                                        field.getElement(),
+                                        field.getQualifier(),
                                         ItemUtils.getDCInputSet(other)));
                             }
                             catch (Exception e)
@@ -954,7 +938,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             {
                 metadataSourceInfo.put(mdString.replaceAll("\\.", "_"),
                         item.getID());
-                for (Metadatum v : value)
+                for (MetadataValue v : value)
                 {
                     createDTODCValue(fieldID, dtodcvalue, item, v, false,
                             mdString);
@@ -963,23 +947,23 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 {
                     if (other.getID() != item.getID())
                     {
-                        Metadatum[] valueOther = other
-                                .getMetadataByMetadataString(mdString);
-                        if (valueOther == null || valueOther.length == 0)
+                        List<MetadataValue> valueOther = other.getItemService()
+                                .getMetadataByMetadataString(other, mdString);
+                        if (valueOther == null || valueOther.size() == 0)
                         {
                             continue inner;
                         }
                         else
                         {
-                            for (Metadatum v : valueOther)
+                            for (MetadataValue v : valueOther)
                             {
 
                                 boolean removed = checkContentEquality(value,
                                         v);
 
-                                item.addMetadata(v.schema, v.element,
-                                        v.qualifier, v.language, v.value,
-                                        v.authority, v.confidence);
+                                itemService.addMetadata(context, item, v.schema, v.element,
+                                        v.qualifier, v.getLanguage(), v.getValue(),
+                                        v.getAuthority(), v.getConfidence());
                                 createDTODCValue(fieldID, dtodcvalue, other, v,
                                         true, removed, mdString);
 
@@ -991,8 +975,8 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                                     dcinputs.put(fieldID,
                                             ItemUtils.getDCInput(
                                                     MetadataSchema.DC_SCHEMA,
-                                                    fields[i].getElement(),
-                                                    fields[i]
+                                                    field.getElement(),
+                                                    field
                                                             .getQualifier(),
                                             ItemUtils.getDCInputSet(other)));
                                 }
@@ -1014,7 +998,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 
         for (Item other : others)
         {
-            for (Bundle bnd : other.getBundles(Constants.CONTENT_BUNDLE_NAME))
+            for (Bundle bnd : itemService.getBundles(other, Constants.CONTENT_BUNDLE_NAME))
             {
                 for (Bitstream b : bnd.getBitstreams())
                 {
@@ -1046,7 +1030,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @throws SQLException
      */
     private DTODCValue createDTODCValue(Integer fieldID,
-            List<DTODCValue> dtodcvalue, Item other, Metadatum v,
+            List<DTODCValue> dtodcvalue, Item other, MetadataValue v,
             boolean hidden, boolean removed, String mdString)
                     throws SQLException
     {
@@ -1087,23 +1071,21 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @throws SQLException
      */
     private DTODCValue createDTODCValue(Integer fieldID,
-            List<DTODCValue> dtodcvalue, Item other, Metadatum v,
+            List<DTODCValue> dtodcvalue, Item other, MetadataValue v,
             boolean hidden, String mdString) throws SQLException
     {
         return createDTODCValue(fieldID, dtodcvalue, other, v, hidden, false,
                 mdString);
     }
 
-    private boolean checkContentEquality(Metadatum[] value, Metadatum v)
+    private boolean checkContentEquality(List<MetadataValue> value, MetadataValue v)
     {
         DTODCValue dtoValue = new DTODCValue();
         dtoValue.setDcValue(v);
         boolean result = false;
-        Metadatum adcvalue[];
-        int j = (adcvalue = value).length;
-        for (int i = 0; i < j; i++)
+        for (MetadataValue adcvalue : value)
         {
-            Metadatum vv = adcvalue[i];
+            MetadataValue vv = adcvalue;
             DTODCValue dtoValueToCompare = new DTODCValue();
             dtoValueToCompare.setDcValue(vv);
             if ((dtoValueToCompare.getValue() == null)
@@ -1124,16 +1106,16 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         return result;
     }
 
-    private void putItemsOnGrid(Context context, Map<Integer, String[]> grid,
-            Map<Integer, DSpaceObject> extraInfo, List<DSpaceObject> items,
+    private void putItemsOnGrid(Context context, Map<UUID, String[]> grid,
+            Map<UUID, BrowsableDSpaceObject> extraInfo, List<BrowsableDSpaceObject> items,
             HttpServletRequest hrq) throws SQLException, IOException
     {
-        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                 .getNamedPlugin(StreamDisseminationCrosswalk.class,
                         ConfigurationManager.getProperty("deduplication",
                                 "tool.duplicatechecker.citation"));
 
-        for (DSpaceObject item : items)
+        for (BrowsableDSpaceObject item : items)
         {
 
             ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -1170,25 +1152,25 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @return
      * @throws SQLException
      */
-    private List<DSpaceObject> getDSpaceObjects(Context context, int[] items,
+    private List<BrowsableDSpaceObject> getDSpaceObjects(Context context, List<UUID> items,
             int resourceTypeId) throws SQLException
     {
-        List<DSpaceObject> result = new ArrayList<DSpaceObject>();
-        for (int i = 0; i < items.length; i++)
+        List<BrowsableDSpaceObject> result = new ArrayList<BrowsableDSpaceObject>();
+        for (UUID i : items)
         {
-            DSpaceObject item = DSpaceObject.find(context, resourceTypeId, items[i]);
+        	BrowsableDSpaceObject item = (BrowsableDSpaceObject)ContentServiceFactory.getInstance().getDSpaceObjectService(resourceTypeId).find(context, i);
             result.add(item);
         }
         return result;
     }
 
-    private List<Item> getItems(Context context, int[] items)
+    private List<Item> getItems(Context context, List<UUID> items)
             throws SQLException
     {
         List<Item> result = new ArrayList<Item>();
-        for (int i = 0; i < items.length; i++)
+        for (UUID i : items)
         {
-            Item item = Item.find(context, items[i]);
+            Item item = itemService.find(context, i);
             result.add(item);
         }
         return result;
@@ -1202,16 +1184,16 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @return
      * @throws SQLException
      */
-    private List<Collection> getCollections(Context context, int[] items,
-            int target) throws SQLException
+    private List<Collection> getCollections(Context context, List<UUID> items,
+            UUID target) throws SQLException
     {
         List<Collection> result = new ArrayList<Collection>();
-        for (int i = 0; i < items.length; i++)
+        for (UUID item : items)
         {
-            if (items[i] != target)
+            if (item != target)
             {
-                Collection item = Collection.find(context, items[i]);
-                result.add(item);
+                Collection collection = ContentServiceFactory.getInstance().getCollectionService().find(context, item);
+                result.add(collection);
             }
         }
         return result;
@@ -1236,7 +1218,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
     {
 
         /* First, we remove it all, then build it back up again. */
-        item.clearMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        itemService.clearMetadata(context, item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
         // process collections
         if (ownerCollection != null)
@@ -1244,22 +1226,20 @@ public class DuplicateCheckerServlet extends DSpaceServlet
           // to insert item (on a
           // inprogresssubmission object direct
           // insert on db)
-            TableRow trWsi = DatabaseManager.findByUnique(context,
-                    "workspaceitem", "item_id", item.getID());
+            WorkspaceItem trWsi = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context,item);
             if (trWsi == null)
             { // if item not in workspace then
               // check if item
               // is
               // in workflow state
-                TableRow trWfi = DatabaseManager.findByUnique(context,
-                        "workflowitem", "item_id", item.getID());
+            	BasicWorkflowItem trWfi = (BasicWorkflowItem)WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context, item);
                 if (trWfi == null)
                 {
                     if (item.getOwningCollection() != null
                             && item.getOwningCollection()
                                     .getID() != ownerCollection.getID())
                     {
-                        item.move(item.getOwningCollection(), ownerCollection); // on
+                        itemService.move(context, item, item.getOwningCollection(), ownerCollection); // on
                                                                                 // archived
                                                                                 // item
                                                                                 // move
@@ -1271,17 +1251,13 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     }
                 }
                 else
-                {
-                    trWfi.setColumn("collection_id", ownerCollection.getID());
-                    DatabaseManager.update(context, trWfi);
+                {                	
+                	trWfi.setCollection(ownerCollection);
                 }
             }
             else
             {
-
-                trWsi.setColumn("collection_id", ownerCollection.getID());
-                DatabaseManager.update(context, trWsi);
-
+                trWsi.setCollection(ownerCollection);
             }
         }
 
@@ -1325,8 +1301,8 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     }
                     if (!founded)
                     {
-                        c.addItem(item);
-                        c.update();
+                        c.getCollectionService().addItem(context, c, item);
+                        c.getCollectionService().update(context, c);
                     }
                 }
             }
@@ -1338,8 +1314,8 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     if (toRemoveItem.get(cc))
                     { // if collection is old remove
                       // item
-                        cc.removeItem(item);
-                        cc.update();
+                    	cc.getCollectionService().removeItem(context, cc, item);
+                    	cc.getCollectionService().update(context, cc);
                     }
                 }
             }
@@ -1433,7 +1409,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     {
                         // Value is empty, or remove button for this wasn't
                         // pressed
-                        item.addMetadata(schema, element, qualifier, language,
+                        itemService.addMetadata(context, item, schema, element, qualifier, language,
                                 value, authority, confidence);
                     }
                 }
@@ -1441,82 +1417,81 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         }
 
         // logic to discovery bitstream
-        int[] bitIDs = UIUtil.getIntParameters(request, "bitstream_id");
-        if (bitIDs == null)
-        {
-            bitIDs = new int[0];
-        }
-        Arrays.sort(bitIDs);
+        List<UUID> bitIDs = UIUtil.getUUIDParameters(request, "bitstream_id");        
 
-        Bundle[] originals = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
+        List<Bundle> originals = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
         for (Bundle orig : originals)
         {
-            Bitstream[] bits = orig.getBitstreams();
+            List<Bitstream> bits = orig.getBitstreams();
             for (Bitstream b : bits)
             {
                 // bitstream in the target item has been unselect
-                if (Arrays.binarySearch(bitIDs, b.getID()) < 0)
+                if (bitIDs.contains(b.getID()))
                 {
-                    Bundle bundle = b.getBundles()[0];
-                    bundle.removeBitstream(b);
-                    bundle.update();
+                    Bundle bundle = b.getBundles().get(0);
+                    bundle.getBundleService().removeBitstream(context, bundle, b);
+                    bundle.getBundleService().update(context, bundle);
                 }
             }
         }
 
         Bundle orig = null;
-        if (bitIDs.length > 0)
+        if (!bitIDs.isEmpty())
         {
-            if (originals.length == 0)
+            if (originals.isEmpty())
             {
-                orig = item.createBundle(Constants.CONTENT_BUNDLE_NAME);
-                orig.update();
+                orig = ContentServiceFactory.getInstance().getBundleService().create(context, item, Constants.CONTENT_BUNDLE_NAME);
+                ContentServiceFactory.getInstance().getBundleService().update(context, orig);
                 // add read policy to the anonymous group
-                AuthorizeManager.addPolicy(context, orig, Constants.READ,
-                        Group.find(context, 0));
+                AuthorizeServiceFactory.getInstance().getAuthorizeService().addPolicy(context, orig, Constants.READ,
+                        EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS));
             }
             else
             {
-                orig = originals[0];
+                orig = originals.get(0);
             }
-            for (int bid : bitIDs)
+            for (UUID bid : bitIDs)
             {
-                Bitstream b = Bitstream.find(context, bid);
+                BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+				Bitstream b = bitstreamService.find(context, bid);
                 // we need to add only bitstream that are not yet attached to
                 // the target item
-                if (b.getBundles()[0].getItems()[0].getID() != item.getID())
+                if (b.getBundles().get(0).getItems().get(0).getID() != item.getID())
                 {
-                    InputStream is = b.retrieve();
-                    Bitstream newBits = orig.createBitstream(is);
-                    newBits.setName(b.getName());
-                    newBits.setDescription(b.getDescription());
-                    newBits.setFormat(b.getFormat());
-                    newBits.setUserFormatDescription(
-                            b.getUserFormatDescription());
-                    newBits.setSource(b.getSource());
+                    InputStream is = bitstreamService.retrieve(context, b);
+                    
+                    Bitstream newBits = bitstreamService.create(context, orig, is);
+
+                    // Now set the format and name of the bitstream
+                    newBits.setName(context, b.getName());
+                    newBits.setSource(context, b.getSource()); 
+                    newBits.setDescription(context, b.getDescription());
+                    bitstreamService.setFormat(context, newBits, b.getFormat(context));
+                    bitstreamService.setUserFormatDescription(context, newBits, b.getUserFormatDescription());
+                    bitstreamService.update(context, newBits);
+                    
                     is.close();
-                    List<ResourcePolicy> rps = AuthorizeManager
+                    List<ResourcePolicy> rps = AuthorizeServiceFactory.getInstance().getAuthorizeService()
                             .getPolicies(context, b);
                     for (ResourcePolicy rp : rps)
                     {
-                        ResourcePolicy newrp = ResourcePolicy.create(context);
-                        newrp.setAction(rp.getAction());
+                    	ResourcePolicy newrp = AuthorizeServiceFactory.getInstance().getAuthorizeService().createResourcePolicy(context, newBits, rp.getGroup(), rp.getEPerson(), rp.getAction(), rp.getRpType());
                         newrp.setEndDate(rp.getEndDate());
                         newrp.setStartDate(rp.getStartDate());
-                        newrp.setEPerson(rp.getEPerson());
-                        newrp.setGroup(rp.getGroup());
-                        newrp.setResource(newBits);
-                        newrp.update();
+                        resourcePolicyService.update(context, newrp);
                     }
                 }
             }
         }
 
-        if (orig != null && orig.getBitstreams().length == 0)
+        if (orig != null && orig.getBitstreams().isEmpty())
         {
-            item.removeBundle(orig);
+            itemService.removeBundle(context, item, orig);
         }
-        item.update();
+        itemService.update(context, item);
     }
 
+    protected Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

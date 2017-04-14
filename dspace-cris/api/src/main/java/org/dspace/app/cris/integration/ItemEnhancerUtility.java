@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.ItemEnhancer;
 import org.dspace.content.authority.Choices;
@@ -27,7 +27,7 @@ public class ItemEnhancerUtility
     private static final Logger log = Logger
             .getLogger(ItemEnhancerUtility.class);
 
-    public static List<Metadatum> getMetadata(Item item, String metadata)
+    public static List<MetadataValue> getMetadata(Item item, String metadata)
     {
         StringTokenizer dcf = new StringTokenizer(metadata, ".");
 
@@ -52,7 +52,7 @@ public class ItemEnhancerUtility
         }
 
         List<ItemEnhancer> enhancers = getEnhancers(element);
-        List<Metadatum> result = new ArrayList<Metadatum>();
+        List<MetadataValue> result = new ArrayList<MetadataValue>();
 
         for (ItemEnhancer enh : enhancers)
         {
@@ -61,7 +61,7 @@ public class ItemEnhancerUtility
             {
 				if (e.getValues() != null) {
 					for (int idx = 0; idx < e.getValues().length; idx++) {
-						Metadatum dc = new Metadatum();
+						MetadataValue dc = new MetadataValue();
 						dc.schema = "item";
 						dc.element = enh.getAlias();
 						dc.qualifier = Item.ANY.equalsIgnoreCase(qualifier) || StringUtils.isBlank(qualifier) ? null
@@ -98,7 +98,7 @@ public class ItemEnhancerUtility
 
             for (String md : mdList)
             {
-                Metadatum[] Metadatums = item.getMetadataByMetadataString(md);
+                List<MetadataValue> MetadataValues = item.getMetadataByMetadataString(md);
 				if ("placeholder.placeholder.placeholder".equalsIgnoreCase(md)) {
 					DefaultValuesBean valueGenerated = null;
 					String schema = "placeholder";
@@ -112,7 +112,7 @@ public class ItemEnhancerUtility
 						}
 					}
 				} else {
-					for (Metadatum dc : Metadatums) {
+					for (MetadataValue dc : MetadataValues) {
 						DefaultValuesBean valueGenerated = null;
 						String schema = dc.schema;
 						String element = dc.element;

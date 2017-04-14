@@ -3,6 +3,7 @@ package org.dspace.app.webui.servlet;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +22,8 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRowIterator;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
 
 
 public class DoiCheckerServlet extends DSpaceServlet
@@ -52,8 +52,8 @@ public class DoiCheckerServlet extends DSpaceServlet
     	boolean haveResultFixed = false;
     	for(String type : criteria) {
     	    
-    	    TableRowIterator tri = DatabaseManager.query(context,
-                    DoiFixUtilityCheckerServlet.getQuery(), type);
+    	    Iterator tri = getHibernateSession(context).createSQLQuery(
+                    DoiFixUtilityCheckerServlet.getQuery()).setParameter(0, type).iterate();
     	    if(tri.hasNext()) {
     	        haveResultFixed = true;
     	    }
@@ -91,6 +91,8 @@ public class DoiCheckerServlet extends DSpaceServlet
         
     }
 
-
+    protected Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
     
 }

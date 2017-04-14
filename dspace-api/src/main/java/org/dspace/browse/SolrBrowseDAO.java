@@ -318,30 +318,20 @@ public class SolrBrowseDAO implements BrowseDAO
     }
 
     @Override
-    public List<Item> doQuery() throws BrowseException
+    public List<BrowseDSpaceObject> doQuery() throws BrowseException
     {
         DiscoverResult resp = getSolrResponse();
 
-        List<Item> bitems = new ArrayList<>();
+        List<BrowseDSpaceObject> bitems = new ArrayList<>();
         for (DSpaceObject solrDoc : resp.getDspaceObjects())
         {
             // FIXME introduce project, don't retrieve Item immediately when
             // processing the query...
-            BrowseItem bitem = null;
+        	BrowseDSpaceObject bitem = null;
             if (solrDoc instanceof BrowsableDSpaceObject)
             {
-                if (solrDoc instanceof Item)
-                {
-                    Item item = (Item) solrDoc;
-                    bitem = new BrowseItem(context, item.getID(),
-                            item.isArchived(), item.isWithdrawn(),
-                            item.isDiscoverable());
-                }
-                else
-                {
-                    bitem = new BrowseDSpaceObject(context,
+                bitem = new BrowseDSpaceObject(context,
                             (BrowsableDSpaceObject) solrDoc);             
-                }
                 bitems.add(bitem);
             }
             

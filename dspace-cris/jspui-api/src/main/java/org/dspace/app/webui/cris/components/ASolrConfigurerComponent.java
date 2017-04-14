@@ -31,24 +31,24 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.cris.dto.ComponentInfoDTO;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.DSpaceObject;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
-import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
-import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
+import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 import org.dspace.utils.DSpace;
 
-public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC extends ICrisBeanComponent>
+public abstract class ASolrConfigurerComponent<T extends BrowseDSpaceObject, IBC extends ICrisBeanComponent>
         implements ICRISComponent<IBC>
 {
 
@@ -225,7 +225,7 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         componentInfoMap.put(getShortName(), componentInfo);
         request.setAttribute("componentinfomap", componentInfoMap);
 
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             // Set a variable to create admin buttons
             request.setAttribute("admin_button", new Boolean(true));

@@ -24,6 +24,7 @@ import org.apache.solr.common.params.FacetParams;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchUtils;
@@ -58,7 +59,7 @@ public class PJSearchFormController extends BaseFormController {
 		Map<String, Object> model = new HashMap<String, Object>();
 		Context context = UIUtil.obtainContext(request);
 		EPerson currUser = context.getCurrentUser();
-		boolean isAdmin = AuthorizeManager.isAdmin(context);
+		boolean isAdmin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
 		if (currUser != null) {
 			model.put("researcher_page_menu", new Boolean(true));
 		}

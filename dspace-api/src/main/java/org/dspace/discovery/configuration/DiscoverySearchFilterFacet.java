@@ -7,6 +7,8 @@
  */
 package org.dspace.discovery.configuration;
 
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters.SORT;
+
 /**
  * An expanded class that allows a search filter to be used as a sidebar facet
  *
@@ -62,4 +64,8 @@ public class DiscoverySearchFilterFacet extends DiscoverySearchFilter {
     {
         return FILTER_TYPE_FACET;
     }
+
+	public SORT getSortOrder() {
+		return getSortOrderFilterPage();
+	}
 }

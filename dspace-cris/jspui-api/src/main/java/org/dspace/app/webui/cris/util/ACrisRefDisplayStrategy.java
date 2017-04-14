@@ -8,6 +8,7 @@
 package org.dspace.app.webui.cris.util;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.MissingResourceException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,9 +20,9 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
-import org.dspace.browse.BrowseItem;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
@@ -50,7 +51,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem item,
+            List<MetadataValue> metadataArray, BrowseDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
     {
         String metadata = "N/A";
@@ -61,7 +62,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph)
     {
         // not used
@@ -71,7 +72,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;
@@ -80,7 +81,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem browseItem,
+            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
                     throws JspException
     {
@@ -89,7 +90,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-            int colIdx, String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+            int colIdx, String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
             boolean emph) throws JspException 
     {       
         String metadata = "N/A";
@@ -98,16 +99,16 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
     }
     
     private String internalDisplay(HttpServletRequest hrq,
-            Metadatum[] metadataArray, String metadata)
+    		List<MetadataValue> metadataArray, String metadata)
     {
-        if (metadataArray.length > 0)
+        if (metadataArray.size() > 0)
         {
 
             String publicPath = getPublicPath();
             metadata = "";
-            for (Metadatum metadatum : metadataArray)
+            for (MetadataValue MetadataValue : metadataArray)
             {
-                String authority = metadatum.authority;
+                String authority = MetadataValue.getAuthority();
                 String target = ConfigurationManager
                         .getBooleanProperty("cris", "researcher.cris." + publicPath
                                 + ".ref.display.strategy.target.blank", false)?"target=\"_blank\" ":"";
@@ -155,7 +156,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
                     }
                 }
                 metadata += startLink;
-                metadata += Utils.addEntities(metadatum.value);
+                metadata += Utils.addEntities(MetadataValue.getValue());
                 metadata += "&nbsp;";
                 metadata += icon;
                 metadata += endLink;

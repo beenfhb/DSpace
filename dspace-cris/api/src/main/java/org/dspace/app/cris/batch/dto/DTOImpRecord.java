@@ -23,7 +23,7 @@ import org.dspace.app.cris.batch.dao.ImpRecordDAO;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
-import org.dspace.storage.bitstore.BitstreamStorageManager;
+import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 
 import edu.sdsc.grid.io.FileFactory;
 import edu.sdsc.grid.io.GeneralFile;
@@ -576,7 +576,7 @@ public class DTOImpRecord
         // conventional bitstream - dspace ingested, dspace random name/path
         // registered bitstream - registered to dspace, any name/path
         String sIntermediatePath = null;
-        if (BitstreamStorageManager.isRegisteredBitstream(sInternalId)) {
+        if (StorageServiceFactory.getInstance().getBitstreamStorageService().isRegisteredBitstream(sInternalId)) {
             sInternalId = sInternalId.substring(REGISTERED_FLAG.length());
             sIntermediatePath = "";
         } else {

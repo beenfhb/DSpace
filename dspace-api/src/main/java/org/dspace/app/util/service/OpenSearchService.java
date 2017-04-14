@@ -7,6 +7,7 @@
  */
 package org.dspace.app.util.service;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.w3c.dom.Document;
@@ -102,7 +103,7 @@ public interface OpenSearchService {
      * @throws IOException if IO error
      */
     public Document getResultsDoc(Context context, String format, String query, int totalResults, int start, int pageSize,
-                                         DSpaceObject scope, List<DSpaceObject> results, Map<String, String> labels)
+    		BrowsableDSpaceObject scope, List<BrowsableDSpaceObject> results, Map<String, String> labels)
             throws IOException;
 
     public DSpaceObject resolveScope(Context context, String scope) throws SQLException;

@@ -9,9 +9,10 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
-import org.dspace.content.authority.ChoiceAuthorityManager;
-import org.dspace.content.authority.MetadataAuthorityManager;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.ChoiceAuthorityServiceImpl;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
@@ -30,15 +31,15 @@ public class MultilanguageAuthorityIndexer implements SolrServiceIndexPlugin
         {
             try
             {
-                List<String> authorities = MetadataAuthorityManager.getManager()
+                List<String> authorities = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService()
                         .getAuthorityMetadata();
-                Item item = Item.find(context, dso.getID());
+                Item item = ContentServiceFactory.getInstance().getItemService().find(context, dso.getID());
 
                 for (String fieldKey : authorities)
                 {
-                    String makeFieldKey = ChoiceAuthorityManager.getManager()
+                    String makeFieldKey = ChoiceAuthorityServiceImpl
                             .makeFieldKey(fieldKey);
-                    if (ChoiceAuthorityManager.getManager()
+                    if (ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
                             .isChoicesConfigured(makeFieldKey))
                     {
 
@@ -50,12 +51,12 @@ public class MultilanguageAuthorityIndexer implements SolrServiceIndexPlugin
 
                         if (isMultilanguage)
                         {
-                            Metadatum[] metadatums = item
-                                    .getMetadataByMetadataString(fieldKey);
-                            for (Metadatum metadatum : metadatums)
+                            List<MetadataValue> MetadataValues = ContentServiceFactory.getInstance().getItemService()
+                                    .getMetadataByMetadataString(item, fieldKey);
+                            for (MetadataValue MetadataValue : MetadataValues)
                             {
 
-                                String value = metadatum.value;
+                                String value = MetadataValue.getValue();
                                 if (StringUtils.isNotBlank(value))
                                 {
                                     String locales = ConfigurationManager
@@ -69,7 +70,7 @@ public class MultilanguageAuthorityIndexer implements SolrServiceIndexPlugin
                                         {
                                             Locale loc = new Locale(locStr);
                                             indexAuthorityLabel(document,
-                                                    makeFieldKey, metadatum.authority,
+                                                    makeFieldKey, MetadataValue.getAuthority(),
                                                     loc != null
                                                             ? loc.getLanguage()
                                                             : null);
@@ -92,7 +93,7 @@ public class MultilanguageAuthorityIndexer implements SolrServiceIndexPlugin
     private void indexAuthorityLabel(SolrInputDocument doc, String fieldKey,
             String authority, String loc)
     {
-        String indexValue = ChoiceAuthorityManager.getManager()
+        String indexValue = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
                 .getLabel(fieldKey, authority, loc);
         indexValue = StringUtils.isEmpty(indexValue) ? authority : indexValue;
 

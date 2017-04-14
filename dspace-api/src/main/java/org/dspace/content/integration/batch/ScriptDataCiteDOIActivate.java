@@ -13,6 +13,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
@@ -31,7 +32,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -370,10 +371,10 @@ public class ScriptDataCiteDOIActivate
                     + responseCode + " MESSAGE:" + result.get(target.getID()));
             if (responseCode == 201)
             {
-                Metadatum[] values = target.getMetadata("dc", "identifier",
+                List<MetadataValue> values = target.getMetadata("dc", "identifier",
                         "doi", null);
                 boolean found = false;
-                for (Metadatum dcval : values)
+                for (MetadataValue dcval : values)
                 {
                     if (dcval.equals(doi))
                     {

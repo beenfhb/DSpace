@@ -1239,6 +1239,12 @@ prevent the generation of resource policy entry values with null dspace_object a
         // return count of items not in archive and also not withdrawn
         return itemDAO.countItems(context, false, false);
     }
+    
+    @Override
+    public int countArchivedItems(Context context) throws SQLException {
+        // return count of items in archive and also not withdrawn
+        return itemDAO.countItems(context, true, false);
+    }
 
     @Override
     public int countWithdrawnItems(Context context) throws SQLException {
@@ -1262,4 +1268,10 @@ prevent the generation of resource policy entry values with null dspace_object a
 
         return false;
     }
+
+	@Override
+	public void addMetadata(Context context, Item dso, MetadataField metadataField, String lang, List<String> values,
+			List<String> authorities, List<Integer> confidences) throws SQLException {
+		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);
+	}
 }

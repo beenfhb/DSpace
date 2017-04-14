@@ -7,9 +7,11 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 public interface TemplateItemService {
-	void applyTemplate(Context context, Item targetItem, Item templateItem);
+	void applyTemplate(Context context, Item targetItem, Item templateItem) throws SQLException;
 }

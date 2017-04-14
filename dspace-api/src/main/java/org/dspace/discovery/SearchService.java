@@ -7,16 +7,16 @@
  */
 package org.dspace.discovery;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
-
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
 
 /**
  * Search interface that discovery uses
@@ -58,7 +58,7 @@ public interface SearchService {
      *            the discovery query object
      * @throws SearchServiceException if search error
      */
-    DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query)
+    DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query)
             throws SearchServiceException;
 
     /**
@@ -92,15 +92,15 @@ public interface SearchService {
      * 
      * @throws SearchServiceException if search error
      */
-    DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn) throws SearchServiceException;
+    DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn) throws SearchServiceException;
 
     
     InputStream searchJSON(Context context, DiscoverQuery query, String jsonIdentifier) throws SearchServiceException;
 
-    InputStream searchJSON(Context context, DiscoverQuery query, DSpaceObject dso, String jsonIdentifier) throws SearchServiceException;
+    InputStream searchJSON(Context context, DiscoverQuery query, BrowsableDSpaceObject dso, String jsonIdentifier) throws SearchServiceException;
 
 
-    List<DSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset, int max, String... filterquery);
+    List<BrowsableDSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset, int max, String... filterquery);
 
 
     /**

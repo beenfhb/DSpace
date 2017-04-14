@@ -114,9 +114,6 @@ public abstract class GettyAuthority implements ChoiceAuthority {
         return null;
     }
 	
-	
-	@Override
-    public abstract Choices getMatches(String field,String text, Collection collection, int start, int limit, String locale);
 
 	@Override
 	public Choices getBestMatch(String field, String text, Collection collection, String locale) {

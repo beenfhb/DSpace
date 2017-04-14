@@ -18,6 +18,7 @@ import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.widget.WidgetPointerDO;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
@@ -43,9 +44,9 @@ public class CrisSearchPointerController extends
         {
             context = new Context();
 
-            List<DSpaceObject> objects = getSearchService().search(context,
+            List<BrowsableDSpaceObject> objects = getSearchService().search(context,
                     query + "*", null, true, 0, Integer.MAX_VALUE, filtro);
-            for (DSpaceObject obj : objects)
+            for (BrowsableDSpaceObject obj : objects)
             {
                 ACrisObject real = (ACrisObject) obj;
                 String display = (String) DisplayPointerTagLibrary.evaluate(

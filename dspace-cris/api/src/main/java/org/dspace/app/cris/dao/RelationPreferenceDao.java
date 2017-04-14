@@ -10,12 +10,13 @@ package org.dspace.app.cris.dao;
 import it.cilea.osd.common.dao.GenericDao;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.RelationPreference;
 
 public interface RelationPreferenceDao extends GenericDao<RelationPreference, Integer>
 {
-    RelationPreference uniqueByUUIDItemID(String UUID, int itemID,
+    RelationPreference uniqueByUUIDItemID(String UUID, UUID itemID,
             String relationType);
 
     RelationPreference uniqueByUUIDs(String sourceUUID, String targetUUID,
@@ -23,7 +24,7 @@ public interface RelationPreferenceDao extends GenericDao<RelationPreference, In
     
     List<RelationPreference> findByTargetUUID(String targetUUID);
     
-    List<RelationPreference> findByTargetItemID(int itemID);
+    List<RelationPreference> findByTargetItemID(UUID itemID);
 
     List<RelationPreference> findBySourceUUIDAndRelationType(String sourceUUID, String relationType);
 

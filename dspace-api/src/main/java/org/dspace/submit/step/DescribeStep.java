@@ -27,7 +27,13 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
+import org.dspace.content.DCPersonName;
+import org.dspace.content.DCSeriesNumber;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -37,7 +43,6 @@ import org.dspace.core.Context;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.workflow.WorkflowItem;
-import org.dspace.workflow.WorkflowManager;
 
 /**
  * Describe step for DSpace submission process. Handles the gathering of
@@ -328,7 +333,7 @@ public class DescribeStep extends AbstractProcessingStep
                     || (inputType.equals("twobox"))
                     || (inputType.equals("textarea")))
             {
-                readText(request, item, schema, element, qualifier, LANGUAGE_QUALIFIER, inputs[j]);
+                readText(context, request, item, schema, element, qualifier, LANGUAGE_QUALIFIER, inputs[j]);
             }
             else
             {
@@ -557,7 +562,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * dc_contributor_author_last dc_contributor_author_first
      *
-     * The values will be put in separate Metadatums, in the form "last name,
+     * The values will be put in separate MetadataValues, in the form "last name,
      * first name(s)", ordered as they appear in the list. These will replace
      * any existing values.
      *
@@ -574,7 +579,7 @@ public class DescribeStep extends AbstractProcessingStep
      * @param repeated
      *            set to true if the field is repeatable on the form
      */
-    protected void readNames(HttpServletRequest request, Item item,
+    protected void readNames(Context context, HttpServletRequest request, Item item,
             String schema, String element, String qualifier, DCInput dcInput) throws SQLException 
     {
         boolean repeated = dcInput.getRepeatable();
@@ -729,7 +734,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * dc_title_alternative dc_title_alternative_1
      *
-     * The values will be put in separate Metadatums, ordered as they appear in
+     * The values will be put in separate MetadataValues, ordered as they appear in
      * the list. These will replace any existing values.
      *
      * @param request
@@ -749,7 +754,7 @@ public class DescribeStep extends AbstractProcessingStep
      * @param hasLanguageTag
      *            to check if the field has a language tag
      */
-    protected void readText(HttpServletRequest request, Item item, String schema,
+    protected void readText(Context context, HttpServletRequest request, Item item, String schema,
             String element, String qualifier, String lang, DCInput dcInput) throws SQLException
     {
         boolean repeated = dcInput.getRepeatable();
@@ -941,7 +946,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * dc_relation_ispartof_series dc_relation_ispartof_number
      *
-     * The values will be put in separate Metadatums, in the form "last name,
+     * The values will be put in separate MetadataValues, in the form "last name,
      * first name(s)", ordered as they appear in the list. These will replace
      * any existing values.
      *
@@ -958,7 +963,7 @@ public class DescribeStep extends AbstractProcessingStep
      * @param repeated
      *            set to true if the field is repeatable on the form
      */
-    protected void readSeriesNumbers(HttpServletRequest request, Item item,
+    protected void readSeriesNumbers(Context context, HttpServletRequest request, Item item,
             String schema, String element, String qualifier, DCInput dcInput) throws SQLException
     {
         boolean repeated = dcInput.getRepeatable();

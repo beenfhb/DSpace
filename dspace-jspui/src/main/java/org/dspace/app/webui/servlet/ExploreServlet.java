@@ -9,6 +9,7 @@ package org.dspace.app.webui.servlet;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,16 +19,17 @@ import org.apache.log4j.Logger;
 import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.services.ViewerConfigurationService;
 import org.dspace.app.webui.util.JSPManager;
+import org.dspace.app.webui.util.UIUtil;
 import org.dspace.app.webui.viewer.JSPViewer;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 
@@ -51,13 +53,13 @@ public class ExploreServlet extends DSpaceServlet {
 		Bitstream bitstream = null;
 
 		// Get the ID from the URL
-		String bitstreamID = request.getParameter("bitstream_id");
-		bitstream = Bitstream.find(context, Integer.parseInt(bitstreamID));
+		UUID bitstreamID = UIUtil.getUUIDParameter(request, "bitstream_id");
+		bitstream = ContentServiceFactory.getInstance().getBitstreamService().find(context, bitstreamID);
 
 		if (bitstream == null) {
 			// No bitstream found or filename was wrong -- ID invalid
 			log.info(LogManager.getHeader(context, "invalid bitstream id", "ID=" + bitstreamID));
-			JSPManager.showInvalidIDError(request, response, bitstreamID, Constants.BITSTREAM);
+			JSPManager.showInvalidIDError(request, response, bitstreamID.toString(), Constants.BITSTREAM);
 
 			return;
 		}
@@ -66,7 +68,7 @@ public class ExploreServlet extends DSpaceServlet {
 
 		String handle = request.getParameter("handle");
 		String viewname = request.getParameter("provider");
-		Item i = (Item) HandleManager.resolveToObject(context, handle);
+		Item i = (Item) HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
 		String title = i.getMetadata("dc.title");
 		String filename = bitstream.getName();
 

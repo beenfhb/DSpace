@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -17,23 +18,22 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.hibernate.Session;
 
 public class DoiFixUtilityCheckerServlet extends DSpaceServlet
 {
 
     private static final String QUERY_PGSQL = "SELECT i2.item_id FROM item i2 INNER JOIN "
             + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-            + " d2i ON d2i.item_id = i2.item_id LEFT JOIN metadatavalue mv2 ON i2.item_id = mv2.resource_id and mv2.resource_type_id = 2 LEFT JOIN metadatafieldregistry mfr2 ON mv2.metadata_field_id = mfr2.metadata_field_id WHERE mfr2.element = 'identifier' AND mfr2.qualifier = 'doi' AND mv2.text_value != d2i.identifier_doi AND d2i.last_modified is not null AND d2i.criteria = ?";
+            + " d2i ON d2i.item_id = i2.item_id LEFT JOIN metadatavalue mv2 ON i2.item_id = mv2.resource_id and mv2.resource_type_id = 2 LEFT JOIN metadatafieldregistry mfr2 ON mv2.metadata_field_id = mfr2.metadata_field_id WHERE mfr2.element = 'identifier' AND mfr2.qualifier = 'doi' AND mv2.text_value != d2i.identifier_doi AND d2i.last_modified is not null AND d2i.criteria = :par0";
 
     private static final String QUERY_ORACLE = "SELECT i2.item_id FROM item i2 INNER JOIN "
         + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-        + " d2i ON d2i.item_id = i2.item_id LEFT JOIN metadatavalue mv2 ON i2.item_id = mv2.resource_id and mv2.resource_type_id = 2 LEFT JOIN metadatafieldregistry mfr2 ON mv2.metadata_field_id = mfr2.metadata_field_id WHERE mfr2.element = 'identifier' AND mfr2.qualifier = 'doi' AND DBMS_LOB.SUBSTR(mv2.text_value,3000) != d2i.identifier_doi AND d2i.last_modified is not null AND d2i.criteria = ?";
+        + " d2i ON d2i.item_id = i2.item_id LEFT JOIN metadatavalue mv2 ON i2.item_id = mv2.resource_id and mv2.resource_type_id = 2 LEFT JOIN metadatafieldregistry mfr2 ON mv2.metadata_field_id = mfr2.metadata_field_id WHERE mfr2.element = 'identifier' AND mfr2.qualifier = 'doi' AND DBMS_LOB.SUBSTR(mv2.text_value,3000) != d2i.identifier_doi AND d2i.last_modified is not null AND d2i.criteria = :par0";
     
     /** log4j category */
     private static Logger log = Logger
@@ -72,14 +72,12 @@ public class DoiFixUtilityCheckerServlet extends DSpaceServlet
             if (submit == DOI_ALL)
             {
 
-                TableRowIterator tri = DatabaseManager.query(context, getQuery(),
-                        criteria);
+                List<UUID> tri = getHibernateSession(context).createSQLQuery(getQuery()).addScalar("item_id").setParameter(0, 
+                        criteria).list();
 
-                while (tri.hasNext())
+                for(UUID tr : tri)
                 {
-                    TableRow tr = tri.next();
-                    int id = tr.getIntColumn("item_id");
-                    fixItem(context, id);
+                    fixItem(context, tr);
                 }
                 context.commit();
                 response.sendRedirect(request.getContextPath()
@@ -88,9 +86,9 @@ public class DoiFixUtilityCheckerServlet extends DSpaceServlet
             else if (submit == DOI_ANY)
             {
 
-                int[] items = UIUtil.getIntParameters(request, "builddoi");
+                List<UUID> items = UIUtil.getUUIDParameters(request, "builddoi");
 
-                for (Integer id : items)
+                for (UUID id : items)
                 {
                     fixItem(context, id);
                 }
@@ -107,20 +105,18 @@ public class DoiFixUtilityCheckerServlet extends DSpaceServlet
                     .split(",");
 
             Map<String, Item[]> results = new HashMap<String, Item[]>();
-            Map<Integer, String> doi2items = new HashMap<Integer, String>();
+            Map<UUID, String> doi2items = new HashMap<UUID, String>();
             for (String type : criteria)
             {
                 try
                 {
-                    TableRowIterator tri = DatabaseManager.query(context,
-                            getQuery(), type);
+                    List<UUID> tri = getHibernateSession(context).createSQLQuery(getQuery()).addScalar("item_id").setParameter(0, 
+                            type).list();
 
                     List<Item> tempItems = new LinkedList<Item>();
-                    while (tri.hasNext())
-                    {
-                        TableRow tr = tri.next();
-                        int intColumn = tr.getIntColumn("item_id");
-                        Item find = Item.find(context, intColumn);
+                    for(UUID tr : tri)
+                    {                       
+                        Item find = ContentServiceFactory.getInstance().getItemService().find(context, tr);
                         tempItems.add(find);
                     }
                     Item[] realresult = null;
@@ -167,14 +163,17 @@ public class DoiFixUtilityCheckerServlet extends DSpaceServlet
         return QUERY_PGSQL;
     }
 
-    private void fixItem(Context context, Integer id) throws SQLException,
+    private void fixItem(Context context, UUID id) throws SQLException,
             AuthorizeException
     {
-        Item item = Item.find(context, id);
-        item.clearMetadata("dc", "identifier", "doi", Item.ANY);
-        item.addMetadata("dc", "identifier", "doi", null,
+        Item item = ContentServiceFactory.getInstance().getItemService().find(context, id);
+        item.getItemService().clearMetadata(context, item, "dc", "identifier", "doi", Item.ANY);
+        item.getItemService().addMetadata(context, item, "dc", "identifier", "doi", null,
                 DoiFactoryUtils.getDoiFromDoi2Item(context, id));
-        item.update();
+        item.getItemService().update(context, item);
     }
 
+    protected Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

@@ -10,15 +10,17 @@ package org.dspace.app.cris.service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.configuration.RelationPreferenceConfiguration;
 import org.dspace.app.cris.configuration.RelationPreferenceServiceConfiguration;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.RelationPreference;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.DSpaceObject;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
 
@@ -150,7 +152,7 @@ public class RelationPreferenceService
         try
         {
             if (!conf
-                    .isActionEnabled(action, AuthorizeManager.isAdmin(context)))
+                    .isActionEnabled(action, AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context)))
             {
                 throw new IllegalStateException(action
                         + " action is disabled for the relation " + confName);
@@ -182,7 +184,7 @@ public class RelationPreferenceService
         if (isItemID)
         {
             relPref = applicationService.getRelationPreferenceForUUIDItemID(
-                    uuid, Integer.parseInt(o), configurationName);
+                    uuid, UUID.fromString(o), configurationName);
         }
         else
         {
@@ -191,12 +193,12 @@ public class RelationPreferenceService
         }
         String previousState = null;
         int previousPriority = 0;
-        DSpaceObject dso = null;
+        BrowsableDSpaceObject dso = null;
         if (isItemID)
         {
             try
             {
-                dso = Item.find(context, Integer.parseInt(o));
+                dso = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(o));
             }
             catch (Exception e)
             {
@@ -216,7 +218,7 @@ public class RelationPreferenceService
             relPref.setPriority(priority);
             if (isItemID)
             {
-                relPref.setItemID(Integer.parseInt(o));
+                relPref.setItemID(UUID.fromString(o));
             }
             else
             {

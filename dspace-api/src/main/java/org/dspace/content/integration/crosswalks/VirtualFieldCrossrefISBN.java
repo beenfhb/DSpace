@@ -8,10 +8,11 @@
 package org.dspace.content.integration.crosswalks;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 
 /**
@@ -39,10 +40,10 @@ public class VirtualFieldCrossrefISBN implements VirtualFieldDisseminator,
             {
                 return new String[] { fieldCache.get(fieldName) };
             }
-            Metadatum[] mds = item.getMetadata("dc", "identifier", "other", Item.ANY);
+            List<MetadataValue> mds = item.getMetadata("dc", "identifier", "other", Item.ANY);
             
             String element = "";
-            if(mds!=null && mds.length>0) {
+            if(mds!=null && mds.size()>0) {
               element = "<isbn>" + mds[0].value + "</isbn>";
             }
             else {

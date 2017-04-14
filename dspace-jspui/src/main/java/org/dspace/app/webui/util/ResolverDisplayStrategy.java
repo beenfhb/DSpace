@@ -15,9 +15,10 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.webui.jsptag.ConfigurationService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Utils;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class ResolverDisplayStrategy extends AUniformDisplayStrategy
 {

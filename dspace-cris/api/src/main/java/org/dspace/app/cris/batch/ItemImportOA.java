@@ -48,6 +48,7 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.identifier.IdentifierService;
 import org.dspace.storage.bitstore.BitstreamStorageManager;
 import org.dspace.storage.rdbms.DatabaseManager;
@@ -357,7 +358,7 @@ public class ItemImportOA
                 {
                     // string has a / so it must be a handle - try and resolve
                     // it
-                    mycollections[i] = (Collection) HandleManager
+                    mycollections[i] = (Collection) HandleServiceFactory.getInstance().getHandleService()
                             .resolveToObject(context, collections[i]);
 
                     // resolved, now make sure it's a collection

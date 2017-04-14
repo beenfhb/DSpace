@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.model;
 
+import java.util.UUID;
+
 public interface UUIDSupport
 {
     String getUuid();

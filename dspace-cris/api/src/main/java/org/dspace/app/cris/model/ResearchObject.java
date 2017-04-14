@@ -10,6 +10,7 @@ package org.dspace.app.cris.model;
 import it.cilea.osd.common.core.TimeStampInfo;
 import it.cilea.osd.jdyna.model.AType;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
 
@@ -314,4 +316,5 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     public String getMetadataFieldName(Locale locale) {
         return getAuthorityPrefix()+ getMetadataFieldTitle() + locale.getLanguage();
     }
+
 }

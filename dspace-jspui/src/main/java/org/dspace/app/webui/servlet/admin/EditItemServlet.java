@@ -405,59 +405,6 @@ public class EditItemServlet extends DSpaceServlet
 
            	Map<String, String> map = new HashMap<String, String>();
         	String licenseclass = (request.getParameter("licenseclass_chooser") != null) ? request.getParameter("licenseclass_chooser") : "";
-        	String jurisdiction = (ConfigurationManager.getProperty("cc.license.jurisdiction") != null) ? ConfigurationManager.getProperty("cc.license.jurisdiction") : "";
-        	if (licenseclass.equals("standard")) {
-        		map.put("commercial", request.getParameter("commercial_chooser"));
-        		map.put("derivatives", request.getParameter("derivatives_chooser"));
-        	} else if (licenseclass.equals("recombo")) {
-        		map.put("sampling", request.getParameter("sampling_chooser"));
-        	}
-        	map.put("jurisdiction", jurisdiction);
-        	CreativeCommons.MdField uriField = CreativeCommons.getCCField("uri");
-        	CreativeCommons.MdField nameField = CreativeCommons.getCCField("name");
-        	
-         	boolean exit = false;
-         	if (licenseclass.equals("webui.Submission.submit.CCLicenseStep.no_license")) 
-         	{
-			
-        		CreativeCommons.removeLicense(context, uriField, nameField, item);
-        		
-    			item.update();
-    			context.commit();
-    			exit = true;
-        	}
-        	else if (licenseclass.equals("webui.Submission.submit.CCLicenseStep.select_change")) {
-        		//none
-        		exit = true;
-			}
-
-         	if (!exit) {
-				CCLookup ccLookup = new CCLookup();
-				ccLookup.issue(licenseclass, map, ConfigurationManager.getProperty("cc.license.locale"));
-				if (ccLookup.isSuccess()) {
-					CreativeCommons.removeLicense(context, uriField, nameField, item);
-
-					uriField.addItemValue(item, ccLookup.getLicenseUrl());
-					if (ConfigurationManager.getBooleanProperty("cc.submit.addbitstream")) {
-						CreativeCommons.setLicenseRDF(context, item, ccLookup.getRdf());
-					}
-					if (ConfigurationManager.getBooleanProperty("cc.submit.setname")) {
-						nameField.addItemValue(item, ccLookup.getLicenseName());
-					}
-
-					item.update();
-					context.commit();
-				}
-			}
-            showEditForm(context, request, response, item);
-            context.complete();
-
-            break;
-
-        case UPDATE_CC:
-
-           	Map<String, String> map = new HashMap<String, String>();
-        	String licenseclass = (request.getParameter("licenseclass_chooser") != null) ? request.getParameter("licenseclass_chooser") : "";
         	String jurisdiction = (configurationService.getProperty("cc.license.jurisdiction") != null) ? configurationService.getProperty("cc.license.jurisdiction") : "";
         	if (licenseclass.equals("standard")) {
         		map.put("commercial", request.getParameter("commercial_chooser"));
@@ -953,12 +900,12 @@ public class EditItemServlet extends DSpaceServlet
         }
         
         if (button.startsWith("submit_delete_bundle_")) {
-        	Bundle bnd = Bundle.find(context, Integer.parseInt(button.substring("submit_delete_bundle_".length())));
-        	Bitstream[] bits = bnd.getBitstreams();
+        	Bundle bnd = bundleService.findByIdOrLegacyId(context, button.substring("submit_delete_bundle_".length()));
+        	List<Bitstream> bits = bnd.getBitstreams();
         	for (Bitstream b : bits) {
-        		bnd.removeBitstream(b);
+        		bundleService.removeBitstream(context, bnd, b);
         	}
-        	item.removeBundle(bnd);
+        	itemService.removeBundle(context, item, bnd);
         }
         
         if (button.equals("submit_addbitstream"))

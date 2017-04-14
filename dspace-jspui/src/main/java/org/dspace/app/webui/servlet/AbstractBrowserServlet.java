@@ -23,9 +23,6 @@ import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.sort.SortOption;
-import org.dspace.sort.SortException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.core.ConfigurationManager;
@@ -33,6 +30,10 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.Utils;
 import org.dspace.discovery.configuration.TagCloudConfiguration;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
+import org.dspace.utils.DSpace;
 
 /**
  * Servlet for browsing through indices, as they are defined in

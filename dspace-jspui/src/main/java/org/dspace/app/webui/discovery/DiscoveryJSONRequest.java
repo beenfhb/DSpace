@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.app.webui.json.JSONRequest;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
@@ -59,7 +59,7 @@ public class DiscoveryJSONRequest extends JSONRequest
     {
         try
         {
-            DSpaceObject scope = DiscoverUtility.getSearchScope(context,
+        	BrowsableDSpaceObject scope = DiscoverUtility.getSearchScope(context,
                     request);
             DiscoverQuery autocompleteQuery = DiscoverUtility
                     .getDiscoverAutocomplete(context, request, scope);

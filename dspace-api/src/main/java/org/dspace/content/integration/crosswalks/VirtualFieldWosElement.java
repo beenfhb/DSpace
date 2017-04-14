@@ -7,11 +7,11 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 
 /**
@@ -29,17 +29,17 @@ public class VirtualFieldWosElement implements VirtualFieldDisseminator {
 	@Override
 	public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName) {
 		String result = "<map name=\"" + item.getID() + "\">";
-		Metadatum[] metadatumPMID = item.getMetadataByMetadataString(fieldPubmedID);
-		if (metadatumPMID != null && metadatumPMID.length > 0) {
-			result += "<val name=\"pmid\">" + metadatumPMID[0].value + "</val>";
+		List<MetadataValue> MetadataValuePMID = item.getMetadataByMetadataString(fieldPubmedID);
+		if (MetadataValuePMID != null && MetadataValuePMID.size() > 0) {
+			result += "<val name=\"pmid\">" + MetadataValuePMID[0].value + "</val>";
 		}
-		Metadatum[] metadatumDoi = item.getMetadataByMetadataString(fieldDoiID);
-		if (metadatumDoi != null && metadatumDoi.length > 0) {
-			result += "<val name=\"doi\">" + metadatumDoi[0].value + "</val>";
+		List<MetadataValue> MetadataValueDoi = item.getMetadataByMetadataString(fieldDoiID);
+		if (MetadataValueDoi != null && MetadataValueDoi.size() > 0) {
+			result += "<val name=\"doi\">" + MetadataValueDoi[0].value + "</val>";
 		}
-		Metadatum[] metadatumWos = item.getMetadataByMetadataString(fieldWosID);
-		if (metadatumWos != null && metadatumWos.length > 0) {
-			result += "<val name=\"ut\">" + metadatumWos[0].value + "</val>";
+		List<MetadataValue> MetadataValueWos = item.getMetadataByMetadataString(fieldWosID);
+		if (MetadataValueWos != null && MetadataValueWos.size() > 0) {
+			result += "<val name=\"ut\">" + MetadataValueWos[0].value + "</val>";
 		}
 		result += "</map>";
 		return new String[]{result};

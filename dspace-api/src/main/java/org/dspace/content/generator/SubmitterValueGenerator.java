@@ -7,42 +7,36 @@
  */
 package org.dspace.content.generator;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
 public class SubmitterValueGenerator implements TemplateValueGenerator {
 
 	@Override
-	public Metadatum[] generator(Context context, Item targetItem, Item templateItem, Metadatum metadatum, String extraParams) {
-		Metadatum[] m = new Metadatum[1];
-		m[0] = metadatum;
-		try {
-			EPerson eperson = targetItem.getSubmitter();
-			if (StringUtils.equalsIgnoreCase(extraParams, "email")) {
-				metadatum.value = eperson.getEmail();
-			}
-			else if (StringUtils.equalsIgnoreCase(extraParams, "phone")) {
-				metadatum.value = eperson.getMetadata("phone");
-			}
-			else if (StringUtils.equalsIgnoreCase(extraParams, "fullname")) {
-				metadatum.value = eperson.getFullName();
-			}
-			else {
-				metadatum.value = eperson.getMetadata(extraParams);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+	public List<MetadataValue> generator(Context context, Item targetItem, Item templateItem,
+			MetadataValue MetadataValue, String extraParams) {
+		List<MetadataValue> m = new ArrayList<>();
+		m.add(MetadataValue);
+		EPerson eperson = targetItem.getSubmitter();
+		if (StringUtils.equalsIgnoreCase(extraParams, "email")) {
+			MetadataValue.setValue(eperson.getEmail());
+		} else if (StringUtils.equalsIgnoreCase(extraParams, "phone")) {
+			MetadataValue.setValue(eperson.getDSpaceObjectService().getMetadata(eperson, "phone"));
+		} else if (StringUtils.equalsIgnoreCase(extraParams, "fullname")) {
+			MetadataValue.setValue(eperson.getFullName());
+		} else {
+			MetadataValue.setValue(eperson.getDSpaceObjectService().getMetadata(eperson, extraParams));
 		}
-		if (StringUtils.isNotBlank(m[0].value)){
+		if (StringUtils.isNotBlank(m.get(0).getValue())) {
 			return m;
-		}
-		else {
-			return new Metadatum[0];
+		} else {
+			return new ArrayList<>();
 		}
 	}
 

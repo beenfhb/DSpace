@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,9 +30,8 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.event.Event;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
 
 public class DoiPendingServlet extends DSpaceServlet
 {
@@ -107,10 +107,10 @@ public class DoiPendingServlet extends DSpaceServlet
             }
             else if (submit == EXCLUDE_ANY)
             {
-                int[] items = UIUtil.getIntParameters(request, "pendingdoi");
+                List<UUID> items = UIUtil.getUUIDParameters(request, "pendingdoi");
                 try
                 {
-                    deletePendings(context, items);
+                    deletePendingsUUID(context, items);
                 }
                 catch (SearchServiceException e)
                 {
@@ -133,30 +133,33 @@ public class DoiPendingServlet extends DSpaceServlet
         List<Item> results = DoiFactoryUtils.getItemsFromSolrResult(
                 rsp.getResults(), context);
 		Item[] realresult = new Item[] {};
-        Map<Integer, List<String>> doi2items = new HashMap<Integer, List<String>>();
+        Map<UUID, List<String>> doi2items = new HashMap<UUID, List<String>>();
         if (results != null && !results.isEmpty())
         {
             realresult = results.toArray(new Item[results.size()]);
 
             for (Item real : realresult)
             {
-                TableRow row = DatabaseManager.querySingle(context,
+                List<Object[]> rows = getHibernateSession(context).createSQLQuery(
                         "SELECT identifier_doi, " + getColumnNote() + " FROM "
                                 + DoiFactoryUtils.TABLE_NAME
-                                + " where item_id = ?", real.getID());
+                                + " where item_id = :par0").addScalar("identifier_doi").addScalar("note").setParameter(0, real.getID()).list();
 
-                if (row == null)
+                if (rows == null)
                 {
-                    real.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-                    real.update();
+                    real.getItemService().clearMetadata(context, real, "dc", "utils", "processdoi", Item.ANY);
+                    real.getItemService().update(context, real);
                 }
                 else
                 {
                     List<String> rr = new ArrayList<String>();
-                    rr.add(row.getStringColumn("identifier_doi"));
-                    String note = row.getStringColumn("note");
-                    rr.add(note == null || note.isEmpty() ? "" : note);
-                    doi2items.put(real.getID(), rr);
+                    
+                    for(Object[] row : rows) {
+                    	rr.add((String)row[0]);
+                    	String note = (String)row[1];
+                    	rr.add(note == null || note.isEmpty() ? "" : note);
+                    	doi2items.put(real.getID(), rr);
+                    }
                 }
             }
         }
@@ -202,7 +205,7 @@ public class DoiPendingServlet extends DSpaceServlet
         return "note";
     }
 
-    private void deletePendings(Context context, int[] items)
+    private void deletePendingsUUID(Context context, List<UUID> items)
             throws SQLException, AuthorizeException, SearchServiceException
     {
         List<Item> ii = DoiFactoryUtils.getItems(context, items);
@@ -215,10 +218,9 @@ public class DoiPendingServlet extends DSpaceServlet
         for (Item i : items)
         {
 
-            DatabaseManager.deleteByValue(context, DoiFactoryUtils.TABLE_NAME,
-                    "item_id", i.getID());
-            i.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-            i.update();
+            getHibernateSession(context).createSQLQuery("delete from "+ DoiFactoryUtils.TABLE_NAME + " where item_id = " + i.getID());
+            i.getItemService().clearMetadata(context, i, "dc", "utils", "processdoi", Item.ANY);
+            i.getItemService().update(context, i);
             context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, i
                     .getID(), i.getHandle()));
         }
@@ -254,4 +256,7 @@ public class DoiPendingServlet extends DSpaceServlet
         return rsp;
     }
 
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

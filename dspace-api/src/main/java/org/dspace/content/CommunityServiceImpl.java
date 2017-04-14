@@ -691,4 +691,10 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
     public int countTotal(Context context) throws SQLException {
         return communityDAO.countRows(context);
     }
+
+	@Override
+	public void addMetadata(Context context, Community dso, MetadataField metadataField, String lang,
+			List<String> values, List<String> authorities, List<Integer> confidences) throws SQLException {
+		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
+	}
 }

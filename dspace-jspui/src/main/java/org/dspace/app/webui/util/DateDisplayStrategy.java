@@ -7,25 +7,27 @@
  */
 package org.dspace.app.webui.util;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.DCDate;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.I18nUtil;
 
 public class DateDisplayStrategy extends ASimpleDisplayStrategy
 {
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, int itemid, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph)
+            boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
+            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata = "-";
-        if (metadataArray.length > 0)
+        if (metadataArray.size() > 0)
         {
-            String value = metadataArray[0].value;
+            String value = metadataArray.get(0).getValue();
             if(!StringUtils.isBlank(value)) {
                 if(value.equals("9999")) {
                     metadata = I18nUtil.getMessage("jsp.mydspace.render.inpress", hrq.getLocale());
@@ -43,7 +45,7 @@ public class DateDisplayStrategy extends ASimpleDisplayStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, int itemid, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
+            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext)
     {
         return "nowrap=\"nowrap\" align=\"right\"";

@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Hash;
 import org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -50,11 +51,11 @@ public class GlobalFacetProcessor implements SiteHomeProcessor
             HttpServletResponse response) throws PluginException,
             AuthorizeException
     {
-        process(context, request, response, (DSpaceObject) null);
+        process(context, request, response, null);
     }
 
     private void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, DSpaceObject scope)
+            HttpServletResponse response, BrowsableDSpaceObject scope)
     {
     	
     	Map<String, String> mapsFirstLevel = new HashMap<String, String>();

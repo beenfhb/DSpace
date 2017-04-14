@@ -7,9 +7,15 @@
  */
 package org.dspace.discovery;
 
-import org.dspace.content.DSpaceObject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.DSpaceObject;
 
 /**
  * This class represents the result that the discovery search impl returns
@@ -20,7 +26,7 @@ public class DiscoverResult {
 
     private long totalSearchResults;
     private int start;
-    private List<DSpaceObject> dspaceObjects;
+    private List<BrowsableDSpaceObject> dspaceObjects;
     private Map<String, List<FacetResult>> facetResults;
     private Map<String, List<FacetResult>> facetQueryResults;
     private Map<String, List<FacetResult>> facetFieldResults;
@@ -31,24 +37,24 @@ public class DiscoverResult {
     private int searchTime;
     private Map<String, DSpaceObjectHighlightResult> highlightedResults;
     private String spellCheckQuery;
-    private Map<String, List<DSpaceObject>> collapsingResults;     
+    private Map<String, List<BrowsableDSpaceObject>> collapsingResults;     
 
     public DiscoverResult() {
-        dspaceObjects = new ArrayList<DSpaceObject>();
+        dspaceObjects = new ArrayList<BrowsableDSpaceObject>();
         facetResults = new LinkedHashMap<String, List<FacetResult>>();
         facetQueryResults = new LinkedHashMap<String, List<FacetResult>>();
         facetFieldResults = new LinkedHashMap<String, List<FacetResult>>();
         searchDocuments = new LinkedHashMap<String, List<SearchDocument>>();
         highlightedResults = new HashMap<String, DSpaceObjectHighlightResult>();
-        collapsingResults = new LinkedHashMap<String, List<DSpaceObject>>();
+        collapsingResults = new LinkedHashMap<String, List<BrowsableDSpaceObject>>();
     }
 
 
-    public void addDSpaceObject(DSpaceObject dso){
+    public void addDSpaceObject(BrowsableDSpaceObject dso){
         this.dspaceObjects.add(dso);
     }
 
-    public List<DSpaceObject> getDspaceObjects() {
+    public List<BrowsableDSpaceObject> getDspaceObjects() {
         return dspaceObjects;
     }
 
@@ -145,7 +151,7 @@ public class DiscoverResult {
         return highlightedResults.get(dso.getHandle());
     }
 
-    public void addHighlightedResult(DSpaceObject dso, DSpaceObjectHighlightResult highlightedResult)
+    public void addHighlightedResult(BrowsableDSpaceObject dso, DSpaceObjectHighlightResult highlightedResult)
     {
         this.highlightedResults.put(dso.getHandle(), highlightedResult);
     }
@@ -209,18 +215,18 @@ public class DiscoverResult {
 
     public static final class DSpaceObjectHighlightResult
     {
-        private DSpaceObject dso;
+        private BrowsableDSpaceObject dso;
         private Map<String, List<String>> highlightResults;
         private Map<String, List<String[]>> highlightResultsWithAuthority;
         
-        public DSpaceObjectHighlightResult(DSpaceObject dso, Map<String, List<String>> highlightResults, Map<String, List<String[]>> highlightResultsWithAuthority)
+        public DSpaceObjectHighlightResult(BrowsableDSpaceObject dso, Map<String, List<String>> highlightResults, Map<String, List<String[]>> highlightResultsWithAuthority)
         {
             this.dso = dso;
             this.highlightResults = highlightResults;
             this.highlightResultsWithAuthority = highlightResultsWithAuthority;
         }
 
-        public DSpaceObject getDso()
+        public BrowsableDSpaceObject getDso()
         {
             return dso;
         }
@@ -236,7 +242,7 @@ public class DiscoverResult {
         }
     }
 
-    public void addSearchDocument(DSpaceObject dso, SearchDocument searchDocument){
+    public void addSearchDocument(BrowsableDSpaceObject dso, SearchDocument searchDocument){
         String dsoString = SearchDocument.getDspaceObjectStringRepresentation(dso);
         List<SearchDocument> docs = searchDocuments.get(dsoString);
         if(docs == null){
@@ -251,7 +257,7 @@ public class DiscoverResult {
      * @param dso the dspace object we want our search documents for
      * @return the search documents list
      */
-    public List<SearchDocument> getSearchDocument(DSpaceObject dso){
+    public List<SearchDocument> getSearchDocument(BrowsableDSpaceObject dso){
         String dsoString = SearchDocument.getDspaceObjectStringRepresentation(dso);
         List<SearchDocument> result = searchDocuments.get(dsoString);
         if(result == null){
@@ -261,12 +267,12 @@ public class DiscoverResult {
         }
     }
 
-    public Map<String, List<DSpaceObject>> getCollapsingResults() {
+    public Map<String, List<BrowsableDSpaceObject>> getCollapsingResults() {
 		return collapsingResults;
 	}
 
 
-	public void setCollapsingResults(Map<String, List<DSpaceObject>> collapsingResults) {
+	public void setCollapsingResults(Map<String, List<BrowsableDSpaceObject>> collapsingResults) {
 		this.collapsingResults = collapsingResults;
 	}
 
@@ -300,16 +306,16 @@ public class DiscoverResult {
                 return searchFields.get(field);
         }
 
-        public static String getDspaceObjectStringRepresentation(DSpaceObject dso){
+        public static String getDspaceObjectStringRepresentation(BrowsableDSpaceObject dso){
             return dso.getType() + ":" + dso.getID();
         }
     }
 
-	public void addCollapsingResults(String name, DSpaceObject dso) {
+	public void addCollapsingResults(String name, BrowsableDSpaceObject dso) {
 		if(!this.collapsingResults.containsKey(name)) {
-			this.collapsingResults.put(name, new ArrayList<DSpaceObject>());			
+			this.collapsingResults.put(name, new ArrayList<BrowsableDSpaceObject>());			
 		}            		
-		List<DSpaceObject> added = this.collapsingResults.get(name);
+		List<BrowsableDSpaceObject> added = this.collapsingResults.get(name);
 		added.add(dso);
 		this.collapsingResults.put(name, added);
 	}

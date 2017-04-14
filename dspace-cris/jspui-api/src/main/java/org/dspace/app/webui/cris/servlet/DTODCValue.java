@@ -9,8 +9,9 @@ package org.dspace.app.webui.cris.servlet;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 
 /**
  * Metadata wrapper   
@@ -23,7 +24,7 @@ public class DTODCValue {
 	/**
 	 * DC value
 	 */
-	private Metadatum dcValue;
+	private MetadataValue dcValue;
 
 	/**
 	 * if true then don't show on view
@@ -38,7 +39,7 @@ public class DTODCValue {
 	/**
 	 * Metadata's owner (item ID) 
 	 */
-	private Integer owner;
+	private UUID owner;
 	
 	/**
 	 * Field which metadata correspond
@@ -57,13 +58,13 @@ public class DTODCValue {
 		
 	private Boolean masterDuplicate = null;
 	
-	private List<Integer> duplicates;
+	private List<UUID> duplicates;
 	
-	public Metadatum getDcValue() {
+	public MetadataValue getDcValue() {
 		return dcValue;
 	}
 
-	public void setDcValue(Metadatum dcValue) {
+	public void setDcValue(MetadataValue dcValue) {
 		this.dcValue = dcValue;
 	}
 
@@ -75,11 +76,11 @@ public class DTODCValue {
 		this.hidden = hidden;
 	}
 
-	public Integer getOwner() {
+	public UUID getOwner() {
 		return owner;
 	}
 
-	public void setOwner(Integer owner) {
+	public void setOwner(UUID owner) {
 		this.owner = owner;
 	}
 
@@ -92,14 +93,14 @@ public class DTODCValue {
 	}
 
 	public String getValue() {
-		return dcValue.value;
+		return dcValue.getValue();
 	}
 
 	public String getLanguage() {
-		if(dcValue.language==null) {
+		if(dcValue.getLanguage()==null) {
 			return "";
 		}
-		return dcValue.language;
+		return dcValue.getLanguage();
 	}
 
 	public String getSchema() {
@@ -131,16 +132,16 @@ public class DTODCValue {
 	}
 
 	public String getAuthority() {
-		return getDcValue().authority==null?"":getDcValue().authority;
+		return getDcValue().getAuthority()==null?"":getDcValue().getAuthority();
 	}
 
-	public void setDuplicates(List<Integer> duplicates) {
+	public void setDuplicates(List<UUID> duplicates) {
 		this.duplicates = duplicates;
 	}
 
-	public List<Integer> getDuplicates() {
+	public List<UUID> getDuplicates() {
 		if(this.duplicates==null) {
-			this.duplicates = new LinkedList<Integer>();
+			this.duplicates = new LinkedList<UUID>();
 		}
 		return duplicates;
 	}

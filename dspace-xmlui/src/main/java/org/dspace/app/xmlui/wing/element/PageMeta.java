@@ -40,7 +40,7 @@ public class PageMeta extends AbstractWingElement implements
      * metadata. Each of these types are separated so that 
      * we can search through each time as we merge documents.
      */
-    private List<Metadata> metadatum = new ArrayList<>();
+    private List<Metadata> MetadataValue = new ArrayList<>();
     private List<Trail> trails = new ArrayList<>();
 
     /**
@@ -75,7 +75,7 @@ public class PageMeta extends AbstractWingElement implements
             String language, boolean allowMultiple) throws WingException
     {
         Metadata metadata = new Metadata(context, element, qualifier, language, allowMultiple);
-        metadatum.add(metadata);
+        MetadataValue.add(metadata);
         return metadata;
     }
 
@@ -253,7 +253,7 @@ public class PageMeta extends AbstractWingElement implements
     		String language = attributes.getValue(Metadata.A_LANGUAGE);
     		
     		List<Metadata> remove = new ArrayList<>();
-    		for (Metadata metadata : metadatum)
+    		for (Metadata metadata : MetadataValue)
     		{
     			if (metadata.equals(element,qualifier,language) && !metadata.allowMultiple())
     			{
@@ -265,7 +265,7 @@ public class PageMeta extends AbstractWingElement implements
     		for (Metadata metadata : remove)
     		{
     			metadata.dispose();
-    			metadatum.remove(metadata);
+    			MetadataValue.remove(metadata);
     		}
     	}
     	
@@ -305,7 +305,7 @@ public class PageMeta extends AbstractWingElement implements
             startElement(contentHandler, namespaces, E_PAGE_META, null);
         }
 
-        for (Metadata metadata : metadatum)
+        for (Metadata metadata : MetadataValue)
         {
             metadata.toSAX(contentHandler, lexicalHandler, namespaces);
         }
@@ -324,7 +324,7 @@ public class PageMeta extends AbstractWingElement implements
     @Override
     public void dispose()
     {
-    	for (Metadata metadata : metadatum)
+    	for (Metadata metadata : MetadataValue)
         {
             metadata.dispose();
         }
@@ -336,8 +336,8 @@ public class PageMeta extends AbstractWingElement implements
     	
     	trails.clear();
     	trails = null;
-    	metadatum.clear();
-    	metadatum = null;
+    	MetadataValue.clear();
+    	MetadataValue = null;
     	
         super.dispose();
     }

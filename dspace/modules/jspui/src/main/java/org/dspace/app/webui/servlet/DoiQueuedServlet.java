@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +34,8 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.event.Event;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
 import org.xml.sax.InputSource;
 
 public class DoiQueuedServlet extends DSpaceServlet
@@ -99,7 +99,7 @@ public class DoiQueuedServlet extends DSpaceServlet
 
         if (submit != -1)
         {
-            int[] items = UIUtil.getIntParameters(request, "pendingdoi");
+            List<UUID> items = UIUtil.getUUIDParameters(request, "pendingdoi");
             List<Item> realItems = DoiFactoryUtils.getItems(context, items);
             if (submit == REQUEST_DELETE)
             {
@@ -183,27 +183,31 @@ public class DoiQueuedServlet extends DSpaceServlet
         List<Item> results = DoiFactoryUtils.getItemsFromSolrResult(
                 rsp.getResults(), context);
         Item[] realresult = null;
-        Map<Integer, List<String>> doi2items = new HashMap<Integer, List<String>>();
+        Map<UUID, List<String>> doi2items = new HashMap<UUID, List<String>>();
         if (results != null && !results.isEmpty())
         {
             realresult = results.toArray(new Item[results.size()]);
 
             for (Item real : realresult)
             {
-                TableRow row = DatabaseManager.querySingle(context,
-                        "SELECT identifier_doi, note FROM "
+            	List<Object[]> rows = getHibernateSession(context).createSQLQuery(
+            			"SELECT identifier_doi, note FROM "
                                 + DoiFactoryUtils.TABLE_NAME
-                                + " where item_id = ?", real.getID());
+                                + " where item_id = :par1")
+                                .setParameter(0,real.getID()).list();
+                
                 List<String> rr = new ArrayList<String>();
-                rr.add(row.getStringColumn("identifier_doi"));
-                String note = row.getStringColumn("note");
-                String resultNote = note == null || note.isEmpty() ? ""
-                        : extractMessage(note)[1];
-                String typeNote = note == null || note.isEmpty() ? ""
+                for(Object[] row : rows) {
+                	rr.add((String)row[0]);
+                	String note = (String)row[1];
+                	String resultNote = note == null || note.isEmpty() ? ""
+                			: extractMessage(note)[1];
+                	String typeNote = note == null || note.isEmpty() ? ""
                         : extractMessage(note)[0];
-                rr.add(resultNote);
-                rr.add(typeNote);
-                doi2items.put(real.getID(), rr);
+                	rr.add(resultNote);
+                	rr.add(typeNote);
+                	doi2items.put(real.getID(), rr);
+                }
             }
         }
 
@@ -217,19 +221,18 @@ public class DoiQueuedServlet extends DSpaceServlet
     private void fix(Context context, Item item, String customdoi)
             throws SQLException, AuthorizeException
     {
-        DatabaseManager
-                .updateQuery(
-                        context,
+    	getHibernateSession(context).createSQLQuery(
                         "UPDATE "
                                 + TABLE_NAME_DOI2ITEM
-                                + " SET LAST_MODIFIED = CURRENT_TIMESTAMP, IDENTIFIER_DOI = ?, RESPONSE_CODE = ? WHERE ITEM_ID = ?",
-                        customdoi, DoiFactoryUtils.CODE_END_CROSSREF_FLOW,
-                        item.getID());
+                                + " SET LAST_MODIFIED = CURRENT_TIMESTAMP, IDENTIFIER_DOI = :par0, RESPONSE_CODE = :par1 WHERE ITEM_ID = :par2")
+                                .setParameter(0,customdoi).setParameter(1,
+                                        DoiFactoryUtils.CODE_END_CROSSREF_FLOW).setParameter(2, item.getID()).executeUpdate();
 
-        item.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-        item.clearMetadata("dc", "identifier", "doi", Item.ANY);
-        item.addMetadata("dc", "identifier", "doi", null, customdoi);
-        item.update();
+        item.getItemService().clearMetadata(context, item, "dc", "utils", "processdoi", Item.ANY);
+        item.getItemService().clearMetadata(context, item, "dc", "identifier", "doi", Item.ANY);
+        item.getItemService().addMetadata(context, item, "dc", "identifier", "doi", null, customdoi);
+        item.getItemService().update(context, item);
+        
         context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, item
                 .getID(), item.getHandle()));
     }
@@ -237,19 +240,17 @@ public class DoiQueuedServlet extends DSpaceServlet
     private void resolve(Context context, Item item) throws SQLException,
             AuthorizeException
     {
-        DatabaseManager
-                .updateQuery(
-                        context,
+        getHibernateSession(context).createSQLQuery(
                         "UPDATE "
                                 + TABLE_NAME_DOI2ITEM
-                                + " SET LAST_MODIFIED = CURRENT_TIMESTAMP, RESPONSE_CODE = ? WHERE ITEM_ID = ?",
-                        DoiFactoryUtils.CODE_END_CROSSREF_FLOW, item.getID());
+                                + " SET LAST_MODIFIED = CURRENT_TIMESTAMP, RESPONSE_CODE = :par0 WHERE ITEM_ID = :par1").setParameter(0,
+                        DoiFactoryUtils.CODE_END_CROSSREF_FLOW).setParameter(1, item.getID()).executeUpdate();
 
-        item.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-        item.clearMetadata("dc", "identifier", "doi", Item.ANY);
-        item.addMetadata("dc", "identifier", "doi", null,
+        item.getItemService().clearMetadata(context, item, "dc", "utils", "processdoi", Item.ANY);
+        item.getItemService().clearMetadata(context, item, "dc", "identifier", "doi", Item.ANY);
+        item.getItemService().addMetadata(context, item, "dc", "identifier", "doi", null,
                 DoiFactoryUtils.getDoiFromDoi2Item(context, item.getID()));
-        item.update();
+        item.getItemService().update(context, item);
         context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, item
                 .getID(), item.getHandle()));
 
@@ -259,8 +260,8 @@ public class DoiQueuedServlet extends DSpaceServlet
             throws SQLException, AuthorizeException
     {
         deleteRequest(context, i);
-        i.addMetadata("dc", "utils", "nodoi", null, "true");
-        i.update();
+        i.getItemService().addMetadata(context, i, "dc", "utils", "nodoi", null, "true");
+        i.getItemService().update(context, i);
         context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, i
                 .getID(), i.getHandle()));
     }
@@ -268,10 +269,12 @@ public class DoiQueuedServlet extends DSpaceServlet
     private void deleteRequest(Context context, Item i) throws SQLException,
             AuthorizeException
     {
-        DatabaseManager.deleteByValue(context, DoiFactoryUtils.TABLE_NAME,
-                "item_id", i.getID());
-        i.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-        i.update();
+        getHibernateSession(context).createSQLQuery(
+                "DELETE FROM "
+                        + DoiFactoryUtils.TABLE_NAME
+                        + " WHERE ITEM_ID = :par1").setParameter(0,i.getID()).executeUpdate();
+        i.getItemService().clearMetadata(context, i, "dc", "utils", "processdoi", Item.ANY);
+        i.getItemService().update(context, i);
         context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, i
                 .getID(), i.getHandle()));
     }
@@ -370,4 +373,7 @@ public class DoiQueuedServlet extends DSpaceServlet
         return rsp;
     }
 
+    protected Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

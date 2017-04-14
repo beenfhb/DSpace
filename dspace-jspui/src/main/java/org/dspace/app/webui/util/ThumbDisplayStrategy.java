@@ -21,7 +21,7 @@ import javax.servlet.jsp.JspException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.browse.BrowseItem;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -100,12 +100,12 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseItem item,
+            List<MetadataValue> metadataArray, BrowseDSpaceObject item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
         try
         {
-            return getThumbMarkup(hrq, itemService.findByLegacyId(UIUtil.obtainContext(hrq), item.getID()), item.getHandle());
+            return getThumbMarkup(hrq, itemService.find(UIUtil.obtainContext(hrq), item.getID()), item.getHandle());
         }
         catch (SQLException e)
         {
@@ -123,7 +123,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseItem browseItem,
+            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
         return null;
@@ -320,7 +320,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     {
         try
         {
-            return getThumbMarkup(hrq, itemService.findByLegacyId(UIUtil.obtainContext(hrq), item.getID()), item.getHandle());
+            return getThumbMarkup(hrq, itemService.find(UIUtil.obtainContext(hrq), item.getID()), item.getHandle());
         }
         catch (SQLException e)
         {

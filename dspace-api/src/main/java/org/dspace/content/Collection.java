@@ -7,20 +7,31 @@
  */
 package org.dspace.content;
 
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.CollectionService;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.dspace.core.*;
-import org.dspace.discovery.IGlobalSearchResult;
-import org.dspace.eperson.Group;
-import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Map;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.CollectionService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.discovery.IGlobalSearchResult;
+import org.dspace.eperson.Group;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
  * Class representing a collection.
@@ -38,7 +49,7 @@ import java.util.StringTokenizer;
  */
 @Entity
 @Table(name="collection")
-public class Collection extends DSpaceObject implements DSpaceObjectLegacySupport
+public class Collection extends DSpaceObject implements BrowsableDSpaceObject, DSpaceObjectLegacySupport, IGlobalSearchResult
 {
 
     @Column(name="collection_id", insertable = false, updatable = false)
@@ -342,11 +353,52 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
         return legacyId;
     }
 
-    private CollectionService getCollectionService() {
+    public CollectionService getCollectionService() {
         if(collectionService == null)
         {
             collectionService = ContentServiceFactory.getInstance().getCollectionService();
         }
         return collectionService;
     }
+
+	@Override
+	public String getTypeText() {
+		return Constants.typeText[Constants.COLLECTION];
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isArchived() {
+		return true;
+	}
+
+	@Override
+	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return getCollectionService().getMetadata(this, schema, element, qualifier, lang);
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return true;
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return getCollectionService().getMetadata(this, field);
+	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return true;
+	}
 }

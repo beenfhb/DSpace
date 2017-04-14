@@ -9,6 +9,8 @@ package org.dspace.app.cris.model;
 
 import it.cilea.osd.common.model.IdentifiableObject;
 
+import java.util.UUID;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -47,7 +49,7 @@ public class RelationPreference extends IdentifiableObject
     
     private String targetUUID;
     
-    private Integer itemID;
+    private UUID itemID;
     
     private String relationType;
     
@@ -85,11 +87,11 @@ public class RelationPreference extends IdentifiableObject
     {
         this.targetUUID = targetUUID;
     }
-    public Integer getItemID()
+    public UUID getItemID()
     {
         return itemID;
     }
-    public void setItemID(Integer itemID)
+    public void setItemID(UUID itemID)
     {
         this.itemID = itemID;
     }

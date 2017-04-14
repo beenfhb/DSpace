@@ -16,7 +16,7 @@ package org.dspace.importer.external.metadatamapping;
  *  @author Philip Vissenaekens (philip at atmire dot com)
  *
  */
-public class MetadatumDTO {
+public class MetadataValueDTO {
 
     private String schema;
     private String element;
@@ -24,13 +24,13 @@ public class MetadatumDTO {
     private String value;
 
     /**
-     * An empty MetadatumDTO constructor
+     * An empty MetadataValueDTO constructor
      */
-    public MetadatumDTO() {
+    public MetadataValueDTO() {
     }
 
     /**
-     * Retrieve the schema set to this MetadatumDTO.
+     * Retrieve the schema set to this MetadataValueDTO.
      * Returns <tt>null</tt> of no schema is set
      * @return schema
      */
@@ -39,7 +39,7 @@ public class MetadatumDTO {
     }
 
     /**
-     * Set the schema to this MetadatumDTO
+     * Set the schema to this MetadataValueDTO
      * @param schema
      */
     public void setSchema(String schema) {
@@ -47,7 +47,7 @@ public class MetadatumDTO {
     }
 
     /**
-     * Retrieve the element set to this MetadatumDTO.
+     * Retrieve the element set to this MetadataValueDTO.
      * Returns <tt>null</tt> of no element is set
      * @return element
      */
@@ -56,7 +56,7 @@ public class MetadatumDTO {
     }
 
     /**
-     * Set the element to this MetadatumDTO
+     * Set the element to this MetadataValueDTO
      * @param element
      */
     public void setElement(String element) {
@@ -64,7 +64,7 @@ public class MetadatumDTO {
     }
 
     /**
-     * Retrieve the qualifier set to this MetadatumDTO.
+     * Retrieve the qualifier set to this MetadataValueDTO.
      * Returns <tt>null</tt> of no qualifier is set
      * @return qualifier
      */
@@ -73,7 +73,7 @@ public class MetadatumDTO {
     }
 
     /**
-     * Set the qualifier to this MetadatumDTO
+     * Set the qualifier to this MetadataValueDTO
      * @param qualifier
      */
     public void setQualifier(String qualifier) {
@@ -81,7 +81,7 @@ public class MetadatumDTO {
     }
 
     /**
-     * Retrieve the value set to this MetadatumDTO.
+     * Retrieve the value set to this MetadataValueDTO.
      * Returns <tt>null</tt> of no value is set
      * @return value
      */

@@ -7,21 +7,28 @@
  */
 package org.dspace.eperson;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectLegacySupport;
-import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.GroupService;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Class representing a group of e-people.
@@ -249,4 +256,18 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
         permanent = permanence;
         setModified();
     }
+    
+    public String getTypeText() {
+        return Constants.typeText[Constants.GROUP];
+    }
+
+	@Override
+	public List<String> getMetadataValue(String mdString) {
+		return EPersonServiceFactory.getInstance().getGroupService().getAllMetadata(this, mdString);
+	}
+
+	@Override
+	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+		return EPersonServiceFactory.getInstance().getGroupService().getMetadataByMetadataString(this, mdString);
+	}
 }

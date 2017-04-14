@@ -34,7 +34,7 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.ItemIterator;
@@ -51,6 +51,7 @@ import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.core.PluginManager;
 import org.dspace.core.SelfNamedPlugin;
+import org.dspace.core.factory.CoreServiceFactory;
 
 /**
  * This class has been initially developed by Graham Triggs, we have moved to a
@@ -148,7 +149,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
             {
 				IConverter converter = null;
 				if (StringUtils.isNotBlank(line.converterName)) {
-					converter = (IConverter) PluginManager.getNamedPlugin(
+					converter = (IConverter) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(
 							IConverter.class, line.converterName);
 					if (converter == null) {
 						log.error(LogManager.getHeader(null, "disseminate",
@@ -186,11 +187,11 @@ public class ReferCrosswalk extends SelfNamedPlugin
                 }
                 else
                 {
-                    Metadatum[] dcvs = item.getMetadataValueInDCFormat(line.mdField);
+                    List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(line.mdField);
                     
                     if (dcvs != null)
                     {
-                        for (Metadatum dc : dcvs)
+                        for (MetadataValue dc : dcvs)
                         {
                             
                             String dcValue = null;
@@ -313,7 +314,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
             Item item = itr.next();
             ByteArrayOutputStream baout = new ByteArrayOutputStream(10000);
             
-            StreamDisseminationCrosswalk xwalk = (StreamDisseminationCrosswalk)PluginManager.getNamedPlugin(StreamDisseminationCrosswalk.class, "ENDNOTE");
+            StreamDisseminationCrosswalk xwalk = (StreamDisseminationCrosswalk)CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "ENDNOTE");
             xwalk.disseminate(context, item, baout);
             
             System.out.println(baout.toString());
@@ -379,8 +380,8 @@ public class ReferCrosswalk extends SelfNamedPlugin
                 
                 if (line.mdBits != null && line.mdBits[0].equalsIgnoreCase("virtual") && line.mdBits.length > 1)
                 {
-                    line.vfDissem = (VirtualFieldDisseminator)PluginManager.getNamedPlugin(VirtualFieldDisseminator.class, line.mdBits[1]);
-                    line.vfIngest = (VirtualFieldIngester)PluginManager.getNamedPlugin(VirtualFieldIngester.class, line.mdBits[1]);
+                    line.vfDissem = (VirtualFieldDisseminator)CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(VirtualFieldDisseminator.class, line.mdBits[1]);
+                    line.vfIngest = (VirtualFieldIngester)CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(VirtualFieldIngester.class, line.mdBits[1]);
                 }
             }
             else

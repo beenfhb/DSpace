@@ -31,7 +31,7 @@ import org.dspace.app.cris.metrics.wos.services.WosService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -287,18 +287,18 @@ public class ScriptRetrieveCitation
                         if (StringUtils.isNotBlank(citation.getIdentifier()))
                         {
                             Item item = Item.find(context, citation.getResourceId());
-                            Metadatum[] metadatumisi = item
+                            List<MetadataValue> MetadataValueisi = item
                                     .getMetadataByMetadataString(fieldWosID);
-                            if (metadatumisi != null && metadatumisi.length > 0)
+                            if (MetadataValueisi != null && MetadataValueisi.size() > 0)
                             {
-                                item.clearMetadata(metadatumisi[0].schema,
-                                        metadatumisi[0].element,
-                                        metadatumisi[0].qualifier,
-                                        metadatumisi[0].language);
-                                item.addMetadata(metadatumisi[0].schema,
-                                        metadatumisi[0].element,
-                                        metadatumisi[0].qualifier,
-                                        metadatumisi[0].language,
+                                item.clearMetadata(MetadataValueisi[0].schema,
+                                        MetadataValueisi[0].element,
+                                        MetadataValueisi[0].qualifier,
+                                        MetadataValueisi[0].language);
+                                item.addMetadata(MetadataValueisi[0].schema,
+                                        MetadataValueisi[0].element,
+                                        MetadataValueisi[0].qualifier,
+                                        MetadataValueisi[0].language,
                                         citation.getIdentifier());
                             }
                             item.update();

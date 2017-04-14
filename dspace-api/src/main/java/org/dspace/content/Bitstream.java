@@ -12,13 +12,22 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
 
 /**
  * Class representing bitstreams stored in the DSpace system.
@@ -438,6 +447,16 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
 
     
     public void setMD5Value(Context context, String valueMD5) {
-        getBitstreamService().setChecksum(context, this, valueMD5);
+        this.checksum = valueMD5;
     }
+
+	@Override
+	public String getTypeText() {
+		return Constants.typeText[Constants.BITSTREAM];
+	}
+
+	@Override
+	public DSpaceObjectService getDSpaceObjectService() {
+		return getBitstreamService();
+	}
 }

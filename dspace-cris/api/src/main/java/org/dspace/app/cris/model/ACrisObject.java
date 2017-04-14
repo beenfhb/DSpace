@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -25,20 +26,13 @@ import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.model.export.ExportConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
+import org.dspace.core.Context;
+import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.EPerson;
-
-import it.cilea.osd.common.core.TimeStampInfo;
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
 
 import it.cilea.osd.common.core.TimeStampInfo;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
@@ -49,8 +43,8 @@ import it.cilea.osd.jdyna.model.Property;
 
 @MappedSuperclass
 public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-		extends DSpaceObject implements ICrisObject<P, TP>, BrowsableDSpaceObject,
-		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable {
+		implements ICrisObject<P, TP>, BrowsableDSpaceObject,
+		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult {
 
 	@Embedded
 	private SourceReference sourceReference;
@@ -108,12 +102,12 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 
 	@Override
 	public String getHandle() {
-		return uuid;
+		return uuid.toString();
 	}
 
 	@Override
-	public int getID() {
-		return getId() != null ? getId().intValue() : -1;
+	public UUID getID() {
+		return UUID.fromString(getUuid());
 	}
 
 	@Override
@@ -162,7 +156,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	}
 
 	@Override
-	public Metadatum[] getMetadata(String schema, String element, String qualifier, String lang) {
+	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
 		Map<Integer, Object> mapResultsVal = new HashMap<Integer, Object>();
 		Map<Integer, String> mapResultsAuth = new HashMap<Integer, String>();
 	    String authority = null;
@@ -177,7 +171,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 			boolean buildMetadata = false;
 			if (StringUtils.isNotEmpty(element)) {
 				List<ACNO> listNestedObject = ResearcherPageUtils
-						.getNestedObjectsByParentIDAndShortname(this.getClassNested(), this.getID(), schema);
+						.getNestedObjectsByParentIDAndShortname(this.getClassNested(), this.getId(), schema);
 				for (ACNO nestedObject : listNestedObject) {
 					List<NP> nProprieties = nestedObject.getAnagrafica4view().get(element);
 
@@ -249,7 +243,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	            }
 			}
 			if(!buildMetadata) {
-				return new Metadatum[0];
+				return new ArrayList<MetadataValue>();
 			}
 		} else {
 			element = getCompatibleJDynAShortName(this, element);
@@ -283,25 +277,22 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 				}
 			}
 		}
-		Metadatum[] result = new Metadatum[mapResultsVal.keySet().size()];
+		List<MetadataValue> result = new ArrayList<>();
 		int idx = 0;
 		for (Integer key : mapResultsVal.keySet()) {
-			result[idx] = new Metadatum();
-			result[idx].schema = schema;
-			result[idx].element = element;
-			result[idx].qualifier = qualifier;
+			MetadataValue mresult = new MetadataValue();
+			mresult.schema = schema;
+			mresult.element = element;
+			mresult.qualifier = qualifier;
 			if(mapResultsAuth.containsKey(key)) {
-			    result[idx].authority = mapResultsAuth.get(key);
+				mresult.setAuthority(mapResultsAuth.get(key));
 			} 
-			else {
-			    result[idx].authority = null;   
-			}
-			result[idx].confidence = StringUtils.isNotEmpty(authority) ? Choices.CF_ACCEPTED : Choices.CF_UNSET;
+			mresult.setConfidence(StringUtils.isNotEmpty(authority) ? Choices.CF_ACCEPTED : Choices.CF_UNSET);
 			if(mapResultsVal.containsKey(key)) {
-			    result[idx].value = mapResultsVal.get(key).toString();
+			    mresult.setValue(mapResultsVal.get(key).toString());
 			}
 			else {
-			    result[idx].value = "";
+			    mresult.setValue("");
 			}
 			idx++;
 		}
@@ -385,18 +376,6 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 
 	public abstract <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>> Class<ACO> getCRISTargetClass();
 	
-	@Override
-	public void update() throws SQLException, AuthorizeException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateLastModified() {
-		// TODO Auto-generated method stub
-
-	}
-
 	public String getSourceRef() {
 		return getSourceReference().getSourceRef();
 	}
@@ -417,7 +396,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	}
 
 	@Override
-	public Metadatum[] getMetadataValueInDCFormat(String mdString) {
+	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
 		StringTokenizer dcf = new StringTokenizer(mdString, ".");
 
 		String[] tokens = { "", "", "" };
@@ -430,7 +409,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 		String element = tokens[1];
 		String qualifier = tokens[2];
 
-		Metadatum[] values;
+		List<MetadataValue> values;
 		if ("*".equals(qualifier)) {
 			values = getMetadata(schema, element, Item.ANY, Item.ANY);
 		} else if ("".equals(qualifier)) {
@@ -451,5 +430,17 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
     public String getMetadataFieldName(Locale locale) {
         return getMetadataFieldTitle() + locale.getLanguage();
     }
-	    
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return getID().toString();
+	}
+
+
 }

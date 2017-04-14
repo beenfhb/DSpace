@@ -8,17 +8,13 @@
 package org.dspace.content;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.sql.SQLException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 
 public class CitationMetadataUpdateProcessPlugin
         implements AdditionalMetadataUpdateProcessPlugin
@@ -37,16 +33,16 @@ public class CitationMetadataUpdateProcessPlugin
     @Override
     public void process(Context context, Item item, String provider)
     {
-        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) PluginManager
+        final StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                 .getNamedPlugin(StreamDisseminationCrosswalk.class,
                         provider.trim() + ".citation");
 
-        String type = item.getMetadata("dc.type");
+        String type = item.getMetadataValue("dc.type").get(0);
 
         StreamDisseminationCrosswalk streamCrosswalk = null;
         if (StringUtils.isNotBlank(type))
         {
-            streamCrosswalk = (StreamDisseminationCrosswalk) PluginManager
+            streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                     .getNamedPlugin(StreamDisseminationCrosswalk.class,
                             provider.trim() + "-"
                                     + StringUtils.deleteWhitespace(
@@ -64,7 +60,7 @@ public class CitationMetadataUpdateProcessPlugin
         try
         {
             streamCrosswalk.disseminate(context, item, out);
-            item.addMetadata(schemaOutputMetadata, elementOutputMetadata,
+            item.getItemService().addMetadata(context, item, schemaOutputMetadata, elementOutputMetadata,
                     qualifierOutputMetadata, null, out.toString());
         }
         catch (Exception e)

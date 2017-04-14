@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.statistics.SolrStatsIndexPlugin;
 
@@ -18,7 +19,7 @@ public class SectionStatsIndexPlugin implements SolrStatsIndexPlugin
 {
 
     @Override
-    public void additionalIndex(HttpServletRequest request, DSpaceObject dso,
+    public void additionalIndex(HttpServletRequest request, BrowsableDSpaceObject dso,
             SolrInputDocument document)
     {
         Integer sectionID = null;

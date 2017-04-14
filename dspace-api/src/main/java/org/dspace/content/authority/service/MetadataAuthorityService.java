@@ -7,9 +7,16 @@
  */
 package org.dspace.content.authority.service;
 
-import org.dspace.content.MetadataField;
-
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.authority.AuthorityInfo;
+import org.dspace.content.authority.Choices;
+import org.dspace.core.Context;
 
 /**
  * Broker for metadata authority settings configured for each metadata field.
@@ -97,6 +104,7 @@ public interface MetadataAuthorityService {
      * @return the minimal valid level of confidence for the given metadata
      */
     public int getMinConfidence(MetadataField metadataField);
+    public int getMinConfidence(Context context, String schema, String element, String qualifier) throws SQLException;
 
     /**
      * Return the list of metadata field with authority control. The strings
@@ -105,4 +113,56 @@ public interface MetadataAuthorityService {
      * @return the list of metadata field with authority control
      */
     public List<String> getAuthorityMetadata();
+
+    public AuthorityInfo getAuthorityInfo(Context context, String md) throws SQLException;
+
+    public List<String> listAuthorityKeyIssued(String md, int limit, int page) throws SQLException;
+
+    public long countIssuedAuthorityKeys(String metadata) throws SQLException;
+
+     /**
+     * Find all the items in the archive with a given authority key value
+     * in the indicated metadata field and a confidence level not acceptable.
+     *
+     * @see Choices#CF_ACCEPTED
+     * @param context DSpace context object
+     * @param metadata metadata field schema.element.qualifier
+     * @param authority the value of authority key to look for
+     * @return an iterator over the items matching that authority value
+     * @throws SQLException, AuthorizeException, IOException
+     */
+    public List<Item> findIssuedByAuthorityValue(String metadata,
+            String authority) throws SQLException, AuthorizeException, IOException;
+
+    public long countIssuedItemsByAuthorityValue(String metadata, String key) throws SQLException;
+
+    public String findNextIssuedAuthorityKey(String metadata, String focusKey) throws SQLException;
+
+    public String findPreviousIssuedAuthorityKey(String metadata, String focusKey) throws SQLException;
+    
+    public List<Item> findIssuedByAuthorityValueAndConfidence(String metadata,
+            String authority, int confidence) throws SQLException, AuthorizeException, IOException;
+    
+    
+    /*
+     *	Methods for query an authority about all metadata binded to it  
+     */
+    
+    public AuthorityInfo getAuthorityInfoByAuthority(String authorityName) throws SQLException;
+
+    public List<String> listAuthorityKeyIssuedByAuthority(String authorityName, int limit, int page) throws SQLException;
+
+    public long countIssuedAuthorityKeysByAuthority(String authorityName) throws SQLException;
+
+    public List<Item> findIssuedByAuthorityValueInAuthority(String authorityName,
+            String authority) throws SQLException, AuthorizeException, IOException;
+
+    public long countIssuedItemsByAuthorityValueInAuthority(String authorityName, String key) throws SQLException;
+
+    public String findNextIssuedAuthorityKeyInAuthority(String authorityName, String focusKey) throws SQLException;
+
+    public String findPreviousIssuedAuthorityKeyInAuthority(String authorityName, String focusKey) throws SQLException;
+    
+    public List<Item> findIssuedByAuthorityValueAndConfidenceInAuthority(String authorityName,
+            String authority, int confidence) throws SQLException, AuthorizeException, IOException;
 }

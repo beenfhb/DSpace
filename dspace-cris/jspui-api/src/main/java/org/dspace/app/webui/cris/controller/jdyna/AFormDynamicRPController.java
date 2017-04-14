@@ -29,6 +29,7 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
@@ -73,7 +74,7 @@ public abstract class AFormDynamicRPController<P extends Property<TP>, TP extend
                     ResearcherPage.class, id);
         Context context = UIUtil.obtainContext(request);
         EPerson currUser = context.getCurrentUser();
-        if (AuthorizeManager.isAdmin(context) 
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context) 
                 || (researcher.getEpersonID()!=null && currUser != null && researcher.getEpersonID().equals(
                         currUser.getID())))
         {

@@ -18,9 +18,8 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.browse.BrowseItem;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Utils;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.utils.DSpace;
@@ -36,32 +35,32 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
 			.getServiceByName("applicationService", ApplicationService.class);
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, BrowseItem item, boolean disableCrossLinks, boolean emph) {
+			String field, List<MetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks, boolean emph) {
 		ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item).getBrowsableDSpaceObject();
 		String metadata = internalDisplay(hrq, metadataArray, crisObject);
 		return metadata;
 	}
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
+			String field, List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
 		// not used
 		return null;
 	}
 	@Override
 	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) throws JspException {
 		return null;
 	}
 
 	@Override
 	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, BrowseItem browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
 		return null;
 	}
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks, boolean emph) throws JspException {
 
 		ACrisObject crisObject = (ACrisObject) item;
 		String metadata = internalDisplay(hrq, metadataArray, crisObject);
@@ -69,10 +68,10 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
 	}
 	
     private String internalDisplay(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject)
+            List<MetadataValue> metadataArray, ACrisObject crisObject)
     {
         String metadata = "N/A";
-        if (metadataArray!=null && metadataArray.length > 0) {
+        if (metadataArray!=null && metadataArray.size() > 0) {
             String publicPath = crisObject.getAuthorityPrefix();
             String authority = crisObject.getCrisID();
             
@@ -88,7 +87,7 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
     }
 
     private String prepareDateOfConference(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+            List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata = "";
@@ -100,7 +99,7 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
     }
 
     private String preparePlaceOfConference(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+            List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata = "";
@@ -113,7 +112,7 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
     }
     
     private String prepareName(HttpServletRequest hrq,
-            Metadatum[] metadataArray, ACrisObject crisObject,
+            List<MetadataValue> metadataArray, ACrisObject crisObject,
             String publicPath, String authority)
     {
         String metadata;
@@ -122,7 +121,7 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
         startLink += "\" class=\"authority\">";
         String endLink = "</a>";
         metadata = startLink;
-        metadata += Utils.addEntities(metadataArray[0].value);
+        metadata += Utils.addEntities(metadataArray.get(0).getValue());
         metadata += endLink;
         return metadata;
     }

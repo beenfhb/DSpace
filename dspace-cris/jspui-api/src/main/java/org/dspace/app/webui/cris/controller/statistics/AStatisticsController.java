@@ -21,6 +21,7 @@ import org.dspace.app.cris.model.StatSubscription;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
 import org.dspace.app.webui.util.UIUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -90,7 +91,7 @@ public abstract class AStatisticsController<T extends IStatsGenericComponent> im
    
     public abstract String getId(HttpServletRequest request) throws IllegalStateException, SQLException;
     
-    public abstract DSpaceObject getObject(HttpServletRequest request) throws IllegalStateException, SQLException;
+    public abstract BrowsableDSpaceObject getObject(HttpServletRequest request) throws IllegalStateException, SQLException;
     
     public abstract String getTitle(HttpServletRequest request) throws IllegalStateException, SQLException;
     

@@ -7,10 +7,10 @@
  */
 package org.dspace.app.webui.cris.dto;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.sort.SortOption;
 
-public class ComponentInfoDTO<T extends DSpaceObject>
+public class ComponentInfoDTO<T extends BrowseDSpaceObject>
 {
     private String type;
 

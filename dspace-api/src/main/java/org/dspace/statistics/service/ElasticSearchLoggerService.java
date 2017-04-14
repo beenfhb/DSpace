@@ -7,6 +7,7 @@
  */
 package org.dspace.statistics.service;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.elasticsearch.client.Client;
@@ -34,9 +35,9 @@ public interface ElasticSearchLoggerService {
     }
 
 
-    public void post(DSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser);
+    public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser);
 
-    public void post(DSpaceObject dspaceObject, String ip, String userAgent, String xforwardedfor, EPerson currentUser);
+    public void post(BrowsableDSpaceObject dspaceObject, String ip, String userAgent, String xforwardedfor, EPerson currentUser);
 
     public void buildParents(DSpaceObject dso, HashMap<String, ArrayList<String>> parents) throws SQLException;
 

@@ -7,19 +7,23 @@
  */
 package org.dspace.content.authority;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Enumeration;
-
 
 import org.apache.log4j.Logger;
-
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +64,9 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
     @Autowired(required = true)
     protected MetadataFieldService metadataFieldService;
 
+    @Autowired(required = true)
+    protected MetadataValueService metadataValueService;
+    
     // map of field key to authority plugin
     protected Map<String,Boolean> controlled = new HashMap<String,Boolean>();
 
@@ -75,6 +82,8 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
     /** fallback default value unless authority.minconfidence = X is configured. */
     protected int defaultMinConfidence = Choices.CF_ACCEPTED;
 
+    private AuthorityDAO authorityDAO = null;
+    
     protected MetadataAuthorityServiceImpl()
     {
 
@@ -87,8 +96,11 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
             isAuthorityRequired = new HashMap<String,Boolean>();
             Enumeration pn = ConfigurationManager.propertyNames();
             final String authPrefix = "authority.controlled.";
-            Context context = new Context();
+            Context context = null;
+            
             try {
+            	context = new Context();
+            	authorityDAO = AuthorityDAOFactory.getInstance(context);
                 while (pn.hasMoreElements())
                 {
                     String key = (String)pn.nextElement();
@@ -135,6 +147,11 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
             } catch (SQLException e) {
                 log.error("Error reading authority config", e);
             }
+            finally {
+				if(context!=null && context.isValid()) {
+					context.abort();
+				}
+			}
 
             // get default min confidence if any:
             int dmc = readConfidence("authority.minconfidence");
@@ -142,7 +159,8 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
             {
                 defaultMinConfidence = dmc;
             }
-        }
+        }        
+        
     }
 
     private int readConfidence(String key)
@@ -237,4 +255,132 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
         }
         return copy;
     }
+
+	@Override
+	public AuthorityInfo getAuthorityInfo(Context context, String md) throws SQLException {
+		init();
+        int[] fieldIds = new int[]{getFieldId(context, md)};
+        return authorityDAO.getAuthorityInfoByFieldIds(md, fieldIds);
+	}
+
+	@Override
+	public List<String> listAuthorityKeyIssued(String md, int limit, int page) throws SQLException {
+		init();
+		return authorityDAO.listAuthorityKeyIssued(md, limit, page);
+	}
+
+	@Override
+	public long countIssuedAuthorityKeys(String metadata) throws SQLException {
+		init();
+		return authorityDAO.countIssuedAuthorityKeys(metadata);
+	}
+
+	@Override
+	public List<Item> findIssuedByAuthorityValue(String metadata, String authority)
+			throws SQLException, AuthorizeException, IOException {
+		init();
+		return authorityDAO.findIssuedByAuthorityValue(metadata, authority);
+	}
+
+	@Override
+	public long countIssuedItemsByAuthorityValue(String metadata, String key) throws SQLException {
+		init();
+		return authorityDAO.countIssuedItemsByAuthorityValue(metadata, key);
+	}
+
+	@Override
+	public String findNextIssuedAuthorityKey(String metadata, String focusKey) throws SQLException {
+		init();
+		return authorityDAO.findNextIssuedAuthorityKey(metadata, focusKey);
+	}
+
+	@Override
+	public String findPreviousIssuedAuthorityKey(String metadata, String focusKey) throws SQLException {
+		init();
+		return authorityDAO.findPreviousIssuedAuthorityKey(metadata, focusKey);
+	}
+
+	@Override
+	public List<Item> findIssuedByAuthorityValueAndConfidence(String metadata, String authority, int confidence)
+			throws SQLException, AuthorizeException, IOException {
+		init();
+		return authorityDAO.findIssuedByAuthorityValueAndConfidence(metadata, authority, confidence);
+	}
+
+	@Override
+	public AuthorityInfo getAuthorityInfoByAuthority(String authorityName) throws SQLException {
+		init();
+		return authorityDAO.getAuthorityInfoByAuthority(authorityName);
+	}
+
+	@Override
+	public List<String> listAuthorityKeyIssuedByAuthority(String authorityName, int limit, int page)
+			throws SQLException {
+		init();
+		return authorityDAO.listAuthorityKeyIssuedByAuthority(authorityName, limit, page);
+	}
+
+	@Override
+	public long countIssuedAuthorityKeysByAuthority(String authorityName) throws SQLException {
+		init();
+		return authorityDAO.countIssuedAuthorityKeysByAuthority(authorityName);
+	}
+
+	@Override
+	public List<Item> findIssuedByAuthorityValueInAuthority(String authorityName, String authority)
+			throws SQLException, AuthorizeException, IOException {
+		init();
+		return authorityDAO.findIssuedByAuthorityValueInAuthority(authorityName, authority);
+	}
+
+	@Override
+	public long countIssuedItemsByAuthorityValueInAuthority(String authorityName, String key) throws SQLException {
+		init();
+		return authorityDAO.countIssuedItemsByAuthorityValueInAuthority(authorityName, key);
+	}
+
+	@Override
+	public String findNextIssuedAuthorityKeyInAuthority(String authorityName, String focusKey) throws SQLException {
+		init();
+		return authorityDAO.findNextIssuedAuthorityKeyInAuthority(authorityName, focusKey);
+	}
+
+	@Override
+	public String findPreviousIssuedAuthorityKeyInAuthority(String authorityName, String focusKey) throws SQLException {
+		init();
+		return authorityDAO.findPreviousIssuedAuthorityKeyInAuthority(authorityName, focusKey);		
+	}
+
+	@Override
+	public List<Item> findIssuedByAuthorityValueAndConfidenceInAuthority(String authorityName, String authority,
+			int confidence) throws SQLException, AuthorizeException, IOException {
+		init();
+		return authorityDAO.findIssuedByAuthorityValueAndConfidenceInAuthority(authorityName, authority, confidence);
+	}
+	
+	/*
+	 * UTILITY METHODS
+	 */
+    private int getFieldId(Context context, String md) throws IllegalArgumentException, SQLException {
+        String[] metadata = md.split("\\.");
+        return ContentServiceFactory.getInstance().getMetadataFieldService().findFieldsByElementNameUnqualified(context, metadata[0], md).get(0).getID();
+    }
+    
+    private int[] getFieldIds(Context context, String authorityName) throws IllegalArgumentException, SQLException {
+        List<String> metadata = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
+                .getAuthorityMetadataForAuthority(authorityName);
+        int[] ids = new int[metadata.size()];
+        
+        for (int i = 0; i < metadata.size(); i++)
+        {
+            ids[i] = getFieldId(context, metadata.get(i));
+        }
+        return ids;
+    }
+    
+	@Override
+	public int getMinConfidence(Context context, String schema, String element, String qualifier) throws SQLException {
+		return getMinConfidence(metadataFieldService.findByElement(context, schema, element, qualifier));
+	}
+
 }

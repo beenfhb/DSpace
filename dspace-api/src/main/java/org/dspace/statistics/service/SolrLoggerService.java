@@ -7,20 +7,24 @@
  */
 package org.dspace.statistics.service;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.usage.UsageWorkflowEvent;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Static holder for a HttpSolrClient connection pool to issue
@@ -41,7 +45,7 @@ public interface SolrLoggerService {
      * @param request the current request context.
      * @param currentUser the current session's user.
      */
-    public void post(DSpaceObject dspaceObject, HttpServletRequest request,
+    public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
             EPerson currentUser);
 
     /**
@@ -51,13 +55,13 @@ public interface SolrLoggerService {
      * @param request the current request context.
      * @param currentUser the current session's user.
      */
-    public void postView(DSpaceObject dspaceObject, HttpServletRequest request,
+    public void postView(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
                                 EPerson currentUser);
 
-    public void postView(DSpaceObject dspaceObject,
+    public void postView(BrowsableDSpaceObject dspaceObject,
    			String ip, String userAgent, String xforwardedfor, EPerson currentUser);
 
-    public void postSearch(DSpaceObject resultObject, HttpServletRequest request, EPerson currentUser,
+    public void postSearch(BrowsableDSpaceObject resultObject, HttpServletRequest request, EPerson currentUser,
                                  List<String> queries, int rpp, String sortBy, String order, int page, DSpaceObject scope);
 
     public void postWorkflow(UsageWorkflowEvent usageWorkflowEvent) throws SQLException;
@@ -166,7 +170,10 @@ public interface SolrLoggerService {
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
             String dateEnd, boolean showTotal, Context context) throws SolrServerException;
-
+    public ObjectCount[] queryFacetDate(String query,
+            String filterQuery, int max, String dateType, String dateStart,
+            String dateEnd, int gap, boolean showTotal) throws SolrServerException;
+    
     public Map<String, Integer> queryFacetQuery(String query,
             String filterQuery, List<String> facetQueries)
             throws SolrServerException;
@@ -204,4 +211,9 @@ public interface SolrLoggerService {
      */
     public void exportHits() throws Exception;
 
+    public SolrDocumentList getRawData(int type) throws SolrServerException;
+    
+    public HttpSolrServer getSolr();
+
+    public void deleteByType(int type) throws SolrServerException, IOException;
 }

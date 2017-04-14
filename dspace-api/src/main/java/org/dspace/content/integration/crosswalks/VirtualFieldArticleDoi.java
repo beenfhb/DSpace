@@ -8,10 +8,11 @@
 package org.dspace.content.integration.crosswalks;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
 import org.dspace.storage.rdbms.DatabaseManager;
@@ -49,8 +50,8 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
             
             String result = "";
            
-            Metadatum[] mdpartof = item.getMetadata("dc", "relation", "ispartofjournal", Item.ANY);
-            if(mdpartof.length>0) {                         
+            List<MetadataValue> mdpartof = item.getMetadata("dc", "relation", "ispartofjournal", Item.ANY);
+            if(mdpartof.size()>0) {                         
                 result += mdpartof[0].value.toLowerCase();
                 result = result.replaceAll("[^a-z]+", "-");
             }
@@ -60,30 +61,30 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
             
             result += ".";
             
-            Metadatum[] md = item.getMetadata("dc", "relation", "volume", Item.ANY);
-            if(md.length>0){
+            List<MetadataValue> md = item.getMetadata("dc", "relation", "volume", Item.ANY);
+            if(md.size()>0){
                 result += md[0].value + ".";    
             }                      
             
-            Metadatum[] mddaterel = item.getMetadata("dc", "relation", "issue", Item.ANY);
-            if(mddaterel.length>0){
+            List<MetadataValue> mddaterel = item.getMetadata("dc", "relation", "issue", Item.ANY);
+            if(mddaterel.size()>0){
                 result += mddaterel[0].value + ".";    
             }                       
 
-            Metadatum[] mdfirst = item.getMetadata("dc", "relation", "firstpage", Item.ANY);
-            if(mdfirst.length>0){
+            List<MetadataValue> mdfirst = item.getMetadata("dc", "relation", "firstpage", Item.ANY);
+            if(mdfirst.size()>0){
                 result += mdfirst[0].value + "-";    
             }                      
                        
             
-            Metadatum[] mdlast = item.getMetadata("dc", "relation", "lastpage", Item.ANY);
-            if(mdlast.length>0){
+            List<MetadataValue> mdlast = item.getMetadata("dc", "relation", "lastpage", Item.ANY);
+            if(mdlast.size()>0){
                 result += mdlast[0].value + ".";    
             }                 
 
-            Metadatum[] mddate = item.getMetadata("dc", "date", "issued", Item.ANY);
+            List<MetadataValue> mddate = item.getMetadata("dc", "date", "issued", Item.ANY);
             
-            if(mddate.length>0){
+            if(mddate.size()>0){
                 result += mddate[0].value;    
             }    
             

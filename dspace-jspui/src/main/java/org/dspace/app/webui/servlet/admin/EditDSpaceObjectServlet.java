@@ -7,13 +7,8 @@
  */
 package org.dspace.app.webui.servlet.admin;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -21,40 +16,31 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.fileupload.FileUploadBase.FileSizeLimitExceededException;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.log4j.Logger;
-import org.dspace.app.util.AuthorizeUtil;
-import org.dspace.app.util.Util;
 import org.dspace.app.webui.servlet.DSpaceServlet;
-import org.dspace.app.webui.util.FileUploadRequest;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.content.Bitstream;
-import org.dspace.content.BitstreamFormat;
-import org.dspace.content.Bundle;
-import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.authority.Choices;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.handle.HandleManager;
-import org.dspace.license.CCLicense;
-import org.dspace.license.CCLookup;
-import org.dspace.license.CreativeCommons;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
 
 /**
  * Servlet for metadata editing of any DSpace Object
@@ -62,176 +48,164 @@ import org.dspace.license.CreativeCommons;
  * @author Andrea Bollini
  * @version $Revision$
  */
-public class EditDSpaceObjectServlet extends DSpaceServlet
-{
-    /** User updates item */
-    public static final int UPDATE_ITEM = 3;
+public class EditDSpaceObjectServlet extends DSpaceServlet {
+	/** User updates item */
+	public static final int UPDATE_ITEM = 3;
 
-    /** Logger */
-    private static Logger log = Logger.getLogger(EditCommunitiesServlet.class);
+	/** Logger */
+	private static Logger log = Logger.getLogger(EditCommunitiesServlet.class);
 
-    protected void doDSGet(Context context, HttpServletRequest request,
-            HttpServletResponse response) throws ServletException, IOException,
-            SQLException, AuthorizeException
-    {
-        /*
-         * GET with no parameters displays "find by handle/id" form parameter
-         * item_id -> find and edit item with internal ID item_id parameter
-         * handle -> find and edit corresponding item if internal ID or Handle
-         * are invalid, "find by handle/id" form is displayed again with error
-         * message
-         */
-        int internalID = UIUtil.getIntParameter(request, "resource_id");
-        int resourceTypeID = UIUtil.getIntParameter(request, "resource_type");
+	private final transient HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+	private final transient MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance()
+			.getMetadataFieldService();
+	private final transient MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
+			.getMetadataSchemaService();
 
-        boolean showError = false;
+	protected void doDSGet(Context context, HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, AuthorizeException {
+		/*
+		 * GET with no parameters displays "find by handle/id" form parameter
+		 * item_id -> find and edit item with internal ID item_id parameter
+		 * handle -> find and edit corresponding item if internal ID or Handle
+		 * are invalid, "find by handle/id" form is displayed again with error
+		 * message
+		 */
+		UUID internalID = UIUtil.getUUIDParameter(request, "resource_id");
+		int resourceTypeID = UIUtil.getIntParameter(request, "resource_type");
 
-        // See if an item ID or Handle was passed in
-        DSpaceObject itemToEdit = null;
-        context.turnOffItemWrapper();
-        if (internalID > -1 && resourceTypeID > -1)
-        {
-            itemToEdit = DSpaceObject.find(context, resourceTypeID, internalID);
-            showError = (itemToEdit == null);
-        }
-        context.restoreItemWrapperState();
-        
-        // Show edit form if appropriate
-        if (itemToEdit != null)
-        {
-            // now check to see if person can edit item
-            checkEditAuthorization(context, itemToEdit);
-            showEditForm(context, request, response, itemToEdit);
-        }
-        else
-        {
-            if (showError)
-            {
-                request.setAttribute("invalid.id", Boolean.TRUE);
-            }
+		boolean showError = false;
 
-            JSPManager.showJSP(request, response, "/tools/get-dso-id.jsp");
-        }
-    }
+		// See if an item ID or Handle was passed in
+		DSpaceObject itemToEdit = null;
+		context.turnOffItemWrapper();
+		if (internalID != null && resourceTypeID > -1) {
+			itemToEdit = DSpaceObject.find(context, resourceTypeID, internalID);
+			showError = (itemToEdit == null);
+		}
+		context.restoreItemWrapperState();
 
-    protected void doDSPost(Context context, HttpServletRequest request,
-            HttpServletResponse response) throws ServletException, IOException,
-            SQLException, AuthorizeException
-    {
-        /*
-         * Then we check for a "cancel" button - if it's been pressed, we simply
-         * return to the "find by handle/id" page
-         */
-        if (request.getParameter("submit_cancel") != null)
-        {
-            JSPManager.showJSP(request, response, "/tools/get-item-id.jsp");
+		// Show edit form if appropriate
+		if (itemToEdit != null) {
+			// now check to see if person can edit item
+			checkEditAuthorization(context, itemToEdit);
+			showEditForm(context, request, response, itemToEdit);
+		} else {
+			if (showError) {
+				request.setAttribute("invalid.id", Boolean.TRUE);
+			}
 
-            return;
-        }
-        
-        /*
-         * Respond to submitted forms. Each form includes an "action" parameter
-         * indicating what needs to be done (from the constants above.)
-         */
-        int action = UIUtil.getIntParameter(request, "action");
-        context.turnOffItemWrapper();
+			JSPManager.showJSP(request, response, "/tools/get-dso-id.jsp");
+		}
+	}
+
+	protected void doDSPost(Context context, HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, AuthorizeException {
+		/*
+		 * Then we check for a "cancel" button - if it's been pressed, we simply
+		 * return to the "find by handle/id" page
+		 */
+		if (request.getParameter("submit_cancel") != null) {
+			JSPManager.showJSP(request, response, "/tools/get-item-id.jsp");
+
+			return;
+		}
+
+		/*
+		 * Respond to submitted forms. Each form includes an "action" parameter
+		 * indicating what needs to be done (from the constants above.)
+		 */
+		int action = UIUtil.getIntParameter(request, "action");
+		context.turnOffItemWrapper();
 		DSpaceObject item = DSpaceObject.find(context, UIUtil.getIntParameter(request, "resource_type"),
-				UIUtil.getIntParameter(request, "resource_id"));
-        context.restoreItemWrapperState();
+				UIUtil.getUUIDParameter(request, "resource_id"));
+		context.restoreItemWrapperState();
 
-        String handle = HandleManager.findHandle(context, item);
+		String handle = handleService.findHandle(context, item);
 
-        // now check to see if person can edit item
-        checkEditAuthorization(context, item);
+		// now check to see if person can edit item
+		checkEditAuthorization(context, item);
 
-        request.setAttribute("item", item);
-        request.setAttribute("handle", handle);
+		request.setAttribute("item", item);
+		request.setAttribute("handle", handle);
 
-        switch (action)
-        {
-        case UPDATE_ITEM:
-            processUpdateItem(context, request, response, item);
+		switch (action) {
+		case UPDATE_ITEM:
+			processUpdateItem(context, request, response, item);
 
-            break;
+			break;
 
-        default:
+		default:
 
-            // Erm... weird action value received.
-            log.warn(LogManager.getHeader(context, "integrity_error", UIUtil
-                    .getRequestLogInfo(request)));
-            JSPManager.showIntegrityError(request, response);
-        }
-    }
+			// Erm... weird action value received.
+			log.warn(LogManager.getHeader(context, "integrity_error", UIUtil.getRequestLogInfo(request)));
+			JSPManager.showIntegrityError(request, response);
+		}
+	}
 
-    /**
-     * Throw an exception if user isn't authorized to edit this item
-     *
-     * @param c
-     * @param item
-     */
-    private void checkEditAuthorization(Context c, DSpaceObject item)
-            throws AuthorizeException, java.sql.SQLException
-    {
-        AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(c, item, Constants.WRITE);
-    }
+	/**
+	 * Throw an exception if user isn't authorized to edit this item
+	 *
+	 * @param c
+	 * @param item
+	 */
+	private void checkEditAuthorization(Context c, DSpaceObject item) throws AuthorizeException, java.sql.SQLException {
+		AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(c, item, Constants.WRITE);
+	}
 
-    /**
-     * Show the item edit form for a particular item
-     *
-     * @param context
-     *            DSpace context
-     * @param request
-     *            the HTTP request containing posted info
-     * @param response
-     *            the HTTP response
-     * @param item
-     *            the item
-     */
-    private void showEditForm(Context context, HttpServletRequest request,
-            HttpServletResponse response, DSpaceObject item) throws ServletException,
-            IOException, SQLException, AuthorizeException
-    {
-  
-        // Get the handle, if any
-        String handle = HandleManager.findHandle(context, item);
+	/**
+	 * Show the item edit form for a particular item
+	 *
+	 * @param context
+	 *            DSpace context
+	 * @param request
+	 *            the HTTP request containing posted info
+	 * @param response
+	 *            the HTTP response
+	 * @param item
+	 *            the item
+	 */
+	private void showEditForm(Context context, HttpServletRequest request, HttpServletResponse response,
+			DSpaceObject item) throws ServletException, IOException, SQLException, AuthorizeException {
 
-        DSpaceObject parent = item.getParentObject();
+		// Get the handle, if any
+		String handle = handleService.findHandle(context, item);
 
-        // All DC types in the registry
-        MetadataField[] types = MetadataField.findAll(context);
-        
-        // Get a HashMap of metadata field ids and a field name to display
-        Map<Integer, String> metadataFields = new HashMap<Integer, String>();
-        
-        // Get all existing Schemas
-        MetadataSchema[] schemas = MetadataSchema.findAll(context);
-        for (int i = 0; i < schemas.length; i++)
-        {
-            String schemaName = schemas[i].getName();
-            // Get all fields for the given schema
-            MetadataField[] fields = MetadataField.findAllInSchema(context, schemas[i].getSchemaID());
-            for (int j = 0; j < fields.length; j++)
-            {
-                Integer fieldID = Integer.valueOf(fields[j].getFieldID());
-                String displayName = "";
-                displayName = schemaName + "." + fields[j].getElement() + (fields[j].getQualifier() == null ? "" : "." + fields[j].getQualifier());
-                metadataFields.put(fieldID, displayName);
-            }
-        }
+		DSpaceObject parent = ContentServiceFactory.getInstance().getDSpaceObjectService(item.getType())
+				.getParentObject(context, item);
 
-        request.setAttribute("item", item);
-        request.setAttribute("handle", handle);
-        request.setAttribute("parent", parent);
-        request.setAttribute("dc.types", types);
-        request.setAttribute("metadataFields", metadataFields);
-        
-        if(response.isCommitted()) {
-        	return;
-        }
-        JSPManager.showJSP(request, response, "/tools/edit-dso-form.jsp");
-    }
+		// All DC types in the registry
+		List<MetadataField> types = metadataFieldService.findAll(context);
 
-    /**
+		// Get a HashMap of metadata field ids and a field name to display
+		Map<Integer, String> metadataFields = new HashMap<Integer, String>();
+
+		// Get all existing Schemas
+		List<MetadataSchema> schemas = metadataSchemaService.findAll(context);
+		for (MetadataSchema s : schemas) {
+			String schemaName = s.getName();
+			// Get all fields for the given schema
+			List<MetadataField> fields = metadataFieldService.findAllInSchema(context, s);
+			for (MetadataField f : fields) {
+				String displayName = "";
+				displayName = schemaName + "." + f.getElement()
+						+ (f.getQualifier() == null ? "" : "." + f.getQualifier());
+				metadataFields.put(f.getID(), displayName);
+			}
+		}
+
+		request.setAttribute("item", item);
+		request.setAttribute("handle", handle);
+		request.setAttribute("parent", parent);
+		request.setAttribute("dc.types", types);
+		request.setAttribute("metadataFields", metadataFields);
+
+		if (response.isCommitted()) {
+			return;
+		}
+		JSPManager.showJSP(request, response, "/tools/edit-dso-form.jsp");
+	}
+
+	/**
      * Process input from the edit item form
      *
      * @param context
@@ -252,7 +226,7 @@ public class EditDSpaceObjectServlet extends DSpaceServlet
          * "Cancel" handled above, so whatever happens, we need to update the
          * item metadata. First, we remove it all, then build it back up again.
          */
-        item.clearMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        item.clearMetadata(context, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
         // We'll sort the parameters by name. This ensures that DC fields
         // of the same element/qualifier are added in the correct sequence.
@@ -340,7 +314,7 @@ public class EditDSpaceObjectServlet extends DSpaceServlet
                         + "_" + sequenceNumber)))
                 {
                     // Value is empty, or remove button for this wasn't pressed
-                    item.addMetadata(schema, element, qualifier, language, value,
+                	item.getDSpaceObjectService().addMetadata(context, item, schema, element, qualifier, language, value,
                             authority, confidence);
                 }
             }
@@ -367,14 +341,13 @@ public class EditDSpaceObjectServlet extends DSpaceServlet
                 }
             }
 
-            MetadataField field = MetadataField.find(context, dcTypeID);
-            MetadataSchema schema = MetadataSchema.find(context, field
-                    .getSchemaID());
-            item.addMetadata(schema.getName(), field.getElement(), field
+            MetadataField field = metadataFieldService.find(context, dcTypeID);
+            MetadataSchema schema = field.getMetadataSchema();          
+            item.getDSpaceObjectService().addMetadata(context, item, schema.getName(), field.getElement(), field
                     .getQualifier(), lang, value);
         }
 
-        item.update();
+        item.getDSpaceObjectService().update(context, item);
 
     	// commit now to make available in the edit form changes made by optional consumers
         context.commit();

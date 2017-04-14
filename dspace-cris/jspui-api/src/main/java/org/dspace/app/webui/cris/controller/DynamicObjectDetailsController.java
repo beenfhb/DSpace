@@ -47,6 +47,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
@@ -110,7 +111,7 @@ public class DynamicObjectDetailsController
         }
         
         if ((dyn.getStatus() == null || dyn.getStatus().booleanValue() == false)
-                && !AuthorizeManager.isAdmin(context))
+                && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             
             if (currUser != null
@@ -132,7 +133,7 @@ public class DynamicObjectDetailsController
             return null;
         }
 
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             model.put("do_page_menu", new Boolean(true));
         }

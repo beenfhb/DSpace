@@ -9,12 +9,13 @@ package org.dspace.app.webui.util;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.I18nUtil;
 
 
@@ -22,12 +23,12 @@ public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy
 {
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType,int itemid, int colIdx, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph)
+            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {	
         String metadataDisplay = "-";
         boolean found = false;
         
-        for (Metadatum descrMetadata : metadataArray) {
+        for (MetadataValue descrMetadata : metadataArray) {
         	if (StringUtils.startsWith(descrMetadata.qualifier, "abstract")) {
         		found = true; 
         		break;
@@ -69,7 +70,7 @@ public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
+            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext)
     {
         return "nowrap=\"nowrap\" align=\"center\"";

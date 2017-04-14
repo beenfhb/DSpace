@@ -15,14 +15,12 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.TermsResponse.Term;
 import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
-
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.SolrLoggerServiceImpl;
 
 public class StatsCleaner extends DSpaceServlet {
 	protected HttpSolrServer solrServer;
@@ -30,7 +28,7 @@ public class StatsCleaner extends DSpaceServlet {
 	Logger log = Logger.getLogger(StatsCleaner.class);
 
 	public StatsCleaner() {
-		solrServer = new HttpSolrServer(ConfigurationManager.getProperty(SolrLogger.CFG_STAT_MODULE, "server"));
+		solrServer = new HttpSolrServer(ConfigurationManager.getProperty(SolrLoggerServiceImpl.CFG_STAT_MODULE, "server"));
 	}
 
 	@Override
