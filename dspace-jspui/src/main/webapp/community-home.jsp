@@ -23,9 +23,11 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
-
+<%@ page import="org.dspace.discovery.SearchUtils"%>
+<%@ page import="org.dspace.discovery.IGlobalSearchResult"%>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@ page import="org.dspace.browse.BrowseIndex" %>
@@ -47,7 +49,7 @@
     Community[] subcommunities =
         (Community[]) request.getAttribute("subcommunities");
     
-    RecentSubmissions rs = (RecentSubmissions) request.getAttribute("recently.submitted");
+    RecentSubmissions submissions = (RecentSubmissions) request.getAttribute("recently.submitted");
     List<Integer> commSubscribed = (List<Integer>) request.getAttribute("subscription_communities");
     List<Integer> collSubscribed = (List<Integer>) request.getAttribute("subscription_collections");
     boolean loggedIn =
@@ -125,110 +127,20 @@
 <%  } %>
 </form>
 
-	<div class="row">
-<%
-	if (rs != null)
-	{ %>
-	<div class="col-md-8">
-        <div class="panel panel-primary">        
-        <div id="recent-submissions-carousel" class="panel-heading carousel slide">
-        <%-- Recently Submitted items --%>
-			<h3><fmt:message key="jsp.community-home.recentsub"/>
-<%
-    if(feedEnabled)
-    {
-    	String[] fmts = feedData.substring(5).split(",");
-    	String icon = null;
-    	int width = 0;
-    	for (int j = 0; j < fmts.length; j++)
-    	{
-    		if ("rss_1.0".equals(fmts[j]))
-    		{
-    		   icon = "rss1.gif";
-    		   width = 80;
-    		}
-    		else if ("rss_2.0".equals(fmts[j]))
-    		{
-    		   icon = "rss2.gif";
-    		   width = 80;
-    		}
-    		else
-    	    {
-    	       icon = "rss.gif";
-    	       width = 36;
-    	    }
-%>
-    <a href="<%= request.getContextPath() %>/feed/<%= fmts[j] %>/<%= community.getHandle() %>"><img src="<%= request.getContextPath() %>/image/<%= icon %>" alt="RSS Feed" width="<%= width %>" height="15" style="margin: 3px 0 3px" /></a>
-<%
-    	}
-    }
-%>
-			</h3>
-		
-	<%
-		Item[] items = rs.getRecentSubmissions();
-		boolean first = true;
-		if(items!=null && items.length>0) 
-		{ 
-	%>	
-		<!-- Wrapper for slides -->
-		  <div class="carousel-inner">
-	<%	for (int i = 0; i < items.length; i++)
-		{
-			Metadatum[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
-			String displayTitle = "Untitled";
-			if (dcv != null)
-			{
-				if (dcv.length > 0)
-				{
-					displayTitle = Utils.addEntities(dcv[0].value);
-				}
-			}
-			%>
-		    <div style="padding-bottom: 50px; min-height: 200px;" class="item <%= first?"active":""%>">
-		      <div style="padding-left: 80px; padding-right: 80px; display: inline-block;"><%= StringUtils.abbreviate(displayTitle, 400) %> 
-		      	<a href="<%= request.getContextPath() %>/handle/<%=items[i].getHandle() %>" class="btn btn-success">See</a>
-		      </div>
-		    </div>
-<%
-				first = false;
-		     }
-		%>
-		</div>
-		
-		  <!-- Controls -->
-		  <a class="left carousel-control" href="#recent-submissions-carousel" data-slide="prev">
-		    <span class="icon-prev"></span>
-		  </a>
-		  <a class="right carousel-control" href="#recent-submissions-carousel" data-slide="next">
-		    <span class="icon-next"></span>
-		  </a>
-
-          <ol class="carousel-indicators">
-		    <li data-target="#recent-submissions-carousel" data-slide-to="0" class="active"></li>
-		    <% for (int i = 1; i < rs.count(); i++){ %>
-		    <li data-target="#recent-submissions-carousel" data-slide-to="<%= i %>"></li>
-		    <% } %>
-	      </ol>
-		
-		<%
-		}
-		%>
-		  
-     </div></div></div>
-<%
-	}
-%>
-	<div class="col-md-4">
+<div class="row">
+	<div class="col-md-6">
+		<%@ include file="components/recent-submissions.jsp" %>
+	</div>
+	<div class="col-md-6">
     	<%= sidebar %>
 	</div>
-</div>	
+</div>
 
 <%-- Browse --%>
-<div class="panel panel-primary">
+<%-- <div class="panel panel-primary">
 	<div class="panel-heading"><fmt:message key="jsp.general.browse"/></div>
 	<div class="panel-body">
-   				<%-- Insert the dynamic list of browse options --%>
+   				Insert the dynamic list of browse options
 <%
 	for (int i = 0; i < bis.length; i++)
 	{
@@ -236,7 +148,7 @@
 %>
 	<form method="get" action="<%= request.getContextPath() %>/handle/<%= community.getHandle() %>/browse">
 		<input type="hidden" name="type" value="<%= bis[i].getName() %>"/>
-		<%-- <input type="hidden" name="community" value="<%= community.getHandle() %>" /> --%>
+		<input type="hidden" name="community" value="<%= community.getHandle() %>" />
 		<input class="btn btn-default col-md-3" type="submit" name="submit_browse" value="<fmt:message key="<%= key %>"/>"/>
 	</form>
 <%	
@@ -244,7 +156,7 @@
 %>
 			
 	</div>
-</div>
+</div> --%>
 
 <div class="row">
 

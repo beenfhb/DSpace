@@ -27,9 +27,10 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
-
+<%@page import="org.dspace.discovery.IGlobalSearchResult"%>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@ page import="org.dspace.browse.BrowseIndex" %>
@@ -132,12 +133,12 @@
   <p class="copyrightText"><%= copyright %></p>
   
   <%-- Browse --%>
-  <div class="panel panel-primary">
+<%--   <div class="panel panel-primary">
   	<div class="panel-heading">
         <fmt:message key="jsp.general.browse"/>
 	</div>
 	<div class="panel-body">
-	<%-- Insert the dynamic list of browse options --%>
+	Insert the dynamic list of browse options
 <%
 	for (int i = 0; i < bis.length; i++)
 	{
@@ -145,13 +146,13 @@
 %>
 	<form method="get" class="btn-group" action="<%= request.getContextPath() %>/handle/<%= collection.getHandle() %>/browse">
 		<input type="hidden" name="type" value="<%= bis[i].getName() %>"/>
-		<%-- <input type="hidden" name="collection" value="<%= collection.getHandle() %>" /> --%>
+		<input type="hidden" name="collection" value="<%= collection.getHandle() %>" />
 		<input type="submit" class="btn btn-default" name="submit_browse" value="<fmt:message key="<%= key %>"/>"/>
 	</form>
 <%	
 	}
 %>	</div>
-</div>
+</div> --%>
 <%  if (submit_button)
     { %>
           <form class="form-group" action="<%= request.getContextPath() %>/submit" method="post">
@@ -368,22 +369,15 @@
 	{
 %>
 	<h3><fmt:message key="jsp.collection-home.recentsub"/></h3>
-<%
-		Item[] items = rs.getRecentSubmissions();
-		for (int i = 0; i < items.length; i++)
-		{
-			Metadatum[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
-			String displayTitle = "Untitled";
-			if (dcv != null)
-			{
-				if (dcv.length > 0)
-				{
-					displayTitle = Utils.addEntities(dcv[0].value);
-				}
-			}
-			%><p class="recentItem"><a href="<%= request.getContextPath() %>/handle/<%= items[i].getHandle() %>"><%= displayTitle %></a></p><%
-		}
-%>
+	<%	
+		for (IGlobalSearchResult obj : rs.getRecentSubmissions()) {
+		%>
+		
+				<dspace:discovery-artifact style="global" artifact="<%= obj %>" view="<%= rs.getConfiguration() %>"/>
+		
+		<%
+		     }
+		%>
     <p>&nbsp;</p>
 <%      } %>
 

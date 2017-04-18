@@ -20,13 +20,35 @@
 		<property name="components">
 			<map>
 				<entry key="dspaceitems" value-ref="publicationlist" />
+				<entry key="dspaceitemsforcerif" value-ref="publicationlistforcerif" />
 				<entry key="projects" value-ref="projectlist" />
 			</map>
 		</property>
 	</bean>
 
+	<bean id="publicationlistforcerif"
+		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		<property name="relationConfiguration" ref="relationRPVSItemConfiguration" />
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>				
+		<property name="target" value="org.dspace.app.cris.model.ResearcherPage" />
+		<property name="types">
+			<map>
+				<entry key="all" value-ref="allComponent" />
+			</map>
+		</property>
+	</bean>
+
+	<bean id="allComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="all" />
+		<property name="facetQuery"><value>*:*</value></property>
+		<property name="order"><value>asc</value></property>
+		<property name="rpp"><value>20</value></property>		
+		<property name="sortby"><value>1</value></property>						
+	</bean>
 	
-		
+	
+	
 	<!-- Publication component for RP -->
 	<bean id="publicationlist"
 		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">

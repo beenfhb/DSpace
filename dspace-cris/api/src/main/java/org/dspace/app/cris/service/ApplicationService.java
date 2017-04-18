@@ -643,6 +643,21 @@ public class ApplicationService extends ExtendedTabService
 		return object;
     }
   
+    public <T extends ACrisObject> T getEntityByCrisId(String crisID)
+    {        
+        T dso = (T)getEntityByCrisId(crisID, ResearcherPage.class);
+        if (dso == null) {
+            dso = (T)getEntityByCrisId(crisID, OrganizationUnit.class);
+            if (dso == null) {
+                dso = (T)getEntityByCrisId(crisID, Project.class);
+                if (dso == null) {
+                    dso = (T)getEntityByCrisId(crisID, ResearchObject.class);
+                }
+            }
+        }
+        return dso;
+    }
+    
     public <T extends ACrisObject> T getEntityBySourceId(String sourceRef, String sourceID,
             Class<T> className)
     {

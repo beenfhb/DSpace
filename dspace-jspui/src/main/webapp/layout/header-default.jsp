@@ -11,6 +11,11 @@
   - HTML header for main home page
   --%>
 
+<%@page import="org.dspace.app.webui.util.UIUtil"%>
+<%@page import="org.dspace.core.I18nUtil"%>
+<%@page import="java.util.Locale"%>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@page import="org.dspace.eperson.EPerson"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
@@ -40,6 +45,25 @@
     String dsVersion = Util.getSourceVersion();
     String generator = dsVersion == null ? "DSpace" : "DSpace "+dsVersion;
     String analyticsKey = ConfigurationManager.getProperty("jspui.google.analytics.key");
+
+    // Is anyone logged in?
+    EPerson user = (EPerson) request.getAttribute("dspace.current.user");
+
+    // Is the logged in user an admin
+    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    boolean isAdmin = (admin == null ? false : admin.booleanValue());
+
+    // E-mail may have to be truncated
+    String navbarEmail = null;
+
+    if (user != null)
+    {
+        navbarEmail = user.getEmail();
+    }
+
+    // get the locale languages
+    Locale[] supportedLocales = I18nUtil.getSupportedLocales();
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
 %>
 
 <!DOCTYPE html>
@@ -54,12 +78,12 @@
 	    <link href="<%= request.getContextPath() %>/css/researcher.css" type="text/css" rel="stylesheet" />
        <link href="<%= request.getContextPath() %>/css/jdyna.css" type="text/css" rel="stylesheet" />
 	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/bootstrap.min.css" type="text/css" />
-	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/bootstrap-theme.min.css" type="text/css" />
 	    <link href="<%= request.getContextPath() %>/static/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-		<link href="<%= request.getContextPath() %>/static/css/jstree/themes/default/style.min.css" rel="stylesheet"/>
-	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/dspace-theme.css" type="text/css" />
+		<link href="<%= request.getContextPath() %>/static/css/jstree/themes/default/style.min.css" rel="stylesheet"/>	    
 	    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/orcid.css" type="text/css" />
 	    <link href="<%= request.getContextPath() %>/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
+	    <link href="<%= request.getContextPath() %>/static/fvg/lavish-bootstrap.css" rel="stylesheet"/>
+	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/dspace-theme.css" type="text/css" />
 <%
     if (!"NONE".equals(feedRef))
     {
@@ -88,6 +112,7 @@
 	<script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-1.10.2.min.js"></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.10.3.custom.min.js'></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/bootstrap/bootstrap.min.js'></script>
+	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/custom-functions.js'></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"> </script>
@@ -136,50 +161,43 @@
     <%-- HACK: marginwidth, marginheight: for non-CSS compliant Netscape browser --%>
     <body class="undernavigation">
 <a class="sr-only" href="#content">Skip navigation</a>
-<header class="navbar navbar-inverse navbar-fixed-top">    
+<header class="navbar navbar-default">
+  <div class="container">
+  	<div class="row">
+		<div class="col-sm-5 col-md-5 col-xs-6">
+			<a href="<%= request.getContextPath() %>/"><img id="logo-library"
+					src="<%= request.getContextPath() %>/static/fvg/LogoSX2-UNITY.png" height="40" border="0"></a>
+		</div>
+       	<div class="col-sm-7 col-md-7 col-xs-6">
+       	<div class="pull-right nowrap">
+			<a href="http://www.regione.fvg.it/rafvg/cms/RAFVG/istruzione-ricerca/fare-ricerca/" target="_blank">
+			<img id="logo-univ"src="<%= request.getContextPath() %>/static/fvg/LogoDX2-Enti.png"
+				border="0" height="61"></a>
+		</div>
+        </div>
+    </div>
     <%
     if (!navbar.equals("off"))
     {
 %>
-            <div class="container">
-                <dspace:include page="<%= navbar %>" />
-            </div>
+	<div class="row">			
+		<dspace:include page="<%= navbar %>" />
+	</div>
+</div>	
 <%
     }
     else
     {
-    	%>
-        <div class="container">
+%>
+        <div class="row">
             <dspace:include page="/layout/navbar-minimal.jsp" />
-        </div>
-<%    	
+</div>                
+<%
     }
 %>
 </header>
 
 <main id="content" role="main">
-<div class="container banner">
-	<div class="row">
-		<div class="col-md-9 brand">
-		<h1><fmt:message key="jsp.layout.header-default.brand.heading" /></h1>
-        <fmt:message key="jsp.layout.header-default.brand.description" /> 
-        </div>
-        <div class="col-md-3"><img class="pull-right" src="<%= request.getContextPath() %>/image/logo.gif" alt="DSpace logo" />
-        </div>
-	</div>
-</div>	
-<br/>
-                <%-- Location bar --%>
-<%
-    if (locbar)
-    {
-%>
-<div class="container">
-                <dspace:include page="/layout/location-bar.jsp" />
-</div>                
-<%
-    }
-%>
 
 
         <%-- Page contents --%>

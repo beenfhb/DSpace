@@ -298,35 +298,35 @@ public class BitstreamStorageManager
 
         //Create the corresponding file and open it
         file.createNewFile();
-
-		GeneralFileOutputStream fos = FileFactory.newFileOutputStream(file);
-
-		// Read through a digest input stream that will work out the MD5
+		GeneralFileOutputStream fos = null;
         DigestInputStream dis = null;
-
-        try
-        {
-            dis = new DigestInputStream(is, MessageDigest.getInstance("MD5"));
-        }
-        // Should never happen
-        catch (NoSuchAlgorithmException nsae)
-        {
-            log.warn("Caught NoSuchAlgorithmException", nsae);
-        }
-
-        Utils.bufferedCopy(dis, fos);
-        fos.close();
-        is.close();
-
-        bitstream.setColumn("size_bytes", file.length());
-
-        if (dis != null)
-        {
-            bitstream.setColumn("checksum", Utils.toHex(dis.getMessageDigest()
-                    .digest()));
-            bitstream.setColumn("checksum_algorithm", "MD5");
-        }
-        
+		try{
+			fos = FileFactory.newFileOutputStream(file);
+			// Read through a digest input stream that will work out the MD5
+	        try {
+	            dis = new DigestInputStream(is, MessageDigest.getInstance("MD5"));
+	        } catch (NoSuchAlgorithmException nsae){
+	        	// Should never happen
+	            log.warn("Caught NoSuchAlgorithmException", nsae);
+	        }
+	        Utils.bufferedCopy(dis, fos);	
+	        bitstream.setColumn("size_bytes", file.length());
+	        if (dis != null){
+	            bitstream.setColumn("checksum", Utils.toHex(dis.getMessageDigest()
+	                    .digest()));
+	            bitstream.setColumn("checksum_algorithm", "MD5");
+	        }
+		} finally {
+			if (dis != null){
+				dis.close();
+			}
+			if(fos != null){
+				fos.close();
+			}
+			if(is != null){
+				is.close();
+			}
+		}
         bitstream.setColumn("deleted", false);
         DatabaseManager.update(context, bitstream);
 
@@ -408,36 +408,39 @@ public class BitstreamStorageManager
 
 			// get MD5 on the file for local file
 			DigestInputStream dis = null;
-			try 
-			{
+			try	{
 				dis = new DigestInputStream(FileFactory.newFileInputStream(file), 
 						MessageDigest.getInstance("MD5"));
-			} 
-			catch (NoSuchAlgorithmException e) 
-			{
+			} catch (NoSuchAlgorithmException e){
 				log.warn("Caught NoSuchAlgorithmException", e);
 				throw new IOException("Invalid checksum algorithm", e);
-			}
-			catch (IOException e) 
-			{
+			}catch (IOException e){
 				log.error("File: " + file.getAbsolutePath() 
 						+ " to be registered cannot be opened - is it "
 						+ "really there?");
 				throw e;
+			} finally {
+				if(dis != null){
+					dis.close();
+				}
 			}
 			final int BUFFER_SIZE = 1024 * 4;
 			final byte[] buffer = new byte[BUFFER_SIZE];
-			while (true) 
-			{
-				final int count = dis.read(buffer, 0, BUFFER_SIZE);
-				if (count == -1) 
-				{
-					break;
+			try{
+				while (true) {
+					final int count = dis.read(buffer, 0, BUFFER_SIZE);
+					if (count == -1) {
+						break;
+					}
+				}
+				bitstream.setColumn("checksum", Utils.toHex(dis.getMessageDigest()
+						.digest()));
+			} finally {
+				if(dis != null){
+					dis.close();
 				}
 			}
-			bitstream.setColumn("checksum", Utils.toHex(dis.getMessageDigest()
-					.digest()));
-			dis.close();
+			
 		} 
 		else if (file instanceof SRBFile)
 		{

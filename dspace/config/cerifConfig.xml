@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cerifMapping>
+    <crisCerifList>
+        <entry>
+            <key>rp</key>
+            <value>
+                <EntityConfig>
+                    <entityType>Person</entityType>
+                    <crisMap>
+                        <entry>
+                            <key>cfPersId</key>
+                            <value>
+								<crisTemplate>id</crisTemplate>
+								<mandatory>true</mandatory>
+                            </value>
+                        </entry>   
+                        <entry>
+                        	<key>personNames</key>
+                        	<value>
+                        		<crisTemplate>{'fullName','translatedName','variants'}</crisTemplate>
+                        		<isSpelTemplate>false</isSpelTemplate>
+                        		<marshal>getPersonNames</marshal>
+                        	</value>
+                        </entry>
+                        <entry>
+                        	<key>federatedIdentifiers</key>
+                        	<value>
+                        		<crisTemplate>{'scopusId','orcid', 'researcherId'}</crisTemplate>
+                        		<isSpelTemplate>false</isSpelTemplate>
+                        		<marshal>getFederatedIdentifiers</marshal>
+                        	</value>
+                        </entry>    
+                        <entry>
+                        	<key>email</key>
+                        	<value>
+                        		<crisTemplate>email</crisTemplate>
+                        		<marshal>getListCrisProperty</marshal>
+                        	</value>
+                        </entry>                                              
+                        
+                        <entry>
+                            <key>cfGender</key>
+                            <value>
+								<crisTemplate>u</crisTemplate>
+								<marshal>constant</marshal>
+								<mandatory>true</mandatory>
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>cfPers_OrgUnit</key>
+                            <value>
+								<crisTemplate>dept</crisTemplate>
+								<marshal>getListOrgUnitIds</marshal>
+								<mandatory>false</mandatory>
+                            </value>
+                        </entry>                        
+                        <entry>
+                            <key>key</key>
+                            <value>
+								<crisTemplate>spel template</crisTemplate>
+								<marshal>getSimpleCrisProperty</marshal> <!-- Default -->
+								<mandatory>false</mandatory>             <!-- Default -->
+                            </value>
+                        </entry>
+                        <entry>
+                            <key>key</key>
+                            <value>
+								<crisTemplate>template</crisTemplate>
+								<marshal>getListCrisProperty</marshal>
+								<mandatory>false</mandatory>
+                            </value>
+                        </entry>
+
+                    </crisMap>
+                </EntityConfig>
+            </value>
+        </entry>
+        <entry>
+            <key>ou</key>
+            <value>
+                <EntityConfig>
+                    <entityType>Organisation</entityType>
+                    <crisMap>
+                         <entry>
+                            <key>cfOrgUnitId</key>
+                            <value>
+								<crisTemplate>id</crisTemplate>
+								<mandatory>true</mandatory>
+                            </value>
+                        </entry>           
+                         <entry>
+                            <key>cfName</key>
+                            <value>
+								<crisTemplate>name</crisTemplate>
+								<mandatory>true</mandatory>
+                            </value>
+                        </entry>                                    
+                         <entry>
+                            <key>cfAcro</key>
+                            <value>
+								<crisTemplate>description</crisTemplate>
+								<mandatory>false</mandatory>
+                            </value>
+                        </entry>
+
+                    </crisMap>                   
+                </EntityConfig>
+                
+            </value>
+        </entry>
+    </crisCerifList>
+</cerifMapping>

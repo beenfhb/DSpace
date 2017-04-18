@@ -447,4 +447,22 @@ public class I18nUtil
         }
         return resultList.toArray(new Locale[resultList.size()]);
     }
+    
+    public static String getMessageIfExists(String key, Locale locale) {
+        if (locale == null) {
+            locale = DEFAULTLOCALE;
+        }
+        ResourceBundle.Control control = 
+            ResourceBundle.Control.getNoFallbackControl(
+            ResourceBundle.Control.FORMAT_DEFAULT);
+
+        ResourceBundle messages = ResourceBundle.getBundle("Messages", locale, control);
+        try {
+
+            String message = messages.getString(key.trim());
+            return message;
+        } catch (MissingResourceException e) {
+            return null;
+        }
+    }
 }

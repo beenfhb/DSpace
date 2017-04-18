@@ -145,7 +145,7 @@ public class SelectEPersonTag extends TagSupport
                                         + "\" onclick=\"javascript:removeSelected(window.document.epersongroup.eperson_id);\"/>");
             }
             
-            out.print("<input class=\"btn btn-primary pull-right\" type=\"button\" value=\"" + p
+            out.print("<input class=\"btn btn-primary\" type=\"button\" value=\"" + p
                     + "\" onclick=\"javascript:popup_window('"
                     + req.getContextPath() + "/tools/eperson-list?multiple="
                     + multiple + "', 'eperson_popup');\" />");

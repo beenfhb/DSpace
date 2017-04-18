@@ -204,18 +204,21 @@ public class CrisConsumer implements Consumer {
 					toBuildAuthority.put(authorityKey, rpKey);
 				}
 			}		
-			
+			ctx.turnOffAuthorisationSystem();
+			boolean updated = false;
 			for (String orcid : toBuildAuthority.keySet()) {
 				for (Metadatum Metadatum : toBuild.get(orcid)) {
 					Metadatum newValue = Metadatum.copy();
 					newValue.authority = toBuildAuthority.get(orcid);
 					newValue.confidence = Choices.CF_ACCEPTED;
-					ctx.turnOffAuthorisationSystem();
 					item.replaceMetadataValue(Metadatum, newValue);
-					item.update();
-					ctx.restoreAuthSystemState();
+					updated = true;
 				}
 			}
+			if(updated){
+				item.update();
+			}
+			ctx.restoreAuthSystemState();
 		}
 	}
 

@@ -11,10 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.plugin.SiteHomeProcessor;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.plugin.PluginException;
+import org.dspace.plugin.SiteHomeProcessor;
 
 /**
  * This class obtains recent submissions to the site by
@@ -45,6 +45,8 @@ public class RecentSiteSubmissions implements SiteHomeProcessor
         {
             RecentSubmissionsManager rsm = new RecentSubmissionsManager(context);
             RecentSubmissions recent = rsm.getRecentSubmissions(null);
+            recent.setConfiguration(SearchUtils.getRecentSubmissionConfiguration("site").getMetadataFields());
+            
             request.setAttribute("recent.submissions", recent);
 
         }

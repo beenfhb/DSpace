@@ -435,13 +435,25 @@ for (DiscoverySearchFilterFacet facetConf : facetsConf)
 	    <ul class="list-group"><%
 	    for (FacetResult fvalue : facetGlobal)
 	    { 
+	    	String dispalyedValue = fvalue.getDisplayedValue();
+	    	if(("9999 - 9999".equals(dispalyedValue))||("9999".equals(dispalyedValue))){
+    			dispalyedValue = "In print";
+	    	} else if("UNITS".toLowerCase().equals(dispalyedValue.toLowerCase())){
+    			dispalyedValue = "ArTS (UniTS)";
+	    	} else if("UNIUD".toLowerCase().equals(dispalyedValue.toLowerCase())){
+	    			dispalyedValue = "Air (UniUD)";
+	    	} else if("SISSA".toLowerCase().equals(dispalyedValue.toLowerCase())){	
+	    			dispalyedValue = "DigitaLibrary (SISSA)";
+	    	} else if("OpenStarTS".toLowerCase().equals(dispalyedValue.toLowerCase())){		
+	    			dispalyedValue = "OpenStarTs (UniTS)";
+	    	}
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
                 + "/simple-search?query="
                 + URLEncoder.encode(query,"UTF-8")
                 + httpFilters                
                 + "&amp;location="+URLEncoder.encode(fvalue.getAuthorityKey(),"UTF-8") %>"
-                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
+                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=dispalyedValue %></fmt:param></fmt:message>">
+                <%= StringUtils.abbreviate(dispalyedValue,36) %></a></li><%
 	    }
 	    %></ul></div>
 	    </div><%
@@ -480,6 +492,18 @@ for (DiscoverySearchFilterFacet facetConf : facetsConf)
 	    { 
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
 	        {
+	        	String dispalyedValue = fvalue.getDisplayedValue();
+	        	if(("9999 - 9999".equals(dispalyedValue))||("9999".equals(dispalyedValue))){
+        			dispalyedValue = "In print";
+	        	} else if("UNITS".equals(dispalyedValue)){
+		    			dispalyedValue = "ArTS (UniTS)";
+	        	} else if("UNIUD".equals(dispalyedValue)){
+		    			dispalyedValue = "Air (UniUD)";
+	        	} else if("SISSA".equals(dispalyedValue)){	
+		    			dispalyedValue = "DigitaLibrary (SISSA)";
+	        	} else if("OpenStarTS".equals(dispalyedValue)){		
+		    			dispalyedValue = "OpenStarTs (UniTS)";
+		    	}
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
                 + "/global-search?query="
                 + URLEncoder.encode(query,"UTF-8")
@@ -488,8 +512,8 @@ for (DiscoverySearchFilterFacet facetConf : facetsConf)
                 + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
                 + "&amp;filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
                 + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>"
-                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
+                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=dispalyedValue %></fmt:param></fmt:message>">
+                <%= StringUtils.abbreviate(dispalyedValue,36) %></a></li><%
                 idx++;
 	        }
 	        if (idx > limit)

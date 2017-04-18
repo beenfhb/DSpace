@@ -383,12 +383,11 @@
     <!--Which sidebar facets are to be displayed -->
 		<property name="sidebarFacets">
 			<list>
-				<ref bean="searchFilterAuthor" />
+				<ref bean="searchFilterTypeRepo" />								
 				<ref bean="searchFilterSubject" />
-				<ref bean="searchFilterIssued" />
-				
-				<ref bean="searchFilterObjectPeople" />
-				<ref bean="searchFilterObjectOU" />
+				<ref bean="searchFilterType" />
+				<ref bean="searchFilterIssued" />	
+				<ref bean="searchFilterFulltext" />			
 			</list>
 		</property>
 		<!--The search filters which can be used on the discovery search page -->
@@ -397,9 +396,12 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterTypeRepo" />
+				<ref bean="searchFilterType" />
 				<ref bean="searchFilterObjectType" />
 				<ref bean="searchFilterObjectPeople" />
 				<ref bean="searchFilterObjectOU" />
+				<ref bean="searchFilterFulltext" />	
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -434,6 +436,7 @@
 				<property name="max" value="20" />
 				<!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
  				<property name="useAsHomePage" value="false"/>
+				<property name="metadataFields" ref="dspaceitemsLayoutView" />
 			</bean>
 		</property>
 		<!--Default result per page -->
@@ -606,6 +609,7 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterTypeRepo" />
 				<ref bean="searchFilterType" />
 			</list>
 		</property>
@@ -616,6 +620,7 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterTypeRepo" />
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterObjectType" />
 			</list>
@@ -721,7 +726,6 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
-				
 			</list>
 		</property>
 		<!--The search filters which can be used on the discovery search page -->
@@ -1343,7 +1347,7 @@
 		<property name="indexFieldName" value="objectpeople" />
 		<property name="metadataFields">
 			<list>
-				<value>dc.contributor.*</value>
+				<value>dc.contributor.author</value>
 				<value>crisrp.this</value>
 				<value>crisproject.investigator</value>
 				<value>crisproject.coinvestigators</value>
@@ -1397,6 +1401,16 @@
 		<property name="metadataFields">
 			<list>
 				<value>dc.type</value>
+			</list>
+		</property>
+	</bean>	
+	
+	<bean id="searchFilterTypeRepo"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="repotype" />
+		<property name="metadataFields">
+			<list>
+				<value>dc.identifier.sourcefvg</value>
 			</list>
 		</property>
 	</bean>	
@@ -1577,6 +1591,16 @@
 		<property name="sortOrder" value="VALUE" />
 	</bean>
 
+	<bean id="searchFilterFulltext"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="fulltext" />
+		<property name="metadataFields">
+			<list>
+				<value>dc.rights</value>
+			</list>
+		</property>
+	</bean>
+	
 	<!--Sort properties -->
 	<bean id="sortTitle"
 		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">

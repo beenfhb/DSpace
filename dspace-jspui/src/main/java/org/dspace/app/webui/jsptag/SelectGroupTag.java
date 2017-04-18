@@ -140,7 +140,7 @@ public class SelectGroupTag extends TagSupport
                                 + "\" onclick=\"javascript:removeSelected(window.document.epersongroup.group_ids);\"/>");
 			}
             
-            out.print("<input class=\"btn btn-primary pull-right\" type=\"button\" value=\"" + p 
+            out.print("<input class=\"btn btn-primary\" type=\"button\" value=\"" + p 
                             + "\" onclick=\"javascript:popup_window('"
                             + req.getContextPath() + "/tools/group-select-list?multiple=" 
                             + multiple + "', 'group_popup');\" />");

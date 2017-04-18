@@ -572,6 +572,7 @@ public class DiscoverUtility
                         {
 
                             DiscoverQuery yearRangeQuery = new DiscoverQuery();
+                            yearRangeQuery.setQuery("*:* -" + dateFacet + ":9999");
                             yearRangeQuery.setFacetMinCount(1);
                             yearRangeQuery.setMaxResults(1);
                             // Set our query to anything that has this
@@ -678,6 +679,7 @@ public class DiscoverUtility
                             // Create facet queries but limit then to 11
                             // (11
                             // == when we need to show a show more url)
+                            facetQueries.add(dateFacet + ":[9999 TO 9999]");
                             for (int year = topYear; year > oldestYear
                                     && (facetQueries.size() < 11); year -= gap)
                             {

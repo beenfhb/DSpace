@@ -28,7 +28,7 @@ public class HarvestedItem
 	private TableRow harvestRow;
 
 	
-	HarvestedItem(Context c, TableRow row)
+	public HarvestedItem(Context c, TableRow row)
     {
         context = c;
         harvestRow = row;

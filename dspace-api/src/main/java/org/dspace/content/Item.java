@@ -250,6 +250,15 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
         return new ItemIterator(context, rows);
 	}
 	
+	public static ItemIterator findByCollectionId(Context context, int collectionId ) throws SQLException
+    {
+        String myQuery = "SELECT * FROM item WHERE (in_archive='1' or withdrawn='1') and owning_collection=" + collectionId + " ";
+
+        TableRowIterator rows = DatabaseManager.queryTable(context, "item", myQuery);
+
+        return new ItemIterator(context, rows);
+	}
+	
     /**
      * Find all the items in the archive by a given submitter. The order is
      * indeterminate. Only items with the "in archive" flag set are included.

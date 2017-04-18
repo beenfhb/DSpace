@@ -27,7 +27,7 @@
 		class="org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration">
 		<property name="viewConfiguration">						
 			<map>
-				<entry key="dspacecommunity">
+<!-- 				<entry key="dspacecommunity">
 				<bean
 				class="org.dspace.discovery.configuration.DiscoveryViewConfiguration">								
 				
@@ -82,7 +82,7 @@
 					</list>
 				</property>
 				</bean>
-				</entry>														
+				</entry> -->														
 				<entry key="dspacepublication">
 				<bean
 				class="org.dspace.discovery.configuration.DiscoveryViewConfiguration">								
@@ -130,7 +130,7 @@
 				</property>
 				</bean>
 				</entry>
-				<entry key="dspaceconferencepaper">
+<!-- 				<entry key="dspaceconferencepaper">
 				<bean
 				class="org.dspace.discovery.configuration.DiscoveryViewConfiguration">								
 				
@@ -160,7 +160,7 @@
 							<property name="decorator" value="crisref" />
 						</bean>
 					</list>
-				</property>
+				</property> 
 				<property name="metadataDescriptionFields">
 					<list>
 						<bean
@@ -176,7 +176,7 @@
 					</list>
 				</property>
 				</bean>
-				</entry>
+				</entry>-->
 				<entry key="crisrp">
 				<bean
 				class="org.dspace.discovery.configuration.DiscoveryViewConfiguration">
@@ -232,7 +232,7 @@
 				</property>
 				</bean>
 				</entry>
-				<entry key="dspacethesis">
+<!-- 				<entry key="dspacethesis">
 				<bean
 				class="org.dspace.discovery.configuration.DiscoveryViewConfiguration">
 								
@@ -247,7 +247,7 @@
 					</list>
 				</property>
 				</bean>
-				</entry>
+				</entry> -->
 			</map>
 		</property>
 	</bean>

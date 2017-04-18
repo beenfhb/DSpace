@@ -55,8 +55,13 @@ goto end
 echo Using DSpace installation in: %cd%
 
 REM Build a CLASSPATH including all classes in oai webapp, all libraries in [dspace]/lib and the config folder.
-set DSPACE_CLASSPATH=%CLASSPATH%;config;webapps\oai\WEB-INF\classes\
-for %%f in (lib\*.jar) DO CALL bin\buildpath.bat %%f
+
+set DSPACE_CLASSPATH=
+if NOT z%CLASSPATH%z==zz set DSPACE_CLASSPATH=%CLASSPATH%;
+
+set DSPACE_CLASSPATH=%DSPACE_CLASSPATH%config;webapps\oai\WEB-INF\classes\;lib;lib\*
+
+rem for %%f in (lib\*.jar) DO CALL bin\buildpath.bat %%f
 
 REM If the user only wants the CLASSPATH, just give it now.
 if not "%1"=="classpath" goto javaOpts
@@ -69,7 +74,9 @@ REM Otherwise, default Java to using 256MB of memory
 if "%JAVA_OPTS%"=="" set "JAVA_OPTS=-Xmx256m -Dfile.encoding=UTF-8"
 
 REM Execute Java
-java %JAVA_OPTS% -classpath "%DSPACE_CLASSPATH%" org.dspace.app.launcher.ScriptLauncher %*
+
+echo using classpath=%DSPACE_CLASSPATH%
+java %JAVA_OPTS% -Xms1024m  -Xmx2048m -classpath "%DSPACE_CLASSPATH%" org.dspace.app.launcher.ScriptLauncher %*
 
 REM Clean up DSPACE_CLASSPATH variable
 set DSPACE_CLASSPATH=

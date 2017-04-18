@@ -42,9 +42,9 @@
                 </div><!--/.nav-collapse -->
             </div>
 
-            <div class="alert alert-danger text-center">
-                Invalid context
-            </div>
+<!--             <div class="alert alert-danger text-center"> -->
+<!--                 Invalid context -->
+<!--             </div> -->
 
             <!-- Main component for a primary marketing message or call to action -->
             <div class="row-fluid">
@@ -59,8 +59,13 @@
                                 <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=Identify">Identify</a>
                                 <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=ListSets">List Sets</a>
                                 <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=ListMetadataFormats">List Metadata Formats</a>
+                                {% if (item.baseUrl== "openaire-cris") %}
+                                <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=ListIdentifiers&metadataPrefix=cerif">List Identifiers</a>
+                                <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=ListRecords&metadataPrefix=cerif">List Records</a>
+                                {% else %}
                                 <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=ListIdentifiers&metadataPrefix=oai_dc">List Identifiers</a>
                                 <a class="btn btn-default" href="{{ concat('/', item.baseUrl) | path }}?verb=ListRecords&metadataPrefix=oai_dc">List Records</a>
+                                {% endif %}
                             </div>
                         </p>
                     </div>

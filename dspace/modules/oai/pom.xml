@@ -102,6 +102,27 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
         </dependency>
+        
+        <dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-api</artifactId>
+		</dependency>
+        <dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-jspui-api</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>asm</artifactId>
+					<groupId>asm</groupId>
+				</exclusion>
+			</exclusions>
+        </dependency>
+        <dependency>
+        	<groupId>org.dspace</groupId>
+        	<artifactId>dspace-jspui</artifactId>
+        	<version>CRIS-5.3.1-SNAPSHOT</version>
+        	<type>war</type>
+        </dependency>
     </dependencies>
 
     <developers>

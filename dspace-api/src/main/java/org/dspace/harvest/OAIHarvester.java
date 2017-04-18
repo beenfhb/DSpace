@@ -219,6 +219,12 @@ public class OAIHarvester {
      */
 	public void runHarvest() throws SQLException, IOException, AuthorizeException
 	{
+		runHarvest(-1);
+	}
+	
+	public void runHarvest(int limit) throws SQLException, IOException, AuthorizeException
+	{
+		String resumptionToken = null;
 		// figure out the relevant parameters
 		String oaiSource = harvestRow.getOaiSource();
 		String oaiSetId = harvestRow.getOaiSetId();
@@ -239,7 +245,8 @@ public class OAIHarvester {
 		String toDate = processDate(startTime,0);
 
 		String dateGranularity;
-
+		int totalRecord = 0;
+		int effectiveRecord = 0;
 		try
 		{
 			// obtain the desired descriptive metadata format and verify that the OAI server actually provides it
@@ -275,7 +282,6 @@ public class OAIHarvester {
 
 			Document oaiResponse = null;
 			Element root = null;
-			String resumptionToken;
 
 			// set the status indicating the collection is currently being processed
 			harvestRow.setHarvestStatus(HarvestedCollection.STATUS_BUSY);
@@ -300,7 +306,8 @@ public class OAIHarvester {
 			List<Element> records;
 			Set<String> errorSet = new HashSet<String>();
 
-			ListRecords listRecords = new ListRecords(oaiSource, fromDate, toDate, oaiSetId, descMDPrefix);
+			ListRecords listRecords = null;
+			listRecords = new ListRecords(oaiSource, fromDate, toDate, oaiSetId, descMDPrefix);
 			log.debug("Harvesting request parameters: listRecords " + oaiSource + " " + fromDate + " " + toDate + " " + oaiSetId + " " + descMDPrefix);
 			if (listRecords != null)
             {
@@ -338,7 +345,8 @@ public class OAIHarvester {
 				// Process the obtained records
 				if (records != null && records.size()>0)
 				{
-					log.info("Found " + records.size() + " records to process");
+					log.info("Found " + records.size() + " more records to process (" + totalRecord + " already processed)");
+					totalRecord += records.size();
 					for (Element record : records) {
 						// check for STOP interrupt from the scheduler
 						if (HarvestScheduler.interrupt == HarvestScheduler.HARVESTER_INTERRUPT_STOP)
@@ -350,19 +358,32 @@ public class OAIHarvester {
                         {
                             throw new HarvestingException("runHarvest method timed out for collection " + targetCollection.getID());
                         }
-
-						processRecord(record,OREPrefix);
+						
+						effectiveRecord += processRecord(record,OREPrefix);
 						ourContext.commit();
 					}
 				}
 
-				// keep going if there are more records to process
-				resumptionToken = listRecords.getResumptionToken();
-				if (resumptionToken == null || resumptionToken.length() == 0) {
+				if(((limit>0)&&(effectiveRecord<limit))||(limit<0)){
+					if((limit>0)&&(effectiveRecord<limit)){
+						log.info("Items really harvested/updated: " + effectiveRecord);
+					}
+					// keep going if there are more records to process
+					resumptionToken = listRecords.getResumptionToken();
+					if (resumptionToken == null || resumptionToken.length() == 0) {
+						listRecords = null;
+					}
+					else {
+						try{
+							listRecords = new ListRecords(oaiSource, resumptionToken);
+						}catch(Exception e){
+							log.error("Error on resumptionToken : " +resumptionToken, e);
+							throw e;
+						}
+					}
+				} else {
+					harvestRow.setHarvestResult(null, "Limit reached");
 					listRecords = null;
-				}
-				else {
-					listRecords = new ListRecords(oaiSource, resumptionToken);
 				}
                 ourContext.turnOffAuthorisationSystem();
                 try {
@@ -400,15 +421,18 @@ public class OAIHarvester {
 			ourContext.commit();
 			ourContext.restoreAuthSystemState();
 		}
-
-		// If we got to this point, it means the harvest was completely successful
-		Date finishTime = new Date();
-		long timeTaken = finishTime.getTime() - startTime.getTime();
-		harvestRow.setHarvestResult(startTime, "Harvest from " + oaiSource + " successful");
-		harvestRow.setHarvestStatus(HarvestedCollection.STATUS_READY);
-		log.info("Harvest from " + oaiSource + " successful. The process took " + timeTaken + " milliseconds.");
-		harvestRow.update();
-		ourContext.commit();
+		log.info("Processed " + totalRecord + " records");
+		if(((limit>0)&&(effectiveRecord<limit))||(limit<0)){
+			// If we got to this point, it means the harvest was completely successful
+			Date finishTime = new Date();
+			long timeTaken = finishTime.getTime() - startTime.getTime();
+			harvestRow.setHarvestResult(startTime, "Harvest from " + oaiSource + " successful");
+			harvestRow.setHarvestStatus(HarvestedCollection.STATUS_READY);
+			log.info("Harvest from " + oaiSource + " successful. The process took " + timeTaken + " milliseconds.");
+			harvestRow.update();
+			ourContext.commit();
+		}
+		return;
 	}
 
     /**
@@ -416,11 +440,11 @@ public class OAIHarvester {
      * @param record a JDOM Element containing the actual PMH record with descriptive metadata.
      * @param OREPrefix the metadataprefix value used by the remote PMH server to disseminate ORE. Only used for collections set up to harvest content.
      */
-    private void processRecord(Element record, String OREPrefix) throws SQLException, AuthorizeException, IOException, CrosswalkException, HarvestingException, ParserConfigurationException, SAXException, TransformerException
+    private int processRecord(Element record, String OREPrefix) throws SQLException, AuthorizeException, IOException, CrosswalkException, HarvestingException, ParserConfigurationException, SAXException, TransformerException
     {
     	WorkspaceItem wi = null;
     	Date timeStart = new Date();
-
+    	int effectiveRecord = 0;
     	// grab the oai identifier
     	String itemOaiID = record.getChild("header", OAI_NS).getChild("identifier", OAI_NS).getText();
     	Element header = record.getChild("header",OAI_NS);
@@ -437,7 +461,7 @@ public class OAIHarvester {
             }
 
 			ourContext.restoreAuthSystemState();
-			return;
+			return effectiveRecord;
 		}
 
 		// If we are only harvesting descriptive metadata, the record should already contain all we need
@@ -448,8 +472,12 @@ public class OAIHarvester {
     	IngestionCrosswalk ORExwalk = null;
     	Element oreREM = null;
     	if (harvestRow.getHarvestType() > 1) {
-    		oreREM = getMDrecord(harvestRow.getOaiSource(), itemOaiID, OREPrefix).get(0);
-    		ORExwalk = (IngestionCrosswalk)PluginManager.getNamedPlugin(IngestionCrosswalk.class, this.ORESerialKey);
+    		try{
+    			oreREM = getMDrecord(harvestRow.getOaiSource(), itemOaiID, OREPrefix).get(0);
+    			ORExwalk = (IngestionCrosswalk)PluginManager.getNamedPlugin(IngestionCrosswalk.class, this.ORESerialKey);
+    		} catch(Exception e){
+    			log.error("Error generating oreREM for item " + itemOaiID);
+    		}
     	}
 
     	// Ignore authorization
@@ -470,7 +498,7 @@ public class OAIHarvester {
 			Date itemLastHarvest = hi.getHarvestDate();
 			if (itemLastHarvest != null && OAIDatestamp.before(itemLastHarvest)) {
 				log.info("Item " + item.getHandle() + " was harvested more recently than the last update time reporetd by the OAI server; skipping.");
-				return;
+				return effectiveRecord;
 			}
 
 			// Otherwise, clear and re-import the metadata and bitstreams
@@ -483,9 +511,13 @@ public class OAIHarvester {
             {
                 MDxwalk.ingest(ourContext, item, descMD);
             }
-
+    		String sourceFvg = ConfigurationManager.getProperty("oai", "harvester.collection.fvg." + targetCollection.getID());
+    		if(StringUtils.isNotEmpty(sourceFvg)){
+				item.addMetadata("dc", "identifier", "sourcefvg", "en", sourceFvg);
+    		}
+    		
     		// Import the actual bitstreams
-    		if (harvestRow.getHarvestType() == 3) {
+    		if ((harvestRow.getHarvestType() == 3) && (oreREM !=null)){
     			log.info("Running ORE ingest on: " + item.getHandle());
 
     			Bundle[] allBundles = item.getBundles();
@@ -516,7 +548,12 @@ public class OAIHarvester {
                 MDxwalk.ingest(ourContext, item, descMD);
             }
 
-    		if (harvestRow.getHarvestType() == 3) {
+    		String sourceFvg = ConfigurationManager.getProperty("oai", "harvester.collection.fvg." + targetCollection.getID());
+    		if(StringUtils.isNotEmpty(sourceFvg)){
+				item.addMetadata("dc", "identifier", "sourcefvg", "en", sourceFvg);
+    		}
+    		
+    		if ((harvestRow.getHarvestType() == 3) && (oreREM !=null)){
     			ORExwalk.ingest(ourContext, item, oreREM);
     		}
 
@@ -526,12 +563,11 @@ public class OAIHarvester {
     		// see if a handle can be extracted for the item
     		String handle = extractHandle(item);
 
-    		if (handle != null)
-    		{
+    		if (handle != null) {
     			DSpaceObject dso = HandleManager.resolveToObject(ourContext, handle);
-    			if (dso != null)
-                {
-                    throw new HarvestingException("Handle collision: attempted to re-assign handle '" + handle + "' to an incoming harvested item '" + hi.getOaiID() + "'.");
+    			if (dso != null) {
+    				log.warn("Handle collision: attempted to re-assign handle '" + handle + "' to an incoming harvested item '" + hi.getOaiID() + "'.");
+    				return effectiveRecord;
                 }
     		}
 
@@ -555,33 +591,29 @@ public class OAIHarvester {
     	}
 
     	// Now create the special ORE bundle and drop the ORE document in it
-		if (harvestRow.getHarvestType() == 2 || harvestRow.getHarvestType() == 3)
+		if (((harvestRow.getHarvestType() == 2 || harvestRow.getHarvestType() == 3))&&(oreREM != null))
 		{
 			Bundle OREBundle = null;
             Bundle[] OREBundles = item.getBundles("ORE");
 			Bitstream OREBitstream = null;
 
-            if ( OREBundles.length > 0 )
+            if ( OREBundles.length > 0 ){
                 OREBundle = OREBundles[0];
-            else
+            } else {
                 OREBundle = item.createBundle("ORE");
-
+            }
 			XMLOutputter outputter = new XMLOutputter();
 			String OREString = outputter.outputString(oreREM);
-			ByteArrayInputStream OREStream = new ByteArrayInputStream(OREString.getBytes());
-
-            OREBitstream = OREBundle.getBitstreamByName("ORE.xml");
-
-            if ( OREBitstream != null )
+			OREBitstream = OREBundle.getBitstreamByName("ORE.xml");
+            if (OREBitstream != null) {
                 OREBundle.removeBitstream(OREBitstream);
-
+            }
+            ByteArrayInputStream OREStream = new ByteArrayInputStream(OREString.getBytes());
             OREBitstream = OREBundle.createBitstream(OREStream);
 			OREBitstream.setName("ORE.xml");
-
 			BitstreamFormat bf = FormatIdentifier.guessFormat(ourContext, OREBitstream);
 			OREBitstream.setFormat(bf);
 			OREBitstream.update();
-
 			OREBundle.addBitstream(OREBitstream);
 			OREBundle.update();
 		}
@@ -597,11 +629,13 @@ public class OAIHarvester {
 
 		item.update();
 		hi.update();
+		effectiveRecord += 1;
 		long timeTaken = new Date().getTime() - timeStart.getTime();
 		log.info("Item " + item.getHandle() + "(" + item.getID() + ")" + " has been ingested. The whole process took: " + timeTaken + " ms. ");
 
     	// Stop ignoring authorization
     	ourContext.restoreAuthSystemState();
+    	return effectiveRecord;
     }
 
 
@@ -923,7 +957,8 @@ public class OAIHarvester {
 
         // First, see if we can contact the target server at all.
     	try {
-    		Identify idenTest = new Identify(oaiSource);
+    		@SuppressWarnings("unused")
+			Identify idenTest = new Identify(oaiSource);
     	}
     	catch (Exception ex) {
     		errorSet.add(OAI_ADDRESS_ERROR + ": OAI server could not be reached.");

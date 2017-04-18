@@ -15,8 +15,8 @@
   -    discovery.facetsConf  - the facets configuration
   -    discovery.searchScope - the search scope 
   --%>
-
-<%@page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
 <%@ page import="java.util.HashMap"%>
 <%@ page import="java.util.Set"%>
 <%@ page import="java.util.Map"%>
@@ -92,13 +92,25 @@
 		    { 
 		        if (idx != limit)
 		        {
+		        	String dispalyedValue = fvalue.getDisplayedValue();
+		        	if(("9999 - 9999".equals(dispalyedValue))||("9999".equals(dispalyedValue))){
+		        			dispalyedValue = "In print";
+		        	} else if("UNITS".toLowerCase().equals(dispalyedValue.toLowerCase())){
+			    			dispalyedValue = "ArTS (UniTS)";
+		        	} else if("UNIUD".toLowerCase().equals(dispalyedValue.toLowerCase())){
+			    			dispalyedValue = "Air (UniUD)";
+		        	} else if("SISSA".toLowerCase().equals(dispalyedValue.toLowerCase())){	
+			    			dispalyedValue = "DigitaLibrary (SISSA)";
+		        	} else if("OpenStarTS".toLowerCase().equals(dispalyedValue.toLowerCase())){		
+			    			dispalyedValue = "OpenStarTs (UniTS)";
+			    	}
 		        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
 		            + searchScope
 	                + "/simple-search?filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
 	                + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
 	                + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>"
-	                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-	                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
+	                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=dispalyedValue %></fmt:param></fmt:message>">
+	                <%= StringUtils.abbreviate(dispalyedValue,36) %></a></li><%
 		        }
 		        idx++;
 		    }

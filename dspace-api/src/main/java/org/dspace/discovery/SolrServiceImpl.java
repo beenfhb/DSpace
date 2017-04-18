@@ -1838,7 +1838,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 }
 
                 // Setting the facet limit in this fashion ensures that each facet can have its own max
-                solrQuery.add("f." + field + "." + FacetParams.FACET_LIMIT, String.valueOf(facetFieldConfig.getLimit()));
+				if (facetFieldConfig.getType().equals(DiscoveryConfigurationParameters.TYPE_DATE)
+						&& facetFieldConfig.getSortOrder().equals(DiscoveryConfigurationParameters.SORT.VALUE)) {
+					solrQuery.add("f." + field + "." + FacetParams.FACET_LIMIT, "-1");
+				} else {
+					solrQuery.add("f." + field + "." + FacetParams.FACET_LIMIT,
+							String.valueOf(facetFieldConfig.getLimit()));
+				}
                 String facetSort;
                 if(DiscoveryConfigurationParameters.SORT.COUNT.equals(facetFieldConfig.getSortOrder()))
                 {
@@ -1849,9 +1855,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 solrQuery.add("f." + field + "." + FacetParams.FACET_SORT, facetSort);
                 if (facetFieldConfig.getOffset() != -1)
                 {
+					if (!(facetFieldConfig.getType().equals(DiscoveryConfigurationParameters.TYPE_DATE) && facetFieldConfig
+							.getSortOrder().equals(DiscoveryConfigurationParameters.SORT.VALUE))) {
                     solrQuery.setParam("f." + field + "."
                             + FacetParams.FACET_OFFSET,
                             String.valueOf(facetFieldConfig.getOffset()));
+					}
                 }
                 if(facetFieldConfig.getPrefix() != null)
                 {

@@ -156,8 +156,10 @@
    <field name="_version_" type="long" indexed="true" stored="true" multiValued="false"/>
    <!-- Item always present information -->
    <field name="item.id" type="int" indexed="true" stored="true" multiValued="false" />
+   <field name="item.typeid" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="item.public" type="boolean" indexed="true" stored="true" multiValued="false" />
    <field name="item.handle" type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="item.identifier" type="string" indexed="true" stored="true" multiValued="false" />
    <field name="item.collections" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="item.communities" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="item.lastmodified" type="date" indexed="true" stored="true" multiValued="false" />
@@ -166,6 +168,8 @@
    
    <!-- Item compiled -->
    <field name="item.compile" type="string" indexed="false" stored="true" multiValued="false" />
+   <field name="item.cerifEntity"  type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="item.isCerif"  type="boolean" indexed="true" stored="true" multiValued="false" />
 
    <!-- Item metadata -->
    <dynamicField name="metadata.*" type="lengthfilter" indexed="true" stored="true" multiValued="true" />
@@ -191,6 +195,7 @@
    
  </fields>
  <uniqueKey>item.handle</uniqueKey>
+ <uniqueKey>item.identifier</uniqueKey>
  <defaultSearchField>item.handle</defaultSearchField>
  <solrQueryParser defaultOperator="OR"/>
 </schema>

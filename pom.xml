@@ -39,8 +39,8 @@
 		<org.hibernate.jpa.version>1.0.1.Final</org.hibernate.jpa.version>
 		
 		
-		<org.jdyna.version>5.5-SNAPSHOT</org.jdyna.version>		
-		<it.cilea.ccommons.version>2.2-SNAPSHOT</it.cilea.ccommons.version>
+		<org.jdyna.version>5.4</org.jdyna.version>		
+		<it.cilea.ccommons.version>2.1</it.cilea.ccommons.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.7</java.version>
         <lucene.version>4.10.2</lucene.version>
@@ -573,6 +573,29 @@
             </activation>
             <modules>
                 <module>dspace-oai</module>
+                <module>xoai</module>
+            </modules>
+        </profile> 
+      <profile>
+            <id>cerif-jpa-model</id>
+            <activation>
+                <file>
+                    <exists>cerif-jpa-model/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>cerif-jpa-model</module>
+            </modules>
+        </profile> 
+      <profile>
+            <id>cerif-jpa-xml</id>
+            <activation>
+                <file>
+                    <exists>cerif-jpa-xml/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>cerif-jpa-xml</module>
             </modules>
         </profile> 
 
@@ -749,6 +772,7 @@
             <!-- <module>dspace-xmlui</module>
             <module>dspace-lni</module>  -->
             <module>dspace-oai</module>
+            <module>xoai</module>
             <module>dspace-cris-ametrics</module>
             <module>dspace-cris</module>
             <module>dspace-rest</module>
