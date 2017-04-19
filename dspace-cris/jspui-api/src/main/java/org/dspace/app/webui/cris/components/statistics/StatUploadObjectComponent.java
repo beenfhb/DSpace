@@ -22,6 +22,7 @@ import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
@@ -120,7 +121,7 @@ public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComp
 	}
 
 	@Override
-	public Map queryFacetDate(SolrLoggerService statsLogger, DSpaceObject object,
+	public Map queryFacetDate(SolrLoggerService statsLogger, BrowsableDSpaceObject object,
 			String dateType, String dateStart, String dateEnd, int gap)
 			throws SolrServerException {
 		// TODO Auto-generated method stub

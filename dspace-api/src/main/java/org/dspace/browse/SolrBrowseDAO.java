@@ -9,14 +9,16 @@ package org.dspace.browse;
 
 import java.io.Serializable;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverFacetField;
@@ -323,7 +325,7 @@ public class SolrBrowseDAO implements BrowseDAO
         DiscoverResult resp = getSolrResponse();
 
         List<BrowseDSpaceObject> bitems = new ArrayList<>();
-        for (DSpaceObject solrDoc : resp.getDspaceObjects())
+        for (BrowsableDSpaceObject solrDoc : resp.getDspaceObjects())
         {
             // FIXME introduce project, don't retrieve Item immediately when
             // processing the query...

@@ -7,6 +7,17 @@
  */
 package org.dspace.app.xmlui.aspect.discovery;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.environment.ObjectModelHelper;
 import org.apache.cocoon.environment.Request;
@@ -23,10 +34,16 @@ import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.app.xmlui.wing.element.Options;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.discovery.*;
+import org.dspace.discovery.DiscoverFacetField;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
@@ -34,14 +51,6 @@ import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Renders the sidebar filters in Discovery
@@ -187,7 +196,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
             DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
             java.util.List<String> fqs = Arrays.asList(DiscoveryUIUtils.getFilterQueries(request, context));
 
-            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
             java.util.List<DiscoverySearchFilterFacet> facets = discoveryConfiguration.getSidebarFacets();
 
             if (facets != null && 0 < facets.size()) {
@@ -319,7 +328,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
     public DiscoverQuery getQueryArgs(Context context, DSpaceObject scope, String... filterQueries) {
         DiscoverQuery queryArgs = new DiscoverQuery();
 
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(scope);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)scope);
         java.util.List<DiscoverySearchFilterFacet> facets = discoveryConfiguration.getSidebarFacets();
 
         log.debug("facets for scope, " + scope + ": " + (facets != null ? facets.size() : null));

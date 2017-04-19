@@ -10,6 +10,7 @@ package org.dspace.app.webui.cris.metrics.servlet;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,9 +40,9 @@ public class PMCServlet extends DSpaceServlet
             HttpServletResponse response) throws ServletException, IOException,
             SQLException, AuthorizeException
     {
-        Integer itemID = UIUtil.getIntParameter(request, "item_id");
+        UUID itemID = UIUtil.getUUIDParameter(request, "item_id");
         Integer pmid = UIUtil.getIntParameter(request, "pmid");
-        if (itemID != -1)
+        if (itemID != null)
         {
             PMCCitation citation = pservice.getPMCCitationByItemID(itemID);
             request.setAttribute("pmccitation", citation);

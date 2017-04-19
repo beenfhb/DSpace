@@ -10,6 +10,7 @@ package org.dspace.app.cris.deduplication.utils;
 import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 
 import com.ibm.icu.text.CharsetDetector;
@@ -20,7 +21,7 @@ public class TitleWithDigitAndYearSignature extends MD5ValueSignature
 {
 
     @Override
-    protected String normalize(DSpaceObject item, String value)
+    protected String normalize(BrowsableDSpaceObject item, String value)
     {
         if (value != null)
         {
@@ -54,7 +55,7 @@ public class TitleWithDigitAndYearSignature extends MD5ValueSignature
 
     }
 
-    private String getYear(DSpaceObject item)
+    private String getYear(BrowsableDSpaceObject item)
     {
         String year = null;
         String dcvalue = item.getMetadata("dc.date.issued");
@@ -83,7 +84,7 @@ public class TitleWithDigitAndYearSignature extends MD5ValueSignature
         for (String test : testStrings)
         {
             System.out.println(test + " -> " + tdss.normalize(null, test)
-                    + " ||| " + tss.normalize(null, test));
+                    + " ||| " + tss.normalize((BrowsableDSpaceObject)null, test));
         }
     }
 }

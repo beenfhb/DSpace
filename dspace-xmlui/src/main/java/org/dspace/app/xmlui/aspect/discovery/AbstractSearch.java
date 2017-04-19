@@ -7,6 +7,15 @@
  */
 package org.dspace.app.xmlui.aspect.discovery;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.environment.ObjectModelHelper;
 import org.apache.cocoon.environment.Request;
@@ -23,11 +32,18 @@ import org.dspace.app.xmlui.utils.HandleUtil;
 import org.dspace.app.xmlui.utils.UIException;
 import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
-import org.dspace.app.xmlui.wing.element.*;
+import org.dspace.app.xmlui.wing.element.Body;
+import org.dspace.app.xmlui.wing.element.Division;
+import org.dspace.app.xmlui.wing.element.Hidden;
+import org.dspace.app.xmlui.wing.element.Select;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -35,7 +51,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Constants;
 import org.dspace.core.LogManager;
-import org.dspace.discovery.*;
+import org.dspace.discovery.DiscoverHitHighlightingField;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
@@ -44,12 +64,6 @@ import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
 
 /**
  * This is an abstract search page. It is a collection of search methods that
@@ -277,7 +291,7 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
         {
             order.setValue(request.getParameter("order"));
         }else{
-            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
             order.setValue(discoveryConfiguration.getSearchSortConfiguration().getDefaultSortOrder().toString());
         }
         if(!StringUtils.isBlank(request.getParameter("page")))
@@ -794,7 +808,7 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
         }        
 
         //Add the configured default filter queries
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(scope);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)scope);
         List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
         queryArgs.addFilterQueries(defaultFilterQueries.toArray(new String[defaultFilterQueries.size()]));
 
@@ -1026,7 +1040,7 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
 
 
         DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
 
         Division searchControlsGear = div.addDivision("masked-page-control").addDivision("search-controls-gear", "controls-gear-wrapper");
 

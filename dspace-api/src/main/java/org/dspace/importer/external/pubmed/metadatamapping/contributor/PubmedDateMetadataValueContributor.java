@@ -8,6 +8,13 @@
 
 package org.dspace.importer.external.pubmed.metadatamapping.contributor;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.DCDate;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
@@ -15,13 +22,6 @@ import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
 import org.springframework.beans.factory.annotation.Required;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Pubmed specific implementation of {@link MetadataContributor}

@@ -29,17 +29,17 @@ public class VirtualFieldWosElement implements VirtualFieldDisseminator {
 	@Override
 	public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName) {
 		String result = "<map name=\"" + item.getID() + "\">";
-		List<MetadataValue> MetadataValuePMID = item.getMetadataByMetadataString(fieldPubmedID);
+		List<MetadataValue> MetadataValuePMID = item.getMetadataValueInDCFormat(fieldPubmedID);
 		if (MetadataValuePMID != null && MetadataValuePMID.size() > 0) {
-			result += "<val name=\"pmid\">" + MetadataValuePMID[0].value + "</val>";
+			result += "<val name=\"pmid\">" + MetadataValuePMID.get(0).getValue() + "</val>";
 		}
-		List<MetadataValue> MetadataValueDoi = item.getMetadataByMetadataString(fieldDoiID);
+		List<MetadataValue> MetadataValueDoi = item.getMetadataValueInDCFormat(fieldDoiID);
 		if (MetadataValueDoi != null && MetadataValueDoi.size() > 0) {
-			result += "<val name=\"doi\">" + MetadataValueDoi[0].value + "</val>";
+			result += "<val name=\"doi\">" + MetadataValueDoi.get(0).getValue() + "</val>";
 		}
-		List<MetadataValue> MetadataValueWos = item.getMetadataByMetadataString(fieldWosID);
+		List<MetadataValue> MetadataValueWos = item.getMetadataValueInDCFormat(fieldWosID);
 		if (MetadataValueWos != null && MetadataValueWos.size() > 0) {
-			result += "<val name=\"ut\">" + MetadataValueWos[0].value + "</val>";
+			result += "<val name=\"ut\">" + MetadataValueWos.get(0).getValue() + "</val>";
 		}
 		result += "</map>";
 		return new String[]{result};

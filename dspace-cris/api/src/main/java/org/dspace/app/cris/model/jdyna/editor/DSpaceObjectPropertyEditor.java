@@ -7,11 +7,14 @@
  */
 package org.dspace.app.cris.model.jdyna.editor;
 
+import java.util.UUID;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -81,7 +84,7 @@ public class DSpaceObjectPropertyEditor extends AdvancedPropertyEditorSupport
     public String getAsText()
     {
         log.debug("chiamato DSpaceObjectPropertyEditor - getAsText");
-        Integer valore = (Integer) getValue();
+        String valore = (String) getValue();
         if (MODE_CSV.equals(getMode()))
         {
             String displayValue = "";
@@ -89,7 +92,7 @@ public class DSpaceObjectPropertyEditor extends AdvancedPropertyEditorSupport
             try
             {
                 context = getContext();
-                displayValue = DSpaceObject.find(context, type, valore)
+                displayValue = ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, UUID.fromString(valore))
                         .getName();
             }
             catch (Exception ex)
@@ -124,13 +127,14 @@ public class DSpaceObjectPropertyEditor extends AdvancedPropertyEditorSupport
 
     public String getCustomText()
     {
-        Integer valore = (Integer) getValue();
+        String valore = (String) getValue();
         String displayValue = "";
         Context context = null;
         try
         {
             context = getContext();
-            displayValue = DSpaceObject.find(context, type, valore).getName();
+            displayValue = ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, UUID.fromString(valore))
+                    .getName();
         }
         catch (Exception ex)
         {

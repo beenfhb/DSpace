@@ -18,6 +18,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.xml.transform.TransformerException;
 
@@ -29,35 +30,36 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.AdditionalMetadataUpdateProcessPlugin;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
-import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-import org.dspace.handle.HandleManager;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
-import org.dspace.identifier.IdentifierService;
-import org.dspace.storage.bitstore.BitstreamStorageManager;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.identifier.factory.IdentifierServiceFactory;
+import org.dspace.identifier.service.IdentifierService;
 import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
-import org.dspace.workflow.WorkflowItem;
-import org.dspace.workflow.WorkflowManager;
+import org.dspace.workflow.WorkflowException;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
+import org.dspace.workflowbasic.BasicWorkflowItem;
+import org.dspace.workflowbasic.service.BasicWorkflowItemService;
+import org.dspace.workflowbasic.service.BasicWorkflowService;
+import org.hibernate.Session;
 
 /**
  * Import from the imp_* table in the DSpace data model. Because the script
@@ -129,7 +131,7 @@ public class ItemImportOA
 
     }
 
-    public static int impRecord(Context context, String[] argv) throws Exception
+    public static UUID impRecord(Context context, String[] argv) throws Exception
     {
         // instantiate loader
         ItemImportOA myLoader = new ItemImportOA();
@@ -172,11 +174,11 @@ public class ItemImportOA
         CommandLine line = parser.parse(options, argv);
 
         String command = null; // add replace remove, etc
-        int epersonID = -1; // db ID
+        UUID epersonID = null; // db ID
         String[] collections = null; // db ID or handles
         String handle = null;
         String imp_record_id = null;
-        int item_id = 0;
+        UUID item_id = null;
         int imp_id = 0;
 
         if (line.hasOption('h'))
@@ -241,7 +243,7 @@ public class ItemImportOA
 
         if (line.hasOption('e')) // eperson
         {
-            epersonID = Integer.parseInt(line.getOptionValue('e').trim());
+            epersonID = UUID.fromString(line.getOptionValue('e').trim());
         }
 
         if (line.hasOption('c')) // collections
@@ -255,7 +257,7 @@ public class ItemImportOA
         }
         if (line.hasOption('o')) // item ID (replace or delete)
         {
-            item_id = Integer.parseInt(line.getOptionValue('o').trim());
+            item_id = UUID.fromString(line.getOptionValue('o').trim());
         }
         if (line.hasOption('I')) // item ID (replace or delete)
         {
@@ -264,7 +266,7 @@ public class ItemImportOA
         if (line.hasOption('E'))
         {
             String batchjob = line.getOptionValue('E').trim();
-            EPerson tempBatchJob = EPerson.findByEmail(context, batchjob);
+            EPerson tempBatchJob = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, batchjob);
             myLoader.setBatchJob(tempBatchJob);
             if (tempBatchJob == null)
             {
@@ -304,14 +306,14 @@ public class ItemImportOA
         }
         else if (command.equals("add") || command.equals("replace"))
         {
-            if (epersonID == -1)
+            if (epersonID == null)
             {
                 System.out.println(
                         "Error - an eperson to do the importing must be specified");
                 System.out.println(" (run with -h flag for details)");
                 System.exit(1);
             }
-            tempMyEPerson = EPerson.find(context, epersonID);
+            tempMyEPerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, epersonID);
             if (command.equals("add"))
             {
                 currUser = tempMyEPerson;
@@ -372,8 +374,8 @@ public class ItemImportOA
                 // database ID
                 else if (collections[i] != null)
                 {
-                    mycollections[i] = Collection.find(context,
-                            Integer.parseInt(collections[i].trim()));
+                    mycollections[i] = ContentServiceFactory.getInstance().getCollectionService().find(context,
+                            UUID.fromString(collections[i].trim()));
                 }
 
                 // was the collection valid?
@@ -405,14 +407,14 @@ public class ItemImportOA
                         handle, clearOldBitstream);
 
                 if(StringUtils.isNotBlank(myLoader.getSourceRef())) {
-                    DatabaseManager.updateQuery(context,
-                        "INSERT INTO imp_record_to_item " + "VALUES ( ? , ?,  ?)",
-                        imp_record_id, item_id, myLoader.getSourceRef());
+                    getHibernateSession(context).createSQLQuery(
+                        "INSERT INTO imp_record_to_item " + "VALUES ( :par0, :par1, :par2)").setParameter(0, 
+                        imp_record_id).setParameter(1, item_id).setParameter(2, myLoader.getSourceRef()).executeUpdate();
                 }
                 else {
-                    DatabaseManager.updateQuery(context,
-                            "INSERT INTO imp_record_to_item " + "VALUES ( ? , ?,  null)",
-                            imp_record_id, item_id);                    
+                    getHibernateSession(context).createSQLQuery(
+                            "INSERT INTO imp_record_to_item " + "VALUES ( :par0, :par1, null)").setParameter(0, 
+                            imp_record_id).setParameter(1, item_id).executeUpdate();                	
                 }
             }
             else if (command.equals("replace"))
@@ -423,7 +425,7 @@ public class ItemImportOA
             else if (command.equals("delete")
                     || command.equals("deleteintegra"))
             {
-                Item item = Item.find(context, item_id);
+                Item item = ContentServiceFactory.getInstance().getItemService().find(context, item_id);
                 if (item != null)
                 {
                     ItemUtils.removeOrWithdrawn(context, item);
@@ -431,16 +433,16 @@ public class ItemImportOA
                 if (command.equals("delete")
                         && (item == null || !item.isWithdrawn()))
                 {
-                    DatabaseManager.updateQuery(context,
+                	getHibernateSession(context).createSQLQuery(
                             "DELETE FROM imp_record_to_item "
-                                    + "WHERE imp_record_id = ? AND imp_item_id = ?",
-                            imp_record_id, item_id);
+                                    + "WHERE imp_record_id = :par0 AND imp_item_id = :par1").setParameter(0,
+                            imp_record_id).setParameter(1, item_id).executeUpdate();
                 }
             }
 
-            DatabaseManager.updateQuery(context,
+            getHibernateSession(context).createSQLQuery(
                     "UPDATE imp_record " + "SET last_modified = LOCALTIMESTAMP"
-                            + " WHERE imp_id = ?",
+                            + " WHERE imp_id = :par0").setParameter(0,
                     imp_id);
             context.restoreAuthSystemState();
             return item_id;
@@ -453,11 +455,11 @@ public class ItemImportOA
     }
 
     private void replaceItems(Context c, Collection[] mycollections,
-            String imp_record_id, int item_id, int imp_id,
+            String imp_record_id, UUID item_id, int imp_id,
             boolean clearOldBitstream) throws Exception
     {
 
-        Item oldItem = Item.find(c, item_id);
+        Item oldItem = ContentServiceFactory.getInstance().getItemService().find(c, item_id);
 
         // check item
         if (oldItem == null)
@@ -470,10 +472,10 @@ public class ItemImportOA
 
     private void processItemUpdate(Context c, int imp_id,
             boolean clearOldBitstream, Item item) throws SQLException,
-                    AuthorizeException, TransformerException, IOException
+                    AuthorizeException, TransformerException, IOException, WorkflowException
     {
 
-        int item_id = item.getID();
+        UUID item_id = item.getID();
         if (metadataClean != null && metadataClean.length > 0)
         {
             for (String mc : metadataClean)
@@ -493,21 +495,21 @@ public class ItemImportOA
 
                 if ("*".equals(qualifier))
                 {
-                    item.clearMetadata(schema, element, Item.ANY, Item.ANY);
+                    item.getItemService().clearMetadata(c, item, schema, element, Item.ANY, Item.ANY);
                 }
                 else if ("".equals(qualifier))
                 {
-                    item.clearMetadata(schema, element, null, Item.ANY);
+                	item.getItemService().clearMetadata(c, item, schema, element, null, Item.ANY);
                 }
                 else
                 {
-                    item.clearMetadata(schema, element, qualifier, Item.ANY);
+                	item.getItemService().clearMetadata(c, item, schema, element, qualifier, Item.ANY);
                 }
             }
         }
         else
         {
-            item.clearMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        	item.getItemService().clearMetadata(c, item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         }
 
         // now fill out dublin core for item
@@ -521,7 +523,7 @@ public class ItemImportOA
             additionalMetadataUpdateProcessPlugin.process(c, item, getSourceRef());
         }
         
-        item.update();
+        item.getItemService().update(c, item);
 
         if (goToWithdrawn)
         {
@@ -541,24 +543,24 @@ public class ItemImportOA
             {
                 if (item.isWithdrawn())
                 {
-                    item.reinstate();
+                    item.getItemService().reinstate(c, item);
                 }
             }
             // check if item is in workspace status
-            TableRow trWsi = DatabaseManager.findByUnique(c, "workspaceitem",
-                    "item_id", item_id);
+            WorkspaceItem trWsi = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(c, item);
+            
+            BasicWorkflowService WorkflowManager = (BasicWorkflowService)WorkflowServiceFactory.getInstance().getWorkflowService();
+            BasicWorkflowItemService basicWorkflowItemService = (BasicWorkflowItemService)WorkflowServiceFactory.getInstance().getWorkflowItemService();
             if (trWsi != null)
             {
-                Integer idWsi = trWsi.getIntColumn("workspace_item_id");
-                WorkspaceItem wsi = WorkspaceItem.find(c, idWsi);
 
                 if (goToWFStepOne || goToWFStepTwo || goToWFStepThree
                         || goToPublishing)
                 {
-                    WorkflowItem wfi = WorkflowManager.startWithoutNotify(c,
-                            wsi);
+                	BasicWorkflowItem wfi = WorkflowManager.startWithoutNotify(c,
+                            trWsi);
                     if ((wfi != null
-                            && wfi.getState() == WorkflowManager.WFSTATE_STEP1POOL)
+                            && wfi.getState() == BasicWorkflowService.WFSTATE_STEP1POOL)
                             && (goToWFStepTwo || goToWFStepThree
                                     || goToPublishing))
                     {
@@ -567,14 +569,14 @@ public class ItemImportOA
                         WorkflowManager.advance(c, wfi, batchJob);
                     }
                     if ((wfi != null
-                            && wfi.getState() == WorkflowManager.WFSTATE_STEP2POOL)
+                            && wfi.getState() == BasicWorkflowService.WFSTATE_STEP2POOL)
                             && (goToWFStepThree || goToPublishing))
                     {
                         WorkflowManager.claim(c, wfi, batchJob);
                         WorkflowManager.advance(c, wfi, batchJob);
                     }
                     if ((wfi != null
-                            && wfi.getState() == WorkflowManager.WFSTATE_STEP3POOL)
+                            && wfi.getState() == BasicWorkflowService.WFSTATE_STEP3POOL)
                             && goToPublishing)
                     {
                         WorkflowManager.claim(c, wfi, batchJob);
@@ -587,12 +589,9 @@ public class ItemImportOA
             {
 
                 // check if item is in workflow status
-                TableRow trWfi = DatabaseManager.findByUnique(c, "workflowitem",
-                        "item_id", item_id);
-                if (trWfi != null)
+                BasicWorkflowItem wfi = basicWorkflowItemService.findByItem(c, item);                
+                if (wfi != null)
                 {
-                    Integer idWfi = trWfi.getIntColumn("workflow_id");
-                    WorkflowItem wfi = WorkflowItem.find(c, idWfi);
                     if (workspace)
                     {
                         WorkflowManager.abort(c, wfi, batchJob);
@@ -600,27 +599,27 @@ public class ItemImportOA
                     else
                     {
                         int state = wfi.getState();
-                        if (state == WorkflowManager.WFSTATE_STEP1POOL
+                        if (state == BasicWorkflowService.WFSTATE_STEP1POOL
                                 && !goToWFStepOne)
                         {
                             WorkflowManager.claim(c, wfi, batchJob);
                             WorkflowManager.advance(c, wfi, batchJob);
                             if ((wfi != null
-                                    && wfi.getState() == WorkflowManager.WFSTATE_STEP2POOL)
+                                    && wfi.getState() == BasicWorkflowService.WFSTATE_STEP2POOL)
                                     && (goToWFStepThree || goToPublishing))
                             {
                                 WorkflowManager.claim(c, wfi, batchJob);
                                 WorkflowManager.advance(c, wfi, batchJob);
                             }
                             if ((wfi != null
-                                    && wfi.getState() == WorkflowManager.WFSTATE_STEP3POOL)
+                                    && wfi.getState() == BasicWorkflowService.WFSTATE_STEP3POOL)
                                     && (goToPublishing))
                             {
                                 WorkflowManager.claim(c, wfi, batchJob);
                                 WorkflowManager.advance(c, wfi, batchJob);
                             }
                         }
-                        else if (state == WorkflowManager.WFSTATE_STEP1)
+                        else if (state == BasicWorkflowService.WFSTATE_STEP1)
                         {
                             if (goToWFStepOne)
                             {
@@ -630,14 +629,14 @@ public class ItemImportOA
                             {
                                 WorkflowManager.advance(c, wfi, batchJob);
                                 if ((wfi != null
-                                        && wfi.getState() == WorkflowManager.WFSTATE_STEP2POOL)
+                                        && wfi.getState() == BasicWorkflowService.WFSTATE_STEP2POOL)
                                         && (goToWFStepThree || goToPublishing))
                                 {
                                     WorkflowManager.claim(c, wfi, batchJob);
                                     WorkflowManager.advance(c, wfi, batchJob);
                                 }
                                 if ((wfi != null
-                                        && wfi.getState() == WorkflowManager.WFSTATE_STEP3POOL)
+                                        && wfi.getState() == BasicWorkflowService.WFSTATE_STEP3POOL)
                                         && (goToPublishing))
                                 {
                                     WorkflowManager.claim(c, wfi, batchJob);
@@ -645,14 +644,14 @@ public class ItemImportOA
                                 }
                             }
                         }
-                        else if (state == WorkflowManager.WFSTATE_STEP2POOL
+                        else if (state == BasicWorkflowService.WFSTATE_STEP2POOL
                                 && !goToWFStepTwo)
                         {
                             WorkflowManager.claim(c, wfi, batchJob);
                             WorkflowManager.advance(c, wfi, batchJob);
 
                             if ((wfi != null
-                                    && wfi.getState() == WorkflowManager.WFSTATE_STEP3POOL)
+                                    && wfi.getState() == BasicWorkflowService.WFSTATE_STEP3POOL)
                                     && (goToPublishing))
                             {
                                 WorkflowManager.claim(c, wfi, batchJob);
@@ -663,12 +662,12 @@ public class ItemImportOA
                             {
                                 throw new RuntimeException("Error: Item "
                                         + item_id + " in status "
-                                        + WorkflowManager.WFSTATE_STEP2POOL
+                                        + BasicWorkflowService.WFSTATE_STEP2POOL
                                         + " no turn back in status "
-                                        + WorkflowManager.WFSTATE_STEP1);
+                                        + BasicWorkflowService.WFSTATE_STEP1);
                             }
                         }
-                        else if (state == WorkflowManager.WFSTATE_STEP2)
+                        else if (state == BasicWorkflowService.WFSTATE_STEP2)
                         {
                             if (goToWFStepTwo)
                             {
@@ -678,7 +677,7 @@ public class ItemImportOA
                             {
                                 WorkflowManager.advance(c, wfi, batchJob);
                                 if ((wfi != null
-                                        && wfi.getState() == WorkflowManager.WFSTATE_STEP3POOL)
+                                        && wfi.getState() == BasicWorkflowService.WFSTATE_STEP3POOL)
                                         && (goToPublishing))
                                 {
                                     WorkflowManager.claim(c, wfi, batchJob);
@@ -689,13 +688,13 @@ public class ItemImportOA
                                 {
                                     throw new RuntimeException("Error: Item "
                                             + item_id + " in status "
-                                            + WorkflowManager.WFSTATE_STEP2POOL
+                                            + BasicWorkflowService.WFSTATE_STEP2POOL
                                             + " no turn back in status "
-                                            + WorkflowManager.WFSTATE_STEP1);
+                                            + BasicWorkflowService.WFSTATE_STEP1);
                                 }
                             }
                         }
-                        else if (state == WorkflowManager.WFSTATE_STEP3POOL
+                        else if (state == BasicWorkflowService.WFSTATE_STEP3POOL
                                 && !goToWFStepThree)
                         {
                             WorkflowManager.claim(c, wfi, batchJob);
@@ -706,14 +705,14 @@ public class ItemImportOA
                             {
                                 throw new RuntimeException("Error: Item "
                                         + item_id + " in status "
-                                        + WorkflowManager.WFSTATE_STEP3POOL
+                                        + BasicWorkflowService.WFSTATE_STEP3POOL
                                         + " no turn back in status "
                                         + (goToWFStepOne
-                                                ? WorkflowManager.WFSTATE_STEP1
-                                                : WorkflowManager.WFSTATE_STEP2));
+                                                ? BasicWorkflowService.WFSTATE_STEP1
+                                                : BasicWorkflowService.WFSTATE_STEP2));
                             }
                         }
-                        else if (state == WorkflowManager.WFSTATE_STEP3)
+                        else if (state == BasicWorkflowService.WFSTATE_STEP3)
                         {
                             if (goToWFStepThree)
                             {
@@ -727,11 +726,11 @@ public class ItemImportOA
                                 {
                                     throw new RuntimeException("Error: Item "
                                             + item_id + " in status "
-                                            + WorkflowManager.WFSTATE_STEP3POOL
+                                            + BasicWorkflowService.WFSTATE_STEP3POOL
                                             + " no turn back in status "
                                             + (goToWFStepOne
-                                                    ? WorkflowManager.WFSTATE_STEP1
-                                                    : WorkflowManager.WFSTATE_STEP2));
+                                                    ? BasicWorkflowService.WFSTATE_STEP1
+                                                    : BasicWorkflowService.WFSTATE_STEP2));
                                 }
                             }
                         }
@@ -744,12 +743,12 @@ public class ItemImportOA
                     {
                         throw new RuntimeException(
                                 "Error: Item " + item_id + " in status "
-                                        + WorkflowManager.WFSTATE_ARCHIVE
+                                        + BasicWorkflowService.WFSTATE_ARCHIVE
                                         + " no turn back.");
                     }
                     else
                     {
-                        item.update();
+                        item.getItemService().update(c, item);
                     }
                 }
             }
@@ -763,10 +762,12 @@ public class ItemImportOA
      * non-null means we have a pre-defined handle already mapOut - mapfile
      * we're writing
      */
-    private int addItem(Context c, Collection[] mycollections, int imp_id,
+    private UUID addItem(Context c, Collection[] mycollections, int imp_id,
             String handle, boolean clearOldBitstream) throws Exception
     {
 
+    	BasicWorkflowService WorkflowManager = (BasicWorkflowService)WorkflowServiceFactory.getInstance().getWorkflowService();
+    	
         // gestione richiesta di whithdrawn per item non gi� in archivio
         if (goToWithdrawn)
         {
@@ -779,14 +780,13 @@ public class ItemImportOA
         WorkspaceItem wi = null;
         c.setCurrentUser(myEPerson);
 
-        wi = WorkspaceItem.create(c, mycollections[0], false);
+        wi = ContentServiceFactory.getInstance().getWorkspaceItemService().create(c, mycollections[0], false);
         myitem = wi.getItem();
 
         if (StringUtils.isNotEmpty(handle))
         {
             // se ti arriva allora chiami il service che ti registra l'handle
-            IdentifierService identifierService = dspace
-                    .getSingletonService(IdentifierService.class);
+        	IdentifierService identifierService  = IdentifierServiceFactory.getInstance().getIdentifierService();
             identifierService.register(c, myitem, handle);
         }
 
@@ -809,7 +809,7 @@ public class ItemImportOA
 
         if (goToWFStepOne || goToWFStepTwo || goToWFStepThree)
         {
-            WorkflowItem wfi = WorkflowManager.startWithoutNotify(c, wi);
+            BasicWorkflowItem wfi = WorkflowManager.startWithoutNotify(c, wi);
 
             int status = wfi.getState();
 
@@ -829,7 +829,7 @@ public class ItemImportOA
         }
         else if (goToPublishing)
         {
-            WorkflowItem wfi = WorkflowManager.startWithoutNotify(c, wi);
+        	BasicWorkflowItem wfi = WorkflowManager.startWithoutNotify(c, wi);
 
             if ((wfi != null
                     && wfi.getState() == WorkflowManager.WFSTATE_STEP1POOL))
@@ -863,7 +863,7 @@ public class ItemImportOA
         {
             for (int i = 1; i < mycollections.length; i++)
             {
-                mycollections[i].addItem(myitem);
+                mycollections[i].getCollectionService().addItem(c, mycollections[i], myitem);
             }
         }
 
@@ -873,20 +873,16 @@ public class ItemImportOA
     private void loadDublinCore(Context c, Item myitem, int imp_id)
             throws SQLException, AuthorizeException, TransformerException
     {
-        TableRowIterator retTRI = null;
-        TableRow row_data = null;
 
-        String myQuery = "SELECT * FROM imp_metadatavalue WHERE imp_id = ? ORDER BY imp_metadatavalue_id, imp_element, imp_qualifier, metadata_order";
+        String myQuery = "SELECT imp_value, imp_element, imp_qualifier, imp_authority, imp_confidence, TEXT_LANG, IMP_SHARE  FROM imp_metadatavalue WHERE imp_id = :par0 ORDER BY imp_metadatavalue_id, imp_element, imp_qualifier, metadata_order";
 
-        retTRI = DatabaseManager.query(c, myQuery, imp_id);
+        List<Object[]> retTRI = getHibernateSession(c).createSQLQuery(myQuery).setParameter(0, imp_id).list();
 
         // Add each one as a new format to the registry
-        while (retTRI.hasNext())
+        for(Object[] row_data : retTRI)
         {
-            row_data = retTRI.next();
             addDCValue(c, myitem, "dc", row_data);
         }
-        retTRI.close();
     }
 
     /**
@@ -903,22 +899,22 @@ public class ItemImportOA
      * @throws SQLException
      * @throws AuthorizeException
      */
-    private void addDCValue(Context c, Item i, String schema, TableRow n)
+    private void addDCValue(Context c, Item i, String schema, Object[] n)
             throws TransformerException, SQLException, AuthorizeException
     {
-        String value = n.getStringColumn("imp_value");
+        String value = (String)n[0];//.getStringColumn("imp_value");
         // compensate for empty value getting read as "null", which won't
         // display
         if (value == null)
             value = "";
 
-        String element = n.getStringColumn("imp_element");
-        String qualifier = n.getStringColumn("imp_qualifier");
-        String authority = n.getStringColumn("imp_authority");
-        int confidence = n.getIntColumn("imp_confidence");
+        String element = (String)n[1];//.getStringColumn("imp_element");
+        String qualifier = (String)n[2];//.getStringColumn("imp_qualifier");
+        String authority = (String)n[3];//.getStringColumn("imp_authority");
+        int confidence = (Integer)n[4];//.getIntColumn("imp_confidence");
         String language = "";
 
-        language = n.getStringColumn("TEXT_LANG");
+        language = (String)n[5];//.getStringColumn("TEXT_LANG");
 
         System.out.println("\tSchema: " + schema + " Element: " + element
                 + " Qualifier: " + qualifier + " Value: " + value);
@@ -942,7 +938,7 @@ public class ItemImportOA
         }
 
         // let's check that the actual metadata field exists.
-        MetadataSchema foundSchema = MetadataSchema.find(c, schema);
+        MetadataSchema foundSchema = ContentServiceFactory.getInstance().getMetadataSchemaService().find(c, schema);
 
         if (foundSchema == null)
         {
@@ -951,8 +947,8 @@ public class ItemImportOA
             return;
         }
 
-        int schemaID = foundSchema.getSchemaID();
-        MetadataField foundField = MetadataField.findByElement(c, schemaID,
+        
+        MetadataField foundField = ContentServiceFactory.getInstance().getMetadataFieldService().findByElement(c, foundSchema,
                 element, qualifier);
 
         if (foundField == null)
@@ -969,7 +965,7 @@ public class ItemImportOA
         int share = -1;
         if (bShare)
         {
-            share = n.getIntColumn("IMP_SHARE");
+            share = (Integer)n[6];//.getIntColumn("IMP_SHARE");
         }
 
         if (authority != null && authority.equals("N/A"))
@@ -985,7 +981,7 @@ public class ItemImportOA
             }
             else
             {
-                i.addMetadata(schema, element, qualifier, language, value,
+                i.getItemService().addMetadata(c, i, schema, element, qualifier, language, value,
                         authority, confidence);
             }
         }
@@ -999,7 +995,7 @@ public class ItemImportOA
             }
             else
             {
-                i.addMetadata(schema, element, qualifier, language, value,
+            	i.getItemService().addMetadata(c, i, schema, element, qualifier, language, value,
                         authority, confidence);
             }
         }
@@ -1013,7 +1009,7 @@ public class ItemImportOA
             }
             else
             {
-                i.addMetadata(schema, element, qualifier, language, value);
+            	i.getItemService().addMetadata(c, i, schema, element, qualifier, language, value);
             }
         }
     }
@@ -1035,44 +1031,41 @@ public class ItemImportOA
 
         if (clearOldBitstream)
         {
-            Bundle[] bnds = i.getBundles();
+            List<Bundle> bnds = i.getBundles();
             if (bnds != null)
             {
                 for (Bundle bundle : bnds)
                 {
-                    Bitstream[] bts = bundle.getBitstreams();
+                    List<Bitstream> bts = bundle.getBitstreams();
                     if (bts != null)
                     {
                         for (Bitstream b : bts)
                         {
-                            bundle.removeBitstream(b);
-                            bundle.update();
+                            bundle.getBundleService().removeBitstream(c, bundle, b);
+                            bundle.getBundleService().update(c, bundle);
                         }
                     }
-                    i.removeBundle(bundle);
+                    i.getItemService().removeBundle(c, i, bundle);
                 }
             }
         }
         // retrieve the attached
-        String sql_bs = "SELECT * FROM imp_bitstream WHERE imp_id = ? order by bitstream_order asc";
+        String sql_bs = "SELECT imp_bitstream_id, filepath, bundle, description, primary_bitstream, assetstore, name, embargo_policy, embargo_start_date, md5value, imp_blob, assetstore FROM imp_bitstream WHERE imp_id = :par0 order by bitstream_order asc";
 
-        TableRowIterator rows_bs_all = DatabaseManager.queryTable(c,
-                "imp_bitstream", sql_bs, imp_id);
+        List<Object[]> rows_bs_all = getHibernateSession(c).createSQLQuery(sql_bs).setParameter(0,imp_id).list();
 
-        while (rows_bs_all.hasNext())
+        for (Object[] imp_bitstream : rows_bs_all)
         {
-            TableRow imp_bitstream = rows_bs_all.next();
 
-            String filepath = imp_bitstream.getStringColumn("filepath");
-            String bundleName = imp_bitstream.getStringColumn("bundle");
-            String description = imp_bitstream.getStringColumn("description");
-            Boolean primary_bitstream = imp_bitstream
-                    .getBooleanColumn("primary_bitstream");
+            String filepath = (String)imp_bitstream[1];//.getStringColumn("filepath");
+            String bundleName = (String)imp_bitstream[2];//.getStringColumn("bundle");
+            String description = (String)imp_bitstream[3];//.getStringColumn("description");
+            Boolean primary_bitstream = (Boolean)imp_bitstream[4];//.getBooleanColumn("primary_bitstream");
 
-            int assetstore = imp_bitstream.getIntColumn("assetstore");
+            int assetstore = (Integer)imp_bitstream[5];//.getIntColumn("assetstore");
             System.out.println("\tProcessing contents file: " + filepath);
 
-            String name_file = imp_bitstream.getStringColumn("name");
+            String name_file = (String)imp_bitstream[6];//.getStringColumn("name");
 
             String start_date = "";
 
@@ -1080,20 +1073,19 @@ public class ItemImportOA
             // 1: embargo
             // 2: only an authorized group
             // 3: not visible
-            int embargo_policy = imp_bitstream.getIntColumn("embargo_policy");
-            String embargo_start_date = imp_bitstream
-                    .getStringColumn("embargo_start_date");
+            int embargo_policy = (Integer)imp_bitstream[7];//.getIntColumn("embargo_policy");
+            String embargo_start_date = (String)imp_bitstream[8];//.getStringColumn("embargo_start_date");
             Group embargoGroup = null;
             if (embargo_policy != -1)
             {
                 if (embargo_policy == 3)
                 {
                     start_date = null;
-                    embargoGroup = Group.find(c, 1);
+                    embargoGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(c, Group.ADMIN);
                 }
                 else if (embargo_policy == 2)
                 {
-                    embargoGroup = Group.find(c, embargo_policy);
+                    embargoGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(c, Group.EMBARGO);
                     if (embargo_start_date != null)
                     {
                         start_date = embargo_start_date;
@@ -1113,8 +1105,8 @@ public class ItemImportOA
                 }
             }
 
-            String valueMD5 = imp_bitstream.getStringColumn("md5value");
-            byte[] content = imp_bitstream.getBinaryData("imp_blob");
+            String valueMD5 = (String)imp_bitstream[8];//.getStringColumn("md5value");
+            byte[] content = (byte[])imp_bitstream[9];//.getBinaryData("imp_blob");
             Bitstream bs = processBitstreamEntry(c, i, filepath, bundleName,
                     description, primary_bitstream, name_file,
                     assetstore, embargoGroup, start_date, content,
@@ -1122,8 +1114,8 @@ public class ItemImportOA
             // HACK: replace the bytea with a register like operation
             if (content != null)
             {
-                imp_bitstream.setColumnNull("imp_blob");
-                imp_bitstream.setColumn("assetstore", bs.getStoreNumber());
+            	String sql = "UPDATE imp_bitstream SET imp_blob = null, assetstore = :par0, filepath = :par1 WHERE imp_bitstream_id = :par2";
+                
                 String assetstorePath;
                 if (bs.getStoreNumber() == 0)
                 {
@@ -1137,13 +1129,11 @@ public class ItemImportOA
                             + File.separatorChar;
                 }
                 int length = assetstorePath.length();
-                imp_bitstream.setColumn("filepath",
-                        bs.getSource().substring(length));
-                DatabaseManager.update(c, imp_bitstream);
+                
+                getHibernateSession(c).createSQLQuery(sql).setParameter(0, bs.getStoreNumber()).setParameter(1, bs.getSource().substring(length)).setParameter(2, imp_bitstream[0]).executeUpdate();
             }
 
         }
-        rows_bs_all.close();
     }
 
     /**
@@ -1197,18 +1187,18 @@ public class ItemImportOA
         }
 
         // find the bundle
-        Bundle[] bundles = i.getBundles(newBundleName);
+        List<Bundle> bundles = i.getItemService().getBundles(i, newBundleName);
         Bundle targetBundle = null;
 
-        if (bundles.length < 1)
+        if (bundles.size() < 1)
         {
             // not found, create a new one
-            targetBundle = i.createBundle(newBundleName);
+            targetBundle = ContentServiceFactory.getInstance().getBundleService().create(c, i, newBundleName);
         }
         else
         {
             // put bitstreams into first bundle
-            targetBundle = bundles[0];
+            targetBundle = bundles.get(0);
         }
 
         // get an input stream
@@ -1225,44 +1215,44 @@ public class ItemImportOA
             }
 
             // now add the bitstream
-            bs = targetBundle.createBitstream(bis);
+            bs = ContentServiceFactory.getInstance().getBitstreamService().create(c, targetBundle, bis);
         }
         else
         {
-            bs = targetBundle.registerBitstream(alreadyInAssetstoreNr,
-                    bitstreamPath, valueMD5 == null);
+            bs = ContentServiceFactory.getInstance().getBitstreamService().register(c, targetBundle, alreadyInAssetstoreNr,
+                    bitstreamPath);
             if (valueMD5 != null)
             {
-                bs.setMD5Value(valueMD5);
+                bs.setMD5Value(c, valueMD5);
             }
         }
 
-        bs.setDescription(description);
+        bs.setDescription(c, description);
         if (primaryBitstream)
         {
-            targetBundle.setPrimaryBitstreamID(bs.getID());
+            targetBundle.setPrimaryBitstreamID(bs);
         }
         if (name_file != null)
-            bs.setName(name_file);
+            bs.setName(c, name_file);
         else
-            bs.setName(new File(fullpath).getName());
+            bs.setName(c, new File(fullpath).getName());
 
         // Identify the format
         // FIXME - guessing format guesses license.txt incorrectly as a text
         // file format!
-        BitstreamFormat bf = FormatIdentifier.guessFormat(c, bs);
-        bs.setFormat(bf);
+        BitstreamFormat bf = ContentServiceFactory.getInstance().getBitstreamFormatService().guessFormat(c, bs);
+        bs.setFormat(c, bf);
         if (bitstreamPath != null)
         {
-            bs.setSource(bitstreamPath);
+            bs.setSource(c, bitstreamPath);
         }
         else
         {
-            bs.setSource(BitstreamStorageManager.absolutePath(c, bs.getID()));
+            bs.setSource(c, bs.getSource());
         }
 
         if (embargoGroup == null) {
-            embargoGroup = Group.find(c, 0);
+            embargoGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(c, Group.ANONYMOUS);
         }
         Date embargoDate = null;
         if (StringUtils.isNotBlank(start_date)) {
@@ -1277,19 +1267,18 @@ public class ItemImportOA
                 embargoDate = cal.getTime();
             }
         }
-        AuthorizeManager.removeAllPoliciesByDSOAndType(c, bs,
+        AuthorizeServiceFactory.getInstance().getAuthorizeService().removeAllPoliciesByDSOAndType(c, bs,
                 ResourcePolicy.TYPE_CUSTOM);
-        AuthorizeManager.removeAllPoliciesByDSOAndType(c, bs,
+        AuthorizeServiceFactory.getInstance().getAuthorizeService().removeAllPoliciesByDSOAndType(c, bs,
                 ResourcePolicy.TYPE_INHERITED);
-        ResourcePolicy rp = ResourcePolicy.create(c);
-        rp.setResource(bs);
+        ResourcePolicy rp = AuthorizeServiceFactory.getInstance().getResourcePolicyService().create(c);
+        rp.setdSpaceObject(bs);
         rp.setAction(Constants.READ);
         rp.setRpType(ResourcePolicy.TYPE_CUSTOM);
         rp.setGroup(embargoGroup);
         rp.setStartDate(embargoDate);
-        rp.update();
-        
-        bs.update();
+        AuthorizeServiceFactory.getInstance().getResourcePolicyService().update(c, rp);        
+        ContentServiceFactory.getInstance().getBitstreamService().update(c, bs);
         return bs;
     }
 
@@ -1343,4 +1332,7 @@ public class ItemImportOA
         this.sourceRef = sourceRef;
     }
 
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

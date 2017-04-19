@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
@@ -34,7 +35,7 @@ public class HeaderFooterCitationCrosswalk extends ReferCrosswalk implements
 {
 
     @Override
-    public void disseminate(Context context, List<DSpaceObject> dso,
+    public void disseminate(Context context, List<BrowsableDSpaceObject> dso,
             OutputStream out) throws CrosswalkException, IOException,
             SQLException, AuthorizeException
     {
@@ -69,7 +70,7 @@ public class HeaderFooterCitationCrosswalk extends ReferCrosswalk implements
         }
 
 
-        for (DSpaceObject dsobject : dso)
+        for (BrowsableDSpaceObject dsobject : dso)
         {
             super.disseminate(context, dsobject, out);
         }

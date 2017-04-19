@@ -12,7 +12,7 @@ import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.ExternalService;
 
 public class CrisService implements ExternalService
@@ -21,9 +21,9 @@ public class CrisService implements ExternalService
     private ApplicationService applicationService;
     
     @Override
-    public DSpaceObject getObject(String externalId)
+    public BrowsableDSpaceObject getObject(String externalId)
     {
-        DSpaceObject dso = applicationService.getEntityByCrisId(externalId, ResearcherPage.class);
+        BrowsableDSpaceObject dso = applicationService.getEntityByCrisId(externalId, ResearcherPage.class);
         if (dso == null) {
             dso = applicationService.getEntityByCrisId(externalId, OrganizationUnit.class);
             if (dso == null) {

@@ -9,6 +9,7 @@ package org.dspace.app.cris.configuration;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.dto.SimpleViewEntityDTO;
 import org.dspace.content.DSpaceObject;
@@ -21,7 +22,7 @@ public class ViewResolver
     
     private List<ISimpleViewResolver> plugins;
 
-    public SimpleViewEntityDTO fillDTO(Context context, int itemID,
+    public SimpleViewEntityDTO fillDTO(Context context, UUID itemID,
             int typeID) throws SQLException
     {
         

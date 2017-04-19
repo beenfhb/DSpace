@@ -9,6 +9,7 @@ package org.dspace.statistics.service;
 
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.eperson.EPerson;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -35,7 +36,7 @@ public interface ElasticSearchLoggerService {
     }
 
 
-    public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser);
+    public void post(UsageEventEntity dspaceObject, HttpServletRequest request, EPerson currentUser);
 
     public void post(BrowsableDSpaceObject dspaceObject, String ip, String userAgent, String xforwardedfor, EPerson currentUser);
 

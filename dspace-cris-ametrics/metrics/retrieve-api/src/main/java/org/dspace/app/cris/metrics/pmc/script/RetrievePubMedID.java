@@ -9,19 +9,17 @@ package org.dspace.app.cris.metrics.pmc.script;
 
 
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.metrics.pmc.services.PMCEntrezException;
 import org.dspace.app.cris.metrics.pmc.services.PMCEntrezLocalSOLRServices;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -67,7 +65,7 @@ public class RetrievePubMedID
             query.addSearchField("search.resourcetype");
             query.addSearchField("handle");
             DiscoverResult qresp = searcher.search(context, query);
-            for (DSpaceObject dso : qresp.getDspaceObjects())
+            for (BrowsableDSpaceObject dso : qresp.getDspaceObjects())
             {
 
                 List<SearchDocument> list = qresp.getSearchDocument(dso);
@@ -76,7 +74,7 @@ public class RetrievePubMedID
                                 + " items"));
                 for (SearchDocument doc : list)
                 {
-                    Integer itemID = dso.getID();
+                    UUID itemID = dso.getID();
                     if (isCheckRequired(itemID))
                     {
                         List<String> dois = doc
@@ -165,19 +163,18 @@ public class RetrievePubMedID
 
     }
 
-    private static void recordPubmedID(Integer itemID, List<Integer> pubmedIDs)
+    private static void recordPubmedID(UUID itemID, List<Integer> pubmedIDs)
             throws SQLException, AuthorizeException
     {
         Context context = getContext();
-        Item item = Item.find(context, itemID);
+        Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
         for (Integer pid : pubmedIDs)
         {
-            item.clearMetadata("dc", "identifier", "pmid", null);
-            item.addMetadata("dc", "identifier", "pmid", null, pid.toString());
-            item.update();
+        	ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, "dc", "identifier", "pmid", null);
+        	ContentServiceFactory.getInstance().getItemService().addMetadata(context, item, "dc", "identifier", "pmid", null, pid.toString());
+        	ContentServiceFactory.getInstance().getItemService().update(context, item);
         }
         context.commit();
-        context.removeCached(item, itemID);
     }
 
     private static Context getContext() throws SQLException
@@ -191,7 +188,7 @@ public class RetrievePubMedID
         return context;
     }
 
-    private static boolean isCheckRequired(Integer fieldValue)
+    private static boolean isCheckRequired(UUID fieldValue)
     {
         return true;
     }

@@ -44,7 +44,7 @@ public class VirtualFieldCrossrefISBN implements VirtualFieldDisseminator,
             
             String element = "";
             if(mds!=null && mds.size()>0) {
-              element = "<isbn>" + mds[0].value + "</isbn>";
+              element = "<isbn>" + mds.get(0).getValue() + "</isbn>";
             }
             else {
                 element = "<noisbn reason=\"monograph\"></noisbn>";  
@@ -59,7 +59,7 @@ public class VirtualFieldCrossrefISBN implements VirtualFieldDisseminator,
             }
 
         }
-        catch (SQLException e)
+        catch (Exception e)
         {
             // nothing
         }

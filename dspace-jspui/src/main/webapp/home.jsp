@@ -22,6 +22,16 @@
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
+<%@page import="org.dspace.services.factory.DSpaceServicesFactory"%>
+<%@page import="org.dspace.services.ConfigurationService"%>
+<%@page import="org.dspace.browse.BrowsableDSpaceObject"%>
+<%@page import="org.dspace.core.factory.CoreServiceFactory"%>
+<%@page import="org.dspace.core.service.NewsService"%>
+<%@page import="org.dspace.content.service.CommunityService"%>
+<%@page import="org.dspace.content.factory.ContentServiceFactory"%>
+<%@page import="org.dspace.content.service.ItemService"%>
+<%@page import="org.dspace.core.Utils"%>
+<%@page import="org.dspace.content.Bitstream"%>
 <%@ page import="java.io.File" %>
 <%@ page import="java.util.Enumeration"%>
 <%@ page import="java.util.Locale"%>
@@ -32,9 +42,7 @@
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
 <%@ page import="org.dspace.content.Community" %>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
-<%@ page import="org.dspace.core.NewsManager" %>
 <%@ page import="org.dspace.browse.ItemCounter" %>
-<%@ page import="org.dspace.content.Metadatum" %>
 <%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.discovery.configuration.DiscoveryViewConfiguration" %>
 <%@page import="org.dspace.app.webui.components.MostViewedBean"%>
@@ -46,18 +54,24 @@
 <%@ page import="org.dspace.app.webui.util.LocaleUIHelper" %>
 
 <%
-    Community[] communities = (Community[]) request.getAttribute("communities");
+    List<Community> communities = (List<Community>) request.getAttribute("communities");
 
     Locale sessionLocale = UIUtil.getSessionLocale(request);
     Config.set(request.getSession(), Config.FMT_LOCALE, sessionLocale);
-    String topNews = NewsManager.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-top.html"));
-    String sideNews = NewsManager.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-side.html"));
+    NewsService newsService = CoreServiceFactory.getInstance().getNewsService();
+    String topNews = newsService.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-top.html"));
+    String sideNews = newsService.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-side.html"));
 
-    boolean feedEnabled = ConfigurationManager.getBooleanProperty("webui.feed.enable");
+    ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    
+    boolean feedEnabled = configurationService.getBooleanProperty("webui.feed.enable");
     String feedData = "NONE";
     if (feedEnabled)
     {
-        feedData = "ALL:" + ConfigurationManager.getProperty("webui.feed.formats");
+        // FeedData is expected to be a comma separated list
+        String[] formats = configurationService.getArrayProperty("webui.feed.formats");
+        String allFormats = StringUtils.join(formats, ",");
+        feedData = "ALL:" + allFormats;
     }
     
     ItemCounter ic = new ItemCounter(UIUtil.obtainContext(request));
@@ -105,7 +119,7 @@
 	</div>
 </div>
 <%
-if (communities != null && communities.length != 0)
+if (communities != null && communities.size() != 0)
 {
 %>
 <div class="row">
@@ -115,11 +129,11 @@ if (communities != null && communities.length != 0)
 				<div class="list-group">
 <%
 	boolean showLogos = ConfigurationManager.getBooleanProperty("jspui.home-page.logos", true);
-    for (int i = 0; i < communities.length; i++)
+    for (int i = 0; i < communities.size(); i++)
     {
 %><div class="list-group-item row">
 <%  
-		Bitstream logo = communities[i].getLogo();
+		Bitstream logo = communities.get(i).getLogo();
 		if (showLogos && logo != null) { %>
 	<div class="col-md-3">
         <img alt="Logo" class="img-responsive" src="<%= request.getContextPath() %>/retrieve/<%= logo.getID() %>" /> 
@@ -128,18 +142,18 @@ if (communities != null && communities.length != 0)
 <% } else { %>
 	<div class="col-md-12">
 <% }  %>		
-		<h4 class="list-group-item-heading"><a href="<%= request.getContextPath() %>/handle/<%= communities[i].getHandle() %>"><%= communities[i].getMetadata("name") %></a>
+		<h4 class="list-group-item-heading"><a href="<%= request.getContextPath() %>/handle/<%= communities.get(i).getHandle() %>"><%= communities.get(i).getMetadata("name") %></a>
 <%
         if (ConfigurationManager.getBooleanProperty("webui.strengths.show"))
         {
 %>
-		<span class="badge pull-right"><%= ic.getCount(communities[i]) %></span>
+		<span class="badge pull-right"><%= ic.getCount(communities.get(i)) %></span>
 <%
         }
 
 %>
 		</h4>
-		<p><%= communities[i].getMetadata("short_description") %></p>
+		<p><%= communities.get(i).getMetadata("short_description") %></p>
     </div>
 </div>                            
 	

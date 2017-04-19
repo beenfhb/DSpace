@@ -8,11 +8,13 @@
 package org.dspace.app.cris.deduplication.service.impl;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.util.ItemUtils;
@@ -25,8 +27,8 @@ public class ItemWithdrawnDedupServiceIndexPlugin
             .getLogger(ItemWithdrawnDedupServiceIndexPlugin.class);
 
     @Override
-    public void additionalIndex(Context context, Integer firstId,
-            Integer secondId, Integer type, SolrInputDocument document)
+    public void additionalIndex(Context context, UUID firstId,
+    		UUID secondId, Integer type, SolrInputDocument document)
     {
 
         if (type == Constants.ITEM)
@@ -39,12 +41,12 @@ public class ItemWithdrawnDedupServiceIndexPlugin
 
     }
 
-    private void internal(Context context, Integer itemId,
+    private void internal(Context context, UUID itemId,
             SolrInputDocument document)
     {
         try
         {
-            Item item = Item.find(context, itemId);
+            Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemId);
 
             Integer status = ItemUtils.getItemStatus(context, item);
             if (status == 3)

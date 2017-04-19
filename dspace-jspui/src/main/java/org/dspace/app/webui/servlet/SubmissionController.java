@@ -22,7 +22,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.functors.SwitchClosure;
 import org.apache.commons.fileupload.FileUploadBase.FileSizeLimitExceededException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -46,18 +45,13 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.submit.AbstractProcessingStep;
+import org.dspace.submit.step.DescribeStep;
 import org.dspace.submit.step.UploadStep;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflowbasic.factory.BasicWorkflowServiceFactory;
 
 import com.google.gson.Gson;
-ro
-
-import javax.servlet.http.HttpSession;
-
-import org.dspace.submit.step.DescribeStep;
-import org.dspace.submit.step.UploadStep;
 
 /**
  * Submission Manager servlet for DSpace. Handles the initial submission of
@@ -172,7 +166,7 @@ public class SubmissionController extends DSpaceServlet
         String workspaceID = request.getParameter("resume");
         String workflowID = request.getParameter("workflow");
         String resumableFilename = request.getParameter("resumableFilename");
-        String itemID = request.getParameter("edit_item");
+        UUID itemID = UIUtil.getUUIDParameter(request, "edit_item");
         int codeCallerPage = Util.getIntParameter(request, "pageCallerID");
         request.setAttribute("pageCallerID", codeCallerPage);
         
@@ -254,9 +248,9 @@ public class SubmissionController extends DSpaceServlet
         {
             try {
                 // load the item
-                Item item = Item.find(context, Integer.parseInt(itemID));
+                Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
 
-                EditItem editItem = new EditItem(item);
+                EditItem editItem = new EditItem(context, item);
                 // load submission information
                 SubmissionInfo si = SubmissionInfo.load(context, request, editItem);
                 
@@ -267,7 +261,7 @@ public class SubmissionController extends DSpaceServlet
                 doStep(context, request, response, si, WORKFLOW_FIRST_STEP);
             } catch (NumberFormatException nfe) {
                 log.warn(LogManager.getHeader(context, "bad_item_id", "bad_id=" + itemID));
-                JSPManager.showInvalidIDError(request, response, itemID, -1);
+                JSPManager.showInvalidIDError(request, response, itemID.toString(), -1);
             }
         }      
         else
@@ -967,7 +961,7 @@ public class SubmissionController extends DSpaceServlet
                     double stepAndPageReached = Float.parseFloat(getStepReached(subInfo)+"."+JSPStepManager.getPageReached(subInfo));
                     
                     if (result != AbstractProcessingStep.STATUS_COMPLETE && currStepAndPage < stepAndPageReached){
-                        setReachedStepAndPage(subInfo, currStep, currPage);
+                        setReachedStepAndPage(context, subInfo, currStep, currPage);
                     }
                     
                     //commit
@@ -1137,22 +1131,22 @@ public class SubmissionController extends DSpaceServlet
             {
                 int workflowID = UIUtil.getIntParameter(request, "workflow_id");
                 
-                info = SubmissionInfo.load(request, workflowItemService.find(context, workflowID));
+                info = SubmissionInfo.load(context, request, workflowItemService.find(context, workflowID));
             }
             else if(request.getParameter("workspace_item_id") != null)
             {
                 int workspaceID = UIUtil.getIntParameter(request,
                         "workspace_item_id");
                 
-                info = SubmissionInfo.load(request, workspaceItemService.find(context, workspaceID));
+                info = SubmissionInfo.load(context, request, workspaceItemService.find(context, workspaceID));
             }
             else if (request.getParameter("edit_item") != null) 
             {
-                int itemID = UIUtil.getIntParameter(request, "edit_item");
+                UUID itemID = UIUtil.getUUIDParameter(request, "edit_item");
                 // load the item
-                Item item = Item.find(context, itemID);
+                Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
 
-                EditItem editItem = new EditItem(item);
+                EditItem editItem = new EditItem(context, item);
                 // load submission information
                 info = SubmissionInfo.load(context, request, editItem);
             }

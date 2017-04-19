@@ -13,8 +13,7 @@ import java.util.Map;
 import org.dspace.content.Item;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.hibernate.Session;
 
 /**
  * Implements virtual field processing for retrieve doi on table doi2item
@@ -41,12 +40,11 @@ public class VirtualFieldDoi implements VirtualFieldDisseminator,
             {
                 return new String[] { fieldCache.get(fieldName) };
             }
-            TableRow row = DatabaseManager.querySingle(context,
+            Object row = getHibernateSession(context).createSQLQuery(
                     "select identifier_doi from "
                             + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-                            + " where item_id = ?", item.getID());
-            fieldCache.put("virtual.doi", row.getStringColumn("identifier_doi")
-                    .trim());
+                            + " where item_id = :par0").setParameter(0,item.getID()).uniqueResult();
+            fieldCache.put("virtual.doi", (String)row);
             // Return the value of the virtual field (if any)
             if (fieldCache.containsKey(fieldName))
             {
@@ -80,4 +78,8 @@ public class VirtualFieldDoi implements VirtualFieldDisseminator,
     {
         return false;
     }
+    
+	public Session getHibernateSession(Context context) throws SQLException {
+		return ((Session) context.getDBConnection().getSession());
+	}
 }

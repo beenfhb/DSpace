@@ -19,6 +19,7 @@
   -    admin_button - Boolean, show admin 'edit' button
   --%>
 
+<%@page import="org.dspace.core.ConfigurationManager"%>
 <%@page import="org.dspace.content.service.CollectionService"%>
 <%@page import="org.dspace.content.factory.ContentServiceFactory"%>
 <%@page import="org.dspace.content.service.CommunityService"%>
@@ -230,13 +231,13 @@
 <%
                 }
 			if(isAdmin || !ConfigurationManager.getBooleanProperty("solr-statistics","authorization.admin")) { %>
-					<a href="<%= request.getContextPath() %>/cris/stats/community.html?handle=<%= subcommunities[j].getHandle() %>&type=selected"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
+					<a href="<%= request.getContextPath() %>/cris/stats/community.html?handle=<%= subcommunities.get(j).getHandle() %>&type=selected"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
 				&nbsp;
 		 <% } %>
         
-		<a href="<%= request.getContextPath() %>/feed/rss_2.0/<%= subcommunities[j].getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/feed.png" border="0" title="Content update: RSS feed"/></a>
-		&nbsp;<a href=<%= request.getContextPath() %>/handle/<%= subcommunities[j].getHandle() %>?handle=<%= subcommunities[j].getHandle() %>&submit_<%
-		    if (commSubscribed!=null && commSubscribed.contains(subcommunities[j].getID()))
+		<a href="<%= request.getContextPath() %>/feed/rss_2.0/<%= subcommunities.get(j).getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/feed.png" border="0" title="Content update: RSS feed"/></a>
+		&nbsp;<a href=<%= request.getContextPath() %>/handle/<%= subcommunities.get(j).getHandle() %>?handle=<%= subcommunities.get(j).getHandle() %>&submit_<%
+		    if (commSubscribed!=null && commSubscribed.contains(subcommunities.get(j).getID()))
 		    { // subscribed
 		        %>unsubscribe=unsubscribe"><img src="<%= request.getContextPath() %>/image/stats/stop-bell.png" border="0" title="Content update: Email subscription"/></a><%
 		    }
@@ -301,13 +302,13 @@
 <%
             }
 			if(isAdmin || !ConfigurationManager.getBooleanProperty("solr-statistics","authorization.admin")) { %>
-					<a href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collections[i].getHandle() %>&type=selected"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
+					<a href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collections.get(i).getHandle() %>&type=selected"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
 				&nbsp;
 		 <% } %>
         
-		<a href="<%= request.getContextPath() %>/feed/rss_2.0/<%= collections[i].getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/feed.png" border="0" title="Content update: RSS feed"/></a>
-		&nbsp;<a href=<%= request.getContextPath() %>/handle/<%= collections[i].getHandle() %>?handle=<%= collections[i].getHandle() %>&submit_<%
-		    if (collSubscribed!=null && collSubscribed.contains(collections[i].getID()))
+		<a href="<%= request.getContextPath() %>/feed/rss_2.0/<%= collections.get(i).getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/feed.png" border="0" title="Content update: RSS feed"/></a>
+		&nbsp;<a href=<%= request.getContextPath() %>/handle/<%= collections.get(i).getHandle() %>?handle=<%= collections.get(i).getHandle() %>&submit_<%
+		    if (collSubscribed!=null && collSubscribed.contains(collections.get(i).getID()))
 		    { // subscribed
 		        %>unsubscribe=unsubscribe"><img src="<%= request.getContextPath() %>/image/stats/stop-bell.png" border="0" title="Content update: Email subscription"/></a><%
 		    }
@@ -392,10 +393,6 @@
 		</div>
 		<% } %>
 		<%= sidebar %>
-		<%
-			int discovery_panel_cols = 12;
-			int discovery_facet_cols = 12;
-		%>
 		<%@ include file="discovery/static-sidebar-facet.jsp" %>
   </dspace:sidebar>
 </dspace:layout>

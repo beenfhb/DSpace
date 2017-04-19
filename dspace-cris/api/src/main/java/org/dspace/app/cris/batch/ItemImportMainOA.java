@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.BrokenBarrierException;
@@ -38,17 +39,15 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.eperson.EPerson;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.hibernate.Session;
 
 public class ItemImportMainOA
 {
@@ -163,8 +162,8 @@ public class ItemImportMainOA
                 else
                 {
                     List<String> mOptions = Arrays.asList(optionValues);
-                    MetadataField[] mdfs = MetadataField.findAll(context);
-                    metadataClean = new String[mdfs.length
+                    List<MetadataField> mdfs = ContentServiceFactory.getInstance().getMetadataFieldService().findAll(context);
+                    metadataClean = new String[mdfs.size()
                             - optionValues.length];
                     int idx = 0;
                     for (MetadataField mdf : mdfs)
@@ -188,11 +187,10 @@ public class ItemImportMainOA
             else
             {
                 // try to get user batchjob
-                TableRow row_batchJob = DatabaseManager.querySingleTable(
-                        context, "eperson", QUERY_BATCH_USER, BATCH_USER);
+                List<EPerson> row_batchJob = EPersonServiceFactory.getInstance().getEPersonService().search(context, BATCH_USER);
                 if (row_batchJob != null)
                 {
-                    batchJob = row_batchJob.getStringColumn("email");
+                    batchJob = row_batchJob.get(0).getEmail();
 
                     if (batchJob == null)
                     {
@@ -218,33 +216,29 @@ public class ItemImportMainOA
 
             int numOfThread = getNumberOfThread(line);
 
+            List<Object[]> rows = null;
             if (numOfThread > 1)
             {
-                TableRowIterator rows;
-                String sql;
-
-                sql = "SELECT a.*, (select count(imp_record_id) from imp_record b where b.imp_record_id=a.imp_record_id and b.last_modified is NULL ) as cardinality FROM imp_record a WHERE last_modified is NULL order by imp_id ASC";// and
+                String sql = "SELECT a.imp_id, a.imp_record_id, a.imp_eperson_id, a.imp_collection_id, a.status, a.operation, a.handle, a.imp_sourceref, (select count(imp_record_id) from imp_record b where b.imp_record_id=a.imp_record_id and b.last_modified is NULL ) as cardinality FROM imp_record a WHERE last_modified is NULL order by imp_id ASC";// and
                 log.debug(sql);
-                rows = DatabaseManager.query(context, sql);
+                rows = getHibernateSession(context).createSQLQuery(sql).list();
                 parallelizeOperationsTri(line, metadataClean, batchJob, count,
                         row_discarded, numOfThread, rows);
             }
             else
             {
-                String sql = "SELECT * FROM imp_record WHERE last_modified is NULL order by imp_id ASC";
+                String sql = "SELECT a.imp_id, a.imp_record_id, a.imp_eperson_id, a.imp_collection_id, a.status, a.operation, a.handle, a.imp_sourceref FROM imp_record WHERE last_modified is NULL order by imp_id ASC";
                 
-                TableRowIterator rows = DatabaseManager.query(context, sql);
+                rows = getHibernateSession(context).createSQLQuery(sql).list();
 
                 AtomicReference<Context> ctxHolder = ItemImportThread
                         .initCtxHolder();
-
-                while (rows.hasNext())
+                	
+                for (Object[] row_data : rows)
                 {
-                    TableRow row_data = rows.next();
                     multithreadedMain(line, metadataClean, batchJob, count,
                             row_data, row_discarded, ctxHolder);
                 }
-                rows.close();
             }
 
             context.complete();
@@ -317,7 +311,7 @@ public class ItemImportMainOA
 
     private static void parallelizeOperationsTri(CommandLine line,
             String[] metadataClean, String batchJob, AtomicInteger count,
-            AtomicInteger row_discarded, int numOfThread, TableRowIterator rows)
+            AtomicInteger row_discarded, int numOfThread, List<Object[]> rows)
                     throws SQLException
     {
         Map<String, Integer> ledger = new HashMap<>();
@@ -332,16 +326,15 @@ public class ItemImportMainOA
             worker.start();
         }
         int i = 0;
-        while (rows.hasNext())
+        for (Object[] row_data : rows)
         {
-            TableRow row_data = rows.next();
             try
             {
-                int cardinality = row_data.getIntColumn("cardinality");
+                int cardinality = (Integer)row_data[8]; //"cardinality"
                 ItemImportThread worker = null;
                 if (cardinality > 1)
                 {
-                    String impRecordId = row_data.getStringColumn("imp_record_id");
+                    String impRecordId = (String)row_data[1]; //"imp_record_id"
                     if (ledger.containsKey(
                             impRecordId))
                     {
@@ -371,7 +364,6 @@ public class ItemImportMainOA
                 exc.printStackTrace();
             }
         }
-        rows.close();
         for (ItemImportThread worker : workers)
         {
             worker.requireStop();
@@ -380,7 +372,7 @@ public class ItemImportMainOA
 
     private static void multithreadedMain(CommandLine line,
             String[] metadataClean, String batchJob, AtomicInteger count,
-            TableRow row_data, AtomicInteger row_discarded,
+            Object[] row_data, AtomicInteger row_discarded,
             AtomicReference<Context> ctxHolder)
                     throws SQLException, AuthorizeException, IOException
     {
@@ -398,9 +390,9 @@ public class ItemImportMainOA
 
         int imp_id = 0;
         String record_id = null;
-        int epersonId = 0;
-        int collectionId = 0;
-        int itemId = 0;
+        String epersonId = null;
+        String collectionId = null;
+        String itemId = null;
         String status = "";
         String operation = "";
         String op = "";
@@ -410,31 +402,31 @@ public class ItemImportMainOA
         List<String> argvTemp = new LinkedList<String>();
 
         // ID temporary import table
-        imp_id = row_data.getIntColumn("imp_id");
+        imp_id = (Integer)row_data[0]; //.getIntColumn("imp_id");
         // ID external
-        record_id = row_data.getStringColumn("imp_record_id");
+        record_id = (String)row_data[1]; //.getStringColumn("imp_record_id");
         // ID of the user to attach the publication
-        epersonId = row_data.getIntColumn("imp_eperson_id");
+        epersonId = (String)row_data[2]; //.getIntColumn("imp_eperson_id");
         // ID of the collection 
-        collectionId = row_data.getIntColumn("imp_collection_id");
+        collectionId = (String)row_data[3]; //.getIntColumn("imp_collection_id");
         // p = workspace, w = workflow step 1, y = workflow step 2, x =
         // workflow step 3, z = inarchive
-        status = row_data.getStringColumn("status");
+        status = (String)row_data[4]; //.getStringColumn("status");
         // update, delete - the insert will be do with the update if no match in the table imp_record_to_item
-        operation = row_data.getStringColumn("operation");
+        operation = (String)row_data[5]; //.getStringColumn("operation");
 
         // handle related to the item
-        handle = row_data.getStringColumn("handle");
+        handle = (String)row_data[6]; //.getStringColumn("handle");
         
-        sourceref = row_data.getStringColumn("imp_sourceref");
+        sourceref = (String)row_data[7]; //.getStringColumn("imp_sourceref");
         
         if (!operation.equals(""))
         {
 
-            if (epersonId > -1 && collectionId > -1)
+            if (epersonId != null && collectionId != null)
             {
 
-                EPerson ep = EPerson.find(subcontext, epersonId);
+                EPerson ep = EPersonServiceFactory.getInstance().getEPersonService().find(subcontext, UUID.fromString(epersonId));
                 if (ep == null)
                 {
                     recordEvent("Errore, eperson non trovato: " + epersonId,
@@ -444,10 +436,10 @@ public class ItemImportMainOA
                 else
                 {
 
-                    TableRow record_item = DatabaseManager.querySingleTable(subcontext, "imp_record_to_item", "select * from imp_record_to_item where imp_record_id = ? and imp_sourceref = ?", record_id, sourceref);
+                    Object record_item = getHibernateSession(subcontext).createSQLQuery("select imp_item_id from imp_record_to_item where imp_record_id = :par0 and imp_sourceref = :par1").setParameter(0, record_id).setParameter(1, sourceref).uniqueResult();
                     if (record_item != null)
                     {
-                        itemId = record_item.getIntColumn("imp_item_id");
+                        itemId = (String)record_item;//.getIntColumn("imp_item_id");
                     }
 
                     if (operation.equals("delete"))
@@ -517,14 +509,8 @@ public class ItemImportMainOA
 
                     recordEvent(valueinfo);
 
-                    int item_id = ItemImportOA.impRecord(subcontext, argv);
+                    UUID item_id = ItemImportOA.impRecord(subcontext, argv);
                     subcontext.commit();
-                    Object oldItemfromCache = subcontext.fromCache(Item.class,
-                            item_id);
-                    if (oldItemfromCache != null)
-                    {
-                        subcontext.removeCached(oldItemfromCache, item_id);
-                    }
                 }
                 catch (Exception e)
                 {
@@ -557,8 +543,8 @@ public class ItemImportMainOA
     private static String metadataFieldToString(Context context,
             MetadataField mdf) throws Exception
     {
-        String toString = MetadataSchema.find(context, mdf.getSchemaID())
-                .getName() + "." + mdf.getElement();
+        String toString = mdf.getMetadataSchema().getName() 
+                + "." + mdf.getElement();
         if (StringUtils.isNotBlank(mdf.getQualifier()))
         {
             toString += "." + mdf.getQualifier();
@@ -677,7 +663,7 @@ public class ItemImportMainOA
 
         private AtomicReference<Context> ctxHolder;
 
-        private BlockingQueue<TableRow> localQueue;
+        private BlockingQueue<Object[]> localQueue;
 
         private CyclicBarrier barrier;
 
@@ -727,7 +713,7 @@ public class ItemImportMainOA
             }
         }
 
-        public void enqueue(TableRow row_data)
+        public void enqueue(Object[] row_data)
         {
             try
             {
@@ -747,7 +733,7 @@ public class ItemImportMainOA
             {
                 while (!this.haveToStop.get())
                 {
-                    TableRow row_data = this.localQueue.poll(1,
+                    Object[] row_data = this.localQueue.poll(1,
                             TimeUnit.SECONDS);
                     if (row_data != null)
                     {
@@ -787,5 +773,9 @@ public class ItemImportMainOA
                 }
             }
         }
+    }
+    
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
     }
 }

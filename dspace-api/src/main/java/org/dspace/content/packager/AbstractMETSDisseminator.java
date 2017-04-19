@@ -9,9 +9,13 @@ package org.dspace.content.packager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,47 +24,18 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import edu.harvard.hul.ois.mets.AmdSec;
-import edu.harvard.hul.ois.mets.BinData;
-import edu.harvard.hul.ois.mets.Checksumtype;
-import edu.harvard.hul.ois.mets.Div;
-import edu.harvard.hul.ois.mets.DmdSec;
-import edu.harvard.hul.ois.mets.MdRef;
-import edu.harvard.hul.ois.mets.FLocat;
-import edu.harvard.hul.ois.mets.FileGrp;
-import edu.harvard.hul.ois.mets.FileSec;
-import edu.harvard.hul.ois.mets.Fptr;
-import edu.harvard.hul.ois.mets.Mptr;
-import edu.harvard.hul.ois.mets.Loctype;
-import edu.harvard.hul.ois.mets.MdWrap;
-import edu.harvard.hul.ois.mets.Mdtype;
-import edu.harvard.hul.ois.mets.Mets;
-import edu.harvard.hul.ois.mets.MetsHdr;
-import edu.harvard.hul.ois.mets.StructMap;
-import edu.harvard.hul.ois.mets.TechMD;
-import edu.harvard.hul.ois.mets.SourceMD;
-import edu.harvard.hul.ois.mets.DigiprovMD;
-import edu.harvard.hul.ois.mets.RightsMD;
-import edu.harvard.hul.ois.mets.helper.MdSec;
-import edu.harvard.hul.ois.mets.XmlData;
-import edu.harvard.hul.ois.mets.helper.Base64;
-import edu.harvard.hul.ois.mets.helper.MetsElement;
-import edu.harvard.hul.ois.mets.helper.MetsException;
-import edu.harvard.hul.ois.mets.helper.MetsValidator;
-import edu.harvard.hul.ois.mets.helper.MetsWriter;
-import edu.harvard.hul.ois.mets.helper.PreformedXML;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import org.apache.log4j.Logger;
-
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.crosswalk.AbstractPackagerWrappingCrosswalk;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
@@ -83,6 +58,36 @@ import org.jdom.Element;
 import org.jdom.Namespace;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+
+import edu.harvard.hul.ois.mets.AmdSec;
+import edu.harvard.hul.ois.mets.BinData;
+import edu.harvard.hul.ois.mets.Checksumtype;
+import edu.harvard.hul.ois.mets.DigiprovMD;
+import edu.harvard.hul.ois.mets.Div;
+import edu.harvard.hul.ois.mets.DmdSec;
+import edu.harvard.hul.ois.mets.FLocat;
+import edu.harvard.hul.ois.mets.FileGrp;
+import edu.harvard.hul.ois.mets.FileSec;
+import edu.harvard.hul.ois.mets.Fptr;
+import edu.harvard.hul.ois.mets.Loctype;
+import edu.harvard.hul.ois.mets.MdRef;
+import edu.harvard.hul.ois.mets.MdWrap;
+import edu.harvard.hul.ois.mets.Mdtype;
+import edu.harvard.hul.ois.mets.Mets;
+import edu.harvard.hul.ois.mets.MetsHdr;
+import edu.harvard.hul.ois.mets.Mptr;
+import edu.harvard.hul.ois.mets.RightsMD;
+import edu.harvard.hul.ois.mets.SourceMD;
+import edu.harvard.hul.ois.mets.StructMap;
+import edu.harvard.hul.ois.mets.TechMD;
+import edu.harvard.hul.ois.mets.XmlData;
+import edu.harvard.hul.ois.mets.helper.Base64;
+import edu.harvard.hul.ois.mets.helper.MdSec;
+import edu.harvard.hul.ois.mets.helper.MetsElement;
+import edu.harvard.hul.ois.mets.helper.MetsException;
+import edu.harvard.hul.ois.mets.helper.MetsValidator;
+import edu.harvard.hul.ois.mets.helper.MetsWriter;
+import edu.harvard.hul.ois.mets.helper.PreformedXML;
 
 /**
  * Base class for disseminator of
@@ -660,7 +665,7 @@ public abstract class AbstractMETSDisseminator
 
                         // Disseminate crosswalk output to an outputstream
                         ByteArrayOutputStream disseminateOutput = new ByteArrayOutputStream();
-                        sxwalk.disseminate(context, dso, disseminateOutput);
+                        sxwalk.disseminate(context, (BrowsableDSpaceObject)dso, disseminateOutput);
                         // Convert output to an inputstream, so we can write to manifest or Zip file
                         ByteArrayInputStream crosswalkedStream = new ByteArrayInputStream(disseminateOutput.toByteArray());
 

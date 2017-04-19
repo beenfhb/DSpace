@@ -7,6 +7,13 @@
  */
 package org.dspace.authorize;
 
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.log4j.Logger;
@@ -19,9 +26,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Service implementation for the ResourcePolicy object.
@@ -80,14 +84,14 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     }
 
     @Override
-    public List<ResourcePolicy> find(Context c, DSpaceObject o) throws SQLException
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity o) throws SQLException
     {
         return resourcePolicyDAO.findByDso(c, o);
     }
 
 
     @Override
-    public List<ResourcePolicy> find(Context c, DSpaceObject o, String type) throws SQLException
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity o, String type) throws SQLException
     {
         return resourcePolicyDAO.findByDsoAndType(c, o, type);
     }
@@ -98,13 +102,13 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     }
 
     @Override
-    public List<ResourcePolicy> find(Context c, DSpaceObject o, int actionId) throws SQLException
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity o, int actionId) throws SQLException
     {
         return resourcePolicyDAO.findByDSoAndAction(c, o, actionId);
     }
 
     @Override
-    public List<ResourcePolicy> find(Context c, DSpaceObject dso, Group group, int action, int notPolicyID) throws SQLException {
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException {
         return resourcePolicyDAO.findByTypeIdGroupAction(c, dso, group, action, notPolicyID);
     }
     
@@ -130,7 +134,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
         if(resourcePolicy.getdSpaceObject() != null)
         {
             //A policy for a DSpace Object has been modified, fire a modify event on the DSpace object
-            contentServiceFactory.getDSpaceObjectService(resourcePolicy.getdSpaceObject()).updateLastModified(context, resourcePolicy.getdSpaceObject());
+            contentServiceFactory.getDSpaceObjectService(resourcePolicy.getdSpaceObject().getType()).updateLastModified(context, (DSpaceObject)resourcePolicy.getdSpaceObject());
         }
         context.restoreAuthSystemState();
     }
@@ -208,34 +212,34 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     }
 
     @Override
-    public void removeAllPolicies(Context c, DSpaceObject o) throws SQLException, AuthorizeException {
+    public void removeAllPolicies(Context c, AuthorizableEntity o) throws SQLException, AuthorizeException {
         resourcePolicyDAO.deleteByDso(c, o);
         c.turnOffAuthorisationSystem();
-        contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
+        contentServiceFactory.getDSpaceObjectService(o.getType()).updateLastModified(c, (DSpaceObject)o);
         c.restoreAuthSystemState();
     }
 
     @Override
-    public void removePolicies(Context c, DSpaceObject o, String type) throws SQLException, AuthorizeException {
+    public void removePolicies(Context c, AuthorizableEntity o, String type) throws SQLException, AuthorizeException {
         resourcePolicyDAO.deleteByDsoAndType(c, o, type);
         c.turnOffAuthorisationSystem();
-        contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
+        contentServiceFactory.getDSpaceObjectService(o.getType()).updateLastModified(c, (DSpaceObject)o);
         c.restoreAuthSystemState();
     }
 
     @Override
-    public void removeDsoGroupPolicies(Context context, DSpaceObject dso, Group group) throws SQLException, AuthorizeException {
+    public void removeDsoGroupPolicies(Context context, AuthorizableEntity dso, Group group) throws SQLException, AuthorizeException {
         resourcePolicyDAO.deleteByDsoGroupPolicies(context, dso, group);
         context.turnOffAuthorisationSystem();
-        contentServiceFactory.getDSpaceObjectService(dso).updateLastModified(context, dso);
+        contentServiceFactory.getDSpaceObjectService(dso.getType()).updateLastModified(context, (DSpaceObject)dso);
         context.restoreAuthSystemState();
     }
 
     @Override
-    public void removeDsoEPersonPolicies(Context context, DSpaceObject dso, EPerson ePerson) throws SQLException, AuthorizeException {
+    public void removeDsoEPersonPolicies(Context context, AuthorizableEntity dso, EPerson ePerson) throws SQLException, AuthorizeException {
         resourcePolicyDAO.deleteByDsoEPersonPolicies(context, dso, ePerson);
         context.turnOffAuthorisationSystem();
-        contentServiceFactory.getDSpaceObjectService(dso).updateLastModified(context, dso);
+        contentServiceFactory.getDSpaceObjectService(dso.getType()).updateLastModified(context, (DSpaceObject)dso);
         context.restoreAuthSystemState();
 
     }
@@ -246,23 +250,23 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     }
 
     @Override
-    public void removePolicies(Context c, DSpaceObject o, int actionId) throws SQLException, AuthorizeException {
+    public void removePolicies(Context c, AuthorizableEntity o, int actionId) throws SQLException, AuthorizeException {
         if (actionId == -1)
         {
             removeAllPolicies(c, o);
         }else{
             resourcePolicyDAO.deleteByDsoAndAction(c, o, actionId);
             c.turnOffAuthorisationSystem();
-            contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
+            contentServiceFactory.getDSpaceObjectService(o.getType()).updateLastModified(c, (DSpaceObject)o);
             c.restoreAuthSystemState();
         }
     }
 
     @Override
-    public void removeDsoAndTypeNotEqualsToPolicies(Context c, DSpaceObject o, String type) throws SQLException, AuthorizeException {
+    public void removeDsoAndTypeNotEqualsToPolicies(Context c, AuthorizableEntity o, String type) throws SQLException, AuthorizeException {
         resourcePolicyDAO.deleteByDsoAndTypeNotEqualsTo(c, o, type);
         c.turnOffAuthorisationSystem();
-        contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
+        contentServiceFactory.getDSpaceObjectService(o.getType()).updateLastModified(c, (DSpaceObject)o);
         c.restoreAuthSystemState();
     }
 
@@ -285,7 +289,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     @Override
     public void update(Context context, List<ResourcePolicy> resourcePolicies) throws SQLException, AuthorizeException {
         if(CollectionUtils.isNotEmpty(resourcePolicies)) {
-            Set<DSpaceObject> relatedDSpaceObjects = new HashSet<>();
+            Set<AuthorizableEntity> relatedDSpaceObjects = new HashSet<>();
 
             for (ResourcePolicy resourcePolicy : resourcePolicies) {
                 if (resourcePolicy.getdSpaceObject() != null) {
@@ -298,9 +302,9 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
 
             //Update the last modified timestamp of all related DSpace Objects
             context.turnOffAuthorisationSystem();
-            for (DSpaceObject dSpaceObject : relatedDSpaceObjects) {
+            for (AuthorizableEntity dSpaceObject : relatedDSpaceObjects) {
                 //A policy for a DSpace Object has been modified, fire a modify event on the DSpace object
-            	contentServiceFactory.getDSpaceObjectService(dSpaceObject).updateLastModified(context, dSpaceObject);
+            	contentServiceFactory.getDSpaceObjectService(dSpaceObject.getType()).updateLastModified(context, (DSpaceObject)dSpaceObject);
             }
             context.restoreAuthSystemState();
         }

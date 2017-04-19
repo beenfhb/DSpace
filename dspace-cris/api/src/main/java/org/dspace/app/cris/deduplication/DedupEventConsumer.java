@@ -12,13 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.deduplication.service.DedupService;
 import org.dspace.app.cris.deduplication.utils.Signature;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexEventConsumer;
@@ -37,13 +37,13 @@ public class DedupEventConsumer implements Consumer
     // collect Items, Collections, Communities that need indexing
     private Set<DSpaceObject> objectsToUpdate = null;
 
-    private Set<Integer> objectsToDelete = null;
+    private Set<UUID> objectsToDelete = null;
 
     DSpace dspace = new DSpace();
 
     DedupService indexer = dspace.getServiceManager().getServiceByName(DedupService.class.getName(),DedupService.class);
 
-    Map<Integer, Map<String, List<String>>> cache = new HashMap<Integer, Map<String, List<String>>>();
+    Map<UUID, Map<String, List<String>>> cache = new HashMap<UUID, Map<String, List<String>>>();
     
     Set<String> configuredMetadata = new HashSet<String>();
     
@@ -67,7 +67,7 @@ public class DedupEventConsumer implements Consumer
 
         if (objectsToUpdate == null) {
             objectsToUpdate = new HashSet<DSpaceObject>();
-            objectsToDelete = new HashSet<Integer>();
+            objectsToDelete = new HashSet<UUID>();
         }
 
         int st = event.getSubjectType();
@@ -206,7 +206,7 @@ public class DedupEventConsumer implements Consumer
                  */
                 if (!objectsToDelete.contains(iu.getID())) {
                     try {
-                        indexer.indexContent(ctx, iu, true);
+                        indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true);
                         log.debug("Indexed "
                                 + Constants.typeText[iu.getType()]
                                 + ", id=" + String.valueOf(iu.getID())                                
@@ -218,7 +218,7 @@ public class DedupEventConsumer implements Consumer
                 }
             }
 
-            for (Integer key : objectsToDelete) {
+            for (UUID key : objectsToDelete) {
                 try {
                     indexer.unIndexContent(ctx, key, Constants.ITEM);
                     if (log.isDebugEnabled())

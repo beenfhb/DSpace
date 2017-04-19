@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
@@ -39,6 +40,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.ScopusOnlineDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
@@ -144,11 +146,11 @@ public class ScopusFeed
         String person = line.getOptionValue("p");
     	EPerson eperson = null;
         if(StringUtils.isNumeric(person)){
-        	eperson = EPerson.find(context,
-                    Integer.parseInt(person));
+        	eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context,
+                    UUID.fromString(person));
         	
         }else {
-        	eperson = EPerson.findByEmail(context, person);
+        	eperson = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, person);
         }
         
         
@@ -159,7 +161,7 @@ public class ScopusFeed
             System.exit(1);
         }
 
-        int collection_id = Integer.parseInt(line.getOptionValue("c"));
+        UUID collection_id = UUID.fromString(line.getOptionValue("c"));
         boolean forceCollectionId = line.hasOption("f");
 
         String startDate = "";
@@ -216,7 +218,7 @@ public class ScopusFeed
         {
             try
             {
-                int tmpCollectionID = collection_id;
+            	UUID tmpCollectionID = collection_id;
                 if (!forceCollectionId)
                 {
                     Set<ImpRecordMetadata> t = pmeItem.getMetadata().get("dc.source.type");
@@ -230,11 +232,13 @@ public class ScopusFeed
                             stringTmpCollectionID += stringTrimTmpCollectionID
                                     .trim();
                         }
-                        tmpCollectionID = ConfigurationManager
-                                .getIntProperty("scopusfeed",
+                        tmpCollectionID = UUID.fromString(ConfigurationManager
+                                .getProperty("scopusfeed",
                                         "scopus.type." + stringTmpCollectionID
-                                                + ".collectionid",
-                                        collection_id);
+                                                + ".collectionid"));
+                        if(tmpCollectionID==null) {
+                        	tmpCollectionID = collection_id;
+                        }
                     }
                 }
 
@@ -260,8 +264,8 @@ public class ScopusFeed
     }
 
     private static DTOImpRecord writeImpRecord(Context context,
-            ImpRecordDAO dao, int collection_id, ImpRecordItem pmeItem,
-            String action, Integer epersonId) throws SQLException
+            ImpRecordDAO dao, UUID collection_id, ImpRecordItem pmeItem,
+            String action, UUID epersonId) throws SQLException
     {
         DTOImpRecord dto = new DTOImpRecord(dao);
 

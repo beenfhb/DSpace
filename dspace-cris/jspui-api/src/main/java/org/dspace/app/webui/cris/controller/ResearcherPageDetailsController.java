@@ -28,7 +28,6 @@ import org.dspace.app.cris.model.jdyna.RPAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
-import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
@@ -40,7 +39,6 @@ import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
@@ -48,8 +46,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 import org.springframework.web.servlet.ModelAndView;
@@ -196,7 +193,7 @@ public class ResearcherPageDetailsController
             boolean subscribed = subscribeService.isSubscribed(currUser,
                     researcher);
             model.put("subscribed", subscribed);
-            EPerson eperson = EPerson.findByNetid(context, researcher.getSourceID());
+            EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().findByNetid(context, researcher.getSourceID());
             if (eperson != null) {
             	model.put("subscriptions", subscribeService.getSubscriptions(eperson));
             }
@@ -248,7 +245,7 @@ public class ResearcherPageDetailsController
         mvc.getModel()
                 .put("showStatsOnlyAdmin",
                         ConfigurationManager
-                                .getBooleanProperty(SolrLogger.CFG_STAT_MODULE,"authorization.admin"));
+                                .getBooleanProperty("authorization.admin"));
         
         
         // Fire usage event.

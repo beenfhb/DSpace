@@ -7,31 +7,22 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
-import it.cilea.osd.jdyna.controller.AFormTabController;
-import it.cilea.osd.jdyna.web.Tab;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.app.webui.util.JSPManager;
-import org.dspace.app.webui.util.UIUtil;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Context;
-import org.dspace.core.LogManager;
 import org.dspace.core.Utils;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
+
+import it.cilea.osd.jdyna.controller.AFormTabController;
+import it.cilea.osd.jdyna.web.Tab;
 
 public class ResearcherTabImageController implements Controller
 {

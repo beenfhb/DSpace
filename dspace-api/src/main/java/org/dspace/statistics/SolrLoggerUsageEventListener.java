@@ -8,6 +8,7 @@
 package org.dspace.statistics;
 
 import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.model.Event;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
@@ -48,16 +49,16 @@ public class SolrLoggerUsageEventListener extends AbstractUsageEventListener {
 
                 if(UsageEvent.Action.VIEW == ue.getAction()){
                 	if(ue.getRequest()!=null){
-                        solrLoggerService.postView(ue.getObject(), ue.getRequest(), currentUser);
+                        solrLoggerService.postView((BrowsableDSpaceObject)ue.getObject(), ue.getRequest(), currentUser);
                 	} else {
-                        solrLoggerService.postView(ue.getObject(), ue.getIp(), ue.getUserAgent(), ue.getXforwardedfor(), currentUser);
+                        solrLoggerService.postView((BrowsableDSpaceObject)ue.getObject(), ue.getIp(), ue.getUserAgent(), ue.getXforwardedfor(), currentUser);
                 	}
                 }else
                 if(UsageEvent.Action.SEARCH == ue.getAction()){
                     UsageSearchEvent usageSearchEvent = (UsageSearchEvent) ue;
                     //Only log if the user has already filled in a query !
                     if(!CollectionUtils.isEmpty(((UsageSearchEvent) ue).getQueries())){
-                        solrLoggerService.postSearch(ue.getObject(), ue.getRequest(), currentUser,
+                        solrLoggerService.postSearch((BrowsableDSpaceObject)ue.getObject(), ue.getRequest(), currentUser,
 								usageSearchEvent.getQueries(), usageSearchEvent.getRpp(), usageSearchEvent.getSortBy(),
 								usageSearchEvent.getSortOrder(), usageSearchEvent.getPage(), usageSearchEvent.getScope());
                     }

@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
@@ -81,7 +80,7 @@ public class DiscoverUtility
             return null;
         }
         HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
-        BrowsableDSpaceObject scope = handleService.resolveToObject(context, location);
+        BrowsableDSpaceObject scope = (BrowsableDSpaceObject)handleService.resolveToObject(context, location);
         return scope;
     }
 

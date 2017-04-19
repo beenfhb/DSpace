@@ -24,6 +24,8 @@ import org.dspace.app.bulkedit.MetadataExport;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
@@ -241,7 +243,8 @@ public class BrowserServlet extends AbstractBrowserServlet
             BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
                     scope.getUserLocale():null);
             BrowseInfo binfo = be.browse(scope);
-			Iterator<Item> iterator = binfo.getBrowseItemResults().iterator();
+			Iterator<BrowseDSpaceObject> iterator = binfo.getBrowseItemResults().iterator();
+            
 			MetadataExport exporter = new MetadataExport(context, iterator, false);
 
             // Perform the export

@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -29,9 +30,10 @@ import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.metrics.wos.dto.WosResponse;
 import org.dspace.app.cris.metrics.wos.services.WosService;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -201,9 +203,9 @@ public class ScriptRetrieveCitation
                 log.info(LogManager.getHeader(null, "retrieve_citation_wos",
                         "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
                 // for each item check
-                List<DSpaceObject> toWosService = new ArrayList<DSpaceObject>();
+                List<BrowsableDSpaceObject> toWosService = new ArrayList<BrowsableDSpaceObject>();
 
-                for (DSpaceObject dso : qresp.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : qresp.getDspaceObjects())
                 {
 
                     List<SearchDocument> list = qresp.getSearchDocument(dso);
@@ -212,7 +214,7 @@ public class ScriptRetrieveCitation
                         if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 1)
                             break all;
 
-                        Integer itemID = dso.getID();
+                        UUID itemID = dso.getID();
 
                         if (isCheckRequired(itemID))
                         {
@@ -230,7 +232,6 @@ public class ScriptRetrieveCitation
                         itemForceWorked++;
                     }
                     context.commit();
-                    context.clearCache();
                 }
             }
             Date endDate = new Date();
@@ -286,22 +287,22 @@ public class ScriptRetrieveCitation
                     {
                         if (StringUtils.isNotBlank(citation.getIdentifier()))
                         {
-                            Item item = Item.find(context, citation.getResourceId());
+                        	Item item = (Item) ContentServiceFactory.getInstance().getItemService().find(context, citation.getResourceId());
                             List<MetadataValue> MetadataValueisi = item
-                                    .getMetadataByMetadataString(fieldWosID);
+                                    .getMetadataValueInDCFormat(fieldWosID);
                             if (MetadataValueisi != null && MetadataValueisi.size() > 0)
                             {
-                                item.clearMetadata(MetadataValueisi[0].schema,
-                                        MetadataValueisi[0].element,
-                                        MetadataValueisi[0].qualifier,
-                                        MetadataValueisi[0].language);
-                                item.addMetadata(MetadataValueisi[0].schema,
-                                        MetadataValueisi[0].element,
-                                        MetadataValueisi[0].qualifier,
-                                        MetadataValueisi[0].language,
+                            	ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, MetadataValueisi.get(0).schema,
+                                        MetadataValueisi.get(0).element,
+                                        MetadataValueisi.get(0).qualifier,
+                                        MetadataValueisi.get(0).getLanguage());
+                            	ContentServiceFactory.getInstance().getItemService().addMetadata(context, item, MetadataValueisi.get(0).schema,
+                                        MetadataValueisi.get(0).element,
+                                        MetadataValueisi.get(0).qualifier,
+                                        MetadataValueisi.get(0).getLanguage(),
                                         citation.getIdentifier());
                             }
-                            item.update();
+                            ContentServiceFactory.getInstance().getItemService().update(context, item);
                         }
                         
                     }
@@ -311,7 +312,7 @@ public class ScriptRetrieveCitation
         return check;
     }
 
-    private static boolean isCheckRequired(Integer itemID)
+    private static boolean isCheckRequired(UUID itemID)
     {
         if (timeElapsed != 0)
         {

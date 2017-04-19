@@ -103,4 +103,8 @@ public class Site extends DSpaceObject
 		return id;
 	}
 
+	@Override
+	public boolean haveHierarchy() {
+		return false;
+	}
 }

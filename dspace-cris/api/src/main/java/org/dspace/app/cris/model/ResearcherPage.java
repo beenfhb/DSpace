@@ -43,6 +43,7 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.value.OUPointer;
 import org.dspace.app.cris.model.listener.RPListener;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -145,7 +146,7 @@ public class ResearcherPage extends
     private String fullName;
 
     @Transient
-    private Integer oldEpersonID;
+    private UUID oldEpersonID;
 
     @Transient
     private String oldOrcidPublicationsPreference;
@@ -607,12 +608,12 @@ public class ResearcherPage extends
         return RPTypeNestedObject.class;
     }
 
-    public void setOldEpersonID(Integer oldEpersonID)
+    public void setOldEpersonID(UUID oldEpersonID)
     {
         this.oldEpersonID = oldEpersonID;
     }
 
-    public Integer getOldEpersonID()
+    public UUID getOldEpersonID()
     {
         return oldEpersonID;
     }
@@ -710,4 +711,17 @@ public class ResearcherPage extends
     {
         return eperson != null && this.getEpersonID()!=null && (this.getEpersonID() == eperson.getID());
     }
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

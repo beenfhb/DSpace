@@ -14,13 +14,13 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.service.SolrLoggerService;
 
 
-public interface IStatsComponent<T extends DSpaceObject> extends IStatsGenericComponent<T>
+public interface IStatsComponent<T extends BrowsableDSpaceObject> extends IStatsGenericComponent<T>
 {
 
     TwoKeyMap getLabels(Context context, String type) throws Exception;

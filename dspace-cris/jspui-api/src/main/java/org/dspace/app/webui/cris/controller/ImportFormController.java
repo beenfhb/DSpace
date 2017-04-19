@@ -30,7 +30,6 @@ import org.dspace.app.cris.util.ImportExportUtils;
 import org.dspace.app.cris.util.UtilsXSD;
 import org.dspace.app.webui.cris.dto.ImportDTO;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;

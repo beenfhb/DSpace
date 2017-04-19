@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -31,10 +32,10 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.hibernate.Session;
 import org.xml.sax.InputSource;
 
 public class ScriptCrossrefChecker
@@ -84,7 +85,7 @@ public class ScriptCrossrefChecker
     {
         log.info("#### START Script crossref sender: -----" + new Date()
                 + " ----- ####");
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         CommandLineParser parser = new PosixParser();
 
@@ -127,23 +128,21 @@ public class ScriptCrossrefChecker
 
                 int limit = 100;
 
-                List<TableRow> rows = null;
+                List<Object[]> rows = null;
 
                 if ("oracle".equals(dbName))
                 {
-                    rows = DatabaseManager.query(
-                            context,
-                            "select * from " + TABLE_NAME_DOI2ITEM
+                    rows = getHibernateSession(context).createSQLQuery(
+                            "select item_id, filename, identifier_doi from " + TABLE_NAME_DOI2ITEM
                                     + " d2i where d2i.response_code = '200'"
-                                    + " AND ROWNUM <= " + limit).toList();
+                                    + " AND ROWNUM <= " + limit).list();
                 }
                 else
                 {
-                    rows = DatabaseManager.query(
-                            context,
-                            "select * from " + TABLE_NAME_DOI2ITEM
+                	rows = getHibernateSession(context).createSQLQuery(
+                            "select item_id, filename, identifier_doi from " + TABLE_NAME_DOI2ITEM
                                     + " d2i where d2i.response_code = '200'"
-                                    + " LIMIT " + limit).toList();
+                                    + " LIMIT " + limit).list();
                 }
                 int offset = 0;
 
@@ -153,34 +152,32 @@ public class ScriptCrossrefChecker
                     {
                         if ("oracle".equals(dbName))
                         {
-                            rows = DatabaseManager
-                                    .query(context,
-                                            "select * from "
+                            rows = getHibernateSession(context).createSQLQuery(
+                                            "select item_id, filename, identifier_doi from "
                                                     + TABLE_NAME_DOI2ITEM
                                                     + " d2i where d2i.response_code = '200'"
                                                     + " AND ROWNUM > " + limit
                                                     + " AND ROWNUM <= " + (limit + offset))
-                                    .toList();
+                                    .list();
                         }
                         else
                         {
-                            rows = DatabaseManager
-                                    .query(context,
-                                            "select * from "
+                            rows = getHibernateSession(context).createSQLQuery(
+                                            "select item_id, filename, identifier_doi from "
                                                     + TABLE_NAME_DOI2ITEM
                                                     + " d2i where d2i.response_code = '200'"
                                                     + " LIMIT " + limit
                                                     + " OFFSET " + offset)
-                                    .toList();
+                                    .list();
                         }
                     }
                     offset = limit + offset;
-                    for (TableRow row : rows)
+                    for (Object[] row : rows)
                     {
-                        Item item = Item.find(context,
-                                row.getIntColumn("item_id"));
-                        String filename = row.getStringColumn("filename");
-                        String doi = row.getStringColumn("identifier_doi");
+                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, 
+                        		(UUID)row[0]);//.getIntColumn("item_id"));
+                        String filename = (String)row[1];//.getStringColumn("filename");
+                        String doi = (String)row[2];//.getStringColumn("identifier_doi");
 
                         result.putAll(check(context, item, doi, filename));
 
@@ -192,20 +189,20 @@ public class ScriptCrossrefChecker
             {
                 if (line.hasOption('s'))
                 {
-                    Integer id = Integer.parseInt(line.getOptionValue("s"));
-                    TableRow row = DatabaseManager
-                            .querySingle(
-                                    context,
-                                    "SELECT * FROM "
+                    UUID id = UUID.fromString(line.getOptionValue("s"));
+                    List<Object[]> rows = getHibernateSession(context).createSQLQuery(
+                                    "SELECT item_id, filename, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i where d2i.response_code = '200' and d2i.item_id = ?",
-                                    id);
+                                            + " d2i where d2i.response_code = '200' and d2i.item_id = :par0").setParameter(0, id).list();
+                    for (Object[] row : rows)
+                    {
+	                    String filename = (String)row[1];//.getStringColumn("filename");
+	                    String doi = (String)row[2];//.getStringColumn("identifier_doi");
+	                    Item item = ContentServiceFactory.getInstance().getItemService().find(context, 
+                                (UUID)row[0]);//.getIntColumn("item_id"));
+	                    result.putAll(check(context, item, doi, filename));
+                    }
 
-                    String filename = row.getStringColumn("filename");
-                    String doi = row.getStringColumn("identifier_doi");
-                    Item item = Item.find(context, row.getIntColumn("item_id"));
-
-                    result.putAll(check(context, item, doi, filename));
 
                 }
                 else
@@ -230,7 +227,7 @@ public class ScriptCrossrefChecker
 
         log.info("#### Import details ####");
 
-        for (Integer key : result.keySet())
+        for (UUID key : result.keySet())
         {
             log.info("ITEM: " + key + " RESULT: " + result.get(key));
         }
@@ -241,11 +238,11 @@ public class ScriptCrossrefChecker
         System.exit(0);
     }
 
-    protected static Map<Integer, String> check(Context context, Item target,
+    protected static Map<UUID, String> check(Context context, Item target,
             String doi, String filename) throws SQLException
     {
         GetMethod get = null;
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         int responseCode = 0;
         try
@@ -315,12 +312,12 @@ public class ScriptCrossrefChecker
 
                 if (resultSuccess != null && !resultSuccess.isEmpty())
                 {
-                    target.addMetadata("dc", "identifier", "doi", null, doi);
-                    target.clearMetadata("dc", "utils", "processdoi", Item.ANY);
+                    target.getItemService().addMetadata(context, target, "dc", "identifier", "doi", null, doi);
+                    target.getItemService().clearMetadata(context, target, "dc", "utils", "processdoi", Item.ANY);
                     responseCodeToInsert = PLACEHOLDER_SENDEDTOCROSSREF_SUCCESSFULLY;
                     try
                     {
-                        target.update();
+                        target.getItemService().update(context, target);
                         context.commit();
                     }
                     catch (AuthorizeException e)
@@ -331,22 +328,20 @@ public class ScriptCrossrefChecker
                 }
 
               
-                    DatabaseManager
-                            .updateQuery(
-                                    context,
+                    getHibernateSession(context).createSQLQuery(
                                     "UPDATE "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " SET LAST_MODIFIED = ?, RESPONSE_CODE = ?, NOTE = ? WHERE ITEM_ID = ?",
-                                    new Date(), responseCodeToInsert,
-                                    result.get(target.getID()), target.getID());
+                                            + " SET LAST_MODIFIED = :par0, RESPONSE_CODE = :par1, NOTE = :par2 WHERE ITEM_ID = :par3").setParameter(0,
+                                    new Date()).setParameter(1, responseCodeToInsert).setParameter(2,
+                                    result.get(target.getID())).setParameter(3, target.getID()).executeUpdate();
               
             }
             else
             {
-                DatabaseManager.updateQuery(context, "UPDATE "
+            	getHibernateSession(context).createSQLQuery("UPDATE "
                         + TABLE_NAME_DOI2ITEM
-                        + " SET NOTE = ? WHERE ITEM_ID = ?", responseCode + "-"
-                        + result.get(target.getID()), target.getID());
+                        + " SET NOTE = :par0 WHERE ITEM_ID = :par1").setParameter(0, responseCode + "-"
+                        + result.get(target.getID())).setParameter(1, target.getID()).executeUpdate();
             }
 
             context.commit();
@@ -369,4 +364,7 @@ public class ScriptCrossrefChecker
         return client;
     }
 
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

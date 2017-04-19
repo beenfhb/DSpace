@@ -7,15 +7,15 @@
  */
 package org.dspace.app.util.service;
 
-import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.Context;
-import org.w3c.dom.Document;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.Context;
+import org.w3c.dom.Document;
 
 /**
  * Utility Class with static methods for producing OpenSearch-compliant search results,
@@ -85,7 +85,7 @@ public interface OpenSearchService {
      * @throws IOException if IO error
      */
     public String getResultsString(Context context, String format, String query, int totalResults, int start, int pageSize,
-                                          DSpaceObject scope, List<DSpaceObject> results,
+    		BrowsableDSpaceObject scope, List<BrowsableDSpaceObject> results,
                                           Map<String, String> labels) throws IOException;
     /**
      * Returns a formatted set of search results as a document

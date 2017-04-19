@@ -33,7 +33,7 @@ public class VirtualFieldBibtexAuthors implements VirtualFieldDisseminator, Virt
 		if (dcvs != null && dcvs.size() > 0) {
 			StringBuffer sb = new StringBuffer();
 			for (MetadataValue a : dcvs) {
-				String[] split = a.value.split(", ");
+				String[] split = a.getValue().split(", ");
 				int splitLength = split.length;
 				String str = (splitLength > 1) ? split[1] : "";
 				String str2 = split[0];

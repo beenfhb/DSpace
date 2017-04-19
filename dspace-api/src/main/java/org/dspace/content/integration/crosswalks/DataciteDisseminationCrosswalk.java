@@ -21,6 +21,7 @@ import java.util.Date;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
@@ -40,7 +41,7 @@ public class DataciteDisseminationCrosswalk extends ReferCrosswalk {
     protected final static String CONFIG_SCHEMA = "crosswalk.datacite.schemaLocation";
     
     @Override
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
             throws CrosswalkException, IOException, SQLException,
             AuthorizeException {
 

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -53,17 +54,18 @@ import org.dspace.app.cris.batch.dto.DTOImpRecord;
 import org.dspace.app.util.XMLUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
+import org.hibernate.type.StandardBasicTypes;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -102,7 +104,7 @@ public class PMCEuropeFeed
 
     private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
-    private static HashMap<String, Integer> pmid2item = new HashMap<String, Integer>();
+    private static HashMap<String, UUID> pmid2item = new HashMap<String, UUID>();
 
     private static List<String> pmidDeleted = new ArrayList<String>();
 
@@ -212,11 +214,11 @@ public class PMCEuropeFeed
         String person = line.getOptionValue("p");
     	EPerson eperson = null;
         if(StringUtils.isNumeric(person)){
-        	eperson = EPerson.find(context,
-                    Integer.parseInt(person));
+        	eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context,
+                    UUID.fromString(person));
         	
         }else {
-        	eperson = EPerson.findByEmail(context, person);
+        	eperson = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, person);
         }
         
         
@@ -227,7 +229,7 @@ public class PMCEuropeFeed
             System.exit(1);
         }
        
-        int collection_id = Integer.parseInt(line.getOptionValue("c"));
+        UUID collection_id = UUID.fromString(line.getOptionValue("c"));
 
         String startDate = "";
         if (line.hasOption("s"))
@@ -236,10 +238,10 @@ public class PMCEuropeFeed
         }
         else
         {
-            TableRow row = DatabaseManager.querySingle(context,
+            Object row = getHibernateSession(context).createSQLQuery(
                     "SELECT max(impr.last_modified) as LAST_MODIFIED from IMP_RECORD_TO_ITEM imprti join IMP_RECORD impr on "
-                    + "imprti.imp_record_id = impr.imp_record_id and imprti."+IMP_SOURCE_REF+" like 'pubmedEurope'");
-            Date date = row.getDateColumn("LAST_MODIFIED");
+                    + "imprti.imp_record_id = impr.imp_record_id and imprti."+IMP_SOURCE_REF+" like 'pubmedEurope'").addScalar("LAST_MODIFIED",  StandardBasicTypes.TIMESTAMP).uniqueResult();
+            Date date = (Date)row;
             if (date == null)
             {
                 date = new Date();
@@ -430,7 +432,6 @@ public class PMCEuropeFeed
                 System.out.println("Imported " + (total - deleted) + " record; "
                         + deleted + " marked as removed");
                 pmeItemList.clear();
-                context.clearCache();
             }
 
             context.complete();
@@ -459,8 +460,8 @@ public class PMCEuropeFeed
     }
 
     private static DTOImpRecord writeImpRecord(Context context,
-            ImpRecordDAO dao, int collection_id, ImpRecordItem pmeItem,
-            String action, Integer epersonId) throws SQLException
+            ImpRecordDAO dao, UUID collection_id, ImpRecordItem pmeItem,
+            String action, UUID epersonId) throws SQLException
     {
         DTOImpRecord dto = new DTOImpRecord(dao);
 
@@ -552,40 +553,23 @@ public class PMCEuropeFeed
         return ids;
     }
 
-    private static void getPmid2item(Context context) throws SQLException
-    {
+	private static void getPmid2item(Context context) throws SQLException {
 
-        String query = "SELECT " + IMP_RECORD_ID + ", " + IMP_ITEM_ID + " FROM "
-                + PMCEUROPE_TABLE + " WHERE " + IMP_SOURCE_REF
-                + " = 'pubmedEurope'";
-        TableRowIterator tri = null;
-        try
-        {
-            tri = DatabaseManager.query(context, query);
-            while (tri.hasNext())
-            {
-                TableRow tr = tri.next();
-                String pmID = tr.getStringColumn(IMP_RECORD_ID);
-                int itemID = tr.getIntColumn(IMP_ITEM_ID);
-                Item item = Item.find(context, itemID);
-                if (item != null)
-                {
-                    pmid2item.put(pmID, itemID);
-                }
-                else
-                {
-                    pmidDeleted.add(pmID);
-                }
-            }
-        }
-        finally
-        {
-            if (tri != null)
-            {
-                tri.close();
-            }
-        }
-    }
+		String query = "SELECT " + IMP_RECORD_ID + ", " + IMP_ITEM_ID + " FROM " + PMCEUROPE_TABLE + " WHERE "
+				+ IMP_SOURCE_REF + " = 'pubmedEurope'";
+		List<Object[]> tri = null;
+		tri = getHibernateSession(context).createSQLQuery(query).list();
+		for (Object[] tr : tri) {
+			String pmID = (String) tr[0];
+			UUID itemID = (UUID) tr[1];
+			Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
+			if (item != null) {
+				pmid2item.put(pmID, itemID);
+			} else {
+				pmidDeleted.add(pmID);
+			}
+		}
+	}
 
     private static void retrieveAndUploadPdf(Context context,
             DTOImpRecord impRecord, String pmcID) throws SQLException
@@ -620,4 +604,7 @@ public class PMCEuropeFeed
         return pubmedFeedPhase1TransformationEngine;
     }
 
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

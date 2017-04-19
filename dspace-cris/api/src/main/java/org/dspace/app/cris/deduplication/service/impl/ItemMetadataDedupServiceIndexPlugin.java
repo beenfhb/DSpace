@@ -9,16 +9,15 @@ package org.dspace.app.cris.deduplication.service.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
@@ -34,8 +33,7 @@ public class ItemMetadataDedupServiceIndexPlugin
     private String field;
 
     @Override
-    public void additionalIndex(Context context, Integer firstId,
-            Integer secondId, Integer type, SolrInputDocument document)
+    public void additionalIndex(Context context, UUID firstId, UUID secondId, Integer type, SolrInputDocument document)
     {
 
         if (type == Constants.ITEM)
@@ -48,25 +46,25 @@ public class ItemMetadataDedupServiceIndexPlugin
 
     }
 
-    private void internal(Context context, Integer itemId,
+    private void internal(Context context, UUID itemId,
             SolrInputDocument document)
     {
         try
         {
 
-            Item item = Item.find(context, itemId);
+            Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemId);
 
             for (String meta : metadata)
             {
-                for (MetadataValue mm : item.getMetadataByMetadataString(meta))
+                for (MetadataValue mm : ContentServiceFactory.getInstance().getItemService().getMetadataByMetadataString(item, meta))
                 {
                     if (StringUtils.isNotEmpty(field))
                     {
-                        document.addField(field, mm.value);
+                        document.addField(field, mm.getValue());
                     }
                     else
                     {
-                        document.addField(mm.getField() + "_s", mm.value);
+                        document.addField(mm.getMetadataField().toString('.') + "_s", mm.getValue());
                     }
                 }
             }

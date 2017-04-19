@@ -53,6 +53,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.mail.MessagingException;
 
@@ -76,8 +77,9 @@ import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -86,9 +88,10 @@ import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Subscribe;
-import org.dspace.handle.HandleManager;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Class defining methods for sending new item e-mail alerts to users. Based on
@@ -156,7 +159,7 @@ public class ScriptCrisSubscribe
                     }
                 }
 
-                currentEPerson = EPerson.find(context,
+                currentEPerson = EPersonServiceFactory.getInstance().getEPersonService().find(context,
                         rpSubscription.getEpersonID());
                 rpkeys = new ArrayList<String>();
             }
@@ -266,10 +269,10 @@ public class ScriptCrisSubscribe
                 for (SolrDocument solrDoc : results)
 
                 {
-                    Item item = Item.find(context, (Integer) solrDoc
-                            .getFieldValue("search.resourceid"));
+                    Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString((String) solrDoc
+                            .getFieldValue("search.resourceid")));
 
-                    List<MetadataValue> titles = item.getDC("title", null, Item.ANY);
+                    List<MetadataValue> titles = item.getMetadata("title", null, Item.ANY, Item.ANY);
                     emailText
                             .append("      ")
                             .append(I18nUtil.getMessage(
@@ -278,7 +281,7 @@ public class ScriptCrisSubscribe
 
                     if (titles.size() > 0)
                     {
-                        emailText.append(titles[0].value);
+                        emailText.append(titles.get(0).getValue());
                     }
                     else
                     {
@@ -287,8 +290,8 @@ public class ScriptCrisSubscribe
                                 supportedLocale));
                     }
 
-                    List<MetadataValue> authors = item.getDC("contributor", Item.ANY,
-                            Item.ANY);
+                    List<MetadataValue> authors = item.getMetadata("contributor", Item.ANY,
+                            Item.ANY, Item.ANY);
 
                     if (authors.size() > 0)
                     {
@@ -297,12 +300,12 @@ public class ScriptCrisSubscribe
                                 .append(I18nUtil.getMessage(
                                         "org.dspace.eperson.Subscribe.authors",
                                         supportedLocale)).append(" ")
-                                .append(authors[0].value);
+                                .append(authors.get(0).getValue());
 
                         for (int k = 1; k < authors.size(); k++)
                         {
                             emailText.append("\n             ").append(
-                                    authors[k].value);
+                                    authors.get(k).getValue());
                         }
                     }
 
@@ -314,7 +317,6 @@ public class ScriptCrisSubscribe
                             .append(" ")
                             .append(HandleServiceFactory.getInstance().getHandleService().getCanonicalForm(item
                                     .getHandle())).append("\n\n");
-                    context.removeCached(item, item.getID());
                 }
             }
         }

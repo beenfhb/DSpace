@@ -37,7 +37,6 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -55,10 +54,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
 import org.dspace.submit.AbstractProcessingStep;
-import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.workflowbasic.BasicWorkflowItem;
 import org.dspace.workflowbasic.factory.BasicWorkflowServiceFactory;
@@ -372,8 +368,8 @@ public class MyDSpaceServlet extends DSpaceServlet
             
             try
             {
-                int itemID = Integer.parseInt(request.getParameter("item_id"));
-                item = Item.find(context, itemID);
+                UUID itemID = UIUtil.getUUIDParameter(request, "item_id");
+                item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
             }
             catch (NumberFormatException nfe)
             {

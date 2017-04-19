@@ -9,7 +9,7 @@ package org.dspace.app.cris.deduplication.utils;
 
 import java.util.Locale;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
@@ -18,7 +18,7 @@ import com.ibm.icu.text.Normalizer;
 public class TitleSignature extends MD5ValueSignature {
 
 	@Override
-	protected String normalize(DSpaceObject item, String value) {
+	protected String normalize(BrowsableDSpaceObject item, String value) {
 		if (value != null) {
 
 			String norm = Normalizer.normalize(value, Normalizer.NFD);

@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.batch.dao.ImpRecordDAO;
@@ -63,9 +64,9 @@ public class DTOImpRecord
     
     private String imp_record_id;
     
-    private Integer imp_eperson_id;
+    private UUID imp_eperson_id;
     
-    private Integer imp_collection_id;
+    private UUID imp_collection_id;
     
     private String status;
     
@@ -107,22 +108,22 @@ public class DTOImpRecord
         this.imp_record_id = imp_record_id;
     }
 
-    public Integer getImp_eperson_id()
+    public UUID getImp_eperson_id()
     {
         return imp_eperson_id;
     }
 
-    public void setImp_eperson_id(Integer imp_eperson_id)
+    public void setImp_eperson_id(UUID imp_eperson_id)
     {
         this.imp_eperson_id = imp_eperson_id;
     }
 
-    public Integer getImp_collection_id()
+    public UUID getImp_collection_id()
     {
         return imp_collection_id;
     }
 
-    public void setImp_collection_id(Integer imp_collection_id)
+    public void setImp_collection_id(UUID imp_collection_id)
     {
         this.imp_collection_id = imp_collection_id;
     }

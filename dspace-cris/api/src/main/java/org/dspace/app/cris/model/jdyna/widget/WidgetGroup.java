@@ -19,6 +19,7 @@ import org.dspace.app.cris.model.jdyna.value.GroupValue;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 import it.cilea.osd.common.model.Selectable;
 import it.cilea.osd.jdyna.editor.AdvancedPropertyEditorSupport;
@@ -79,12 +80,12 @@ public class WidgetGroup extends WidgetCustomPointer<GroupValue>
         {
             context = new Context();
 
-            Group[] objects = Group.search(context, query);
+            List<Group> objects = EPersonServiceFactory.getInstance().getGroupService().search(context, query);
             for (Group obj : objects)
             {
                 String display = obj.getName();
                 SelectableDTO dto = new SelectableDTO(
-                        obj.getID(), display);
+                        obj.getID().toString(), display);
                 results.add(dto);
             }
 

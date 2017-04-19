@@ -69,26 +69,26 @@ public class CrisWebservicesExtraIndexPlugin implements SolrServiceIndexPlugin
             List<String> communitiesHandle = new Vector<String>();
     
             // build list of community ids
-            Community[] communities = myitem.getCommunities();
+            List<Community> communities = myitem.getItemService().getCommunities(context, myitem);
     
             // build list of collection ids
-            Collection[] collections = myitem.getCollections();
+            List<Collection> collections = myitem.getCollections();
     
             // now put those into strings
             int i = 0;
     
-            for (i = 0; i < communities.length; i++)
+            for (Community community : communities)
             {
-                communitiesList.add(new String("" + communities[i].getID()));
-                communitiesName.add(communities[i].getName());
-                communitiesHandle.add(communities[i].getHandle());
+                communitiesList.add(new String("" + community.getID()));
+                communitiesName.add(community.getName());
+                communitiesHandle.add(community.getHandle());
             }
     
-            for (i = 0; i < collections.length; i++)
+            for (Collection collection : collections)
             {
-                collectionsList.add(new String("" + collections[i].getID()));
-                collectionsName.add(collections[i].getName());
-                collectionsHandle.add(collections[i].getHandle());
+                collectionsList.add(new String("" + collection.getID()));
+                collectionsName.add(collection.getName());
+                collectionsHandle.add(collection.getHandle());
             }
     
             document.addField(FIELDNAME_COLLECTIONS, collectionsList);

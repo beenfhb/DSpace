@@ -13,10 +13,11 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.ItemEnhancer;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.integration.defaultvalues.DefaultValuesBean;
 import org.dspace.content.integration.defaultvalues.EnhancedValuesGenerator;
 import org.dspace.core.Context;
@@ -66,15 +67,15 @@ public class ItemEnhancerUtility
 						dc.element = enh.getAlias();
 						dc.qualifier = Item.ANY.equalsIgnoreCase(qualifier) || StringUtils.isBlank(qualifier) ? null
 								: qualifier;
-						dc.value = e.getValues()[idx];
-						if (StringUtils.isNotBlank(dc.value)) {
+						dc.setValue(e.getValues()[idx]);
+						if (StringUtils.isNotBlank(dc.getValue())) {
 							if (e.getAuthorities() != null && e.getAuthorities().length > 0) {
-								dc.authority = e.getAuthorities()[idx];
-								dc.confidence = StringUtils.isNotEmpty(e.getAuthorities()[idx]) ? Choices.CF_ACCEPTED
-										: Choices.CF_UNSET;
+								dc.setAuthority(e.getAuthorities()[idx]);
+								dc.setConfidence(StringUtils.isNotEmpty(e.getAuthorities()[idx]) ? Choices.CF_ACCEPTED
+										: Choices.CF_UNSET);
 							} else {
-								dc.authority = null;
-								dc.confidence = Choices.CF_UNSET;
+								dc.setAuthority(null);
+								dc.setConfidence(Choices.CF_UNSET);
 							}
 							result.add(dc);
 						}
@@ -98,7 +99,7 @@ public class ItemEnhancerUtility
 
             for (String md : mdList)
             {
-                List<MetadataValue> MetadataValues = item.getMetadataByMetadataString(md);
+                List<MetadataValue> MetadataValues = ContentServiceFactory.getInstance().getItemService().getMetadataByMetadataString(item, md);
 				if ("placeholder.placeholder.placeholder".equalsIgnoreCase(md)) {
 					DefaultValuesBean valueGenerated = null;
 					String schema = "placeholder";
@@ -117,7 +118,7 @@ public class ItemEnhancerUtility
 						String schema = dc.schema;
 						String element = dc.element;
 						String qual = dc.qualifier;
-						String value = dc.value;
+						String value = dc.getValue();
 						for (EnhancedValuesGenerator vg : enh.getGenerators()) {
 							valueGenerated = vg.generateValues(item, schema, element, qual, value);
 							if (valueGenerated.getValues() != null && valueGenerated.getValues().length > 0) {

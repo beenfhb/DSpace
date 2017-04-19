@@ -34,7 +34,7 @@ public class BitstreamSolrIndexer implements SolrServiceIndexPlugin
         Item item = (Item) dso;
         try
         {
-            Bundle[] bb = item.getBundles();
+            List<Bundle> bb = item.getBundles();
             for (Bundle b : bb)
             {
 
@@ -48,7 +48,7 @@ public class BitstreamSolrIndexer implements SolrServiceIndexPlugin
 
             }
         }
-        catch (SQLException e)
+        catch (Exception e)
         {
             throw new RuntimeException(e);
         }

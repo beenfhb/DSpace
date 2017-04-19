@@ -7,11 +7,21 @@
  */
 package org.dspace.search;
 
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -23,10 +33,6 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.eperson.Group;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
-
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.util.*;
 
 /**
  * Utility class for extracting information about items, possibly just within a
@@ -135,10 +141,10 @@ public class Harvest
             DiscoverResult discoverResult = SearchUtils.getSearchService().search(context, discoverQuery);
 
             // Process results of query into HarvestedItemInfo objects
-            Iterator<DSpaceObject> dsoIterator = discoverResult.getDspaceObjects().iterator();
+            Iterator<BrowsableDSpaceObject> dsoIterator = discoverResult.getDspaceObjects().iterator();
             while (dsoIterator.hasNext() && ((limit == 0) || (itemCounter < limit)))
             {
-                DSpaceObject dso = dsoIterator.next();
+            	BrowsableDSpaceObject dso = dsoIterator.next();
                 HarvestedItemInfo itemInfo = new HarvestedItemInfo();
                 itemInfo.context = context;
                 itemInfo.handle = dso.getHandle();

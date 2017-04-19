@@ -150,14 +150,14 @@ public class DedupUtils
      * @throws SQLException
      * @throws SearchServiceException
      */
-    private List<DuplicateItemInfo> findDuplicate(Context context, Integer id,
+    private List<DuplicateItemInfo> findDuplicate(Context context, UUID id,
             Integer resourceType, String signatureType, Boolean isInWorkflow)
                     throws SQLException, SearchServiceException
     {
             ViewResolver resolver = dspace.getServiceManager().getServiceByName(CrisConstants.getEntityTypeText(resourceType) + "ViewResolver", ViewResolver.class);
         
-            List<Integer> result = new ArrayList<Integer>();
-            Map<Integer, String> verify = new HashMap<Integer,String>();
+            List<UUID> result = new ArrayList<UUID>();
+            Map<UUID, String> verify = new HashMap<UUID,String>();
 
             SolrQuery findDuplicateBySignature = new SolrQuery();
             findDuplicateBySignature.setQuery((isInWorkflow == null?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED:(isInWorkflow?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFYWF:SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFY)));
@@ -199,7 +199,7 @@ public class DedupUtils
                 if(tmp!=null && !tmp.isEmpty()) {
                     for(Object tttmp : tmp) {
                         String idtmp = (String)tttmp;
-                        int parseInt = Integer.parseInt(idtmp);
+                        UUID parseInt = UUID.fromString(idtmp);
                         if(parseInt!=id) {
                             String flag = (String)solrDocument.getFieldValue("dedup.flag");
                             if(SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription().equals(flag)) {
@@ -215,7 +215,7 @@ public class DedupUtils
             }
         
         List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();        
-        for (Integer idResult : result) {
+        for (UUID idResult : result) {
             DuplicateItemInfo info = new DuplicateItemInfo();            
             info.setRejected(false);
             info.setDuplicateItem(resolver.fillDTO(context, idResult, resourceType));
@@ -710,19 +710,19 @@ public class DedupUtils
     }
 
     public List<DuplicateItemInfo> getDuplicateByIDandType(Context context,
-            int itemID, int typeID, boolean isInWorkflow) throws SQLException, SearchServiceException
+            UUID itemID, int typeID, boolean isInWorkflow) throws SQLException, SearchServiceException
     {      
         return getDuplicateByIdAndTypeAndSignatureType(context, itemID, typeID, null, isInWorkflow);
     }
     
     public List<DuplicateItemInfo> getDuplicateByIdAndTypeAndSignatureType(Context context,
-            int itemID, int typeID, String signatureType, boolean isInWorkflow) throws SQLException, SearchServiceException
+            UUID itemID, int typeID, String signatureType, boolean isInWorkflow) throws SQLException, SearchServiceException
     {        
         return findDuplicate(context, itemID, typeID, signatureType, isInWorkflow);
     }
 
     public List<DuplicateItemInfo> getAdminDuplicateByIdAndType(Context context,
-            int itemID, int typeID) throws SQLException, SearchServiceException
+            UUID itemID, int typeID) throws SQLException, SearchServiceException
     {        
         return findDuplicate(context, itemID, typeID, null, null);
     }

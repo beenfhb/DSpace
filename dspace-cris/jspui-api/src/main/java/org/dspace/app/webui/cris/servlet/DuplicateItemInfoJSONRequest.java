@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +39,7 @@ public class DuplicateItemInfoJSONRequest extends JSONRequest
                 .getServiceByName("dedupUtils", DedupUtils.class);
         
         DuplicateItemInfoJSONResponse jsonresp = new DuplicateItemInfoJSONResponse();
-        int itemID = UIUtil.getIntParameter(req, "itemid");
+        UUID itemID = UIUtil.getUUIDParameter(req, "itemid");
         boolean check = UIUtil.getBoolParameter(req, "check");
         int typeID = UIUtil.getIntParameter(req, "typeid");
         boolean admin = UIUtil.getBoolParameter(req, "admin");

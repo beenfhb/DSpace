@@ -53,7 +53,7 @@ public class ScriptCrisBulkChanges {
 		// TODO move logic in ImportExportUtils
 		log.info("#### START IMPORT: -----" + new Date() + " ----- ####");
 		Context dspaceContext = new Context();
-		dspaceContext.setIgnoreAuthorization(true);
+		dspaceContext.turnOffAuthorisationSystem();
 		DSpace dspace = new DSpace();
 		ApplicationService applicationService = dspace.getServiceManager().getServiceByName("applicationService",
 				ApplicationService.class);

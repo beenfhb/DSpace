@@ -192,4 +192,24 @@ public class SubscribeServiceImpl implements SubscribeService {
 	public List<Community> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException {
 		return subscriptionDAO.findByEPersonWithCommunity(context, eperson);
 	}
+
+	@Override
+	public void subscribeCommunity(Context context, EPerson eperson, Community community) throws SQLException, AuthorizeException {
+		// Check authorisation. Must be administrator, or the eperson.
+		if (authorizeService.isAdmin(context)
+				|| ((context.getCurrentUser() != null) && (context.getCurrentUser().getID().equals(eperson.getID())))) {
+			if (!isSubscribedCommunity(context, eperson, community)) {
+				Subscription subscription = subscriptionDAO.create(context, new Subscription());
+				subscription.setCommunity(community);
+				subscription.setePerson(eperson);
+			}
+		} else {
+			throw new AuthorizeException("Only admin or e-person themselves can subscribe");
+		}
+	}
+
+	@Override
+	public boolean isSubscribedCommunity(Context context, EPerson eperson, Community community) throws SQLException {
+		return subscriptionDAO.findByCommunityAndEPerson(context, eperson, community) != null;
+	}
 }

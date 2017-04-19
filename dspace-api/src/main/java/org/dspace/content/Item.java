@@ -13,14 +13,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -37,11 +34,9 @@ import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.EPerson;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -436,5 +431,30 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
 	@Override
 	public String getMetadata(String field) {
 		return getItemService().getMetadata(this, field);
+	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return true;
+	}
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		Context context = new Context();
+		try {
+			return (BrowsableDSpaceObject)(getItemService().getParentObject(context, this));
+		} catch (SQLException e) {
+		}
+		finally {
+			if(context != null && context.isValid()) {
+				context.abort();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return getItemService().getMetadataFirstValue(this, schema, element, qualifier, language);
 	}   
 }

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import org.dspace.core.Context;
 import org.dspace.util.ActionUtils;
@@ -21,7 +22,7 @@ public class SimpleViewEntityDTO
 
     private String handle;
     
-    private Integer entityID;
+    private UUID entityID;
 
     private Integer entityTypeID;
 
@@ -42,7 +43,7 @@ public class SimpleViewEntityDTO
      */
     private Locale locale;
 
-    public SimpleViewEntityDTO(Context context, int itemID, int typeID)
+    public SimpleViewEntityDTO(Context context, UUID itemID, int typeID)
     {    
         this.locale = context.getCurrentLocale();
         this.setEntityID(itemID);
@@ -63,12 +64,12 @@ public class SimpleViewEntityDTO
         this.duplicateItem = duplicateItem;
     }
 
-    public Integer getEntityID()
+    public UUID getEntityID()
     {
         return entityID;
     }
 
-    public void setEntityID(Integer entityID)
+    public void setEntityID(UUID entityID)
     {
         this.entityID = entityID;
     }

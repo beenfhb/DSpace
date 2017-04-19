@@ -23,6 +23,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 import it.cilea.osd.common.model.Selectable;
 import it.cilea.osd.jdyna.editor.AdvancedPropertyEditorSupport;
@@ -85,12 +86,12 @@ public class WidgetEPerson extends WidgetCustomPointer<EPersonValue>
         {
             context = new Context();
 
-            EPerson[] objects = EPerson.search(context, query);
+            List<EPerson> objects = EPersonServiceFactory.getInstance().getEPersonService().search(context, query);
             for (EPerson obj : objects)
             {
                 String display = obj.getName();
                 SelectableDTO dto = new SelectableDTO(
-                        obj.getID(), display);
+                        obj.getID().toString(), display);
                 results.add(dto);
             }
 

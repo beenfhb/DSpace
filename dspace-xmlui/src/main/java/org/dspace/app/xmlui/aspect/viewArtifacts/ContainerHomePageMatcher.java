@@ -7,17 +7,18 @@
  */
 package org.dspace.app.xmlui.aspect.viewArtifacts;
 
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.avalon.framework.parameters.Parameters;
 import org.apache.cocoon.matching.Matcher;
 import org.apache.cocoon.sitemap.PatternException;
 import org.apache.log4j.Logger;
 import org.dspace.app.xmlui.utils.HandleUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
-
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Matcher used to determine which transformers are used to render the home page for a community/collection
@@ -43,7 +44,7 @@ public class ContainerHomePageMatcher implements Matcher {
         {
             try {
                 boolean isHomePageActive;
-                DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(HandleUtil.obtainHandle(objectModel));
+                DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)HandleUtil.obtainHandle(objectModel));
                 if(discoveryConfiguration.getRecentSubmissionConfiguration() != null && discoveryConfiguration.getRecentSubmissionConfiguration().getUseAsHomePage())
                 {
                     isHomePageActive = !pattern.equals("metadata");

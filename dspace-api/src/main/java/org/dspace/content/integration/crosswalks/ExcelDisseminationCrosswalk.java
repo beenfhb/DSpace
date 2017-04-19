@@ -28,6 +28,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.dspace.app.bulkedit.DSpaceCSV;
 import org.dspace.app.bulkedit.DSpaceCSVLine;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
@@ -59,14 +60,14 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
     }
 
     @Override
-    public void disseminate(Context context, List<DSpaceObject> dso,
+    public void disseminate(Context context, List<BrowsableDSpaceObject> dso,
             OutputStream out) throws CrosswalkException, IOException,
                     SQLException, AuthorizeException
     {
 
         // Process each item
         DSpaceCSV csv = new DSpaceCSV(false);
-        for (DSpaceObject toExport : dso)
+        for (BrowsableDSpaceObject toExport : dso)
         {
             try
             {
@@ -216,7 +217,7 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
     }
 
     @Override
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
             throws CrosswalkException, IOException, SQLException,
             AuthorizeException
     {

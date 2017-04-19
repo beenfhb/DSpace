@@ -309,4 +309,29 @@ public class Community extends DSpaceObject implements BrowsableDSpaceObject, DS
 	public String getMetadata(String field) {
 		return getCommunityService().getMetadata(this, field);
 	}
+	
+	@Override
+	public boolean haveHierarchy() {
+		return true;
+	}
+	
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		Context context = new Context();
+		try {
+			return (BrowsableDSpaceObject)(getCommunityService().getParentObject(context, this));
+		} catch (SQLException e) {
+		}
+		finally {
+			if(context != null && context.isValid()) {
+				context.abort();
+			}
+		}
+		return null;
+	}
+	
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return getCommunityService().getMetadataFirstValue(this, schema, element, qualifier, language);
+	}
 }

@@ -34,9 +34,9 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.dspace.services.factory.DSpaceServicesFactory;
 
 import gr.ekt.bte.core.DataOutputSpec;
 import gr.ekt.bte.core.OutputGenerator;
@@ -235,22 +235,19 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
                 }
             }
             itemService.update(context, item);
-        }
-
-        try
-        {
+            
             String providerName = "";
             List<Value> providerNames = itemLookup.getValues("provider_name_field");
             if(providerNames!=null && providerNames.size()>0) {
                 providerName = providerNames.get(0).getAsString();
             }
-            List<AdditionalMetadataUpdateProcessPlugin> additionalMetadataUpdateProcessPlugins = (List<AdditionalMetadataUpdateProcessPlugin>)DSpaceServicesFactory.getInstance().
+            List<AdditionalMetadataUpdateProcessPlugin> additionalMetadataUpdateProcessPlugins = (List<AdditionalMetadataUpdateProcessPlugin>)DSpaceServicesFactory.getInstance()
                     .getServiceManager().getServicesByType(AdditionalMetadataUpdateProcessPlugin.class);
             for(AdditionalMetadataUpdateProcessPlugin additionalMetadataUpdateProcessPlugin : additionalMetadataUpdateProcessPlugins) {
                 additionalMetadataUpdateProcessPlugin.process(this.context, item, providerName);
             }
             
-            item.update();
+            itemService.update(context, item);
         }
         catch (SQLException | NullPointerException e)
         {

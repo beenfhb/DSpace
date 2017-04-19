@@ -18,7 +18,7 @@ public class ItemTargetMetricFillerPlugin extends TargetMetricFillerPlugin
             ApplicationService applicationService,
             MetricsPersistenceService metricService)
     {
-        ItemMetadataImportFiller.buildMetric(context, item, null, m, m.getField(), getMappingDetail(), metricService);
+        ItemMetadataImportFiller.buildMetric(context, item, null, m, m.getMetadataField().toString('.'), getMappingDetail(), metricService);
     }
 
 }

@@ -7,8 +7,6 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.core.TimeStampInfo;
-
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +28,10 @@ import org.dspace.app.cris.model.jdyna.OUNestedProperty;
 import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.OUTypeNestedObject;
-import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.eperson.EPerson;
+
+import it.cilea.osd.common.core.TimeStampInfo;
 
 @Entity
 @Table(name = "cris_orgunit", uniqueConstraints = @UniqueConstraint(columnNames={"sourceID","sourceRef"}))
@@ -273,4 +273,15 @@ public class OrganizationUnit extends
         return false;
     }
 
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

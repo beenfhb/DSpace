@@ -7,13 +7,13 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
-import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
-import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
+import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
+import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 
 /**
  * Wrapper class used to accommodate for the possibility of correlations between multiple MetadataValueContributor objects

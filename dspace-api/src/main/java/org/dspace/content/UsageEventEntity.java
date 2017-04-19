@@ -7,5 +7,13 @@ public interface UsageEventEntity {
 	UUID getID();
 
 	String getTypeText();
+	
+	int getType();
+
+	String getHandle();
+
+	String getName();
+
+	boolean haveHierarchy();
 
 }

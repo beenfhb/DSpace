@@ -18,7 +18,6 @@ import org.dspace.app.cris.model.ws.Criteria;
 import org.dspace.app.cris.model.ws.User;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.springframework.validation.BindException;

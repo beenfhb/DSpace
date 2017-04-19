@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.orcid.OrcidAuthorityValue;
 import org.dspace.authority.orcid.OrcidService;
+import org.dspace.content.Collection;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.Choices;
 import org.dspace.utils.DSpace;
@@ -29,7 +30,7 @@ public class ORCIDAuthority extends RPAuthority {
 	private OrcidService source = new DSpace().getServiceManager().getServiceByName("OrcidSource", OrcidService.class);
 
 	@Override
-	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale) {
+	public Choices getMatches(String field, String query, Collection collection, int start, int limit, String locale) {
 		Choices choices = super.getMatches(field, query, collection, start, limit, locale);		
 		return new Choices(addExternalResults(field, query, choices, start, limit==0?DEFAULT_MAX_ROWS:limit), choices.start, choices.total, choices.confidence, choices.more);
 	}

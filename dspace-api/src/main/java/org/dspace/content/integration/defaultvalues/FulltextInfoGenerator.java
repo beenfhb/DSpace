@@ -8,7 +8,6 @@
 package org.dspace.content.integration.defaultvalues;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.dspace.content.Bitstream;
@@ -32,10 +31,10 @@ public class FulltextInfoGenerator implements EnhancedValuesGenerator
 
         String values = I18nUtil
                 .getMessage("defaultvalue.fulltextdescription.nofulltext");
-        Bundle[] bnds;
+        List<Bundle> bnds;
         try
         {
-            bnds = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+            bnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
         }
         catch (SQLException e)
         {

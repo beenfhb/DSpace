@@ -10,22 +10,16 @@ package org.dspace.app.webui.cris.controller.json;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-
-import flexjson.JSONSerializer;
-import it.cilea.osd.jdyna.model.AccessLevelConstants;
-import it.cilea.osd.jdyna.value.TextValue;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.cris.model.ResearcherPage;
-import org.dspace.app.cris.model.RestrictedField;
 import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
-import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
@@ -33,9 +27,12 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractController;
 import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
+
+import flexjson.JSONSerializer;
+import it.cilea.osd.jdyna.value.TextValue;
 
 /**
  * Retrieve data on the researcher profile of the logged user to be used in a
@@ -67,14 +64,14 @@ public class MyRPJSONController extends MultiActionController
             EPerson currentUser = getCurrentUser(request);
 			rp.setEpersonID(currentUser.getID());
             
-            List<MetadataValue> md = currentUser.getMetadata("eperson", "orcid", null, null);
+            List<MetadataValue> md = EPersonServiceFactory.getInstance().getEPersonService().getMetadata(currentUser, "eperson", "orcid", null, null);
             if (md != null && md.size() > 0) {
-            	List<MetadataValue> mdToken = currentUser.getMetadata("eperson", "orcid", "accesstoken", null);
+            	List<MetadataValue> mdToken = EPersonServiceFactory.getInstance().getEPersonService().getMetadata(currentUser, "eperson", "orcid", "accesstoken", null);
             	String token = null;
             	if (mdToken != null && mdToken.size() > 0) {
-            		token = mdToken[0].value;
+            		token = mdToken.get(0).getValue();
             	}
-            	String orcid = md[0].value;
+            	String orcid = md.get(0).getValue();
 				boolean orcidPopulated = OrcidPreferencesUtils.populateRP(rp, orcid, token);
             	if (!orcidPopulated && token != null) {
             		orcidPopulated = OrcidPreferencesUtils.populateRP(rp, orcid);
@@ -144,7 +141,7 @@ public class MyRPJSONController extends MultiActionController
                     "Wrong data or configuration: access to the my rp servlet without a valid user: there is no user logged in");
         }
 
-        int id = currUser.getID();
+        UUID id = currUser.getID();
         ResearcherPage rp = applicationService.getResearcherPageByEPersonId(id);
         return rp;
     }

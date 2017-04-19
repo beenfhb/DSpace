@@ -15,7 +15,9 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -45,15 +47,13 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.event.Event;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.hibernate.Session;
 import org.xml.sax.SAXException;
 
 public class ScriptDataCiteDeposit
@@ -97,7 +97,7 @@ public class ScriptDataCiteDeposit
     {
         log.info("#### START Script datacite sender: -----" + new Date()
                 + " ----- ####");
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         CommandLineParser parser = new PosixParser();
 
@@ -172,67 +172,60 @@ public class ScriptDataCiteDeposit
 
                 int limit = 100;
 
-                TableRowIterator rows = null;
+                List<Object[]> rows = null;
 
                 if ("oracle".equals(dbName))
                 {
-                    rows = DatabaseManager
-                            .query(context,
-                                    "select * from "
+                    rows = getHibernateSession(context).createSQLQuery(
+                                    "select item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
                                             + " d2i left join item i on d2i.item_id = i.item_id where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
-                                            + " AND ROWNUM <= " + limit);
+                                            + " AND ROWNUM <= " + limit).list();
                 }
                 else
                 {
-                    rows = DatabaseManager
-                            .query(context,
-                                    "select * from "
+                	rows = getHibernateSession(context).createSQLQuery(
+                                    "select item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
                                             + " d2i left join item i on d2i.item_id = i.item_id where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
-                                            + " LIMIT " + limit);
+                                            + " LIMIT " + limit).list();
                 }
                 int offset = 0;
                 int count = 0;
-                try
-                {
-                    while (rows.hasNext() || count == limit)
+                    while (!rows.isEmpty() || count == limit)
                     {
                         if (offset > 0)
                         {
                             if ("oracle".equals(dbName))
                             {
-                                rows = DatabaseManager
-                                        .query(context,
-                                                "select * from "
+                                rows = getHibernateSession(context).createSQLQuery(
+                                                "select item_id, criteria, identifier_doi from "
                                                         + TABLE_NAME_DOI2ITEM
                                                         + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null"
                                                         + " AND ROWNUM > "
                                                         + limit
                                                         + " AND ROWNUM <= "
-                                                        + (offset + limit));
+                                                        + (offset + limit)).list();
                             }
                             else
                             {
-                                rows = DatabaseManager
-                                        .query(context,
-                                                "select * from "
+                                rows = getHibernateSession(context).createSQLQuery(
+                                                "select item_id, criteria, identifier_doi from "
                                                         + TABLE_NAME_DOI2ITEM
                                                         + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null"
                                                         + " LIMIT " + limit
-                                                        + " OFFSET " + offset);
+                                                        + " OFFSET " + offset).list();
                             }
                         }
                         offset = limit + offset;
                         count = 0;
-                        while (rows.hasNext())
+                        for (Object[] row : rows)
                         {
                             count++;
-                            TableRow row = rows.next();
-                            Item item = Item.find(context,
-                                    row.getIntColumn("item_id"));
-                            String criteria = row.getStringColumn("criteria");
-                            String doi = row.getStringColumn("identifier_doi");
+                            Item item = ContentServiceFactory.getInstance().getItemService().find(context, 
+                            		(UUID)row[0]);//.getIntColumn("item_id"));
+                            String criteria = (String)row[1];//.getStringColumn("criteria");
+                            String doi = (String)row[2];//.getStringColumn("identifier_doi");
 
                             try
                             {
@@ -258,52 +251,27 @@ public class ScriptDataCiteDeposit
                         }
                     }
                     context.commit();
-                }
-                finally
-                {
-                    rows.close();
-                }
             }
             else
             {
                 if (line.hasOption('s'))
                 {
-                    Integer id = Integer.parseInt(line.getOptionValue("s"));
-                    TableRow row = DatabaseManager
-                            .querySingle(
-                                    context,
-                                    "SELECT * FROM "
+                    UUID id = UUID.fromString(line.getOptionValue("s"));
+                    List<Object[]> rows = getHibernateSession(context).createSQLQuery(
+                                    "SELECT item_id, criteria, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i left join item i on d2i.item_id = i.item_id where d2i.item_id = ? AND d2i.last_modified is null",
-                                    id);
+                                            + " d2i left join item i on d2i.item_id = i.item_id where d2i.item_id = :par0 AND d2i.last_modified is null").setParameter(0, 
+                                    id).list();
 
-                    try
+                    for (Object[] row : rows)
                     {
-                        String criteria = row.getStringColumn("criteria");
-                        String doi = row.getStringColumn("identifier_doi");
-                        Item item = Item.find(context,
-                                row.getIntColumn("item_id"));
+                        String criteria = (String)row[1];//.getStringColumn("criteria");
+                        String doi = (String)row[2];//.getStringColumn("identifier_doi");
+                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, 
+                                (UUID)row[0]);//.getIntColumn("item_id"));
 
                         result.putAll(depositToDataCite(context, item,
                                 criteria, doi));
-                    }
-                    catch (IOException e)
-                    {
-                        log.error(
-                                "FOR item: " + id + " ERRORMESSAGE: "
-                                        + e.getMessage(), e);
-                    }
-                    catch (AuthorizeException e)
-                    {
-                        log.error(
-                                "FOR item: " + id + " ERRORMESSAGE: "
-                                        + e.getMessage(), e);
-                    }
-                    catch (CrosswalkException e)
-                    {
-                        log.error(
-                                "FOR item: " + id + " ERRORMESSAGE: "
-                                        + e.getMessage(), e);
                     }
 
                 }
@@ -319,18 +287,24 @@ public class ScriptDataCiteDeposit
             }
 
         }
-        catch (SQLException e1)
-        {
-            log.error(e1.getMessage(), e1);
-            if (context.isValid())
-            {
-                context.abort();
-            }
-        }
-
+		catch (SQLException e1) {
+			log.error(e1.getMessage(), e1);
+		} catch (CrosswalkException e) {
+			log.error(e.getMessage(), e);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		} catch (AuthorizeException e) {
+			log.error(e.getMessage(), e);
+		}
+        finally {
+        	 if (context!=null && context.isValid())
+             {
+                 context.abort();
+             }
+		}
         log.info("#### Import details ####");
 
-        for (Integer key : result.keySet())
+        for (UUID key : result.keySet())
         {
             log.info("ITEM: " + key + " RESULT: " + result.get(key));
         }
@@ -350,7 +324,7 @@ public class ScriptDataCiteDeposit
         return client;
     }
 
-    private static Map<Integer, String> depositToDataCite(Context context,
+    private static Map<UUID, String> depositToDataCite(Context context,
             Item target, String criteria, String doi)
             throws CrosswalkException, IOException, SQLException,
             AuthorizeException
@@ -369,7 +343,7 @@ public class ScriptDataCiteDeposit
         fos.close();
 
         PostMethod post = null;
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         int responseCode = 0;
         String urlDeposited = "";
@@ -430,13 +404,13 @@ public class ScriptDataCiteDeposit
                     + responseCode + " MESSAGE:" + result.get(target.getID()));
             if (responseCode == 201)
             {
-                target.clearMetadata("dc", "utils", "processdoi", Item.ANY);
-                target.addMetadata("dc", "utils", "processdoi", null,
+            	target.getItemService().clearMetadata(context, target, "dc", "utils", "processdoi", Item.ANY);
+                target.getItemService().addMetadata(context, target, "dc", "utils", "processdoi", null,
                         "datacite");
 
                 try
                 {
-                    target.update();
+                    target.getItemService().update(context, target);
                     context.addEvent(new Event(Event.UPDATE_FORCE,
                             Constants.ITEM, target.getID(), target.getHandle()));
                     context.commit();
@@ -447,25 +421,19 @@ public class ScriptDataCiteDeposit
                             + e.getMessage(), e);
                 }
 
-                DatabaseManager
-                        .updateQuery(
-                                context,
-                                "UPDATE "
-                                        + TABLE_NAME_DOI2ITEM
-                                        + " SET LAST_MODIFIED = ?, RESPONSE_CODE = ?, NOTE = ?, FILENAME = ? WHERE ITEM_ID = ?",
-                                new java.sql.Timestamp(new Date().getTime()),
-                                responseCode, result.get(target.getID()),
-                                urlDeposited, target.getID());
-
+                getHibernateSession(context).createSQLQuery(
+                        "UPDATE "
+                                + TABLE_NAME_DOI2ITEM
+                                + " SET LAST_MODIFIED = :par0, RESPONSE_CODE = :par1, NOTE = :par2, FILENAME = :par3 WHERE ITEM_ID = :par4").setParameter(0,
+                                		new java.sql.Timestamp(new Date().getTime())).setParameter(1, responseCode).setParameter(2,
+                        result.get(target.getID())).setParameter(3, urlDeposited).setParameter(4, target.getID()).executeUpdate();
             }
             else
             {
-                DatabaseManager.updateQuery(context, "UPDATE "
+            	getHibernateSession(context).createSQLQuery("UPDATE "
                         + TABLE_NAME_DOI2ITEM
-                        + " SET RESPONSE_CODE = ?, NOTE = ? WHERE ITEM_ID = ?",
-                        responseCode,
-                        responseCode + "-" + result.get(target.getID()),
-                        target.getID());
+                        + " SET RESPONSE_CODE = :par0, NOTE = :par1 WHERE ITEM_ID = :par2").setParameter(0, responseCode).setParameter(1, responseCode + "-"
+                        + result.get(target.getID())).setParameter(2, target.getID()).executeUpdate();
             }
 
             context.commit();
@@ -474,4 +442,7 @@ public class ScriptDataCiteDeposit
         return result;
     }
 
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 }

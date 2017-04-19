@@ -401,4 +401,24 @@ public class Collection extends DSpaceObject implements BrowsableDSpaceObject, D
 	public boolean haveHierarchy() {
 		return true;
 	}
+	
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		Context context = new Context();
+		try {
+			return (BrowsableDSpaceObject)(getCollectionService().getParentObject(context, this));
+		} catch (SQLException e) {
+		}
+		finally {
+			if(context != null && context.isValid()) {
+				context.abort();
+			}
+		}
+		return null;
+	}
+	
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return getCollectionService().getMetadataFirstValue(this, schema, element, qualifier, language);
+	}
 }

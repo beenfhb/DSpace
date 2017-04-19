@@ -10,6 +10,7 @@ package org.dspace.app.cris.metrics.scopus.script;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -25,9 +26,10 @@ import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.metrics.scopus.dto.ScopusResponse;
 import org.dspace.app.cris.metrics.scopus.services.ScopusService;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -172,14 +174,14 @@ public class ScriptRetrieveCitation {
                 log.info(LogManager.getHeader(null, "retrieve_citation_scopus",
                         "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
 				// for each item check
-				for (DSpaceObject dso : qresp.getDspaceObjects()) {
+				for (BrowsableDSpaceObject dso : qresp.getDspaceObjects()) {
 
 					List<SearchDocument> list = qresp.getSearchDocument(dso);
 					for (SearchDocument doc : list) {
 						if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
 							break all;
 
-						Integer itemID = dso.getID();
+						UUID itemID = dso.getID();
 
 						if (isCheckRequired(itemID)) {
 							itemWorked++;
@@ -218,7 +220,7 @@ public class ScriptRetrieveCitation {
 
 	}
 
-	private static boolean buildCiting(DSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
+	private static boolean buildCiting(BrowsableDSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
         CrisMetrics citation = response.getCitation();
         if (!response.isError())
         {
@@ -231,25 +233,34 @@ public class ScriptRetrieveCitation {
                 if (enrichMetadataItem)
                 {
                     Item item = (Item) dso;
+                    Context context = null;
+                    try {
+                    	context = new Context();
                     if (StringUtils.isNotBlank(citation.getIdentifier()))
                     {
-                        List<MetadataValue> MetadataValueEid = item
-                                .getMetadataByMetadataString(fieldScopusID);
+                        List<MetadataValue> MetadataValueEid = item.getMetadataValueInDCFormat(fieldScopusID);
                         if (MetadataValueEid != null && MetadataValueEid.size() > 0)
                         {
-                            item.clearMetadata(MetadataValueEid[0].schema,
-                                    MetadataValueEid[0].element,
-                                    MetadataValueEid[0].qualifier,
-                                    MetadataValueEid[0].language);
-                            item.addMetadata(MetadataValueEid[0].schema,
-                                    MetadataValueEid[0].element,
-                                    MetadataValueEid[0].qualifier,
-                                    MetadataValueEid[0].language,
+                            
+							ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, MetadataValueEid.get(0).schema,
+                                    MetadataValueEid.get(0).element,
+                                    MetadataValueEid.get(0).qualifier,
+                                    MetadataValueEid.get(0).getLanguage());
+                            ContentServiceFactory.getInstance().getItemService().addMetadata(context, item, MetadataValueEid.get(0).schema,
+                                    MetadataValueEid.get(0).element,
+                                    MetadataValueEid.get(0).qualifier,
+                                    MetadataValueEid.get(0).getLanguage(),
                                     citation.getIdentifier());
                         }
                     }
 
-                    item.update();
+                    ContentServiceFactory.getInstance().getItemService().update(context, item);
+                    }
+                    finally {
+                    	if(context != null && context.isValid()) {
+                    		context.abort();
+                    	}
+                    }
                 }
                 return true;
             }
@@ -257,7 +268,7 @@ public class ScriptRetrieveCitation {
         return false;
 	}
 
-	private static boolean isCheckRequired(Integer itemID) {
+	private static boolean isCheckRequired(UUID itemID) {
 		if (timeElapsed != 0) {
 			CrisMetrics cit = pService.getLastMetricByResourceIDAndResourceTypeAndMetricsType(itemID, Constants.ITEM, ConstantMetrics.STATS_INDICATOR_TYPE_SCOPUS);
 			if (cit == null || cit.getMetricCount()==-1) {

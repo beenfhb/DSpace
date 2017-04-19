@@ -15,8 +15,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.hibernate.Session;
 
 /**
  * Implements virtual field processing to build suffix doi
@@ -48,17 +47,17 @@ public class VirtualFieldCrossrefConferenceDOI implements VirtualFieldDisseminat
             
             String result = "";
             
-            MetadataValue md = item.getMetadata("dc", "contributor", "author", Item.ANY)[0];
-            String mdValue = md.value.toLowerCase();
+            MetadataValue md = item.getItemService().getMetadata(item, "dc", "contributor", "author", Item.ANY).get(0);
+            String mdValue = md.getValue().toLowerCase();
             mdValue = mdValue.replaceAll("[^a-z]+", "-");
             result += mdValue;
              
             
-            MetadataValue mddate = item.getMetadata("dc", "date", "issued", Item.ANY)[0];
-            result += mddate.value;
+            MetadataValue mddate = item.getItemService().getMetadata(item, "dc", "date", "issued", Item.ANY).get(0);
+            result += mddate.getValue();
            
-            MetadataValue mdtitle = item.getMetadata("dc", "title", null, Item.ANY)[0];
-            String mdtitleValue = mdtitle.value.toLowerCase();
+            MetadataValue mdtitle = item.getItemService().getMetadata(item, "dc", "title", null, Item.ANY).get(0);
+            String mdtitleValue = mdtitle.getValue().toLowerCase();
             mdtitleValue = mdtitleValue.replaceAll("[^a-z]+", "-");
             
             String[] mdtitleArrays = mdtitleValue.split("-");
@@ -70,14 +69,12 @@ public class VirtualFieldCrossrefConferenceDOI implements VirtualFieldDisseminat
             else {
                 result += "_" + mdtitleArrays[0];
             }
-      
             
-            TableRow row = DatabaseManager.querySingle(context,
-                    "select count(*) as cc from "
-                            + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-                            + " where identifier_doi = ?", result);
-            if(row!=null) {
-                if(row.getLongColumn("cc")>0) {
+            Object count = getHibernateSession(context).createSQLQuery("select count(*) as cc from "
+                    + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
+                    + " where identifier_doi = :par0").setParameter(0, result).uniqueResult();
+            if(count!=null) {
+                if((Integer)count>0) {
                     result += "_" + item.getID();
                 }
             }
@@ -116,4 +113,8 @@ public class VirtualFieldCrossrefConferenceDOI implements VirtualFieldDisseminat
     {
         return false;
     }
+    
+	public Session getHibernateSession(Context context) throws SQLException {
+		return ((Session) context.getDBConnection().getSession());
+	}
 }

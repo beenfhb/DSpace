@@ -10,6 +10,7 @@ package org.dspace.app.cris.deduplication.utils;
 import java.sql.SQLException;
 import java.util.Locale;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
@@ -20,16 +21,16 @@ import com.ibm.icu.text.Normalizer;
 public class TitleWithDigitAndCollectionSignature extends MD5ValueSignature {
 
     @Override
-    protected String normalize(DSpaceObject item, Context context, String value) {
+    protected String normalize(BrowsableDSpaceObject item, Context context, String value) {
         if (value != null) {
             String temp = null;
             if (item != null) {
-                DSpaceObject parent = null;
+            	BrowsableDSpaceObject parent = null;
                 try
                 {
                     parent = item.getParentObject();
                 }
-                catch (SQLException e)
+                catch (Exception e)
                 {
                     log.error(e.getMessage());
                 }

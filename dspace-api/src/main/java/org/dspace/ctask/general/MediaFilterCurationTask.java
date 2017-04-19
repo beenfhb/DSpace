@@ -13,7 +13,7 @@ import java.io.PrintStream;
 import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.mediafilter.MediaFilterManager;
+import org.dspace.app.mediafilter.factory.MediaFilterServiceFactory;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -45,9 +45,8 @@ public class MediaFilterCurationTask extends AbstractCurationTask {
 	    PrintStream ps = new PrintStream(baos);
 		try {
 			PrintStream out = System.out;
-			MediaFilterManager.init(null);
 			System.setOut(ps);
-			MediaFilterManager.applyFiltersItem(context, item);
+			MediaFilterServiceFactory.getInstance().getMediaFilterService().applyFiltersItem(context, item);
 			System.out.flush();
 			System.setOut(out);
 		} catch (Exception e) {

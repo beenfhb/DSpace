@@ -557,7 +557,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public void postWorkflow(UsageWorkflowEvent usageWorkflowEvent) throws SQLException {
         initSolrYearCores();
         try {
-            SolrInputDocument solrDoc = getCommonSolrDocByRequest(usageWorkflowEvent.getObject(), null, null);
+            SolrInputDocument solrDoc = getCommonSolrDocByRequest((BrowsableDSpaceObject)usageWorkflowEvent.getObject(), null, null);
 
             //Log the current collection & the scope !
             solrDoc.addField("owningColl", usageWorkflowEvent.getScope().getID());

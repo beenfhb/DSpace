@@ -27,6 +27,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
@@ -43,7 +44,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Entity
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(name = "dspaceobject")
-public abstract class DSpaceObject implements Serializable, ReloadableEntity<java.util.UUID>, IGlobalSearchResult, UsageEventEntity
+public abstract class DSpaceObject implements Serializable, ReloadableEntity<java.util.UUID>, IGlobalSearchResult, UsageEventEntity, AuthorizableEntity
 {
     @Id
     @GeneratedValue(generator = "system-uuid")

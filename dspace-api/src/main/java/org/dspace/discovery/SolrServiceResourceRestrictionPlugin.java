@@ -26,6 +26,7 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,15 +94,12 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                 }
 
                 //Retrieve all the groups the current user is a member of !
-                Set<Integer> groupIds = Group.allMemberGroupIDs(context, currentUser);
-                for (Integer groupId : groupIds) {
-                    Group group = Group.find(context, groupId);
-                    if(group!=null) {
-                        if(!group.isNotRelevant()) {
-                            resourceQuery.append(" OR g").append(groupId);        
-                        }
-                    }                    
-                }
+                List<Group> groupIds = EPersonServiceFactory.getInstance().getGroupService().allMemberGroups(context, currentUser);
+				for (Group group : groupIds) {
+					if (!group.getIsNotRelevant()) {
+						resourceQuery.append(" OR g").append(group.getID());
+					}
+				}
 
                 resourceQuery.append(")"); 
                 

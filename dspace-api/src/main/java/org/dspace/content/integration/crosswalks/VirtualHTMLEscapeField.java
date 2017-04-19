@@ -37,7 +37,7 @@ public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
         String metadata = virtualFieldName[2];
 
         // Get the metadatavalue
-        List<MetadataValue> dcvs = item.getMetadataByMetadataString(metadata);
+        List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
 
         if (dcvs != null && dcvs.size() > 0)
         {
@@ -49,7 +49,7 @@ public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
                 {
                     sb.append("|");
                 }
-                sb.append(StringEscapeUtils.escapeHtml(dc.value));
+                sb.append(StringEscapeUtils.escapeHtml(dc.getValue()));
                 start = false;
             }
             fieldCache.put("virtual.escape." + metadata, sb.toString());

@@ -16,7 +16,6 @@ import org.dspace.app.util.MappingMetadata;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
-import org.dspace.handle.HandleManager;
 import org.dspace.handle.factory.HandleServiceFactory;
 
 /**
@@ -74,7 +73,6 @@ public class OrcidWorkMetadata extends MappingMetadata {
 	 */
 	public OrcidWorkMetadata(Context context, Item item) throws SQLException {
 		init("orcid-work-metadata.config");
-		setDspaceObjectService(ContentServiceFactory.getInstance().getItemService());
 		// Hold onto the item in case we need to refresh a stale parse
 		this.item = item;
 		itemURL = HandleServiceFactory.getInstance().getHandleService().resolveToURL(context, item.getHandle());

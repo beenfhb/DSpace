@@ -23,6 +23,7 @@ import org.dspace.app.bulkedit.DSpaceCSV;
 import org.dspace.app.bulkedit.MetadataExport;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -79,15 +80,20 @@ public class MetadataExportServlet extends DSpaceServlet
             {
                 if (thing.getType() == Constants.ITEM)
                 {
-                    List<Item> item = new ArrayList<>();
-                    item.add((Item) thing);
+                    List<BrowseDSpaceObject> item = new ArrayList<>();
+                    item.add(new BrowseDSpaceObject(context, (Item) thing));
                     exporter = new MetadataExport(context, item.iterator(), false);
                 }
                 else if (thing.getType() == Constants.COLLECTION)
                 {
                     Collection collection = (Collection)thing;
 					Iterator<Item> toExport = itemService.findAllByCollection(context, collection);
-                    exporter = new MetadataExport(context, toExport, false);
+		            List<BrowseDSpaceObject> bdo = new ArrayList<>();
+		            while(toExport.hasNext()) {
+		            	Item item = toExport.next();
+		            	bdo.add(new BrowseDSpaceObject(context, item));
+		            }
+                    exporter = new MetadataExport(context, bdo.iterator(), false);
                 }
                 else if (thing.getType() == Constants.COMMUNITY)
                 {

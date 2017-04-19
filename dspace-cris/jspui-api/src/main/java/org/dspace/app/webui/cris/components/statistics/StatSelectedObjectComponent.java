@@ -21,6 +21,7 @@ import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
@@ -100,7 +101,7 @@ public class StatSelectedObjectComponent<T extends DSpaceObject> extends
 
     @Override
     public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger,
-            DSpaceObject object, String dateType, String dateStart,
+    		BrowsableDSpaceObject object, String dateType, String dateStart,
             String dateEnd, int gap) throws SolrServerException
     {
         Map<String, ObjectCount[]> map = new HashMap<String, ObjectCount[]>();

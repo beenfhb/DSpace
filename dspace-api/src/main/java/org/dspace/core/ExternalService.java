@@ -7,9 +7,9 @@
  */
 package org.dspace.core;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 
 public interface ExternalService
 {
-    DSpaceObject getObject(String externalId);
+	BrowsableDSpaceObject getObject(String externalId);
 }

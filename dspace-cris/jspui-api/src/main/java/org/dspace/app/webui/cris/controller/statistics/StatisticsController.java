@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,13 +30,16 @@ import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.Site;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.springframework.web.servlet.ModelAndView;
@@ -83,7 +85,7 @@ public class StatisticsController extends AStatisticsController
         ModelAndView modelAndView = new ModelAndView(success);
         try
         {
-        	DSpaceObject dso = getObject(request);
+        	BrowsableDSpaceObject dso = getObject(request);
         	Context c = UIUtil.obtainContext(request);
         	if (!canSeeStatistics(c, dso)) {
         		throw new AuthorizeException("Only administrator can access the statistics of the object "+dso.getHandle());
@@ -116,7 +118,7 @@ public class StatisticsController extends AStatisticsController
             data.put("label",label);
             data.put("title", getTitle(request));
 			data.put("object", dso);
-            DSpaceObject parentObject = getParentObject(request);
+            BrowsableDSpaceObject parentObject = getParentObject(request);
 			data.put("parentObject", parentObject);
             data.put("seeParentObject", canSeeStatistics(c, parentObject));
             data.put("childrenObjects",getChildrenObjects(c,dso));
@@ -150,7 +152,7 @@ public class StatisticsController extends AStatisticsController
 
 
 
-	private Object getChildrenObjects(Context context,DSpaceObject dso) throws SQLException {
+	private Object getChildrenObjects(Context context,BrowsableDSpaceObject dso) throws SQLException {
 		List<DSpaceObject> dsos = new ArrayList<DSpaceObject>();
 		if(!ConfigurationManager.getBooleanProperty("usage-statistics", "webui.statistics.showChildList", false)){
 			return dsos;
@@ -163,29 +165,28 @@ public class StatisticsController extends AStatisticsController
 				dsos.add(col);
 			}
 		} else if( dso.getType() == org.dspace.core.Constants.SITE){
-			 Community[] comm = Community.findAllTop(context);
-			 dsos.addAll(Arrays.asList(comm));
+			 return ContentServiceFactory.getInstance().getCommunityService().findAllTop(context);
 		}
 		return dsos;
 	}
 
-	private boolean canSeeStatistics(Context c, DSpaceObject dso)
+	private boolean canSeeStatistics(Context c, BrowsableDSpaceObject dso)
 			throws SQLException {
 			if(dso != null){
-				return ConfigurationManager.getBooleanProperty("usage-statistics", "webui.statistics."+dso.getTypeText().toLowerCase()+".public", "webui.statistics.item.public") || AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(c, dso);
+				return ConfigurationManager.getBooleanProperty("usage-statistics", "webui.statistics."+dso.getTypeText().toLowerCase()+".public", "webui.statistics.item.public") || AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(c, (AuthorizableEntity)dso);
 			}
 			return false;
 			
 	}
 
-	private boolean canSeeUpload(Context c, DSpaceObject dso)
+	private boolean canSeeUpload(Context c, BrowsableDSpaceObject dso)
 			throws SQLException {
 		if (dso != null) {
 
 			return ConfigurationManager
 					.getBooleanProperty("usage-statistics", "webui.statistics.upload."
 							+ dso.getTypeText().toLowerCase() + ".public")
-					|| AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(c, dso);
+					|| AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(c, (AuthorizableEntity)dso);
 		}
 		return false;
 	}
@@ -197,38 +198,38 @@ public class StatisticsController extends AStatisticsController
         String id = request.getParameter("handle");
         if (StringUtils.isNotEmpty(id))
         {           
-            return Integer.toString(_getObject(request, id).getID());
+            return (_getObject(request, id).getID()).toString();
         }
         return null;
     }
     
 
     @Override
-    public DSpaceObject getObject(HttpServletRequest request) throws IllegalStateException, SQLException
+    public BrowsableDSpaceObject getObject(HttpServletRequest request) throws IllegalStateException, SQLException
     {
         String id = request.getParameter("handle");
         if (StringUtils.isNotEmpty(id))
         {
             return _getObject(request, id);
         }else {
-        	id = HandleServiceFactory.getInstance().getHandleService().getPrefix() + "/" + String.valueOf(Site.SITE_ID);
+        	id = HandleServiceFactory.getInstance().getHandleService().getPrefix() + "/" + String.valueOf(Constants.SITE);
         	return _getObject(request, id);
         }
     }
     
-    private DSpaceObject _getObject(HttpServletRequest request, String id) throws IllegalStateException, SQLException
+    private BrowsableDSpaceObject _getObject(HttpServletRequest request, String id) throws IllegalStateException, SQLException
     {
-		DSpaceObject dso;
-		dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(UIUtil.obtainContext(request), id);
+		BrowsableDSpaceObject dso;
+		dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(UIUtil.obtainContext(request), id);
 		return dso;
     }
 
-    public DSpaceObject getParentObject(HttpServletRequest request) throws SQLException
+    public BrowsableDSpaceObject getParentObject(HttpServletRequest request) throws SQLException
     {
-        DSpaceObject dso = getObject(request);
+    	BrowsableDSpaceObject dso = getObject(request);
 		
         if(dso != null && ConfigurationManager.getBooleanProperty("usage-statistics", "webui.statistics.showParent", false)){
-			return  dso.getParentObject();
+			return  (BrowsableDSpaceObject)dso.getParentObject();
         }
         return null;
     }

@@ -8,6 +8,7 @@
 package org.dspace.app.cris.configuration;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.ACrisObject;
@@ -57,7 +58,7 @@ public class CrisExtraAction implements RelationPreferenceExtraAction
 
     @Override
     public boolean executeExtraAction(Context context, ACrisObject cris,
-            int itemID, String previousAction, int previousPriority,
+            UUID itemID, String previousAction, int previousPriority,
             String action, int priority)
     {
     	return false;

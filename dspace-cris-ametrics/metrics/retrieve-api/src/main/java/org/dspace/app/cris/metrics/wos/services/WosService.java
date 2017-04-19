@@ -28,6 +28,7 @@ import org.apache.http.util.CharsetUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.app.cris.metrics.wos.dto.WosResponse;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
@@ -35,7 +36,6 @@ import org.dspace.content.integration.crosswalks.StreamGenericDisseminationCross
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.core.PluginManager;
 import org.dspace.core.factory.CoreServiceFactory;
 
 public class WosService {
@@ -69,7 +69,7 @@ public class WosService {
 	 * @param isis
 	 * @return
 	 */
-	public WosResponse getCitations(Context context, boolean activateSleep, List<DSpaceObject> items) {
+	public WosResponse getCitations(Context context, boolean activateSleep, List<BrowsableDSpaceObject> items) {
 		log.info(LogManager.getHeader(context, "getCitations",
                 "Retrieving citations from WOS for " + items.size() + " items"));
 		if (activateSleep) {

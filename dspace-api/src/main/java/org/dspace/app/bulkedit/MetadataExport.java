@@ -7,20 +7,29 @@
  */
 package org.dspace.app.bulkedit;
 
-import com.google.common.collect.Iterators;
-import org.apache.commons.cli.*;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.dspace.content.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 
-import java.util.ArrayList;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
+import com.google.common.collect.Iterators;
 
 /**
  * Metadata exporter to allow the batch export of metadata into a file
@@ -30,7 +39,7 @@ import java.util.List;
 public class MetadataExport
 {
     /** The items to export */
-    protected Iterator<Item> toExport;
+    protected Iterator<BrowseDSpaceObject> toExport;
 
     protected ItemService itemService;
 
@@ -48,7 +57,7 @@ public class MetadataExport
      * @param toExport The ItemIterator of items to export
      * @param exportAll whether to export all metadata or not (include handle, provenance etc)
      */
-    public MetadataExport(Context c, Iterator<Item> toExport, boolean exportAll)
+    public MetadataExport(Context c, Iterator<BrowseDSpaceObject> toExport, boolean exportAll)
     {
         itemService = ContentServiceFactory.getInstance().getItemService();
 
@@ -92,12 +101,12 @@ public class MetadataExport
      * @return The list of item ids
      * @throws SQLException if database error
      */
-    protected Iterator<Item> buildFromCommunity(Context context, Community community, int indent)
+    protected Iterator<BrowseDSpaceObject> buildFromCommunity(Context context, Community community, int indent)
                                                                                throws SQLException
     {
         // Add all the collections
         List<Collection> collections = community.getCollections();
-        Iterator<Item> result = null;
+        Iterator<BrowseDSpaceObject> result = null;
         for (Collection collection : collections)
         {
             for (int i = 0; i < indent; i++)
@@ -106,7 +115,12 @@ public class MetadataExport
             }
 
             Iterator<Item> items = itemService.findByCollection(context, collection);
-            result = addItemsToResult(result,items);
+            List<BrowseDSpaceObject> bdo = new ArrayList<>();
+            while(items.hasNext()) {
+            	Item item = items.next();
+            	bdo.add(new BrowseDSpaceObject(context, item));
+            }
+            result = addItemsToResult(result,bdo.iterator());
 
         }
         // Add all the sub-communities
@@ -117,14 +131,14 @@ public class MetadataExport
             {
                 System.out.print(" ");
             }
-            Iterator<Item> items = buildFromCommunity(context, subCommunity, indent + 1);
+            Iterator<BrowseDSpaceObject> items = buildFromCommunity(context, subCommunity, indent + 1);
             result = addItemsToResult(result,items);
         }
 
         return result;
     }
 
-    private Iterator<Item> addItemsToResult(Iterator<Item> result, Iterator<Item> items) {
+    private Iterator<BrowseDSpaceObject> addItemsToResult(Iterator<BrowseDSpaceObject> result, Iterator<BrowseDSpaceObject> items) {
         if(result == null)
         {
             result = items;
@@ -148,7 +162,7 @@ public class MetadataExport
             DSpaceCSV csv = new DSpaceCSV(exportAll);
             while (toExport.hasNext())
             {
-                csv.addItem(toExport.next());
+                csv.addItem((Item)(toExport.next().getBrowsableDSpaceObject()));
             }
 
             // Return the results
@@ -240,7 +254,13 @@ public class MetadataExport
         if (!line.hasOption('i'))
         {
             System.out.println("Exporting whole repository WARNING: May take some time!");
-            exporter = new MetadataExport(c, itemService.findAll(c), exportAll);
+            Iterator<Item> items = itemService.findAll(c);
+            List<BrowseDSpaceObject> bdo = new ArrayList<>();
+            while(items.hasNext()) {
+            	Item item = items.next();
+            	bdo.add(new BrowseDSpaceObject(c, item));
+            }
+            exporter = new MetadataExport(c, bdo.iterator(), exportAll);
         }
         else
         {
@@ -255,8 +275,8 @@ public class MetadataExport
             if (dso.getType() == Constants.ITEM)
             {
                 System.out.println("Exporting item '" + dso.getName() + "' (" + handle + ")");
-                List<Item> item = new ArrayList<>();
-                item.add((Item) dso);
+                List<BrowseDSpaceObject> item = new ArrayList<>();
+                item.add(new BrowseDSpaceObject(c, (Item) dso));
                 exporter = new MetadataExport(c, item.iterator(), exportAll);
             }
             else if (dso.getType() == Constants.COLLECTION)
@@ -264,7 +284,12 @@ public class MetadataExport
                 System.out.println("Exporting collection '" + dso.getName() + "' (" + handle + ")");
                 Collection collection = (Collection)dso;
                 toExport = itemService.findByCollection(c, collection);
-                exporter = new MetadataExport(c, toExport, exportAll);
+                List<BrowseDSpaceObject> bdo = new ArrayList<>();
+                while(toExport.hasNext()) {
+                	Item item = toExport.next();
+                	bdo.add(new BrowseDSpaceObject(c, item));
+                }
+                exporter = new MetadataExport(c, bdo.iterator(), exportAll);
             }
             else if (dso.getType() == Constants.COMMUNITY)
             {

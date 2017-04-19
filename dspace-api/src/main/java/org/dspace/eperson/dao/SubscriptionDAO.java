@@ -45,4 +45,6 @@ public interface SubscriptionDAO extends GenericDAO<Subscription> {
     
     public void deleteByCommunity(Context context, Community community) throws SQLException;
     public void deleteByCommunityAndEPerson(Context context, Community community, EPerson eperson) throws SQLException;
+
+	public Subscription findByCommunityAndEPerson(Context context, EPerson eperson, Community community) throws SQLException;
 }

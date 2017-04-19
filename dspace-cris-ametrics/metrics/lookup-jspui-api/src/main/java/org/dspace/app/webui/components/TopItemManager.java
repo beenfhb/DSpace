@@ -10,6 +10,7 @@ package org.dspace.app.webui.components;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -21,6 +22,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
@@ -78,12 +80,12 @@ public class TopItemManager
         List<MostViewedItem> citedList = new ArrayList<MostViewedItem>();
         for (SolrDocument doc : results)
         {
-            Integer resourceId = (Integer) doc
-                    .getFirstValue("search.resourceid");
+            UUID resourceId = UUID.fromString((String) doc
+                    .getFirstValue("search.resourceid"));
             Double count = (Double) doc
                     .getFieldValue(ConstantMetrics.PREFIX_FIELD + sortCriteria);
 
-            Item item = (Item) Item.find(context, resourceId);
+            Item item = (Item) ContentServiceFactory.getInstance().getItemService().find(context, resourceId);
             if (item != null)
             {
 

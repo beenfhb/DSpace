@@ -19,6 +19,7 @@ import org.dspace.browse.BrowseIndex;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
@@ -132,7 +133,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                             // if we have values to index on, then do so
                             if (values != null && values.size() > 0)
                             {
-                                int minConfidence = metadataAuthorityService.getMinConfidence(values.get(0).getMetadataField());
+                                int minConfidence = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService().getMinConfidence(values.get(0).getMetadataField());
     
                                 boolean ignoreAuthority = DSpaceServicesFactory.getInstance().getConfigurationService()
                                         .getPropertyAsType(
@@ -157,7 +158,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                                     }
                                     else
                                     {
-    									String language = lang!=null?StringUtils.trim(lang):values[x].language;
+    									String language = lang!=null?StringUtils.trim(lang):values.get(x).getLanguage();
                                         if (bi.isAuthorityIndex()
                                                 && (values.get(x).getAuthority() == null || values.get(x).getConfidence() < minConfidence))
                                         {
@@ -206,7 +207,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                                             }
     										else
                                             {
-                                                    preferedLabel = values[x].value;
+                                                    preferedLabel = values.get(x).getValue();
                                             }
                                             List<String> variants = null;
     

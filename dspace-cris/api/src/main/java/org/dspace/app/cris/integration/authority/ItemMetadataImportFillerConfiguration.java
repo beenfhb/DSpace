@@ -140,11 +140,11 @@ public class ItemMetadataImportFillerConfiguration {
             {
                 try
                 {
-                    metricValue = mm[idx];
+                    metricValue = mm.get(idx);
                 }
                 catch (Exception ex)
                 {
-                    metricValue = mm[0];
+                    metricValue = mm.get(0);
                 }
             }
 
@@ -163,7 +163,7 @@ public class ItemMetadataImportFillerConfiguration {
         public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
         {
             metric.setMetricCount(
-                    Double.parseDouble(metricValue.value));
+                    Double.parseDouble(metricValue.getValue()));
         }
 
     }

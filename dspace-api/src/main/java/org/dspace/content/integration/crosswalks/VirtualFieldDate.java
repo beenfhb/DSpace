@@ -38,9 +38,9 @@ public class VirtualFieldDate implements VirtualFieldDisseminator, VirtualFieldI
 	        
 	        if (dcvs != null && dcvs.size() > 0) 
 	        {   
-	            fieldCache.put("virtual.date.year", dcvs[0].value.substring(0, 4));
-	            if(dcvs[0].value.length() > 4)
-	            	fieldCache.put("virtual.date.month", dcvs[0].value.substring(5, 7));
+	            fieldCache.put("virtual.date.year", dcvs.get(0).getValue().substring(0, 4));
+	            if(dcvs.get(0).getValue().length() > 4)
+	            	fieldCache.put("virtual.date.month", dcvs.get(0).getValue().substring(5, 7));
 	
 	            // Return the value of the virtual field (if any)
 	            if (fieldCache.containsKey(fieldName))

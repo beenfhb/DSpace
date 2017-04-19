@@ -186,7 +186,7 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
     }
 
     @Override
-    public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) {
+    public void post(UsageEventEntity dspaceObject, HttpServletRequest request, EPerson currentUser) {
         //log.info("DS-ES post for type:"+dspaceObject.getType() + " -- " + dspaceObject.getName());
 
         client = getClient();

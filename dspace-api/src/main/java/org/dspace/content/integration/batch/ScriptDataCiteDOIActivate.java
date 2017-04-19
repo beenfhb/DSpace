@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -34,13 +35,12 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Event;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
+import org.hibernate.Session;
 
 public class ScriptDataCiteDOIActivate
 {
@@ -84,7 +84,7 @@ public class ScriptDataCiteDOIActivate
     {
         log.info("#### START Script datacite sender: -----" + new Date()
                 + " ----- ####");
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         CommandLineParser parser = new PosixParser();
 
@@ -130,63 +130,58 @@ public class ScriptDataCiteDOIActivate
 
                 int limit = 100;
 
-                TableRowIterator rows = null;
+                List<Object[]> rows = null;
 
                 if ("oracle".equals(dbName))
                 {
-                    rows = DatabaseManager.query(context, "select * from "
+                    rows = getHibernateSession(context).createSQLQuery("select item_id, identifier_doi from "
                             + TABLE_NAME_DOI2ITEM
                             + " d2i where d2i.response_code = '201'"
-                            + " AND ROWNUM <= " + limit);
+                            + " AND ROWNUM <= " + limit).list();
                 }
                 else
                 {
-                    rows = DatabaseManager.query(context, "select * from "
+                    rows = getHibernateSession(context).createSQLQuery("select item_id, identifier_doi from "
                             + TABLE_NAME_DOI2ITEM
                             + " d2i where d2i.response_code = '201'"
-                            + " LIMIT " + limit);
+                            + " LIMIT " + limit).list();
                 }
                 int offset = 0;
                 int count = 0;
-                try
-                {
-                    while (rows.hasNext() || count == limit)
+                    while (!rows.isEmpty() || count == limit)
                     {
                         if (offset > 0)
                         {
                             if ("oracle".equals(dbName))
                             {
-                                rows = DatabaseManager
-                                        .query(context,
-                                                "select * from "
+                                rows = getHibernateSession(context).createSQLQuery(
+                                                "select item_id, identifier_doi from "
                                                         + TABLE_NAME_DOI2ITEM
                                                         + " d2i where d2i.response_code = '201'"
                                                         + " AND ROWNUM > "
                                                         + limit
                                                         + " AND ROWNUM <= "
-                                                        + (offset + limit));
+                                                        + (offset + limit)).list();
                             }
                             else
                             {
-                                rows = DatabaseManager
-                                        .query(context,
-                                                "select * from "
+                                rows = getHibernateSession(context).createSQLQuery(
+                                                "select item_id, identifier_doi from "
                                                         + TABLE_NAME_DOI2ITEM
                                                         + " d2i where d2i.response_code = '201'"
                                                         + " LIMIT " + limit
-                                                        + " OFFSET " + offset);
+                                                        + " OFFSET " + offset).list();
                             }
                         }
                         offset = limit + offset;
 
                         count = 0;
-                        while (rows.hasNext())
+                        for(Object[] row : rows)
                         {
                             count++;
-                            TableRow row = rows.next();
-                            Item item = Item.find(context,
-                                    row.getIntColumn("item_id"));
-                            String doi = row.getStringColumn("identifier_doi");
+                            Item item = ContentServiceFactory.getInstance().getItemService().find(context, 
+                            		(UUID)row[0]);//.getIntColumn("item_id"));
+                            String doi = (String)row[1];//.getStringColumn("identifier_doi");
 
                             try
                             {
@@ -211,50 +206,25 @@ public class ScriptDataCiteDOIActivate
                         }
                         context.commit();
                     }
-                }
-                finally
-                {
-                    rows.close();
-                }
             }
             else
             {
                 if (line.hasOption('s'))
                 {
-                    Integer id = Integer.parseInt(line.getOptionValue("s"));
-                    TableRow row = DatabaseManager
-                            .querySingle(
-                                    context,
-                                    "SELECT * FROM "
+                    UUID id = UUID.fromString(line.getOptionValue("s"));
+                    List<Object[]> rows = getHibernateSession(context).createSQLQuery(
+                                    "SELECT item_id, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i where d2i.response_code = '201' and d2i.item_id = ?",
-                                    id);
+                                            + " d2i where d2i.response_code = '201' and d2i.item_id = :par0").setParameter(0, 
+                                    id).list();
 
-                    try
+                    for (Object[] row : rows)
                     {
-                        String doi = row.getStringColumn("identifier_doi");
-                        Item item = Item.find(context,
-                                row.getIntColumn("item_id"));
+                        String doi = (String)row[1];//.getStringColumn("identifier_doi");
+                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, 
+                        		(UUID)row[0]);//.getIntColumn("item_id"));
 
                         result.putAll(activateDOIDataCite(context, item, doi));
-                    }
-                    catch (IOException e)
-                    {
-                        log.error(
-                                "FOR item: " + id + " ERRORMESSAGE: "
-                                        + e.getMessage(), e);
-                    }
-                    catch (AuthorizeException e)
-                    {
-                        log.error(
-                                "FOR item: " + id + " ERRORMESSAGE: "
-                                        + e.getMessage(), e);
-                    }
-                    catch (CrosswalkException e)
-                    {
-                        log.error(
-                                "FOR item: " + id + " ERRORMESSAGE: "
-                                        + e.getMessage(), e);
                     }
                 }
                 else
@@ -268,18 +238,24 @@ public class ScriptDataCiteDOIActivate
 
             }
         }
-        catch (SQLException e1)
-        {
-            log.error(e1.getMessage(), e1);
-            if (context.isValid())
-            {
-                context.abort();
-            }
-        }
-
+		catch (SQLException e1) {
+			log.error(e1.getMessage(), e1);
+		} catch (CrosswalkException e) {
+			log.error(e.getMessage(), e);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		} catch (AuthorizeException e) {
+			log.error(e.getMessage(), e);
+		}
+        finally {
+        	 if (context!=null && context.isValid())
+             {
+                 context.abort();
+             }
+		}
         log.info("#### Import details ####");
 
-        for (Integer key : result.keySet())
+        for (UUID key : result.keySet())
         {
             log.info("ITEM: " + key + " RESULT: " + result.get(key));
         }
@@ -299,12 +275,12 @@ public class ScriptDataCiteDOIActivate
         return client;
     }
 
-    private static Map<Integer, String> activateDOIDataCite(Context context,
+    private static Map<UUID, String> activateDOIDataCite(Context context,
             Item target, String doi) throws CrosswalkException, IOException,
             SQLException, AuthorizeException
     {
         PostMethod post = null;
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<UUID, String> result = new HashMap<UUID, String>();
 
         int responseCode = 0;
         try
@@ -315,7 +291,7 @@ public class ScriptDataCiteDOIActivate
             String url;
             if (useHandleServer)
             {
-                url = target.getMetadata("dc", "identifier", "uri", Item.ANY)[0].value;
+                url = target.getMetadata("dc", "identifier", "uri", Item.ANY).get(0).getValue();
             }
             else
             {
@@ -383,13 +359,14 @@ public class ScriptDataCiteDOIActivate
                 }
                 if (!found)
                 {
-                    target.addMetadata("dc", "identifier", "doi", null, doi);
+                    target.getItemService().addMetadata(context, target, "dc", "identifier", "doi", null, doi);
                 }
-                target.clearMetadata("dc", "utils", "processdoi", Item.ANY);
+                target.getItemService().clearMetadata(context, target, "dc", "utils", "processdoi", Item.ANY);
+                
 
                 try
                 {
-                    target.update();
+                	target.getItemService().update(context, target);
                     context.addEvent(new Event(Event.UPDATE_FORCE,
                             Constants.ITEM, target.getID(), target.getHandle()));
                     context.commit();
@@ -400,28 +377,28 @@ public class ScriptDataCiteDOIActivate
                             + e.getMessage(), e);
                 }
 
-                DatabaseManager
-                        .updateQuery(
-                                context,
-                                "UPDATE "
-                                        + TABLE_NAME_DOI2ITEM
-                                        + " SET LAST_MODIFIED = ?, RESPONSE_CODE = ?, NOTE = ? WHERE ITEM_ID = ?",
-                                new java.sql.Timestamp(new Date().getTime()),
-                                PLACEHOLDER_SENDEDTODATACITE_SUCCESSFULLY,
-                                result.get(target.getID()), target.getID());
+                getHibernateSession(context).createSQLQuery(
+                        "UPDATE "
+                                + TABLE_NAME_DOI2ITEM
+                                + " SET LAST_MODIFIED = :par0, RESPONSE_CODE = :par1, NOTE = :par2, WHERE ITEM_ID = :par3").setParameter(0, 
+                                		new java.sql.Timestamp(new Date().getTime())).setParameter(1, PLACEHOLDER_SENDEDTODATACITE_SUCCESSFULLY).setParameter(2, result.get(target.getID())).setParameter(3, target.getID()).executeUpdate();
 
             }
             else
             {
-                DatabaseManager.updateQuery(context, "UPDATE "
-                        + TABLE_NAME_DOI2ITEM
-                        + " SET NOTE = ? WHERE ITEM_ID = ?",
-                        result.get(target.getID()), target.getID());
+                    	getHibernateSession(context).createSQLQuery("UPDATE "
+                                + TABLE_NAME_DOI2ITEM
+                                + " SET NOTE = :par0 WHERE ITEM_ID = :par1").setParameter(0, responseCode + "-"
+                                + result.get(target.getID())).setParameter(1, target.getID()).executeUpdate();
             }
 
             context.commit();
         }
 
         return result;
+    }
+    
+    protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
     }
 }

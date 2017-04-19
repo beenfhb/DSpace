@@ -601,7 +601,7 @@ public class HandleServlet extends DSpaceServlet
                         return;
                     else
                     {
-                        Subscribe.subscribe(context, context.getCurrentUser(),
+                    	EPersonServiceFactory.getInstance().getSubscribeService().subscribeCommunity(context, context.getCurrentUser(),
                                 community);
                         updated = true;
                     }
@@ -609,7 +609,7 @@ public class HandleServlet extends DSpaceServlet
             }
             else if (request.getParameter("submit_unsubscribe") != null)
             {
-                Subscribe.unsubscribe(context, context.getCurrentUser(),
+                EPersonServiceFactory.getInstance().getSubscribeService().unsubscribe(context, context.getCurrentUser(),
                         community);
                 updated = true;
             }
@@ -633,7 +633,7 @@ public class HandleServlet extends DSpaceServlet
 
             if (e != null)
             {
-                subscribed = Subscribe.isSubscribed(context, e, community);
+                subscribed = EPersonServiceFactory.getInstance().getSubscribeService().isSubscribedCommunity(context, e, community);
             }
             
             // is the user a COMMUNITY_EDITOR?
@@ -754,7 +754,6 @@ public class HandleServlet extends DSpaceServlet
             	subscribeService.unsubscribe(context, context.getCurrentUser(),
                         collection);
                 updated = true;
-            }
             }
 
             // display collection home page

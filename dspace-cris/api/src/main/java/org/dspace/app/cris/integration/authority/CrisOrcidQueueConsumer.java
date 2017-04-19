@@ -58,7 +58,7 @@ public class CrisOrcidQueueConsumer implements Consumer {
 								if (StringUtils.isNotBlank(authority)) {
 									// 3)check the orcid preferences
 									boolean isAPreferiteWork = orcidPreferencesUtils
-											.isAPreferiteToSendToOrcid(authority, dso, "orcid-publications-prefs");
+											.isAPreferiteToSendToOrcid(authority, (BrowsableDSpaceObject)dso, "orcid-publications-prefs");
 									// 4)if the publications match the
 									// preference add publication to queue
 									if (isAPreferiteWork) {

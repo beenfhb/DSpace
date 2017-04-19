@@ -16,7 +16,6 @@ import org.dspace.app.cris.model.dto.SimpleViewEntityDTO;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.handle.HandleManager;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.util.ItemUtils;
 
@@ -40,8 +39,8 @@ public class SimpleItemViewResolver implements ISimpleViewResolver
         List<String> submitter = new ArrayList<String>();
         try
         {
-            collection.add(item.getParentObject().getName());
-            collection.add(item.getParentObject().getHandle());
+            collection.add(item.getItemService().getParentObject(context, item).getName());
+            collection.add(item.getItemService().getParentObject(context, item).getHandle());
             status.add(""+ItemUtils.getItemStatus(context, item));
             submitter.add(item.getSubmitter().getLastName());
             submitter.add(item.getSubmitter().getFirstName());

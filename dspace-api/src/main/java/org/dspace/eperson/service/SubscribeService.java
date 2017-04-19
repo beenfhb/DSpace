@@ -118,4 +118,8 @@ public interface SubscribeService {
 
 	public List<Collection> getSubscriptionsCollection(Context context, EPerson eperson) throws SQLException;
 	public List<Community> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException;
+
+	public void subscribeCommunity(Context context, EPerson currentUser, Community community) throws SQLException, AuthorizeException;
+
+	public boolean isSubscribedCommunity(Context context, EPerson e, Community community) throws SQLException;
 }

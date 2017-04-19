@@ -40,7 +40,7 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.EAGER, cascade={CascadeType.PERSIST})
     @JoinColumn(name = "dspace_object")
-    private DSpaceObject dSpaceObject;
+    private AuthorizableEntity dSpaceObject;
 
     /*
      * {@see org.dspace.core.Constants#Constants Constants}
@@ -173,11 +173,11 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
         return id;
     }
 
-    public DSpaceObject getdSpaceObject() {
+    public AuthorizableEntity getdSpaceObject() {
         return dSpaceObject;
     }
 
-    public void setdSpaceObject(DSpaceObject dSpaceObject) {
+    public void setdSpaceObject(AuthorizableEntity dSpaceObject) {
         this.dSpaceObject = dSpaceObject;
         this.resourceTypeId = dSpaceObject.getType();
     }
@@ -299,4 +299,43 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     public void setRpDescription(String description){
         this.rpdescription = description;
     }
+    
+    /**
+     * figures out if the date is valid for the policy
+     * 
+     * @return true if policy has begun and hasn't expired yet (or no dates are
+     *         set)
+     */
+    public boolean isDateValid()
+    {
+        Date sd = getStartDate();
+        Date ed = getEndDate();
+
+        // if no dates set, return true (most common case)
+        if ((sd == null) && (ed == null))
+        {
+            return true;
+        }
+
+        // one is set, now need to do some date math
+        Date now = new Date();
+
+        // check start date first
+        if (sd != null && now.before(sd))
+        {
+            // start date is set, return false if we're before it
+            return false;
+        }
+
+        // now expiration date
+        if (ed != null && now.after(ed))
+        {
+            // end date is set, return false if we're after it
+            return false;
+        }
+
+        // if we made it this far, start < now < end
+        return true; // date must be okay
+    }
+
 }

@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
@@ -21,6 +20,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.eperson.Group;
 
 public class FulltextPermissionGenerator implements EnhancedValuesGenerator
 {
@@ -43,10 +43,10 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
             result.setMetadataSchema(schema);
             result.setMetadataElement(element);
             result.setMetadataQualifier(qualifier);
-            Bundle[] bnds;
+            List<Bundle> bnds;
             try
             {
-                bnds = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+            	bnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
             }
             catch (SQLException e)
             {
@@ -70,7 +70,7 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
     }
 
     private String buildPermission(Context context, String values,
-            Bundle[] bnds) throws SQLException
+    		List<Bundle> bnds) throws SQLException
     {
         Date now = new Date();
         
@@ -96,7 +96,7 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
                 {
                     for (ResourcePolicy rp : rps)
                     {
-                        if (rp.getGroupID() == 0)
+                        if (Group.ANONYMOUS.equals(rp.getGroup().getName()))
                         {
                             if (rp.isDateValid())
                             {
@@ -125,7 +125,7 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
                                 break internal;
                             }
                         }
-                        else if (bRestricted && rp.getGroupID() != 1)
+                        else if (bRestricted && !Group.ADMIN.equals(rp.getGroup().getName()))
                         {
                             if (rp.isDateValid())
                             {

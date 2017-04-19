@@ -17,41 +17,47 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.*;
+import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DCDate;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Context;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.w3c.dom.Document;
-
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.w3c.dom.Document;
 
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.feed.synd.SyndFeedImpl;
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndEntryImpl;
+import com.sun.syndication.feed.module.DCModule;
+import com.sun.syndication.feed.module.DCModuleImpl;
+import com.sun.syndication.feed.module.Module;
+import com.sun.syndication.feed.module.itunes.EntryInformation;
+import com.sun.syndication.feed.module.itunes.EntryInformationImpl;
+import com.sun.syndication.feed.module.itunes.types.Duration;
+import com.sun.syndication.feed.synd.SyndContent;
+import com.sun.syndication.feed.synd.SyndContentImpl;
 import com.sun.syndication.feed.synd.SyndEnclosure;
 import com.sun.syndication.feed.synd.SyndEnclosureImpl;
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndEntryImpl;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndFeedImpl;
 import com.sun.syndication.feed.synd.SyndImage;
 import com.sun.syndication.feed.synd.SyndImageImpl;
 import com.sun.syndication.feed.synd.SyndPerson;
 import com.sun.syndication.feed.synd.SyndPersonImpl;
-import com.sun.syndication.feed.synd.SyndContent;
-import com.sun.syndication.feed.synd.SyndContentImpl;
-import com.sun.syndication.feed.module.DCModuleImpl;
-import com.sun.syndication.feed.module.DCModule;
-import com.sun.syndication.feed.module.Module;
-import com.sun.syndication.feed.module.itunes.*;
-import com.sun.syndication.feed.module.itunes.types.Duration;
-import com.sun.syndication.io.SyndFeedOutput;
 import com.sun.syndication.io.FeedException;
-
-import org.apache.log4j.Logger;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
+import com.sun.syndication.io.SyndFeedOutput;
 
 /**
  * Invoke ROME library to assemble a generic model of a syndication
@@ -171,8 +177,8 @@ public class SyndicationFeed
      * @param items array of objects
      * @param labels label map
      */
-    public void populate(HttpServletRequest request, Context context, DSpaceObject dso,
-                         List<?extends DSpaceObject> items, Map<String, String> labels)
+    public void populate(HttpServletRequest request, Context context, BrowsableDSpaceObject dso,
+                         List<BrowsableDSpaceObject> items, Map<String, String> labels)
     {
         String logoURL = null;
         String objectURL = null;
@@ -245,7 +251,7 @@ public class SyndicationFeed
         if (items != null)
         {
             List<SyndEntry> entries = new ArrayList<SyndEntry>();
-            for (DSpaceObject itemDSO : items)
+            for (BrowsableDSpaceObject itemDSO : items)
             {
                 if (itemDSO.getType() != Constants.ITEM)
                 {
@@ -546,7 +552,7 @@ public class SyndicationFeed
      * @param dso The object to reference, null if to the repository.
      * @return URL
      */
-    protected String resolveURL(HttpServletRequest request, DSpaceObject dso)
+    protected String resolveURL(HttpServletRequest request, BrowsableDSpaceObject dso)
     {
         // If no object given then just link to the whole repository,
         // since no offical handle exists so we have to use local resolution.

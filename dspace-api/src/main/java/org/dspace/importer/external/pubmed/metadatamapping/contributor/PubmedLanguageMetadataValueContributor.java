@@ -7,13 +7,17 @@
  */
 
 package org.dspace.importer.external.pubmed.metadatamapping.contributor;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+
 import org.apache.log4j.Logger;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
-
-import java.util.*;
 
 /**
  * Pubmed specific implementation of {@link MetadataContributor}

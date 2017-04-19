@@ -201,7 +201,7 @@ public class SearchFacetFilter extends AbstractDSpaceTransformer implements Cach
         queryArgs = new DiscoverQuery();
 
         //Make sure we add our default filters
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(scope);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)scope);
         List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
         queryArgs.addFilterQueries(defaultFilterQueries.toArray(new String[defaultFilterQueries.size()]));
 

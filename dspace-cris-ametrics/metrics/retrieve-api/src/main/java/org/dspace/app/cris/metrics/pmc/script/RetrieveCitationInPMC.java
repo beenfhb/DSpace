@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -33,6 +34,7 @@ import org.dspace.app.cris.metrics.pmc.services.PMCEntrezException;
 import org.dspace.app.cris.metrics.pmc.services.PMCEntrezLocalSOLRServices;
 import org.dspace.app.cris.metrics.pmc.services.PMCEntrezServices;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -168,7 +170,7 @@ public class RetrieveCitationInPMC
 				log.info(LogManager.getHeader(null, "retrieve_citation_pubmed",
                         "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
 				int docWorked = 0;
-				internal: for (DSpaceObject dso : qresp.getDspaceObjects()) {					
+				internal: for (BrowsableDSpaceObject dso : qresp.getDspaceObjects()) {					
 					List<SearchDocument> list = qresp.getSearchDocument(dso);
 					for (SearchDocument doc : list) {
 						if (maxItemToWork != 0 && itemWorked == maxItemToWork) {
@@ -177,7 +179,7 @@ public class RetrieveCitationInPMC
 						if (resultsTot != -1 && docWorked >= resultsTot) {
 							break all;
 						}
-						Integer itemID = dso.getID();
+						UUID itemID = dso.getID();
 
 						if (isCheckRequired(itemID)) {
 							itemWorked++;
@@ -227,7 +229,7 @@ public class RetrieveCitationInPMC
 
 	}
 
-	private static void updatePMCCiting(Integer itemID, Integer pmid,
+	private static void updatePMCCiting(UUID itemID, Integer pmid,
             Set<Integer> pmcIDs) throws SearchServiceException
     {
         Integer[] arrPMCIDs = new Integer[pmcIDs.size()];
@@ -282,10 +284,10 @@ public class RetrieveCitationInPMC
 			query.setFields("handle");
 			query.addFilterQuery("search.resourcetype:" + Constants.ITEM);
 			QueryResponse qresp = searcher.search(query);
-            List<Integer> itemIDs = new ArrayList<Integer>();
+            List<UUID> itemIDs = new ArrayList<UUID>();
 			for (SolrDocument doc : qresp.getResults())
             {
-				itemIDs.add((Integer) doc.getFirstValue("search.resourceid"));
+				itemIDs.add(UUID.fromString((String)doc.getFirstValue("search.resourceid")));
             }
             citation.setItemIDs(itemIDs);
             pservice.saveOrUpdate(PMCCitation.class, citation);
@@ -329,7 +331,7 @@ public class RetrieveCitationInPMC
         }
     }
 
-    private static boolean isCheckRequired(Integer itemID)
+    private static boolean isCheckRequired(UUID itemID)
     {
         if (timeElapsed != 0)
         {

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -59,7 +60,7 @@ public class TagCloudProcessor implements CollectionHomeProcessor,
 			HttpServletResponse response) throws PluginException,
 			AuthorizeException {
 		
-		process(context, request, response, (DSpaceObject) null);
+		process(context, request, response, (BrowsableDSpaceObject) null);
 	}
 
 	/* (non-Javadoc)
@@ -70,7 +71,7 @@ public class TagCloudProcessor implements CollectionHomeProcessor,
 			HttpServletResponse response, Community community)
 			throws PluginException, AuthorizeException {
 		
-		process(context, request, response, (DSpaceObject) community);
+		process(context, request, response, (BrowsableDSpaceObject) community);
 	}
 
 	/* (non-Javadoc)
@@ -81,11 +82,11 @@ public class TagCloudProcessor implements CollectionHomeProcessor,
 			HttpServletResponse response, Collection collection)
 			throws PluginException, AuthorizeException {
 		
-		process(context, request, response, (DSpaceObject) collection);
+		process(context, request, response, (BrowsableDSpaceObject) collection);
 	}
 
 	private void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, DSpaceObject scope)
+            HttpServletResponse response, BrowsableDSpaceObject scope)
     {
         DiscoverQuery queryArgs = DiscoverUtility.getTagCloudDiscoverQuery(context,
                 request, scope, true);

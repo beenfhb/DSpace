@@ -12,6 +12,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -62,7 +63,7 @@ public class WosResponse {
 				if (element.hasAttribute("name")) {
 				    CrisMetrics wosCitation = new CrisMetrics();
 					String itemIdElementValue = element.getAttribute("name");
-					wosCitation.setResourceId(Integer.parseInt(itemIdElementValue));
+					wosCitation.setResourceId(UUID.fromString(itemIdElementValue));
 					wosCitation.setResourceTypeId(Constants.ITEM);
 					Element lastMapElement = XMLUtils.getSingleElement(element, "map");
 					

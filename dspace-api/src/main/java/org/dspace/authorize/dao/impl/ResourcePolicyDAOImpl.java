@@ -7,19 +7,19 @@
  */
 package org.dspace.authorize.dao.impl;
 
+import java.sql.SQLException;
+import java.util.List;
+
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.dao.ResourcePolicyDAO;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the ResourcePolicy object.
@@ -37,7 +37,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByDso(Context context, DSpaceObject dso) throws SQLException {
+    public List<ResourcePolicy> findByDso(Context context, AuthorizableEntity dso) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
                 Restrictions.eq("dSpaceObject", dso)
@@ -46,7 +46,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByDsoAndType(Context context, DSpaceObject dso, String type) throws SQLException
+    public List<ResourcePolicy> findByDsoAndType(Context context, AuthorizableEntity dso, String type) throws SQLException
     {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
@@ -64,7 +64,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByDSoAndAction(Context context, DSpaceObject dso, int actionId) throws SQLException
+    public List<ResourcePolicy> findByDSoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException
     {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
@@ -75,7 +75,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByTypeIdGroupAction(Context context, DSpaceObject dso, Group group, int action, int notPolicyID) throws SQLException {
+    public List<ResourcePolicy> findByTypeIdGroupAction(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
                 Restrictions.eq("dSpaceObject", dso),
@@ -107,7 +107,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
      }
 
     @Override
-    public void deleteByDso(Context context, DSpaceObject dso) throws SQLException
+    public void deleteByDso(Context context, AuthorizableEntity dso) throws SQLException
     {
         String queryString = "delete from ResourcePolicy where dSpaceObject= :dSpaceObject";
         Query query = createQuery(context, queryString);
@@ -116,7 +116,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoAndAction(Context context, DSpaceObject dso, int actionId) throws SQLException {
+    public void deleteByDsoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException {
         String queryString = "delete from ResourcePolicy where dSpaceObject= :dSpaceObject AND actionId= :actionId";
         Query query = createQuery(context, queryString);
         query.setParameter("dSpaceObject", dso);
@@ -125,7 +125,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoAndType(Context context, DSpaceObject dso, String type) throws SQLException {
+    public void deleteByDsoAndType(Context context, AuthorizableEntity dso, String type) throws SQLException {
         String queryString = "delete from ResourcePolicy where dSpaceObject.id = :dsoId AND rptype = :rptype";
         Query query = createQuery(context, queryString);
         query.setParameter("dsoId", dso.getID());
@@ -142,7 +142,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoGroupPolicies(Context context, DSpaceObject dso, Group group) throws SQLException {
+    public void deleteByDsoGroupPolicies(Context context, AuthorizableEntity dso, Group group) throws SQLException {
         String queryString = "delete from ResourcePolicy where dSpaceObject = :dso AND epersonGroup= :epersonGroup";
         Query query = createQuery(context, queryString);
         query.setParameter("dso", dso);
@@ -152,7 +152,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoEPersonPolicies(Context context, DSpaceObject dso, EPerson ePerson) throws SQLException {
+    public void deleteByDsoEPersonPolicies(Context context, AuthorizableEntity dso, EPerson ePerson) throws SQLException {
         String queryString = "delete from ResourcePolicy where dSpaceObject= :dso AND eperson= :eperson";
         Query query = createQuery(context, queryString);
         query.setParameter("dso", dso);
@@ -162,7 +162,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoAndTypeNotEqualsTo(Context context, DSpaceObject dso, String type) throws SQLException {
+    public void deleteByDsoAndTypeNotEqualsTo(Context context, AuthorizableEntity dso, String type) throws SQLException {
 
         String queryString = "delete from ResourcePolicy where dSpaceObject=:dso AND rptype <> :rptype";
         Query query = createQuery(context, queryString);

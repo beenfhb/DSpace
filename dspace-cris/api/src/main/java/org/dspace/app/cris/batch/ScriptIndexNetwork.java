@@ -27,7 +27,6 @@ import org.dspace.app.cris.network.DepartmentNetworkPlugin;
 import org.dspace.app.cris.network.NetworkPlugin;
 import org.dspace.app.cris.network.VisualizationGraphSolrService;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.PluginManager;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.utils.DSpace;
@@ -142,7 +141,7 @@ public class ScriptIndexNetwork
                         "type:\"" + connection + "\"");
 
                 NetworkPlugin plugin = (NetworkPlugin) CoreServiceFactory.getInstance().getPluginService()
-                        .getNamedPlugin(NetworkPlugin.CFG_MODULE, NetworkPlugin.class, connection);
+                        .getNamedPlugin(NetworkPlugin.class, connection);
                 // load data from connection
                 plugin.load(discardedNode, importedNodes, otherError); // load
                                                                        // all
@@ -166,7 +165,7 @@ public class ScriptIndexNetwork
 
                 log.info("Work on department");
                 DepartmentNetworkPlugin deptPlugin = (DepartmentNetworkPlugin) CoreServiceFactory.getInstance().getPluginService()
-                        .getSinglePlugin(NetworkPlugin.CFG_MODULE, NetworkPlugin.class);
+                        .getSinglePlugin(NetworkPlugin.class);
                 deptPlugin.load(discardedNode, importedNodes, otherError,
                         connections);
 

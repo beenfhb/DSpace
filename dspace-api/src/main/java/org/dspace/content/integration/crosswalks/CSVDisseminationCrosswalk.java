@@ -11,33 +11,20 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFFont;
-import org.apache.poi.hssf.usermodel.HSSFRichTextString;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.dspace.app.bulkedit.DSpaceCSV;
-import org.dspace.app.bulkedit.DSpaceCSVLine;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.LogManager;
 import org.dspace.core.SelfNamedPlugin;
 
 public class CSVDisseminationCrosswalk extends SelfNamedPlugin
@@ -55,14 +42,14 @@ public class CSVDisseminationCrosswalk extends SelfNamedPlugin
     }
 
     @Override
-    public void disseminate(Context context, List<DSpaceObject> dso,
+    public void disseminate(Context context, List<BrowsableDSpaceObject> dso,
             OutputStream out) throws CrosswalkException, IOException,
                     SQLException, AuthorizeException
     {
 
         // Process each item
         DSpaceCSV csv = new DSpaceCSV(false);
-        for (DSpaceObject toExport : dso)
+        for (BrowsableDSpaceObject toExport : dso)
         {
             try
             {
@@ -88,7 +75,7 @@ public class CSVDisseminationCrosswalk extends SelfNamedPlugin
     }
 
     @Override
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
             throws CrosswalkException, IOException, SQLException,
             AuthorizeException
     {

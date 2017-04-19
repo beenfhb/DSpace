@@ -27,7 +27,7 @@ import org.dspace.app.cris.statistics.plugin.StatsIndicatorsPlugin;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.utils.DSpace;
 
 public class ScriptStatsMetrics
@@ -51,7 +51,7 @@ public class ScriptStatsMetrics
                 .getSingletonService(SearchService.class);
 
         CrisSolrLogger statsService = (CrisSolrLogger) dspace
-                .getSingletonService(SolrLogger.class);
+                .getSingletonService(SolrLoggerService.class);
 
         ApplicationService applicationService = researcher.getApplicationService();
 

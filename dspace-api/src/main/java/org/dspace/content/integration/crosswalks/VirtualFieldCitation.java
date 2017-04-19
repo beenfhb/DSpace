@@ -13,7 +13,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
-import org.dspace.core.PluginManager;
 import org.dspace.core.factory.CoreServiceFactory;
 
 /**

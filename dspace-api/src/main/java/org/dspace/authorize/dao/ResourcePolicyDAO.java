@@ -7,15 +7,15 @@
  */
 package org.dspace.authorize.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Database Access Object interface class for the ResourcePolicy object.
@@ -26,29 +26,29 @@ import java.util.List;
  */
 public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
 
-    public List<ResourcePolicy> findByDso(Context context, DSpaceObject dso) throws SQLException;
+    public List<ResourcePolicy> findByDso(Context context, AuthorizableEntity dso) throws SQLException;
 
-    public List<ResourcePolicy> findByDsoAndType(Context context, DSpaceObject dSpaceObject, String type) throws SQLException;
+    public List<ResourcePolicy> findByDsoAndType(Context context, AuthorizableEntity dSpaceObject, String type) throws SQLException;
 
     public List<ResourcePolicy> findByGroup(Context context, Group group) throws SQLException;
 
-    public List<ResourcePolicy> findByDSoAndAction(Context context, DSpaceObject dso, int actionId) throws SQLException;
+    public List<ResourcePolicy> findByDSoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException;
 
-    public List<ResourcePolicy> findByTypeIdGroupAction(Context context, DSpaceObject dso, Group group, int action, int notPolicyID) throws SQLException;
+    public List<ResourcePolicy> findByTypeIdGroupAction(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException;
     
     public List<ResourcePolicy> findByEPersonGroupTypeIdAction(Context context, EPerson e, List<Group> groups, int action, int type_id) throws SQLException;
 
-    public void deleteByDso(Context context, DSpaceObject dso) throws SQLException;
+    public void deleteByDso(Context context, AuthorizableEntity dso) throws SQLException;
 
-    public void deleteByDsoAndAction(Context context, DSpaceObject dso, int actionId) throws SQLException;
+    public void deleteByDsoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException;
 
-    public void deleteByDsoAndType(Context context, DSpaceObject dSpaceObject, String type) throws SQLException;
+    public void deleteByDsoAndType(Context context, AuthorizableEntity dSpaceObject, String type) throws SQLException;
 
     public void deleteByGroup(Context context, Group group) throws SQLException;
 
-    public void deleteByDsoGroupPolicies(Context context, DSpaceObject dso, Group group) throws SQLException;
+    public void deleteByDsoGroupPolicies(Context context, AuthorizableEntity dso, Group group) throws SQLException;
 
-    public void deleteByDsoEPersonPolicies(Context context, DSpaceObject dso, EPerson ePerson) throws SQLException;
+    public void deleteByDsoEPersonPolicies(Context context, AuthorizableEntity dso, EPerson ePerson) throws SQLException;
 
-    public void deleteByDsoAndTypeNotEqualsTo(Context c, DSpaceObject o, String type) throws SQLException;
+    public void deleteByDsoAndTypeNotEqualsTo(Context c, AuthorizableEntity o, String type) throws SQLException;
 }

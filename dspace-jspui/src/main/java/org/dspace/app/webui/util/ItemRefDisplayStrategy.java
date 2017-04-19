@@ -9,6 +9,7 @@ package org.dspace.app.webui.util;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -23,7 +24,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
     private static Logger log = Logger.getLogger(ItemRefDisplayStrategy.class);
     
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, int itemid, String field,
+            boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
             List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata;
@@ -44,7 +45,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
         StringBuffer sb = new StringBuffer();
         for (int j = 0; j < loopLimit; j++)
         {
-            sb.append(getDisplayForValue(hrq, field, metadataArray[j].value, metadataArray[j].authority, itemid));
+            sb.append(getDisplayForValue(hrq, field, metadataArray.get(j).getValue(), metadataArray.get(j).getAuthority(), itemid));
             if (j < (loopLimit - 1))
             {
                 if (colIdx != -1) // we are showing metadata in a table row
@@ -87,7 +88,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
         return metadata;
     }
     
-    private String getDisplayForValue(HttpServletRequest hrq, String field, String value, String authority, int itemid)
+    private String getDisplayForValue(HttpServletRequest hrq, String field, String value, String authority, UUID itemid)
     {
     	if (StringUtils.isEmpty(authority)) return value;
         StringBuffer sb = new StringBuffer();

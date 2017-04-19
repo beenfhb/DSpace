@@ -436,4 +436,9 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
 	public DSpaceObjectService getDSpaceObjectService() {
 		return getePersonService();
 	}
+
+	@Override
+	public boolean haveHierarchy() {	
+		return true;
+	}
 }

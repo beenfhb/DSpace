@@ -25,6 +25,7 @@ import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
@@ -166,7 +167,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
     }
 
     @Override
-    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger, DSpaceObject object,
+    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger, BrowsableDSpaceObject object,
             String dateType, String dateStart, String dateEnd, int gap) throws SolrServerException
     {
         String query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());

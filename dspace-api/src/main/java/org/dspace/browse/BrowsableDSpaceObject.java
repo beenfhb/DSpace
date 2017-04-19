@@ -33,4 +33,8 @@ public interface BrowsableDSpaceObject extends IGlobalSearchResult
 	public String findHandle(Context context) throws SQLException;
 
 	public boolean haveHierarchy();
+
+	public BrowsableDSpaceObject getParentObject();
+	
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language);
 }

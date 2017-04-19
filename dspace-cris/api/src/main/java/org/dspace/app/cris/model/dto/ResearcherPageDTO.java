@@ -10,6 +10,7 @@ package org.dspace.app.cris.model.dto;
 import it.cilea.osd.common.core.TimeStampInfo;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.util.ResearcherPageUtils;
@@ -28,7 +29,7 @@ public class ResearcherPageDTO  {
 	private String uuid;
 	private String sourceID;
 	private String fullName;
-	private Integer epersonID;	
+	private UUID epersonID;	
 	private Boolean status;
 	private TimeStampInfo timeStampInfo;
 	
@@ -110,12 +111,12 @@ public class ResearcherPageDTO  {
         return rp;
     }
 
-    public void setEpersonID(Integer epersonID)
+    public void setEpersonID(UUID epersonID)
     {
         this.epersonID = epersonID;
     }
 
-    public Integer getEpersonID()
+    public UUID getEpersonID()
     {
         return epersonID;
     }

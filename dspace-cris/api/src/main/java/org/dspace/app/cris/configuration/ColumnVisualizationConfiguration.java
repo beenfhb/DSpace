@@ -10,8 +10,8 @@ package org.dspace.app.cris.configuration;
 import java.util.List;
 
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 import org.springframework.beans.factory.annotation.Required;
@@ -112,7 +112,7 @@ public class ColumnVisualizationConfiguration
                     split.length > 2 ? split[2] : null, Item.ANY);
             for (MetadataValue v : values)
             {
-                sb.append(v.value).append(", ");
+                sb.append(v.getValue()).append(", ");
             }
         }
         return sb.length() > 0 ? sb.substring(0, sb.length() - 2) : null;

@@ -42,7 +42,8 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.AbstractProcessingStep;
-import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflowbasic.BasicWorkflowItem;
+import org.dspace.workflowbasic.service.BasicWorkflowService;
 
 /**
  * Describe step for DSpace submission process. Handles the gathering of
@@ -186,16 +187,16 @@ public class DescribeStep extends AbstractProcessingStep
         
         String scope ="";
         if(subInfo.isInWorkflow()){
-        	WorkflowItem wfi = (WorkflowItem)subInfo.getSubmissionItem();
+        	BasicWorkflowItem wfi = (BasicWorkflowItem)subInfo.getSubmissionItem();
         	int wfState = wfi.getState();
         	switch (wfState){
-        		case WorkflowManager.WFSTATE_STEP1:
+        		case BasicWorkflowService.WFSTATE_STEP1:
         			scope = DCInput.WORKFLOW_STEP1_SCOPE;
         			break;
-        		case WorkflowManager.WFSTATE_STEP2:
+        		case BasicWorkflowService.WFSTATE_STEP2:
         			scope = DCInput.WORKFLOW_STEP2_SCOPE;
         			break;
-        		case WorkflowManager.WFSTATE_STEP3:
+        		case BasicWorkflowService.WFSTATE_STEP3:
         		    scope = DCInput.WORKFLOW_STEP3_SCOPE;
         		    break;
                 default:
@@ -758,6 +759,7 @@ public class DescribeStep extends AbstractProcessingStep
             String element, String qualifier, String lang, DCInput dcInput) throws SQLException
     {
         boolean repeated = dcInput.getRepeatable();
+        boolean hasLanguageTag = dcInput.getLanguage();
         // FIXME: Of course, language should be part of form, or determined
         // some other way
         String metadataField = metadataFieldService.findByElement(context, schema, element, qualifier).toString();

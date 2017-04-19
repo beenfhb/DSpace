@@ -8,6 +8,7 @@
 package org.dspace.app.cris.model.jdyna.value;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -17,33 +18,34 @@ import javax.persistence.Entity;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 import it.cilea.osd.jdyna.model.AValue;
 
 @Entity
 @DiscriminatorValue(value="eperson")
-public class EPersonValue extends AValue<Integer>
+public class EPersonValue extends AValue<String>
 {
 
     @Basic
     @Column(name="customPointer")
-    private Integer real;
+    private String real;
 
     @Override
-    public Integer getObject()
+    public String getObject()
     {
         return real;
     }
 
     @Override
-    protected void setReal(Integer oggetto)
+    protected void setReal(String oggetto)
     {
         this.real = oggetto;
         if(oggetto != null) {
             Context context = null;
             try {
                 context = new Context();
-                String displayValue = EPerson.find(context, oggetto).getFullName().toLowerCase();
+                String displayValue = EPersonServiceFactory.getInstance().getEPersonService().find(context, UUID.fromString(oggetto)).getFullName().toLowerCase();
                 sortValue = displayValue.substring(0,(displayValue.length()<200?displayValue.length():200));
             }
             catch(Exception ex) {
@@ -58,14 +60,14 @@ public class EPersonValue extends AValue<Integer>
     }
 
     @Override
-    public Integer getDefaultValue()
+    public String getDefaultValue()
     {
         Context context = null;
         EPerson eperson = null;
         try {
             context = new Context();
             context.turnOffAuthorisationSystem();
-            eperson = EPerson.create(context);
+            eperson = EPersonServiceFactory.getInstance().getEPersonService().create(context);
             context.restoreAuthSystemState();
         }
         catch (SQLException | AuthorizeException e)
@@ -77,7 +79,7 @@ public class EPersonValue extends AValue<Integer>
                 context.abort();
             }
         }
-        return eperson.getID();
+        return eperson.getID().toString();
     }
 
     @Override

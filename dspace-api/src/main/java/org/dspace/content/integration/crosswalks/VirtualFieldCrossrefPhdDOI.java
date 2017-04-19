@@ -16,8 +16,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.hibernate.Session;
 
 /**
  * Implements virtual field processing to build doi suffix
@@ -51,23 +50,22 @@ public class VirtualFieldCrossrefPhdDOI implements VirtualFieldDisseminator,
             String result = ConfigurationManager.getProperty("doi.prefix");
 			List<MetadataValue> authors = item.getMetadata("dc", "contributor", "author", Item.ANY);
 			if (authors.size() > 0) {
-				MetadataValue md = authors[0];
-				String mdValue = md.value.toLowerCase();
+				MetadataValue md = authors.get(0);
+				String mdValue = md.getValue().toLowerCase();
 				mdValue = mdValue.replaceAll("[^a-z]+", "-");
 				result += mdValue;
 			}
            
             result += "_"+PREFIX;
             
-            MetadataValue mddate = item.getMetadata("dc", "date", "issued", Item.ANY)[0];
-            result += mddate.value;
+            MetadataValue mddate = item.getItemService().getMetadata(item, "dc", "date", "issued", Item.ANY).get(0);
+            result += mddate.getValue();
             
-            TableRow row = DatabaseManager.querySingle(context,
-                    "select count(*) as cc from "
-                            + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-                            + " where identifier_doi = ?", result);
-            if(row!=null) {
-                if(row.getLongColumn("cc")>0) {
+            Object count = getHibernateSession(context).createSQLQuery("select count(*) as cc from "
+                    + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
+                    + " where identifier_doi = :par0").setParameter(0, result).uniqueResult();
+            if(count!=null) {
+                if((Integer)count>0) {
                     result += "_" + item.getID();
                 }
             }
@@ -105,4 +103,8 @@ public class VirtualFieldCrossrefPhdDOI implements VirtualFieldDisseminator,
     {
         return false;
     }
+    
+	public Session getHibernateSession(Context context) throws SQLException {
+		return ((Session) context.getDBConnection().getSession());
+	}
 }

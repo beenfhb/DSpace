@@ -7,40 +7,37 @@
  */
 package org.dspace.app.util;
 
-import org.dspace.app.util.service.OpenSearchService;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.net.URLEncoder;
-import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
 
+import org.apache.log4j.Logger;
+import org.dspace.app.util.service.OpenSearchService;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.w3c.dom.Document;
-
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.jdom.output.DOMOutputter;
 import org.jdom.output.XMLOutputter;
-
-import org.apache.log4j.Logger;
-
-import org.dspace.content.DSpaceObject;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Document;
 
 import com.sun.syndication.feed.module.opensearch.OpenSearchModule;
 import com.sun.syndication.feed.module.opensearch.entity.OSQuery;
 import com.sun.syndication.feed.module.opensearch.impl.OpenSearchModuleImpl;
 import com.sun.syndication.io.FeedException;
-import java.util.Arrays;
-import org.dspace.services.ConfigurationService;
 
 /**
  * Utility Class with static methods for producing OpenSearch-compliant search results,
@@ -127,7 +124,7 @@ public class OpenSearchServiceImpl implements OpenSearchService, InitializingBea
 
     @Override
     public String getResultsString(Context context, String format, String query, int totalResults, int start, int pageSize,
-    		                          	  DSpaceObject scope, List<DSpaceObject> results,
+    		BrowsableDSpaceObject scope, List<BrowsableDSpaceObject> results,
     		                          	  Map<String, String> labels) throws IOException
     {
         try
@@ -143,7 +140,7 @@ public class OpenSearchServiceImpl implements OpenSearchService, InitializingBea
 
     @Override
     public Document getResultsDoc(Context context, String format, String query, int totalResults, int start, int pageSize,
-    		                          DSpaceObject scope, List<DSpaceObject> results, Map<String, String> labels)
+    		BrowsableDSpaceObject scope, List<BrowsableDSpaceObject> results, Map<String, String> labels)
                                       throws IOException
     {
         try
@@ -158,7 +155,7 @@ public class OpenSearchServiceImpl implements OpenSearchService, InitializingBea
     }
 
     protected SyndicationFeed getResults(Context context, String format, String query, int totalResults, int start, int pageSize,
-                                          DSpaceObject scope, List<DSpaceObject> results, Map<String, String> labels)
+    		BrowsableDSpaceObject scope, List<BrowsableDSpaceObject> results, Map<String, String> labels)
     {
         // Encode results in requested format
         if ("rss".equals(format))

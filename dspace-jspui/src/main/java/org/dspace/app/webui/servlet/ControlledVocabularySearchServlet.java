@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -194,7 +195,7 @@ public class ControlledVocabularySearchServlet extends DSpaceServlet
         List<Collection> resultsListColl = new ArrayList<Collection>();
         List<Item> resultsListItem = new ArrayList<Item>();
 
-        for (DSpaceObject dso : qResults.getDspaceObjects())
+        for (BrowsableDSpaceObject dso : qResults.getDspaceObjects())
         {
             if (dso instanceof Item)
             {

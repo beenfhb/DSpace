@@ -63,7 +63,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public void authorizeAnyOf(Context c, DSpaceObject o, int[] actions)throws AuthorizeException, SQLException
+    public void authorizeAnyOf(Context c, AuthorizableEntity o, int[] actions)throws AuthorizeException, SQLException
     {
         AuthorizeException ex = null;
 
@@ -83,20 +83,20 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public void authorizeAction(Context c, DSpaceObject o, int action)
+    public void authorizeAction(Context c, AuthorizableEntity o, int action)
             throws AuthorizeException, SQLException
     {
         authorizeAction(c, o, action, true);
     }
 
     @Override
-    public void authorizeAction(Context c, DSpaceObject o, int action, boolean useInheritance) throws AuthorizeException, SQLException
+    public void authorizeAction(Context c, AuthorizableEntity o, int action, boolean useInheritance) throws AuthorizeException, SQLException
     {
     	authorizeAction(c, c.getCurrentUser(), o, action, useInheritance);
     }
     
     @Override
-    public void authorizeAction(Context c, EPerson e, DSpaceObject o, int action, boolean useInheritance) throws AuthorizeException, SQLException
+    public void authorizeAction(Context c, EPerson e, AuthorizableEntity o, int action, boolean useInheritance) throws AuthorizeException, SQLException
     {
         if (o == null)
         {
@@ -161,13 +161,13 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public boolean authorizeActionBoolean(Context c, DSpaceObject o, int a) throws SQLException
+    public boolean authorizeActionBoolean(Context c, AuthorizableEntity o, int a) throws SQLException
     {
         return authorizeActionBoolean(c, o, a, true);
     }
 
     @Override
-    public boolean authorizeActionBoolean(Context c, DSpaceObject o, int a, boolean useInheritance) throws SQLException
+    public boolean authorizeActionBoolean(Context c, AuthorizableEntity o, int a, boolean useInheritance) throws SQLException
     {
         boolean isAuthorized = true;
 
@@ -188,7 +188,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public boolean authorizeActionBoolean(Context c, EPerson e, DSpaceObject o, int a, boolean useInheritance) throws SQLException
+    public boolean authorizeActionBoolean(Context c, EPerson e, AuthorizableEntity o, int a, boolean useInheritance) throws SQLException
     {
         boolean isAuthorized = true;
 
@@ -230,9 +230,9 @@ public class AuthorizeServiceImpl implements AuthorizeService
      *         action, <code>false</code> otherwise
      * @throws SQLException if database error
      */
-    protected boolean authorize(Context c, DSpaceObject o, int action, EPerson e, boolean useInheritance) throws SQLException
+    protected boolean authorize(Context c, AuthorizableEntity o, int action, EPerson e, boolean useInheritance) throws SQLException
     {
-        // return FALSE if there is no DSpaceObject
+        // return FALSE if there is no AuthorizableEntity
         if (o == null)
         {
             return false;
@@ -252,7 +252,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
 
             // perform isAdmin check to see
             // if user is an Admin on this object
-            DSpaceObject adminObject = useInheritance ? serviceFactory.getDSpaceObjectService(o).getAdminObject(c, o, action) : null;
+            AuthorizableEntity adminObject = useInheritance ? serviceFactory.getDSpaceObjectService((DSpaceObject)o).getAdminObject(c, (DSpaceObject)o, action) : null;
 
             if (isAdmin(c, adminObject))
             {
@@ -271,7 +271,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
             Bitstream b = (Bitstream) o;
 
             // Ensure that this is not a collection or community logo
-            DSpaceObject parent = bitstreamService.getParentObject(c, b);
+            AuthorizableEntity parent = bitstreamService.getParentObject(c, b);
             if (!(parent instanceof Collection) && !(parent instanceof Community))
             {
                 ignoreCustomPolicies = !isAnyItemInstalled(c, b.getBundles());
@@ -347,7 +347,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     ///////////////////////////////////////////////
 
     @Override
-    public boolean isAdmin(Context c, DSpaceObject o) throws SQLException
+    public boolean isAdmin(Context c, AuthorizableEntity o) throws SQLException
     {
 
         // return true if user is an Administrator
@@ -390,10 +390,12 @@ public class AuthorizeServiceImpl implements AuthorizeService
         // check the *parent* objects of this object.  This allows Admin
         // permissions to be inherited automatically (e.g. Admin on Community
         // is also an Admin of all Collections/Items in that Community)
-        DSpaceObject parent = serviceFactory.getDSpaceObjectService(o).getParentObject(c, o);
-        if (parent != null)
-        {
-            return isAdmin(c, parent);
+        if(o.haveHierarchy()) {
+            AuthorizableEntity parent = (AuthorizableEntity)(serviceFactory.getDSpaceObjectService((DSpaceObject)o).getParentObject(c, (DSpaceObject)o));
+            if (parent != null)
+            {
+                return isAdmin(c, parent);
+            }        	
         }
 
         return false;
@@ -462,42 +464,42 @@ public class AuthorizeServiceImpl implements AuthorizeService
     ///////////////////////////////////////////////
 
     @Override
-    public void addPolicy(Context c, DSpaceObject o, int actionID,
+    public void addPolicy(Context c, AuthorizableEntity o, int actionID,
                                  EPerson e) throws SQLException, AuthorizeException
     {
         addPolicy(c, o, actionID, e, null);
     }
 
     @Override
-    public void addPolicy(Context context, DSpaceObject o, int actionID,
+    public void addPolicy(Context context, AuthorizableEntity o, int actionID,
                                  EPerson e, String type) throws SQLException, AuthorizeException
     {
         createResourcePolicy(context, o, null, e, actionID, type);
     }
 
     @Override
-    public void addPolicy(Context c, DSpaceObject o, int actionID,
+    public void addPolicy(Context c, AuthorizableEntity o, int actionID,
                                  Group g) throws SQLException, AuthorizeException
     {
         createResourcePolicy(c, o, g, null, actionID, null);
     }
 
     @Override
-    public void addPolicy(Context c, DSpaceObject o, int actionID,
+    public void addPolicy(Context c, AuthorizableEntity o, int actionID,
                                  Group g, String type) throws SQLException, AuthorizeException
     {
         createResourcePolicy(c, o, g, null, actionID, type);
     }
 
     @Override
-    public List<ResourcePolicy> getPolicies(Context c, DSpaceObject o)
+    public List<ResourcePolicy> getPolicies(Context c, AuthorizableEntity o)
             throws SQLException
     {
         return resourcePolicyService.find(c, o);
     }
 
     @Override
-    public List<ResourcePolicy> findPoliciesByDSOAndType(Context c, DSpaceObject o, String type)
+    public List<ResourcePolicy> findPoliciesByDSOAndType(Context c, AuthorizableEntity o, String type)
             throws SQLException
     {
         return resourcePolicyService.find(c, o, type);
@@ -511,15 +513,15 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public List<ResourcePolicy> getPoliciesActionFilter(Context c, DSpaceObject o,
+    public List<ResourcePolicy> getPoliciesActionFilter(Context c, AuthorizableEntity o,
                                                                int actionID) throws SQLException
     {
         return resourcePolicyService.find(c, o, actionID);
     }
 
     @Override
-    public void inheritPolicies(Context c, DSpaceObject src,
-                                       DSpaceObject dest) throws SQLException, AuthorizeException
+    public void inheritPolicies(Context c, AuthorizableEntity src,
+                                       AuthorizableEntity dest) throws SQLException, AuthorizeException
     {
         // find all policies for the source object
         List<ResourcePolicy> policies = getPolicies(c, src);
@@ -537,7 +539,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
     
     @Override
-    public void switchPoliciesAction(Context context, DSpaceObject dso, int fromAction, int toAction) throws SQLException, AuthorizeException {
+    public void switchPoliciesAction(Context context, AuthorizableEntity dso, int fromAction, int toAction) throws SQLException, AuthorizeException {
 		List<ResourcePolicy> rps = getPoliciesActionFilter(context, dso, fromAction);
         for (ResourcePolicy rp : rps) {
         	rp.setAction(toAction);
@@ -546,7 +548,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
 	}
 
     @Override
-    public void addPolicies(Context c, List<ResourcePolicy> policies, DSpaceObject dest)
+    public void addPolicies(Context c, List<ResourcePolicy> policies, AuthorizableEntity dest)
             throws SQLException, AuthorizeException
     {
         // now add them to the destination object
@@ -575,24 +577,24 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public void removeAllPolicies(Context c, DSpaceObject o) throws SQLException, AuthorizeException {
+    public void removeAllPolicies(Context c, AuthorizableEntity o) throws SQLException, AuthorizeException {
         resourcePolicyService.removeAllPolicies(c, o);
     }
 
     @Override
-    public void removeAllPoliciesByDSOAndTypeNotEqualsTo(Context c, DSpaceObject o, String type)
+    public void removeAllPoliciesByDSOAndTypeNotEqualsTo(Context c, AuthorizableEntity o, String type)
             throws SQLException, AuthorizeException {
         resourcePolicyService.removeDsoAndTypeNotEqualsToPolicies(c, o, type);
     }
 
     @Override
-    public void removeAllPoliciesByDSOAndType(Context c, DSpaceObject o, String type)
+    public void removeAllPoliciesByDSOAndType(Context c, AuthorizableEntity o, String type)
             throws SQLException, AuthorizeException {
         resourcePolicyService.removePolicies(c, o, type);
     }
 
     @Override
-    public void removePoliciesActionFilter(Context context, DSpaceObject dso, int actionID)
+    public void removePoliciesActionFilter(Context context, AuthorizableEntity dso, int actionID)
             throws SQLException, AuthorizeException {
         resourcePolicyService.removePolicies(context, dso, actionID);
     }
@@ -605,19 +607,19 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public void removeGroupPolicies(Context c, DSpaceObject o, Group g)
+    public void removeGroupPolicies(Context c, AuthorizableEntity o, Group g)
             throws SQLException, AuthorizeException {
         resourcePolicyService.removeDsoGroupPolicies(c, o, g);
     }
 
     @Override
-    public void removeEPersonPolicies(Context c, DSpaceObject o, EPerson e)
+    public void removeEPersonPolicies(Context c, AuthorizableEntity o, EPerson e)
             throws SQLException, AuthorizeException {
         resourcePolicyService.removeDsoEPersonPolicies(c, o, e);
     }
 
     @Override
-    public List<Group> getAuthorizedGroups(Context c, DSpaceObject o,
+    public List<Group> getAuthorizedGroups(Context c, AuthorizableEntity o,
                                               int actionID) throws java.sql.SQLException
     {
         List<ResourcePolicy> policies = getPoliciesActionFilter(c, o, actionID);
@@ -634,19 +636,19 @@ public class AuthorizeServiceImpl implements AuthorizeService
 
 
     @Override
-    public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, DSpaceObject o, ResourcePolicy rp) throws SQLException
+    public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, AuthorizableEntity o, ResourcePolicy rp) throws SQLException
     {
         return isAnIdenticalPolicyAlreadyInPlace(c, o, rp.getGroup(), rp.getAction(), rp.getID());
     }
 
     @Override
-    public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, DSpaceObject dso, Group group, int action, int policyID) throws SQLException
+    public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, AuthorizableEntity dso, Group group, int action, int policyID) throws SQLException
     {
         return findByTypeIdGroupAction(c, dso, group, action, policyID) != null;
     }
 
     @Override
-    public ResourcePolicy findByTypeIdGroupAction(Context c, DSpaceObject dso, Group group, int action, int policyID) throws SQLException
+    public ResourcePolicy findByTypeIdGroupAction(Context c, AuthorizableEntity dso, Group group, int action, int policyID) throws SQLException
     {
         List<ResourcePolicy> policies = resourcePolicyService.find(c, dso, group, action, policyID);
 
@@ -673,7 +675,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
      */
     @Override
     public void generateAutomaticPolicies(Context context, Date embargoDate,
-                                                 String reason, DSpaceObject dso, Collection owningCollection) throws SQLException, AuthorizeException
+                                                 String reason, AuthorizableEntity dso, Collection owningCollection) throws SQLException, AuthorizeException
     {
 
         if (embargoDate != null || (embargoDate == null && dso instanceof Bitstream))
@@ -713,7 +715,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public ResourcePolicy createResourcePolicy(Context context, DSpaceObject dso, Group group, EPerson eperson, int type, String rpType) throws SQLException, AuthorizeException {
+    public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson, int type, String rpType) throws SQLException, AuthorizeException {
         if(group == null && eperson == null)
         {
             throw new IllegalArgumentException("We need at least an eperson or a group in order to create a resource policy.");
@@ -732,7 +734,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
 
     @Override
     public ResourcePolicy createOrModifyPolicy(ResourcePolicy policy, Context context, String name, Group group, EPerson ePerson,
-                                                      Date embargoDate, int action, String reason, DSpaceObject dso) throws AuthorizeException, SQLException
+                                                      Date embargoDate, int action, String reason, AuthorizableEntity dso) throws AuthorizeException, SQLException
     {
 
         int policyID = -1;

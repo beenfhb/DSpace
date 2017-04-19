@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -99,8 +100,8 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
             {
                 Integer resourceType = (Integer) doc
                         .getFirstValue("search.resourcetype");
-                Integer resourceId = (Integer) doc
-                        .getFirstValue("search.resourceid");
+                UUID resourceId = UUID.fromString((String) doc
+                        .getFirstValue("search.resourceid"));
 
                 if (resourceId != null)
                 {

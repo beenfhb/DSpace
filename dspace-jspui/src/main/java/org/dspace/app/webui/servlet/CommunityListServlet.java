@@ -28,8 +28,8 @@ import org.dspace.content.service.CommunityService;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.eperson.Subscription;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -48,68 +48,49 @@ public class CommunityListServlet extends DSpaceServlet
     private final transient CommunityService communityService
              = ContentServiceFactory.getInstance().getCommunityService();
     
-    private final transient ConfigurationService configurationService
-    = DSpaceServicesFactory.getInstance().getConfigurationService();
-    
     @Override
     protected void doDSGet(Context context, HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException,
             SQLException, AuthorizeException
     {
-        synchronized (staticLock)
+        // This will map community IDs to arrays of collections
+    	Map<String, List<Collection>> colMap;
+
+        // This will map communityIDs to arrays of sub-communities
+        Map<String, List<Community>> commMap;
+
+        colMap = new HashMap<>();
+        commMap = new HashMap<>();
+
+        log.info(LogManager.getHeader(context, "view_community_list", ""));
+
+        List<Community> communities = communityService.findAllTop(context);
+
+        for (Community c : communities) 
         {
-
-            // This will map community IDs to arrays of collections
-            Map<String, List<Collection>> colMap;
-
-            // This will map communityIDs to arrays of sub-communities
-            Map<String, List<Community>> commMap;
-
-            colMap = new HashMap<>();
-            commMap = new HashMap<>();
-
-            boolean showCommList = configurationService
-                    .getBooleanProperty("community-list.show.all", true);
-            if (!showCommList && !authorizationService.isAdmin(context))
-            {
-                throw new AuthorizeException(
-                        "Only Admin can see the community list");
-            }
-
-            log.info(LogManager.getHeader(context, "view_community_list", ""));
-
-            List<Community> communities = communityService.findAllTop(context);
-
-            EPerson currUser = context.getCurrentUser();
-            List<Integer> commIDsubs = new ArrayList<Integer>();
-            List<Integer> collIDsubs = new ArrayList<Integer>();
-            if (currUser != null)
-            {
-                commIDsubs = Subscribe.getCommunityIDSubscriptions(context,
-                        currUser);
-                collIDsubs = Subscribe.getCollectionIDSubscriptions(context,
-                        currUser);
-
-            }
-            request.setAttribute("subscription_communities", commIDsubs);
-
-            for (Community c : communities)
-            {
-                build(c, colMap, commMap);
-            }
-
-            // can they admin communities?
-            if (authorizeService.isAdmin(context))
-            {
-                // set a variable to create an edit button
-                request.setAttribute("admin_button", Boolean.TRUE);
-            }
-
-            request.setAttribute("communities", communities);
-            request.setAttribute("collections.map", colMap);
-            request.setAttribute("subcommunities.map", commMap);
-            JSPManager.showJSP(request, response, "/community-list.jsp");
+            build(c, colMap, commMap);
         }
+
+        // can they admin communities?
+        if (authorizeService.isAdmin(context))
+        {
+            // set a variable to create an edit button
+            request.setAttribute("admin_button", Boolean.TRUE);
+        }
+
+        EPerson currUser = context.getCurrentUser();
+        List<Community> commIDsubs = new ArrayList<Community>();
+        if (currUser != null)
+        {
+            commIDsubs = EPersonServiceFactory.getInstance().getSubscribeService().getSubscriptionsCommunity(context, currUser);
+            
+        }
+        request.setAttribute("subscription_communities", commIDsubs);
+        
+        request.setAttribute("communities", communities);
+        request.setAttribute("collections.map", colMap);
+        request.setAttribute("subcommunities.map", commMap);
+        JSPManager.showJSP(request, response, "/community-list.jsp");
     }
     /*
      * Get all subcommunities and collections from a community

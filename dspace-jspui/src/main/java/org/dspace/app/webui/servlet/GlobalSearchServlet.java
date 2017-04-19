@@ -21,7 +21,6 @@ import org.dspace.app.webui.search.SearchRequestProcessor;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.core.PluginConfigurationError;
-import org.dspace.core.PluginManager;
 import org.dspace.core.factory.CoreServiceFactory;
 
 /**

@@ -38,7 +38,7 @@ public class VirtualFieldPageNumber implements VirtualFieldDisseminator, Virtual
 		List<MetadataValue> dcvs2 = item.getMetadataValueInDCFormat("dc.relation.lastpage");
 
 		if ((dcvs != null && dcvs.size() > 0) && (dcvs2 != null && dcvs2.size() > 0)) {
-			String value = dcvs[0].value + separator + dcvs2[0].value;
+			String value = dcvs.get(0).getValue() + separator + dcvs2.get(0).getValue();
 			fieldCache.put(fieldName, value);
 			return new String[] { value };
 		}

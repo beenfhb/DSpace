@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
@@ -198,11 +199,11 @@ public class IndexClient {
                 String strLine;
                 // Read File Line By Line
 
-                int item_id = 0;
-                List<Integer> ids = new ArrayList<Integer>();
+                UUID item_id = null;
+                List<UUID> ids = new ArrayList<UUID>();
 
                 while ((strLine = br.readLine()) != null) {
-                    item_id = Integer.parseInt(strLine.trim());
+                    item_id = UUID.fromString(strLine.trim());
                     ids.add(item_id);
                 }
 

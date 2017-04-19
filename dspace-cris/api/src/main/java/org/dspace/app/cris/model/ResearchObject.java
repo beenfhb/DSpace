@@ -36,6 +36,7 @@ import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
@@ -316,5 +317,17 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     public String getMetadataFieldName(Locale locale) {
         return getAuthorityPrefix()+ getMetadataFieldTitle() + locale.getLanguage();
     }
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

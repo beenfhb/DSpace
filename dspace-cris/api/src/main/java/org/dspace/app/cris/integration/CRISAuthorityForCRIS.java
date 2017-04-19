@@ -8,8 +8,6 @@
 package org.dspace.app.cris.integration;
 
 
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ import org.dspace.app.cris.model.dto.CrisAnagraficaObjectDTO;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
+import org.dspace.content.Collection;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.ChoiceAuthorityDetails;
@@ -33,6 +31,8 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
+
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 /**
  * This class is the main point of integration beetween the Projects and DSpace.
@@ -103,7 +103,7 @@ public abstract class CRISAuthorityForCRIS<T extends ACrisObject> implements Cho
      * 
      * @return a Choices of RPs where a name form match the query string
      */
-    public Choices getMatches(String field, String query, int collection,
+    public Choices getMatches(String field, String query, Collection collection,
             int start, int limit, String locale)
     {
         try
@@ -206,7 +206,7 @@ public abstract class CRISAuthorityForCRIS<T extends ACrisObject> implements Cho
      * 
      * @return an empty Choices
      */
-    public Choices getBestMatch(String field, String text, int collection,
+    public Choices getBestMatch(String field, String text, Collection collection,
             String locale)
     {
         try

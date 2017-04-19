@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
@@ -27,7 +28,7 @@ import org.dspace.core.Context;
 public interface StreamGenericDisseminationCrosswalk extends StreamDisseminationCrosswalk
 {
 
-    public void disseminate(Context context, List<DSpaceObject> dso, OutputStream out)
+    public void disseminate(Context context, List<BrowsableDSpaceObject> dso, OutputStream out)
     throws CrosswalkException, IOException, SQLException, AuthorizeException;
     
 }

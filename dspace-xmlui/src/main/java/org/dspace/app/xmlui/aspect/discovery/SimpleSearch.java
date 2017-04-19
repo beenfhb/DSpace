@@ -156,7 +156,7 @@ public class SimpleSearch extends AbstractSearch implements CacheableProcessingC
         }
 
         DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
         java.util.List<DiscoverySearchFilter> filterFields = discoveryConfiguration.getSearchFilters();
         java.util.List<String> filterTypes = DiscoveryUIUtils.getRepeatableParameters(request, "filtertype");
         java.util.List<String> filterOperators = DiscoveryUIUtils.getRepeatableParameters(request, "filter_relational_operator");

@@ -40,13 +40,13 @@ public class VirtualFieldCrossrefAuthor implements VirtualFieldDisseminator,
             {
                 return new String[] { fieldCache.get(fieldName) };
             }
-            MetadataValue md = item.getMetadata("dc", "contributor", "author", Item.ANY)[0];
+            MetadataValue md = item.getItemService().getMetadata(item, "dc", "contributor", "author", Item.ANY).get(0);
             String element = "<given_name>{0}</given_name><surname>{1}</surname>";
                 
             String firstname = "";
             String lastname = "";
             
-            String[] author = md.value.split(",");
+            String[] author = md.getValue().split(",");
             if(author.length>2) {
                 firstname = author[2];
                 lastname = author[0] + "," + author[1] ;
@@ -67,10 +67,6 @@ public class VirtualFieldCrossrefAuthor implements VirtualFieldDisseminator,
                 return new String[] { fieldCache.get(fieldName) };
             }
 
-        }
-        catch (SQLException e)
-        {
-            // nothing
         }
         finally
         {

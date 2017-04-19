@@ -130,7 +130,7 @@ public abstract class AbstractRecentSubmissionTransformer extends AbstractDSpace
             DiscoverQuery queryArgs = new DiscoverQuery();
 
             //Add the default filter queries
-            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
             List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
             queryArgs.addFilterQueries(defaultFilterQueries.toArray(new String[defaultFilterQueries.size()]));
             queryArgs.setDSpaceObjectFilter(Constants.ITEM);

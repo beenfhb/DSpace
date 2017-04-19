@@ -478,7 +478,11 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
                 "exporting_search"));
 
 		// Export a search view
-        MetadataExport exporter = new MetadataExport(context, items.iterator(), false);
+        List<BrowseDSpaceObject> bdo = new ArrayList<>();
+        for(Item item : items) {
+        	bdo.add(new BrowseDSpaceObject(context, item));
+        }
+        MetadataExport exporter = new MetadataExport(context, bdo.iterator(), false);
 
 		// Perform the export
 		DSpaceCSV csv = exporter.export();

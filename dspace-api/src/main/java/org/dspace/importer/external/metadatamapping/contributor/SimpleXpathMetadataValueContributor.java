@@ -7,6 +7,13 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMText;
@@ -16,12 +23,6 @@ import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
 import org.jaxen.JaxenException;
 import org.springframework.beans.factory.annotation.Required;
-
-import javax.annotation.Resource;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Metadata contributor that takes an axiom OMElement and turns it into a MetadataValue

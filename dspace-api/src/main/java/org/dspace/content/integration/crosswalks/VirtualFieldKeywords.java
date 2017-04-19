@@ -41,11 +41,11 @@ public class VirtualFieldKeywords implements VirtualFieldDisseminator, VirtualFi
 				if (dcvs.size() > 1) {
 					String[] result = new String[dcvs.size()];
 					for (int i = 0; i < dcvs.size(); i++) {
-						result[i] = dcvs[i].value;
+						result[i] = dcvs.get(i).getValue();
 					}
 					return result;
 				} else {
-					String keywords = dcvs[0].value;
+					String keywords = dcvs.get(0).getValue();
 					String[] allKw = keywords.split("\\s*[,;]\\s*");
 					return allKw;
 				}
@@ -55,12 +55,12 @@ public class VirtualFieldKeywords implements VirtualFieldDisseminator, VirtualFi
 				if (dcvs.size() > 1) {
 					StringBuffer sb = new StringBuffer();
 					for (int i = 0; i < dcvs.size(); i++) {
-						sb.append(dcvs[i].value).append("; ");
+						sb.append(dcvs.get(i).getValue()).append("; ");
 					}
 					
 					return new String[] { sb.toString() };
 				} else {
-					return new String[] { dcvs[0].value };
+					return new String[] { dcvs.get(0).getValue()};
         		}
 			}
         }

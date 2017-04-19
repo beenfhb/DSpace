@@ -7,11 +7,6 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
-import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
-import it.cilea.osd.jdyna.model.AnagraficaObject;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,11 +31,9 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -48,6 +41,11 @@ import org.dspace.eperson.EPerson;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
+import it.cilea.osd.jdyna.model.AnagraficaObject;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 public class FormRPDynamicMetadataController
         extends

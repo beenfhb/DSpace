@@ -27,7 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.SyndicationFeed;
 import org.dspace.app.webui.util.JSPManager;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
@@ -244,7 +246,7 @@ public class FeedServlet extends DSpaceServlet
         if (feed == null)
         {
                 feed = new SyndicationFeed(SyndicationFeed.UITYPE_JSPUI);
-                feed.populate(request, context, dso, getItems(context, dso), labelMap);
+                feed.populate(request, context, (BrowsableDSpaceObject)dso, getItems(context, dso), labelMap);
         	if (feedCache != null)
         	{
                         cache(cacheKey, new CacheFeed(feed));
@@ -288,7 +290,7 @@ public class FeedServlet extends DSpaceServlet
     }
     
     // returns recently changed items, checking for accessibility
-    private List<Item> getItems(Context context, DSpaceObject dso)
+    private List<BrowsableDSpaceObject> getItems(Context context, DSpaceObject dso)
     		throws IOException, SQLException
     {
     	try
@@ -338,7 +340,7 @@ public class FeedServlet extends DSpaceServlet
             BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
                     scope.getUserLocale():null);
     		BrowseInfo bi = be.browseMini(scope);
-    		List<Item> results = bi.getResults();
+    		List<BrowsableDSpaceObject> results = bi.getResults();
             if (includeAll)
             {
                 return results;
@@ -348,11 +350,11 @@ public class FeedServlet extends DSpaceServlet
                     // Check to see if we can include this item
                 //Group[] authorizedGroups = AuthorizeManager.getAuthorizedGroups(context, results[i], Constants.READ);
                 //boolean added = false;
-                List<Item> items = new ArrayList<>();
-                for (Item result : results)
+                List<BrowsableDSpaceObject> items = new ArrayList<>();
+                for (BrowsableDSpaceObject result : results)
                     {
                 checkAccess:
-                    for (Group group : authorizeService.getAuthorizedGroups(context, result, Constants.READ))
+                    for (Group group : authorizeService.getAuthorizedGroups(context, (AuthorizableEntity)result, Constants.READ))
                         {
                         if ((group.getName() != null && group.getName().equals(Group.ANONYMOUS)))
                         {

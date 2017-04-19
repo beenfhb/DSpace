@@ -8,6 +8,7 @@
 package org.dspace.app.xmlui.aspect.discovery.recentSubmissions;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.xmlui.aspect.discovery.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -76,7 +77,7 @@ public class RecentSubmissionUtils {
     }
 
     public static DiscoveryConfiguration getDiscoveryConfiguration(DSpaceObject dso) {
-        return SearchUtils.getDiscoveryConfiguration(dso);
+        return SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
     }
 
 }

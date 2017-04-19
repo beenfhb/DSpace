@@ -12,6 +12,7 @@ import it.cilea.osd.common.core.TimeStampInfo;
 import it.cilea.osd.common.model.Identifiable;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
@@ -46,7 +47,7 @@ public class PMCCitation implements Identifiable, HasTimeStampInfo
     @Fetch(value = FetchMode.SELECT)
 	@CollectionTable(name = "cris_pmc_citation_itemids", joinColumns = @JoinColumn(name = "cris_pmc_citation_pubmedid"))
 	@Column(name = "element")
-    private List<Integer> itemIDs;
+    private List<UUID> itemIDs;
 
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @CollectionTable(name = "cris_pmc_citation2record", joinColumns = @JoinColumn(name = "cris_pmc_citation_pubmedid"))
@@ -81,12 +82,12 @@ public class PMCCitation implements Identifiable, HasTimeStampInfo
         this.id = pubmedID;
     }
 
-    public List<Integer> getItemIDs()
+    public List<UUID> getItemIDs()
     {
         return itemIDs;
     }
 
-    public void setItemIDs(List<Integer> itemIDs)
+    public void setItemIDs(List<UUID> itemIDs)
     {
         this.itemIDs = itemIDs;
     }

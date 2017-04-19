@@ -8,47 +8,44 @@
 package org.dspace.app.cris.model.jdyna.value;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 
 import it.cilea.osd.jdyna.model.AValue;
 
 @Entity
 @DiscriminatorValue(value="group")
-public class GroupValue extends AValue<Integer>
+public class GroupValue extends AValue<String>
 {
 
     @Basic
     @Column(name="customPointer")
-    private Integer real;
+    private String real;
 
     @Override
-    public Integer getObject()
+    public String getObject()
     {
         return real;
     }
 
     @Override
-    protected void setReal(Integer oggetto)
+    protected void setReal(String oggetto)
     {
         this.real = oggetto;
         if(oggetto != null) {
             Context context = null;
             try {
                 context = new Context();
-                String displayValue = Group.find(context, oggetto).getName().toLowerCase();
+                String displayValue = EPersonServiceFactory.getInstance().getGroupService().find(context, UUID.fromString(oggetto)).getName().toLowerCase();
                 sortValue = displayValue.substring(0,(displayValue.length()<200?displayValue.length():200));
             }
             catch(Exception ex) {
@@ -63,14 +60,14 @@ public class GroupValue extends AValue<Integer>
     }
 
     @Override
-    public Integer getDefaultValue()
+    public String getDefaultValue()
     {
         Context context = null;
         Group group = null;
         try {
             context = new Context();
             context.turnOffAuthorisationSystem();
-            group = Group.create(context);
+            group = EPersonServiceFactory.getInstance().getGroupService().create(context);
             context.restoreAuthSystemState();
         }
         catch (SQLException | AuthorizeException e)
@@ -82,7 +79,7 @@ public class GroupValue extends AValue<Integer>
                 context.abort();
             }
         }
-        return group.getID();
+        return group.getID().toString();
     }
 
     @Override

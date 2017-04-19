@@ -33,23 +33,23 @@ import org.apache.log4j.Logger;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.crosswalk.IConverter;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.crosswalk.StreamIngestionCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
-import org.dspace.core.PluginManager;
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.core.factory.CoreServiceFactory;
 
@@ -104,7 +104,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
         return false;
     }
 
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
             throws CrosswalkException, IOException, SQLException,
             AuthorizeException
     {
@@ -197,9 +197,9 @@ public class ReferCrosswalk extends SelfNamedPlugin
                             String dcValue = null;
                             
 							if (converter != null) {
-								dcValue = converter.makeConversion(dc.value);
+								dcValue = converter.makeConversion(dc.getValue());
 							} else {
-								dcValue = dc.value;
+								dcValue = dc.getValue();
 							}
 							
 							if (dcValue == null) {
@@ -272,11 +272,11 @@ public class ReferCrosswalk extends SelfNamedPlugin
                     
                     if (templateLine.mdBits.length == 2)
                     {
-                        item.addMetadata(templateLine.mdBits[0], templateLine.mdBits[1], null, null, value);
+                        item.getItemService().addMetadata(context, item, templateLine.mdBits[0], templateLine.mdBits[1], null, null, value);
                     }
                     else if (templateLine.mdBits.length == 3)
                     {
-                        item.addMetadata(templateLine.mdBits[0], templateLine.mdBits[1], templateLine.mdBits[3], null, value);
+                    	item.getItemService().addMetadata(context, item, templateLine.mdBits[0], templateLine.mdBits[1], templateLine.mdBits[3], null, value);
                     }
                     else
                     {
@@ -307,7 +307,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
     public static void main(String[] args) throws Exception
     {
         Context context = new Context();
-        ItemIterator itr = Item.findAll(context);
+        java.util.Iterator<Item> itr = ContentServiceFactory.getInstance().getItemService().findAll(context);
         
         while (itr.hasNext())
         {

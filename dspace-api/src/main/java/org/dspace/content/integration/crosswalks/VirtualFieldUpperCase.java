@@ -35,7 +35,7 @@ public class VirtualFieldUpperCase implements VirtualFieldDisseminator,
 		// [2] metadato da usare dc.description.allauthor
 		String[] virtualFieldName = fieldName.split("\\.", 3);
 		
-		List<MetadataValue> dcvs = item.getMetadataByMetadataString(virtualFieldName[2]);
+		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(virtualFieldName[2]);
 		StringBuffer out = null;
 		if (dcvs != null && dcvs.size() > 0) {
 			out = new StringBuffer();
@@ -43,7 +43,7 @@ public class VirtualFieldUpperCase implements VirtualFieldDisseminator,
 			{
 				out.append(
 						StringEscapeUtils.escapeXml(StringUtils
-								.upperCase(dc.value))).append("|");
+								.upperCase(dc.getValue()))).append("|");
 			}
 			if (out != null && out.length() > 0) {
 				String result = out.substring(0, out.length() - 1);

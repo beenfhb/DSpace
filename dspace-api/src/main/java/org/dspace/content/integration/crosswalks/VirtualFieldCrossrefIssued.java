@@ -44,7 +44,7 @@ public class VirtualFieldCrossrefIssued implements VirtualFieldDisseminator,
             
             String element = "";
             if(mds!=null && mds.size()>0) {
-              String[] tmp = mds[0].value.split("-");
+              String[] tmp = mds.get(0).getValue().split("-");
               element = "<year>" + tmp[0] + "</year>";
             }        
                                             
@@ -57,7 +57,7 @@ public class VirtualFieldCrossrefIssued implements VirtualFieldDisseminator,
             }
 
         }
-        catch (SQLException e)
+        catch (Exception e)
         {
             // nothing
         }

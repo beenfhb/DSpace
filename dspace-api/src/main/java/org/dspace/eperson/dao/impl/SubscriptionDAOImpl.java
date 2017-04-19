@@ -138,4 +138,16 @@ public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> impl
         query.setParameter("ePerson", eperson);        
         return query.list();
     }
+    
+    @Override
+    public Subscription findByCommunityAndEPerson(Context context, EPerson eperson, Community collection) throws SQLException {
+        Criteria criteria = createCriteria(context, Subscription.class);
+        criteria.add(
+                Restrictions.and(
+                        Restrictions.eq("ePerson", eperson),
+                        Restrictions.eq("community", collection)
+                )
+        );
+        return singleResult(criteria);
+    }
 }

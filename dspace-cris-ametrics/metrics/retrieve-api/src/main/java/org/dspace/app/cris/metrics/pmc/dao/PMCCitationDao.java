@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.metrics.pmc.dao;
 
+import java.util.UUID;
+
 import org.dspace.app.cris.metrics.pmc.model.PMCCitation;
 
 import it.cilea.osd.common.dao.GenericDao;
@@ -14,6 +16,6 @@ import it.cilea.osd.common.dao.GenericDao;
 public interface PMCCitationDao extends GenericDao<PMCCitation, Integer>
 {
 
-    PMCCitation uniqueCitationByItemID(Integer itemID);
+    PMCCitation uniqueCitationByItemID(UUID itemID);
 
 }

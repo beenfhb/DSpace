@@ -227,4 +227,8 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
 		return getBundleService();
 	}
 
+	@Override
+	public boolean haveHierarchy() {
+		return true;
+	}
 }

@@ -19,14 +19,6 @@ import java.util.Locale;
 
 import javax.mail.MessagingException;
 
-import jxl.CellView;
-import jxl.Workbook;
-import jxl.write.Label;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -38,7 +30,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.cris.model.StatSubscription;
 import org.dspace.app.cris.statistics.SummaryStatBean;
 import org.dspace.app.cris.statistics.service.StatSubscribeService;
-import org.dspace.app.cris.statistics.util.StatsConfig;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
@@ -46,8 +37,16 @@ import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.utils.DSpace;
+
+import jxl.CellView;
+import jxl.Workbook;
+import jxl.write.Label;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
 
 /**
  * Class defining methods for sending statistics update to users
@@ -100,7 +99,7 @@ public class ScriptStatSubscribe
                     }
                 }
 
-                currentEPerson = EPerson.find(context,
+                currentEPerson = EPersonServiceFactory.getInstance().getEPersonService().find(context,
                         rpSubscription.getEpersonID());
                 rpSubscriptions = new ArrayList<StatSubscription>();
             }
@@ -163,7 +162,7 @@ public class ScriptStatSubscribe
         Locale supportedLocale = I18nUtil.getEPersonLocale(eperson);
         
         String tmpfile = ConfigurationManager.getProperty(
-                SolrLogger.CFG_STAT_MODULE, "subscribe-stat.tmpdir")
+                "statistics.subscribe-stat.tmpdir")
                 + File.separator
                 + "stat-"
                 + sfreq

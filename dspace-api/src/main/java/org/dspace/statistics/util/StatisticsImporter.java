@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -301,7 +302,7 @@ public class StatisticsImporter
                 EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, user);
 
                 // Save it in our server
-                solrLoggerService.postView(dso, ip, dns, eperson);
+                solrLoggerService.postView((BrowsableDSpaceObject)dso, ip, dns, null, eperson);
                 errors--;
             }
 

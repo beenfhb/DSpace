@@ -459,4 +459,9 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
 	public DSpaceObjectService getDSpaceObjectService() {
 		return getBitstreamService();
 	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return true;
+	}
 }

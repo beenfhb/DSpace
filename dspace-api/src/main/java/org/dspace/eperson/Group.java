@@ -45,6 +45,9 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 
     @Transient
     public static final String ADMIN = "Administrator";
+    
+    @Transient
+    public static final String EMBARGO = "Embargo";
 
     /**
      * Initial value is set to 2 since 0 & 1 are reserved for anonymous & administrative uses
@@ -85,6 +88,9 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
     @Transient
     private boolean groupsChanged;
 
+    @Column
+    private Boolean isNotRelevant = false;
+    
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.eperson.service.GroupService#create(Context)}
@@ -269,5 +275,18 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 	@Override
 	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
 		return EPersonServiceFactory.getInstance().getGroupService().getMetadataByMetadataString(this, mdString);
+	}
+
+	public Boolean getIsNotRelevant() {
+		return isNotRelevant;
+	}
+
+	public void setIsNotRelevant(Boolean isNotRelevant) {
+		this.isNotRelevant = isNotRelevant;
+	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return false;
 	}
 }

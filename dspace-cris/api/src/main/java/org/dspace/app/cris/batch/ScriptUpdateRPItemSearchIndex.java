@@ -27,13 +27,11 @@ import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
-import org.dspace.browse.IndexBrowse;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -197,7 +195,7 @@ public class ScriptUpdateRPItemSearchIndex
         try
         {
             context = new Context();
-            context.setIgnoreAuthorization(true);
+            context.turnOffAuthorisationSystem();
             BrowseIndex bi = BrowseIndex.getBrowseIndex(plugInBrowserIndex);
             
             boolean isMultilanguage = new DSpace().getConfigurationService()
@@ -211,7 +209,6 @@ public class ScriptUpdateRPItemSearchIndex
                             false);
             
             // we need to assure that the right names will be present in the browse
-            IndexBrowse ib = new IndexBrowse(context);
             int count = 1;
             for (ResearcherPage rp : rps)
             {
@@ -236,14 +233,13 @@ public class ScriptUpdateRPItemSearchIndex
                 BrowseInfo binfo = be.browse(scope);
                 log.debug("Find " + binfo.getResultCount()
                         + "item(s) for the reseracher " + authKey);
-                Item[] items = binfo.getItemResults(context);
+                List<Item> items = binfo.getItemResults(context);
                 for (Item item : items)
                 {
                     context.addEvent(new Event(Event.MODIFY_METADATA, Constants.ITEM, item.getID(), null));
                 }
             }
             context.commit();
-            context.clearCache();
         }
         finally
         {

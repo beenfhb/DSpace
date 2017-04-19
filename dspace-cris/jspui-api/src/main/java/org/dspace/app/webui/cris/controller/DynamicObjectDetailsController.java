@@ -7,9 +7,6 @@
  */
 package org.dspace.app.webui.cris.controller;
 
-import it.cilea.osd.jdyna.web.Utils;
-import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,17 +21,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.cris.model.OrganizationUnit;
-import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
-import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.TabDynamicObject;
-import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
-import org.dspace.app.cris.model.jdyna.TabProject;
-import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
@@ -46,15 +37,16 @@ import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.web.Utils;
+import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
 
 /**
  * This SpringMVC controller is used to build the ResearcherPage details page.

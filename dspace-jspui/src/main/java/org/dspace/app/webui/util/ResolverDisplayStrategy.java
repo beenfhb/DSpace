@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -73,7 +74,7 @@ public class ResolverDisplayStrategy extends AUniformDisplayStrategy
         }
     }
 
-    protected String getDisplayForValue(HttpServletRequest hrq, String value, int itemid)
+    protected String getDisplayForValue(HttpServletRequest hrq, String value, UUID itemid)
     {
         init();
         String url = null;

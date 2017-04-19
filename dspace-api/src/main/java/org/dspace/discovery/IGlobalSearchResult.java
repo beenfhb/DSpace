@@ -17,6 +17,7 @@ public interface IGlobalSearchResult {
 	public String getHandle();
 	
 	public List<String> getMetadataValue(String mdString);
+	
 	public List<MetadataValue> getMetadataValueInDCFormat(String mdString);
 	
 	public String getTypeText();

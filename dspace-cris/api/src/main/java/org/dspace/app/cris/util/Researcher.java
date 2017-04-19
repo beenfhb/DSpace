@@ -9,6 +9,7 @@ package org.dspace.app.cris.util;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.CrisComponentsService;
@@ -176,7 +177,7 @@ public class Researcher implements EPersonCRISIntegration
     }
 
     @Override
-    public String getResearcher(Integer epersonID)
+    public String getResearcher(UUID epersonID)
     {
         ResearcherPage result = getApplicationService().getResearcherPageByEPersonId(epersonID);
         if(result==null) {

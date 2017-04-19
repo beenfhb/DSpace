@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
@@ -29,15 +30,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.itemexport.ItemExport;
 import org.dspace.app.itemexport.ItemExportException;
+import org.dspace.app.itemexport.factory.ItemExportServiceFactory;
+import org.dspace.app.itemexport.service.ItemExportService;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
@@ -45,6 +47,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.integration.crosswalks.FileNameDisseminator;
 import org.dspace.content.integration.crosswalks.StreamGenericDisseminationCrosswalk;
 import org.dspace.core.ConfigurationManager;
@@ -53,7 +56,6 @@ import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
-import org.dspace.core.PluginManager;
 import org.dspace.core.Utils;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
@@ -74,10 +76,9 @@ public class ReferencesServlet extends DSpaceServlet
     boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
 
 	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
-
-
-    DSpace dspace = new DSpace();
-    
+	
+	private final transient ItemExportService itemExport = ItemExportServiceFactory.getInstance().getItemExportService();
+			
     @Override
     protected void doDSGet(Context context, HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException,
@@ -95,14 +96,14 @@ public class ReferencesServlet extends DSpaceServlet
             SQLException, AuthorizeException
     {
 
-        int[] item_ids = null;
+        List<UUID> item_ids = null;
         
         String prefix = request.getParameter("prefix");
         if(StringUtils.isNotEmpty(prefix)) {
-            item_ids = UIUtil.getIntParameters(request, prefix+"item_id");
+            item_ids = UIUtil.getUUIDParameters(request, prefix+"item_id");
         }
         else {
-            item_ids = UIUtil.getIntParameters(request, "item_id");            
+            item_ids = UIUtil.getUUIDParameters(request, "item_id");            
         }
 		
         String format = request.getParameter("format");
@@ -115,7 +116,7 @@ public class ReferencesServlet extends DSpaceServlet
                     "Only logged user can export item citations with fulltext");
         }
 		if (format == null || format.equals("") || item_ids == null
-				|| item_ids.length == 0)
+				|| item_ids.isEmpty())
         {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -134,7 +135,7 @@ public class ReferencesServlet extends DSpaceServlet
                                     .getProperty("dspace.url")
 									+ "/references?format=refman&refworks=true"));
 
-			for (int id : item_ids)
+			for (UUID id : item_ids)
             {
 		        if(StringUtils.isNotEmpty(prefix)) {
 		            redirectURLCallBack.append(URLEncoder.encode("&"+prefix+"item_id=" + id));
@@ -150,9 +151,9 @@ public class ReferencesServlet extends DSpaceServlet
         else
         {
             List<Item> items = new LinkedList<Item>();
-			for (int handle : item_ids)
+			for (UUID handle : item_ids)
             {
-				Item dso = Item.find(context, handle);
+				Item dso = ContentServiceFactory.getInstance().getItemService().find(context, handle);
 
                 // Make sure we have valid item
 				if (dso != null)
@@ -305,14 +306,14 @@ public class ReferencesServlet extends DSpaceServlet
         EPerson eperson = context.getCurrentUser();
         // before we create a new export archive lets delete the 'expired'
         // archives
-        ItemExport.deleteOldExportArchives(eperson.getID());
+        ItemExportServiceFactory.getInstance().getItemExportService().deleteOldExportArchives(eperson);
         long size = 0;
         for (Item item : items)
         {
-            Bundle[] bnds = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
+            List<Bundle> bnds = item.getItemService().getBundles(item, Constants.CONTENT_BUNDLE_NAME);
             for (Bundle bnd : bnds)
             {
-                Bitstream[] bs = bnd.getBitstreams();
+                List<Bitstream> bs = bnd.getBitstreams();
                 for (Bitstream b : bs)
                 {
                     if (AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, b,
@@ -369,17 +370,17 @@ public class ReferencesServlet extends DSpaceServlet
 
             if (itemDir.mkdir())
             {
-                Bundle[] bnds = item.getBundles(Constants.CONTENT_BUNDLE_NAME);
+                List<Bundle> bnds = item.getItemService().getBundles(item, Constants.CONTENT_BUNDLE_NAME);
                 for (Bundle bnd : bnds)
                 {
-                    Bitstream[] bs = bnd.getBitstreams();
+                    List<Bitstream> bs = bnd.getBitstreams();
                     for (Bitstream b : bs)
                     {
                         int myPrefix = 1; // only used with name conflict
                         if (AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, b,
                                 Constants.READ))
                         {
-                            InputStream is = b.retrieve();
+                            InputStream is = ContentServiceFactory.getInstance().getBitstreamService().retrieve(context, b);
 
                             boolean isDone = false; // done when bitstream is
                                                     // finally
@@ -430,7 +431,7 @@ public class ReferencesServlet extends DSpaceServlet
             }
         }
         // now zip up the export directory created above
-        ItemExport.zip(wkDir.getAbsolutePath(), downloadDir.getAbsolutePath()
+        itemExport.zip(wkDir.getAbsolutePath(), downloadDir.getAbsolutePath()
                 + System.getProperty("file.separator") + fileName + ".zip");
 
         return fileName;
@@ -443,7 +444,7 @@ public class ReferencesServlet extends DSpaceServlet
     {
         if (streamCrosswalkDefault instanceof StreamGenericDisseminationCrosswalk)
         {
-            List<DSpaceObject> disseminate = new LinkedList<DSpaceObject>();
+            List<BrowsableDSpaceObject> disseminate = new LinkedList<BrowsableDSpaceObject>();
             for (Item item : items)
             {
 				if (!exportBiblioEnabled || (context.getCurrentUser()==null  && !exportBiblioAll) )
@@ -595,7 +596,7 @@ public class ReferencesServlet extends DSpaceServlet
     {
         // to format the date
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MMM_dd");
-        String exportDir = ItemExport.getExportWorkDirectory();
+        String exportDir = ItemExportServiceFactory.getInstance().getItemExportService().getExportWorkDirectory();
         // used to avoid name collision
         int count = 1;
         boolean exists = true;
@@ -650,7 +651,7 @@ public class ReferencesServlet extends DSpaceServlet
                 {
                     filename = assembleFileName("references", eperson,
                             new Date());
-                    String workDir = ItemExport.getExportWorkDirectory()
+                    String workDir = itemExport.getExportWorkDirectory()
                             + System.getProperty("file.separator") + filename;
                     wkDir = new File(workDir);
                     if (!wkDir.exists())
@@ -658,8 +659,8 @@ public class ReferencesServlet extends DSpaceServlet
                         wkDir.mkdirs();
                     }
                 }
-                String downloadDir = ItemExport
-                    .getExportDownloadDirectory(eperson.getID());
+                String downloadDir = itemExport
+                    .getExportDownloadDirectory(eperson);
                 File dnDir = new File(downloadDir);
                 if (!dnDir.exists())
                 {

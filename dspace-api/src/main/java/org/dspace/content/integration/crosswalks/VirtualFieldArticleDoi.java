@@ -15,8 +15,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
+import org.hibernate.Session;
 
 /**
  * Implements virtual field processing to build suffix doi
@@ -52,7 +51,7 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
            
             List<MetadataValue> mdpartof = item.getMetadata("dc", "relation", "ispartofjournal", Item.ANY);
             if(mdpartof.size()>0) {                         
-                result += mdpartof[0].value.toLowerCase();
+                result += mdpartof.get(0).getValue().toLowerCase();
                 result = result.replaceAll("[^a-z]+", "-");
             }
             else {
@@ -63,37 +62,36 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
             
             List<MetadataValue> md = item.getMetadata("dc", "relation", "volume", Item.ANY);
             if(md.size()>0){
-                result += md[0].value + ".";    
+                result += md.get(0).getValue() + ".";    
             }                      
             
             List<MetadataValue> mddaterel = item.getMetadata("dc", "relation", "issue", Item.ANY);
             if(mddaterel.size()>0){
-                result += mddaterel[0].value + ".";    
+                result += mddaterel.get(0).getValue() + ".";    
             }                       
 
             List<MetadataValue> mdfirst = item.getMetadata("dc", "relation", "firstpage", Item.ANY);
             if(mdfirst.size()>0){
-                result += mdfirst[0].value + "-";    
+                result += mdfirst.get(0).getValue() + "-";    
             }                      
                        
             
             List<MetadataValue> mdlast = item.getMetadata("dc", "relation", "lastpage", Item.ANY);
             if(mdlast.size()>0){
-                result += mdlast[0].value + ".";    
+                result += mdlast.get(0).getValue() + ".";    
             }                 
 
             List<MetadataValue> mddate = item.getMetadata("dc", "date", "issued", Item.ANY);
             
             if(mddate.size()>0){
-                result += mddate[0].value;    
+                result += mddate.get(0).getValue();    
             }    
             
-            TableRow row = DatabaseManager.querySingle(context,
-                    "select count(*) as cc from "
-                            + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-                            + " where identifier_doi = ?", result);
-            if(row!=null) {
-                if(row.getLongColumn("cc")>0) {
+            Object count = getHibernateSession(context).createSQLQuery("select count(*) as cc from "
+                    + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
+                    + " where identifier_doi = :par0").setParameter(0, result).uniqueResult();
+            if(count!=null) {
+                if((Integer)count>0) {
                     result += "_" + item.getID();
                 }
             }
@@ -132,4 +130,9 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
     {
         return false;
     }
+    
+	public Session getHibernateSession(Context context) throws SQLException {
+		return ((Session) context.getDBConnection().getSession());
+	}
+    
 }

@@ -15,6 +15,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.dspace.content.Collection;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
@@ -33,12 +34,12 @@ public class SOLRSuggestAuthority implements ChoiceAuthority {
 			SearchService.class);
 
 	@Override
-	public Choices getBestMatch(String field, String text, int collection, String locale) {
+	public Choices getBestMatch(String field, String text, Collection collection, String locale) {
 		return getMatches(field, text, collection, 0, 1, locale);
 	}
 
 	@Override
-	public Choices getMatches(String field, String text, int collection, int start, int limit, String locale) {
+	public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale) {
 		String facetname = org.dspace.core.ConfigurationManager
 				.getProperty(SOLRSuggestAuthority.class.getSimpleName() + "." + field+".facetname") + "_ac";
 		SolrQuery sQuery = new SolrQuery("*:*");

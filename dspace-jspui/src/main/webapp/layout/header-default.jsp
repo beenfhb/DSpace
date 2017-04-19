@@ -155,9 +155,8 @@
     });
     </script>
     <% } %>
-    <%
-
     <dspace:include page="/layout/google-analytics-snippet.jsp" />
+    <%
     if (extraHeadDataLast != null)
     { %>
         <%= extraHeadDataLast %>

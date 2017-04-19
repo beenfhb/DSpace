@@ -26,9 +26,11 @@ import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.model.export.ExportConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
@@ -43,8 +45,8 @@ import it.cilea.osd.jdyna.model.Property;
 
 @MappedSuperclass
 public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-		implements ICrisObject<P, TP>, BrowsableDSpaceObject,
-		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult {
+		implements AuthorizableEntity, ICrisObject<P, TP>, BrowsableDSpaceObject,
+		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult, UsageEventEntity {
 
 	@Embedded
 	private SourceReference sourceReference;
@@ -442,5 +444,8 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 		return getID().toString();
 	}
 
-
+	@Override
+	public boolean haveHierarchy() {
+		return false;
+	}
 }

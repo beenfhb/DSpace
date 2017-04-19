@@ -7,6 +7,10 @@
  */
 package org.dspace.authorize.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.DSpaceObject;
@@ -14,9 +18,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.service.DSpaceCRUDService;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the ResourcePolicy object.
@@ -27,13 +28,13 @@ import java.util.List;
 public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy> {
 
 
-    public List<ResourcePolicy> find(Context c, DSpaceObject o) throws SQLException;
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity o) throws SQLException;
 
-    public List<ResourcePolicy> find(Context c, DSpaceObject o, String type) throws SQLException;
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity o, String type) throws SQLException;
 
-    public List<ResourcePolicy> find(Context c, DSpaceObject o, int actionId) throws SQLException;
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity o, int actionId) throws SQLException;
 
-    public List<ResourcePolicy> find(Context c, DSpaceObject dso, Group group, int action, int notPolicyID) throws SQLException;
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException;
 
     public List<ResourcePolicy> find(Context context, Group group) throws SQLException;
     
@@ -45,18 +46,18 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
 
     public ResourcePolicy clone(Context context, ResourcePolicy resourcePolicy) throws SQLException, AuthorizeException;
 
-    public void removeAllPolicies(Context c, DSpaceObject o) throws SQLException, AuthorizeException;
+    public void removeAllPolicies(Context c, AuthorizableEntity o) throws SQLException, AuthorizeException;
 
-    public void removePolicies(Context c, DSpaceObject o, int actionId) throws SQLException, AuthorizeException;
+    public void removePolicies(Context c, AuthorizableEntity o, int actionId) throws SQLException, AuthorizeException;
 
-    public void removePolicies(Context c, DSpaceObject o, String type) throws SQLException, AuthorizeException;
+    public void removePolicies(Context c, AuthorizableEntity o, String type) throws SQLException, AuthorizeException;
 
-    public void removeDsoGroupPolicies(Context context, DSpaceObject dso, Group group) throws SQLException, AuthorizeException;
+    public void removeDsoGroupPolicies(Context context, AuthorizableEntity dso, Group group) throws SQLException, AuthorizeException;
 
-    public void removeDsoEPersonPolicies(Context context, DSpaceObject dso, EPerson ePerson) throws SQLException, AuthorizeException;
+    public void removeDsoEPersonPolicies(Context context, AuthorizableEntity dso, EPerson ePerson) throws SQLException, AuthorizeException;
 
     public void removeGroupPolicies(Context c, Group group) throws SQLException;
 
-    public void removeDsoAndTypeNotEqualsToPolicies(Context c, DSpaceObject o, String type) throws SQLException, AuthorizeException;
+    public void removeDsoAndTypeNotEqualsToPolicies(Context c, AuthorizableEntity o, String type) throws SQLException, AuthorizeException;
 
 }

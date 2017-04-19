@@ -31,13 +31,13 @@ public class VirtualFieldXMLEscape implements VirtualFieldDisseminator,
 			return fieldCache.get(fieldName).split("\\|");
 		
 		String[] virtualFieldName = fieldName.split("\\.", 3);
-		List<MetadataValue> dcvs = item.getMetadataByMetadataString(virtualFieldName[2]);
+		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(virtualFieldName[2]);
 		StringBuffer out = null;
 		if (dcvs != null && dcvs.size() > 0) {
 			out = new StringBuffer();
 			for (MetadataValue dc : dcvs)
 			{
-				out.append(StringEscapeUtils.escapeXml(dc.value)).append("|");
+				out.append(StringEscapeUtils.escapeXml(dc.getValue())).append("|");
 			}
 			if (out != null && out.length() > 0) {
 				String result = out.substring(0, out.length() - 1);

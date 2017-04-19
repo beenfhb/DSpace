@@ -7,37 +7,10 @@
  */
 package org.dspace.app.cris.integration;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.ResearcherPage;
-import org.dspace.app.cris.model.RestrictedField;
-import org.dspace.app.cris.model.VisibilityConstants;
-import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.service.RelationPreferenceService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.authority.AuthorityVariantsSupport;
-import org.dspace.content.authority.Choice;
-import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.Collection;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.authority.NotificableAuthority;
-import org.dspace.core.Context;
-import org.dspace.core.LogManager;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResult;
-import org.dspace.discovery.SearchService;
-import org.dspace.services.ConfigurationService;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.utils.DSpace;
 
 public class RPAuthorityForCRIS extends CRISAuthorityForCRIS<ResearcherPage> 
 {
@@ -63,4 +36,5 @@ public class RPAuthorityForCRIS extends CRISAuthorityForCRIS<ResearcherPage>
 		public ResearcherPage getNewCrisObject() {
 			return new ResearcherPage();
 		}
+
 }

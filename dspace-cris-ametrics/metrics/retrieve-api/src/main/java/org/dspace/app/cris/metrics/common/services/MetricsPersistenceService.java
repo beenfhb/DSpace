@@ -9,6 +9,7 @@ package org.dspace.app.cris.metrics.common.services;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.metrics.common.dao.CrisMetricsDao;
 import org.dspace.app.cris.metrics.common.dao.MetricsApplicationDao;
@@ -80,12 +81,12 @@ public class MetricsPersistenceService extends PersistenceService
         return pmcr;
     }
 
-    public PMCCitation getPMCCitationByItemID(Integer itemID)
+    public PMCCitation getPMCCitationByItemID(UUID itemID)
     {
         return pmcCitationDao.uniqueCitationByItemID(itemID);
     }
     
-    public CrisMetrics getLastMetricByResourceIDAndResourceTypeAndMetricsType(Integer resourceID, Integer resourceTypeId, String metricsType)
+    public CrisMetrics getLastMetricByResourceIDAndResourceTypeAndMetricsType(UUID resourceID, Integer resourceTypeId, String metricsType)
     {
         return metricsDao.uniqueLastMetricByResourceIdAndResourceTypeIdAndMetricsType(resourceID, resourceTypeId, metricsType);
     }
