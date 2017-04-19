@@ -39,6 +39,7 @@ import org.dspace.app.xmlui.wing.element.Row;
 import org.dspace.app.xmlui.wing.element.Select;
 import org.dspace.app.xmlui.wing.element.Table;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
@@ -192,7 +193,7 @@ public class ConfigurableBrowse extends AbstractDSpaceTransformer implements
 
                 if (dso != null)
                 {
-                    validity.add(context, dso);
+                    validity.add(context, (BrowsableDSpaceObject)dso);
                 }
                 
                 BrowseInfo info = getBrowseInfo();

@@ -18,6 +18,7 @@ import org.dspace.app.xmlui.wing.element.Body;
 import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.ReferenceSet;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -72,7 +73,7 @@ public class CommunityRecentSubmissions extends AbstractRecentSubmissionTransfor
                     "community-last-submitted", ReferenceSet.TYPE_SUMMARY_LIST,
                     null, "recent-submissions");
 
-            for (DSpaceObject resultObject : queryResults.getDspaceObjects()) {
+            for (BrowsableDSpaceObject resultObject : queryResults.getDspaceObjects()) {
                 if(resultObject != null){
                     lastSubmitted.addReference(resultObject);
                 }

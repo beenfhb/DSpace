@@ -27,6 +27,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeServiceImpl;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
@@ -115,13 +116,13 @@ public class CollectionViewer extends AbstractDSpaceTransformer implements Cache
 	            validity.add(context, collection);
 	            
 	            // Add the eperson viewing the collection
-	            validity.add(context, eperson);
+	            validity.add(context, (BrowsableDSpaceObject)eperson);
 	            
 	            // Include any groups they are a member of
 	            List<Group> groups = groupService.allMemberGroups(context, eperson);
 	            for (Group group : groups)
 	            {
-	            	validity.add(context, group);
+	            	validity.add(context, (BrowsableDSpaceObject)group);
 	            }
 	            
 	            this.validity = validity.complete();

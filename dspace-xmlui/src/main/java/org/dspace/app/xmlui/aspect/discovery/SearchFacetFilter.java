@@ -7,6 +7,17 @@
  */
 package org.dspace.app.xmlui.aspect.discovery;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.avalon.framework.parameters.Parameters;
 import org.apache.cocoon.ProcessingException;
 import org.apache.cocoon.caching.CacheableProcessingComponent;
@@ -19,32 +30,39 @@ import org.apache.excalibur.source.SourceValidity;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.Util;
 import org.dspace.app.xmlui.cocoon.AbstractDSpaceTransformer;
-import org.dspace.app.xmlui.utils.*;
+import org.dspace.app.xmlui.utils.BadRequestException;
+import org.dspace.app.xmlui.utils.DSpaceValidity;
+import org.dspace.app.xmlui.utils.HandleUtil;
+import org.dspace.app.xmlui.utils.RequestUtils;
+import org.dspace.app.xmlui.utils.UIException;
 import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
-import org.dspace.app.xmlui.wing.element.*;
+import org.dspace.app.xmlui.wing.element.Body;
+import org.dspace.app.xmlui.wing.element.Cell;
+import org.dspace.app.xmlui.wing.element.Division;
+import org.dspace.app.xmlui.wing.element.PageMeta;
+import org.dspace.app.xmlui.wing.element.Para;
+import org.dspace.app.xmlui.wing.element.Select;
+import org.dspace.app.xmlui.wing.element.Table;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
-import org.dspace.discovery.*;
+import org.dspace.discovery.DiscoverFacetField;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters.SORT;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
-
-import static org.dspace.discovery.configuration.DiscoveryConfigurationParameters.SORT;
 
 /**
  * Filter which displays facets on which a user can filter his discovery search
@@ -149,7 +167,7 @@ public class SearchFacetFilter extends AbstractDSpaceTransformer implements Cach
 
                 if (dso != null) {
                     // Add the actual collection;
-                    newValidity.add(context, dso);
+                    newValidity.add(context, (BrowsableDSpaceObject)dso);
                 }
 
                 // add recently submitted items, serialize solr query contents.
@@ -157,7 +175,7 @@ public class SearchFacetFilter extends AbstractDSpaceTransformer implements Cach
 
                 newValidity.add("numFound:" + response.getDspaceObjects().size());
 
-                for (DSpaceObject resultDso : queryResults.getDspaceObjects()) {
+                for (BrowsableDSpaceObject resultDso : queryResults.getDspaceObjects()) {
                     newValidity.add(context, resultDso);
                 }
 
@@ -235,15 +253,15 @@ public class SearchFacetFilter extends AbstractDSpaceTransformer implements Cach
         SORT requestSortOrder = getSortOrder(request);
         if(request.getParameter(SearchFilterParam.STARTS_WITH) != null)
         {
-            discoverFacetField = new DiscoverFacetField(facetField, DiscoveryConfigurationParameters.TYPE_TEXT, getPageSize() + 1, requestSortOrder, request.getParameter(SearchFilterParam.STARTS_WITH).toLowerCase());
+            discoverFacetField = new DiscoverFacetField(facetField, DiscoveryConfigurationParameters.TYPE_TEXT, getPageSize() + 1, requestSortOrder, request.getParameter(SearchFilterParam.STARTS_WITH).toLowerCase(), false);
         }else{
-            discoverFacetField = new DiscoverFacetField(facetField, DiscoveryConfigurationParameters.TYPE_TEXT, getPageSize() + 1, requestSortOrder);
+            discoverFacetField = new DiscoverFacetField(facetField, DiscoveryConfigurationParameters.TYPE_TEXT, getPageSize() + 1, requestSortOrder, false);
         }
 
         queryArgs.addFacetField(discoverFacetField);
 
         try {
-            queryResults = searchService.search(context, scope, queryArgs);
+            queryResults = searchService.search(context, (BrowsableDSpaceObject)scope, queryArgs);
         } catch (SearchServiceException e) {
             log.error(e.getMessage(), e);
         }

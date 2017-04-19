@@ -36,13 +36,14 @@ import org.dspace.app.xmlui.utils.HandleUtil;
 import org.dspace.app.xmlui.aspect.discovery.SimpleSearch;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.content.*;
-import org.dspace.content.DSpaceObject;
 import org.dspace.discovery.*;
 
 /**
@@ -246,17 +247,17 @@ public class SearchMetadataExportReader extends AbstractReader implements Recycl
         qArgs.setMaxResults(10);
                 
         // search once to get total search results
-        qResults = SearchUtils.getSearchService().search(context, scope, qArgs);
+        qResults = SearchUtils.getSearchService().search(context, (BrowsableDSpaceObject)scope, qArgs);
                 	        	
         // set max results to total search results
         qArgs.setMaxResults(safeLongToInt(qResults.getTotalSearchResults()));        	        	
         
         // search again to return all search results
-        qResults = SearchUtils.getSearchService().search(context, scope, qArgs);
+        qResults = SearchUtils.getSearchService().search(context, (BrowsableDSpaceObject)scope, qArgs);
         
     	// Get a list of found items
         ArrayList<Item> items = new ArrayList<Item>();        
-        for (DSpaceObject resultDSO : qResults.getDspaceObjects()) {
+        for (BrowsableDSpaceObject resultDSO : qResults.getDspaceObjects()) {
             if (resultDSO instanceof Item) {
                 items.add((Item) resultDSO);
             }
@@ -265,7 +266,11 @@ public class SearchMetadataExportReader extends AbstractReader implements Recycl
         // Log the attempt
         log.info(LogManager.getHeader(context, "metadataexport", "exporting_search"));
 
-        MetadataExport exporter = new MetadataExport(context, items.iterator(), false);
+        List<BrowseDSpaceObject> bdo = new ArrayList<>();
+        for(Item item : items) {
+        	bdo.add(new BrowseDSpaceObject(context, item));
+        }
+        MetadataExport exporter = new MetadataExport(context, bdo.iterator(), false);
         
         // Perform the export
         DSpaceCSV csv = exporter.export();

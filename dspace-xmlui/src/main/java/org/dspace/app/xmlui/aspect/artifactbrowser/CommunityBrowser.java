@@ -33,6 +33,7 @@ import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.app.xmlui.wing.element.Reference;
 import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.ItemCountException;
 import org.dspace.browse.ItemCounter;
 import org.dspace.content.Collection;
@@ -157,7 +158,7 @@ public class CommunityBrowser extends AbstractDSpaceTransformer implements Cache
 	            {
 	                TreeNode node = stack.pop();
 	                
-	                theValidity.add(context, node.getDSO());
+	                theValidity.add(context, (BrowsableDSpaceObject)node.getDSO());
 	                
 	                // If we are configured to use collection strengths (i.e. item counts) then include that number in the validity.
 	                boolean showCount = DSpaceServicesFactory.getInstance().getConfigurationService().getBooleanProperty("webui.strengths.show");

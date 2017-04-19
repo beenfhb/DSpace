@@ -21,6 +21,7 @@ import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.app.xmlui.wing.element.Para;
 import org.dspace.app.xmlui.wing.element.Text;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
@@ -104,7 +105,7 @@ public class MapperMain extends AbstractDSpaceTransformer {
 		Text query = queryItem.addText("query");
 		Button button = queryItem.addButton("submit_author");
 		button.setValue(T_submit_search);
-		if (!authorizeService.authorizeActionBoolean(context, collection, Constants.ADD))
+		if (!authorizeService.authorizeActionBoolean(context, (AuthorizableEntity)collection, Constants.ADD))
 		{
 			query.setDisabled();
 			button.setDisabled();

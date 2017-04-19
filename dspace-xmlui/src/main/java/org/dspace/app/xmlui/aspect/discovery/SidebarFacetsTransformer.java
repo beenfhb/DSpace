@@ -133,12 +133,12 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                 // Add the actual collection;
                 if (dso != null)
                 {
-                    val.add(context, dso);
+                    val.add(context, (BrowsableDSpaceObject)dso);
                 }
 
                 val.add("numFound:" + queryResults.getDspaceObjects().size());
 
-                for (DSpaceObject resultDso : queryResults.getDspaceObjects()) {
+                for (BrowsableDSpaceObject resultDso : queryResults.getDspaceObjects()) {
                     val.add(context, resultDso);
                 }
 
@@ -176,7 +176,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
 
         //We do not need to retrieve any dspace objects, only facets
         queryArgs.setMaxResults(0);
-        queryResults =  getSearchService().search(context, dso,  queryArgs);
+        queryResults =  getSearchService().search(context, (BrowsableDSpaceObject)dso,  queryArgs);
     }
 
     @Override
@@ -397,7 +397,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             yearRangeQuery.setSortField(dateFacet + "_sort", DiscoverQuery.SORT_ORDER.asc);
                             yearRangeQuery.addFilterQueries(filterQueries);
                             yearRangeQuery.addSearchField(dateFacet);
-                            DiscoverResult lastYearResult = getSearchService().search(context, scope, yearRangeQuery);
+                            DiscoverResult lastYearResult = getSearchService().search(context, (BrowsableDSpaceObject)scope, yearRangeQuery);
 
 
                             if(0 < lastYearResult.getDspaceObjects().size()){
@@ -408,7 +408,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             }
                             //Now get the first year
                             yearRangeQuery.setSortField(dateFacet + "_sort", DiscoverQuery.SORT_ORDER.desc);
-                            DiscoverResult firstYearResult = getSearchService().search(context, scope, yearRangeQuery);
+                            DiscoverResult firstYearResult = getSearchService().search(context, (BrowsableDSpaceObject)scope, yearRangeQuery);
                             if( 0 < firstYearResult.getDspaceObjects().size()){
                                 java.util.List<DiscoverResult.SearchDocument> searchDocuments = firstYearResult.getSearchDocument(firstYearResult.getDspaceObjects().get(0));
                                 if(0 < searchDocuments.size() && 0 < searchDocuments.get(0).getSearchFieldValues(dateFacet).size()){
@@ -439,7 +439,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             //We need a list of our years
                             //We have a date range add faceting for our field
                             //The faceting will automatically be limited to the 10 years in our span due to our filterquery
-                            queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar()));
+                            queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar(), false));
                         }else{
                             java.util.List<String> facetQueries = new ArrayList<String>();
                             //Create facet queries but limit them to 11 (11 == when we need to show a "show more" url)
@@ -476,7 +476,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                     int facetLimit = facet.getFacetLimit();
                     //Add one to our facet limit to make sure that if we have more then the shown facets that we show our "show more" url
                     facetLimit++;
-                    queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), facetLimit, facet.getSortOrderSidebar()));
+                    queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), facetLimit, facet.getSortOrderSidebar(),false));
                 }
             }
         }

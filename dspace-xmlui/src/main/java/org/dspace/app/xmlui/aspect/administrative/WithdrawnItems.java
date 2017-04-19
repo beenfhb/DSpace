@@ -39,6 +39,7 @@ import org.dspace.app.xmlui.wing.element.Row;
 import org.dspace.app.xmlui.wing.element.Select;
 import org.dspace.app.xmlui.wing.element.Table;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
@@ -181,7 +182,7 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
 
                 if (dso != null)
                 {
-                    newValidity.add(context, dso);
+                    newValidity.add(context, (BrowsableDSpaceObject)dso);
                 }
 
                 BrowseInfo info = getBrowseInfo();
@@ -189,9 +190,9 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
                 newValidity.add("start:"+info.getStart());
 
                     // Add the browse items to the validity
-                    for (Item item : info.getResults())
+                    for (Object item : info.getResults())
                     {
-                        newValidity.add(context, item);
+                        newValidity.add(context, (BrowsableDSpaceObject)item);
                     }
 
                 validity = newValidity.complete();
@@ -265,9 +266,9 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
 	        ReferenceSet referenceSet = results.addReferenceSet("browse-by-" + type, ReferenceSet.TYPE_SUMMARY_LIST, type, null);
 
 	        // Add the items to the browse results
-	        for (Item item : info.getResults())
+	        for (Object item : info.getResults())
 	        {
-		        referenceSet.addReference(item);
+		        referenceSet.addReference((BrowsableDSpaceObject)item);
 	        }
         }
         else

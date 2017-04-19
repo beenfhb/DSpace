@@ -9,7 +9,8 @@ package org.dspace.app.xmlui.aspect.discovery;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.environment.ObjectModelHelper;
@@ -20,15 +21,25 @@ import org.dspace.app.xmlui.utils.HandleUtil;
 import org.dspace.app.xmlui.utils.UIException;
 import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
-import org.dspace.app.xmlui.wing.element.*;
+import org.dspace.app.xmlui.wing.element.Body;
+import org.dspace.app.xmlui.wing.element.Cell;
+import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.Item;
 import org.dspace.app.xmlui.wing.element.List;
+import org.dspace.app.xmlui.wing.element.PageMeta;
+import org.dspace.app.xmlui.wing.element.Row;
+import org.dspace.app.xmlui.wing.element.Select;
+import org.dspace.app.xmlui.wing.element.Table;
+import org.dspace.app.xmlui.wing.element.Text;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.discovery.*;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.xml.sax.SAXException;
 
 /**

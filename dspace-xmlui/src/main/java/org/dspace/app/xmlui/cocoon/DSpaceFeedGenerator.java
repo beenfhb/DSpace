@@ -34,8 +34,11 @@ import org.dspace.app.xmlui.utils.ContextUtil;
 import org.dspace.app.xmlui.utils.DSpaceValidity;
 import org.dspace.app.xmlui.utils.FeedUtils;
 import org.dspace.app.util.SyndicationFeed;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
@@ -121,7 +124,7 @@ public class DSpaceFeedGenerator extends AbstractGenerator
     private DSpaceValidity validity = null;
     
     /** The cache of recently submitted items */
-    private List<Item> recentSubmissionItems;
+    private List<BrowseDSpaceObject> recentSubmissionItems;
 
     protected AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
     protected HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
@@ -160,10 +163,10 @@ public class DSpaceFeedGenerator extends AbstractGenerator
                     dso = handleService.resolveToObject(context, handle);
                 }
                 
-                validity.add(context, dso);
+                validity.add(context, (BrowsableDSpaceObject)dso);
                 
                 // add recently submitted items
-                for(Item item : getRecentlySubmittedItems(context,dso))
+                for(BrowsableDSpaceObject item : getRecentlySubmittedItems(context,(BrowsableDSpaceObject)dso))
                 {
                     validity.add(context, item);
                 }
@@ -234,7 +237,7 @@ public class DSpaceFeedGenerator extends AbstractGenerator
         
             SyndicationFeed feed = new SyndicationFeed(SyndicationFeed.UITYPE_XMLUI);
             feed.populate(ObjectModelHelper.getRequest(objectModel), context,
-                          dso, getRecentlySubmittedItems(context,dso), FeedUtils.i18nLabels);
+            		(BrowsableDSpaceObject)dso, getRecentlySubmittedItems(context,(BrowsableDSpaceObject)dso), FeedUtils.i18nLabels);
             feed.setType(this.format);
             Document dom = feed.outputW3CDom();
             FeedUtils.unmangleI18N(dom);
@@ -259,12 +262,16 @@ public class DSpaceFeedGenerator extends AbstractGenerator
      * @return recently submitted Items within the indicated scope
      */
     @SuppressWarnings("unchecked")
-    private List<Item> getRecentlySubmittedItems(Context context, DSpaceObject dso)
+    private List<BrowsableDSpaceObject> getRecentlySubmittedItems(Context context, BrowsableDSpaceObject dso)
             throws SQLException
     {
         if (recentSubmissionItems != null)
         {
-            return recentSubmissionItems;
+        	List<BrowsableDSpaceObject> bb = new ArrayList<>();
+        	for(BrowseDSpaceObject bbb : recentSubmissionItems) {
+        		bb.add(bbb.getBrowsableDSpaceObject());
+        	}
+            return bb;
         }
 
         String source = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("recent.submissions.sort-option");
@@ -292,27 +299,29 @@ public class DSpaceFeedGenerator extends AbstractGenerator
                 }
             }
 
-            BrowseEngine be = new BrowseEngine(context);
-            List<Item> browseItemResults = be.browseMini(scope).getBrowseItemResults();
+            BrowseEngine be = new BrowseEngine(context, context.getCurrentLocale().toString());
+            List<BrowseDSpaceObject> browseItemResults = be.browseMini(scope).getBrowseItemResults();
             this.recentSubmissionItems = browseItemResults;
 
             // filter out Items that are not world-readable
             if (!includeRestrictedItems)
             {
-                List<Item> result = new ArrayList<Item>();
-                for (Item item : this.recentSubmissionItems)
+                List<BrowsableDSpaceObject> result = new ArrayList<BrowsableDSpaceObject>();
+                for (BrowseDSpaceObject item : this.recentSubmissionItems)
                 {
                 checkAccess:
-                    for (Group group : authorizeService.getAuthorizedGroups(context, item, Constants.READ))
+                    for (Group group : authorizeService.getAuthorizedGroups(context, (AuthorizableEntity)item.getBrowsableDSpaceObject(), Constants.READ))
                     {
                         if ((group.getName().equals(Group.ANONYMOUS)))
                         {
-                            result.add(item);
+                            result.add((BrowsableDSpaceObject)item);
                             break checkAccess;
                         }
                     }
                 }
-                this.recentSubmissionItems = result;
+            	for(BrowsableDSpaceObject bbb : result) {
+            		 this.recentSubmissionItems.add(new BrowseDSpaceObject(context, bbb));
+            	}
             }
         }
         catch (BrowseException bex)
@@ -323,7 +332,11 @@ public class DSpaceFeedGenerator extends AbstractGenerator
         {
             log.error("Caught sort exception", e);
         }
-        return this.recentSubmissionItems;
+    	List<BrowsableDSpaceObject> bb = new ArrayList<>();
+    	for(BrowseDSpaceObject bbb : recentSubmissionItems) {
+    		bb.add(bbb.getBrowsableDSpaceObject());
+    	}
+    	return bb;
     }
     
     /**

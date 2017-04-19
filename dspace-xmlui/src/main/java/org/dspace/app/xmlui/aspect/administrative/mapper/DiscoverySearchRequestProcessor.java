@@ -10,6 +10,8 @@ package org.dspace.app.xmlui.aspect.administrative.mapper;
 
 import java.io.IOException;
 import java.util.List;
+
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
@@ -27,7 +29,7 @@ public class DiscoverySearchRequestProcessor
         implements SearchRequestProcessor
 {
     @Override
-    public List<DSpaceObject> doItemMapSearch(Context context, String queryString,
+    public List<BrowsableDSpaceObject> doItemMapSearch(Context context, String queryString,
             Collection collection)
             throws IOException
     {

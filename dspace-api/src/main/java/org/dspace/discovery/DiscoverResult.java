@@ -146,7 +146,7 @@ public class DiscoverResult {
         return facetResults.get(facet) == null ? new ArrayList<FacetResult>() : facetResults.get(facet);
     }
 
-    public DSpaceObjectHighlightResult getHighlightedResults(DSpaceObject dso)
+    public DSpaceObjectHighlightResult getHighlightedResults(BrowsableDSpaceObject dso)
     {
         return highlightedResults.get(dso.getHandle());
     }

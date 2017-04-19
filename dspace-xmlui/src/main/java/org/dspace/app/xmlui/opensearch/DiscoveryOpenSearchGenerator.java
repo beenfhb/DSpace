@@ -17,6 +17,7 @@ import org.apache.cocoon.caching.*;
 import org.apache.cocoon.environment.*;
 import org.apache.cocoon.xml.dom.*;
 import org.dspace.app.xmlui.utils.*;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.*;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -104,12 +105,12 @@ public class DiscoveryOpenSearchGenerator extends AbstractOpenSearchGenerator
                 if(scope == null)
                     queryResults = SearchUtils.getSearchService().search(context, queryArgs);
                 else
-                    queryResults = SearchUtils.getSearchService().search(context, scope, queryArgs);
+                    queryResults = SearchUtils.getSearchService().search(context, (BrowsableDSpaceObject)scope, queryArgs);
 
 	            // creates the results array and generates the OpenSearch result
-	            List<DSpaceObject> results = queryResults.getDspaceObjects();
+	            List<BrowsableDSpaceObject> results = queryResults.getDspaceObjects();
 	            
-	            resultsDoc = openSearchService.getResultsDoc(context, format, query, (int) queryResults.getTotalSearchResults(), start, rpp, scope, results, FeedUtils.i18nLabels);
+	            resultsDoc = openSearchService.getResultsDoc(context, format, query, (int) queryResults.getTotalSearchResults(), start, rpp, (BrowsableDSpaceObject)scope, results, FeedUtils.i18nLabels);
                 FeedUtils.unmangleI18N(resultsDoc);
             }
 

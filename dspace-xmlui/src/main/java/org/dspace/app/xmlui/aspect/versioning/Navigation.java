@@ -25,6 +25,7 @@ import org.dspace.app.xmlui.wing.element.Options;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -115,18 +116,18 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
 		        try {
 		            DSpaceValidity validity = new DSpaceValidity();
 
-		            validity.add(context, eperson);
+		            validity.add(context, (BrowsableDSpaceObject)eperson);
 
 		            java.util.List<Group> groups = groupService.allMemberGroups(context, eperson);
 		            for (Group group : groups)
 		            {
-		            	validity.add(context, group);
+		            	validity.add(context, (BrowsableDSpaceObject)group);
 		            }
 
                     DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
                     if(dso != null)
                     {
-                        validity.add(context, dso);
+                        validity.add(context, (BrowsableDSpaceObject)dso);
                     }
 
 		            this.validity = validity.complete();

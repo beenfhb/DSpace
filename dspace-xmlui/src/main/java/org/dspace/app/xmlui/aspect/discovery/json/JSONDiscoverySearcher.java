@@ -18,6 +18,7 @@ import org.apache.cocoon.reading.AbstractReader;
 import org.apache.log4j.Logger;
 import org.dspace.app.xmlui.utils.ContextUtil;
 import org.dspace.app.xmlui.utils.HandleUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.*;
@@ -98,7 +99,7 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
 
 
                 String facetField = request.getParameterValues("facet.field")[i];
-                queryArgs.addFacetField(new DiscoverFacetField(facetField, DiscoveryConfigurationParameters.TYPE_AC, facetLimit, facetSort));
+                queryArgs.addFacetField(new DiscoverFacetField(facetField, DiscoveryConfigurationParameters.TYPE_AC, facetLimit, facetSort, false));
             }
         }
 
@@ -115,7 +116,7 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
 
         try {
             Context context = ContextUtil.obtainContext(objectModel);
-            JSONStream = getSearchService().searchJSON(context, queryArgs, getScope(context, objectModel), jsonWrf);
+            JSONStream = getSearchService().searchJSON(context, queryArgs, (BrowsableDSpaceObject)getScope(context, objectModel), jsonWrf);
         } catch (Exception e) {
             log.error("Error while retrieving JSON string for Discovery auto complete", e);
         }

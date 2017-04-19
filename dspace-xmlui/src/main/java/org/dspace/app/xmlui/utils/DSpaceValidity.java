@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.cocoon.util.HashUtil;
 import org.apache.excalibur.source.SourceValidity;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.*;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -235,7 +236,7 @@ public class DSpaceValidity implements SourceValidity
      *          The object to add to the validity.
      * @throws java.sql.SQLException passed through.
      */
-    public void add(Context context, DSpaceObject dso) throws SQLException
+    public void add(Context context, BrowsableDSpaceObject dso) throws SQLException
     {
         if (this.completed)
         {
@@ -259,7 +260,7 @@ public class DSpaceValidity implements SourceValidity
             validityKey.append(communityService.getMetadata(community, "name"));
             
             // Add the communities logo
-            this.add(context, community.getLogo());
+            this.add(context, (BrowsableDSpaceObject)community.getLogo());
 
         } 
         else if (dso instanceof Collection)
@@ -277,7 +278,7 @@ public class DSpaceValidity implements SourceValidity
             validityKey.append(collectionService.getMetadata(collection, "name")); 
             
             // Add the logo also;
-            this.add(context, collection.getLogo());
+            this.add(context, (BrowsableDSpaceObject)collection.getLogo());
             
         }
         else if (dso instanceof Item)
@@ -300,7 +301,7 @@ public class DSpaceValidity implements SourceValidity
             for(Bundle bundle : item.getBundles())
             {
                 // Add each of the items bundles & bitstreams.
-                this.add(context, bundle);
+                this.add(context, (BrowsableDSpaceObject)bundle);
             }
         }
         else if (dso instanceof Bundle)
@@ -314,7 +315,7 @@ public class DSpaceValidity implements SourceValidity
             
             for(Bitstream bitstream : bundle.getBitstreams())
             {
-                this.add(context, bitstream);
+                this.add(context, (BrowsableDSpaceObject)bitstream);
             }
         }
         else if (dso instanceof Bitstream)

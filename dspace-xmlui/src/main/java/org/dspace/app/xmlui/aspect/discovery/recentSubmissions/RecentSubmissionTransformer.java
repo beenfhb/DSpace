@@ -20,6 +20,7 @@ import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.*;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.SiteService;
@@ -134,7 +135,7 @@ public class RecentSubmissionTransformer extends AbstractDSpaceTransformer {
                 "last-submitted", ReferenceSet.TYPE_SUMMARY_LIST,
                 null, "recent-submissions");
 
-        for (DSpaceObject resultObject : recentlySubmittedItems.getDspaceObjects()) {
+        for (BrowsableDSpaceObject resultObject : recentlySubmittedItems.getDspaceObjects()) {
             if(resultObject != null){
                 lastSubmitted.addReference(resultObject);
             }

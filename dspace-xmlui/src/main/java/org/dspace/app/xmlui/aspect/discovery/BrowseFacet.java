@@ -19,6 +19,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Community;
 import org.dspace.content.Collection;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.core.Constants;
 import org.apache.cocoon.caching.CacheableProcessingComponent;
@@ -120,7 +121,7 @@ public class BrowseFacet extends AbstractDSpaceTransformer implements CacheableP
 
                 if (dso != null) {
                     // Add the actual collection;
-                    newValidity.add(context, dso);
+                    newValidity.add(context, (BrowsableDSpaceObject)dso);
                 }
 
                 // add recently submitted items, serialize solr query contents.
@@ -128,7 +129,7 @@ public class BrowseFacet extends AbstractDSpaceTransformer implements CacheableP
 
                 newValidity.add("numFound:" + response.getDspaceObjects().size());
 
-                for (DSpaceObject resultDso : response.getDspaceObjects()) {
+                for (BrowsableDSpaceObject resultDso : response.getDspaceObjects()) {
                     newValidity.add(context, resultDso);
                 }
 
@@ -214,7 +215,7 @@ public class BrowseFacet extends AbstractDSpaceTransformer implements CacheableP
         //queryArgs.addFacetField(new DiscoverFacetField(request.getParameter(FACET_FIELD)));
 
         try {
-            queryResults = searchService.search(context, scope, queryArgs);
+            queryResults = searchService.search(context, (BrowsableDSpaceObject)scope, queryArgs);
         } catch (SearchServiceException e) {
             log.error(e.getMessage(), e);
         }

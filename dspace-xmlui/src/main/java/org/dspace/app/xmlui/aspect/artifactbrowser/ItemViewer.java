@@ -39,6 +39,7 @@ import org.dspace.app.xmlui.wing.element.ReferenceSet;
 import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.app.xmlui.wing.element.Para;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
@@ -137,7 +138,7 @@ public class ItemViewer extends AbstractDSpaceTransformer implements CacheablePr
 	            dso = HandleUtil.obtainHandle(objectModel);
 
 	            DSpaceValidity newValidity = new DSpaceValidity();
-	            newValidity.add(context, dso);
+	            newValidity.add(context, (BrowsableDSpaceObject)dso);
 	            this.validity =  newValidity.complete();
 	        }
 	        catch (Exception e)

@@ -13,6 +13,7 @@ import org.dspace.app.xmlui.wing.element.Body;
 import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.ReferenceSet;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.xml.sax.SAXException;
 
@@ -58,7 +59,7 @@ public class SiteRecentSubmissions extends AbstractRecentSubmissionTransformer {
                     "site-last-submitted", ReferenceSet.TYPE_SUMMARY_LIST,
                     null, "recent-submissions");
 
-            for (DSpaceObject dso : queryResults.getDspaceObjects()) {
+            for (BrowsableDSpaceObject dso : queryResults.getDspaceObjects()) {
                 if(dso != null){
                     lastSubmitted.addReference(dso);
                 }

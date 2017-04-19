@@ -36,6 +36,7 @@ import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -244,11 +245,11 @@ public class ItemExport extends AbstractDSpaceTransformer implements
 				try {
 					DSpaceValidity validity = new DSpaceValidity();
 
-					validity.add(context, eperson);
+					validity.add(context, (BrowsableDSpaceObject)eperson);
 
 					java.util.List<Group> groups = groupService.allMemberGroups(context, eperson);
 					for (Group group : groups) {
-						validity.add(context, group);
+						validity.add(context, (BrowsableDSpaceObject)group);
 					}
 
 					this.validity = validity.complete();

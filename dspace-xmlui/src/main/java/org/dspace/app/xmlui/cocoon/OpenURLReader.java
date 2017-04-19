@@ -26,6 +26,7 @@ import org.apache.cocoon.environment.http.HttpEnvironment;
 import org.apache.cocoon.reading.AbstractReader;
 import org.apache.log4j.Logger;
 import org.dspace.app.xmlui.utils.ContextUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -153,7 +154,7 @@ public class OpenURLReader extends AbstractReader implements Recyclable {
             try
             {
                 DiscoverResult queryResults = SearchUtils.getSearchService().search(context, queryArgs);
-                List<DSpaceObject> objResults = queryResults.getDspaceObjects();
+                List<BrowsableDSpaceObject> objResults = queryResults.getDspaceObjects();
 
                 if(objResults!=null && !objResults.isEmpty())
                     return objResults.get(0).getHandle();

@@ -186,18 +186,18 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
                 DSpaceValidity newValidity = new DSpaceValidity();
 
                 DSpaceObject scope = getScope();
-                newValidity.add(context, scope);
+                newValidity.add(context, (BrowsableDSpaceObject)scope);
 
                 performSearch(scope);
 
-                List<DSpaceObject> results = this.queryResults.getDspaceObjects();
+                List<BrowsableDSpaceObject> results = this.queryResults.getDspaceObjects();
 
                 if (results != null) {
                     newValidity.add("total:"+this.queryResults.getTotalSearchResults());
                     newValidity.add("start:"+this.queryResults.getStart());
                     newValidity.add("size:" + results.size());
 
-                    for (DSpaceObject dso : results) {
+                    for (BrowsableDSpaceObject dso : results) {
                         newValidity.add(context, dso);
                     }
                 }
@@ -387,9 +387,9 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
             dspaceObjectsList = results.addList("search-results-repository",
                     org.dspace.app.xmlui.wing.element.List.TYPE_DSO_LIST, "repository-search-results");
 
-            List<DSpaceObject> commCollList = new ArrayList<>();
+            List<BrowsableDSpaceObject> commCollList = new ArrayList<>();
             List<Item> itemList = new ArrayList<>();
-            for (DSpaceObject resultDso : queryResults.getDspaceObjects())
+            for (BrowsableDSpaceObject resultDso : queryResults.getDspaceObjects())
             {
                 if(resultDso.getType() == Constants.COMMUNITY || resultDso.getType() == Constants.COLLECTION)
                 {
@@ -405,7 +405,7 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
             {
                 org.dspace.app.xmlui.wing.element.List commCollWingList = dspaceObjectsList.addList("comm-coll-result-list");
                 commCollWingList.setHead(T_result_head_2);
-                for (DSpaceObject dso : commCollList)
+                for (BrowsableDSpaceObject dso : commCollList)
                 {
                     DiscoverResult.DSpaceObjectHighlightResult highlightedResults = queryResults.getHighlightedResults(dso);
                     if(dso.getType() == Constants.COMMUNITY)
@@ -906,7 +906,7 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
             return;
         }
         
-        this.queryResults = SearchUtils.getSearchService().search(context, scope, prepareQuery(scope, getQuery(), getFilterQueries()));
+        this.queryResults = SearchUtils.getSearchService().search(context, (BrowsableDSpaceObject)scope, prepareQuery(scope, getQuery(), getFilterQueries()));
     }
 
     /**

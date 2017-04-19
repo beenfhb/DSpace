@@ -23,6 +23,7 @@ import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.app.xmlui.wing.element.Para;
 import org.dspace.app.xmlui.wing.element.Row;
 import org.dspace.app.xmlui.wing.element.Table;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.*;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -195,11 +196,11 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
         }
 
         // Search the repository
-        List<DSpaceObject> results = processor.doItemMapSearch(context, query, collection);
+        List<BrowsableDSpaceObject> results = processor.doItemMapSearch(context, query, collection);
 
         // Get a list of found items
         ArrayList<Item> items = new ArrayList<Item>();
-        for (DSpaceObject resultDSO : results)
+        for (BrowsableDSpaceObject resultDSO : results)
         {
             if (resultDSO instanceof Item)
             {
