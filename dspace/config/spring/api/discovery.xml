@@ -946,17 +946,6 @@
 		</property>
 	</bean>
     
-    <bean id="searchFilterContentInOriginalBundle" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="has_content_in_original_bundle"/>
-        <property name="metadataFields">
-            <list/>
-        </property>
-        <property name="facetLimit" value="2"/>
-        <property name="type" value="standard"/>
-        <property name="sortOrderSidebar" value="COUNT"/>
-        <property name="sortOrderFilterPage" value="COUNT"/>
-    </bean>
-
 	<bean id="conferencePaperConfiguration"
 		class="org.dspace.discovery.configuration.DiscoveryConfiguration"
 		scope="prototype">
@@ -1452,6 +1441,18 @@
 		</property>
 	</bean>
 
+
+    <bean id="searchFilterContentInOriginalBundle" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="has_content_in_original_bundle"/>
+        <property name="metadataFields">
+            <list/>
+        </property>
+        <property name="facetLimit" value="2"/>
+        <property name="type" value="standard"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+    </bean>
+    
 	<bean id="searchFilterObjectName"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
 		<property name="indexFieldName" value="objectname" />
@@ -1539,7 +1540,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+		<property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterJournalTitle"
@@ -1582,7 +1584,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+		<property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterIssued"
@@ -1594,7 +1597,8 @@
 			</list>
 		</property>
 		<property name="type" value="date" />
-		<property name="sortOrder" value="VALUE" />
+		<property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
 	</bean>
 
 	<bean id="searchFilterProject"
@@ -1606,7 +1610,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>		
 	</bean>
 
 	<bean id="searchFilterOU"
@@ -1618,7 +1623,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterRPDept"
@@ -1630,7 +1636,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterRPWorkgroup"
@@ -1642,7 +1649,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 
@@ -1655,7 +1663,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 
@@ -1668,7 +1677,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterProjectPrincipalDept"
@@ -1680,7 +1690,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterProjectInvestigatorDept"
@@ -1693,7 +1704,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterProjectInvestigator"
@@ -1708,7 +1720,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterProjectKeyword"
@@ -1720,7 +1733,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterStartDate"
@@ -1733,7 +1747,8 @@
 			</list>
 		</property>
 		<property name="type" value="date" />
-		<property name="sortOrder" value="VALUE" />
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
 	</bean>
 
 	<bean id="searchFilterFulltext"
@@ -1745,7 +1760,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 	
 	<bean id="searchFilterPermissionFulltext"
@@ -1757,7 +1773,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 	
 	<!--Sort properties -->
