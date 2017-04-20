@@ -353,6 +353,7 @@ Common usage:
              MOST config files are now auto-interpolated at runtime and don't need filtering! -->
         <copy todir="config-temp" preservelastmodified="true" overwrite="true" failonerror="false">
             <fileset dir="config">
+            	<include name="hibernate.properties"/>
                 <!-- Filter all log4j files, as log4j requires absolute paths
                      to its log files. In addition, log4j strongly prefers
                      autoconfiguring itself (e.g. see DS-3104). -->
@@ -364,6 +365,9 @@ Common usage:
                 <!-- Filter RDF configs as these are TTL files -->
                 <include name="modules/rdf/*.ttl"/>
             </fileset>
+            <fileset dir="solr">
+            	<include name="search/conf/database.properties"/>
+            </fileset>   
             <filterchain>
                 <expandproperties />
             </filterchain>
@@ -537,6 +541,18 @@ Common usage:
                 <exclude name="**/data/**"/>
             </fileset>
         </copy>
+
+        <copy todir="solr-config-temp" preservelastmodified="true" overwrite="false" failonerror="false">
+            <fileset dir="solr">
+                <!-- exclude all "data" directories from being overwritten -->
+                <exclude name="**/data/**"/>
+               	<include name="search/conf/database.properties"/>
+            </fileset>
+            <filterchain>
+                <expandproperties />
+            </filterchain>
+        </copy>
+
 
     </target>
 
@@ -847,10 +863,15 @@ Common usage:
         </copy>
 
     	<copy todir="${dspace.dir}/solr" preservelastmodified="true">
-    	    <fileset dir="solr" />
+            <fileset dir="solr">
+            	<include name="search/conf/database.properties"/>
+            </fileset>   
+            <filterchain>
+                <expandproperties />
+            </filterchain>
     	</copy>
-
-        <copy todir="${dspace.dir}/ws-xsd" preservelastmodified="true">
+    	
+    	<copy todir="${dspace.dir}/ws-xsd" preservelastmodified="true">
             <fileset dir="etc/webservice" />
         </copy>
 
