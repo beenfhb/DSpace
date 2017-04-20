@@ -45,6 +45,12 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
+			  <exclusions>
+			  		<exclusion>
+	          			<groupId>org.hibernate.common</groupId>
+	          			<artifactId>hibernate-commons-annotations</artifactId>
+	        		</exclusion>
+			  </exclusions>				
 		</dependency>
 
 		<dependency>
@@ -127,7 +133,12 @@
 		<dependency>
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-web-api</artifactId>
-
+			<exclusions>
+				<exclusion>
+          			<groupId>struts-menu</groupId>
+          			<artifactId>struts-menu</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -139,7 +150,12 @@
 		<dependency>
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-webmvc-api</artifactId>
-
+			<exclusions>
+				<exclusion>
+          			<groupId>struts-menu</groupId>
+          			<artifactId>struts-menu</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jdyna</groupId>

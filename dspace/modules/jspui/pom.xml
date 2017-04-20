@@ -246,6 +246,12 @@
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-web-api</artifactId>
 			<version>${org.jdyna.version}</version>
+			<exclusions>
+				<exclusion>
+          			<groupId>struts-menu</groupId>
+          			<artifactId>struts-menu</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -258,6 +264,12 @@
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-webmvc-api</artifactId>
 			<version>${org.jdyna.version}</version>
+			<exclusions>
+				<exclusion>
+          			<groupId>struts-menu</groupId>
+          			<artifactId>struts-menu</artifactId>
+        		</exclusion>
+			</exclusions>			
 		</dependency>
 		<dependency>
 			<groupId>org.jdyna</groupId>

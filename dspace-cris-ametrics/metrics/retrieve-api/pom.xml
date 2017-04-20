@@ -59,6 +59,12 @@
 			<groupId>org.hibernate.common</groupId>
 			<artifactId>hibernate-commons-annotations</artifactId>
 			<version>${org.hibernate.annotations.version}</version>
+			<exclusions>
+				<exclusion>
+          			<groupId>org.jboss.logging</groupId>
+          			<artifactId>jboss-logging</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -74,7 +80,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javassist</groupId>
+			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 		</dependency>
 
