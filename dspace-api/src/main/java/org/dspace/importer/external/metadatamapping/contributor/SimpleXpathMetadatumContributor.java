@@ -7,13 +7,6 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMText;
@@ -24,11 +17,17 @@ import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.jaxen.JaxenException;
 import org.springframework.beans.factory.annotation.Required;
 
+import javax.annotation.Resource;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Metadata contributor that takes an axiom OMElement and turns it into a MetadataValue
+ * Metadata contributor that takes an axiom OMElement and turns it into a metadatum
  * @author Roeland Dillen (roeland at atmire dot com)
  */
-public class SimpleXpathMetadataValueContributor implements MetadataContributor<OMElement> {
+public class SimpleXpathMetadatumContributor implements MetadataContributor<OMElement> {
     private MetadataFieldConfig field;
 
     /**
@@ -50,7 +49,7 @@ public class SimpleXpathMetadataValueContributor implements MetadataContributor<
     }
 
     /**
-     * Set the metadataFieldMapping of this SimpleXpathMetadataValueContributor
+     * Set the metadataFieldMapping of this SimpleXpathMetadatumContributor
      * @param metadataFieldMapping
      */
     public void setMetadataFieldMapping(MetadataFieldMapping<OMElement,MetadataContributor<OMElement>> metadataFieldMapping) {
@@ -69,21 +68,21 @@ public class SimpleXpathMetadataValueContributor implements MetadataContributor<
     private Map<String,String> prefixToNamespaceMapping;
 
     /**
-     * Initialize SimpleXpathMetadataValueContributor with a query, Map<String, String>(prefixToNamespaceMapping) and MetadataFieldConfig(field)
+     * Initialize SimpleXpathMetadatumContributor with a query, Map<String, String>(prefixToNamespaceMapping) and MetadataFieldConfig(field)
      * @param query String
      * @param prefixToNamespaceMapping Map<String, String>
      * @param field MetadataFieldConfig
      */
-    public SimpleXpathMetadataValueContributor(String query, Map<String, String> prefixToNamespaceMapping, MetadataFieldConfig field) {
+    public SimpleXpathMetadatumContributor(String query, Map<String, String> prefixToNamespaceMapping, MetadataFieldConfig field) {
         this.query = query;
         this.prefixToNamespaceMapping = prefixToNamespaceMapping;
         this.field = field;
     }
 
     /**
-     * Empty constructor for SimpleXpathMetadataValueContributor
+     * Empty constructor for SimpleXpathMetadatumContributor
      */
-    public SimpleXpathMetadataValueContributor() {
+    public SimpleXpathMetadatumContributor() {
 
     }
 
