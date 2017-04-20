@@ -9,6 +9,7 @@ package org.dspace.app.xmlui.cocoon;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -128,13 +130,21 @@ public class MetadataExportReader extends AbstractReader implements Recyclable
             if(dso.getType() == Constants.ITEM)
             {
                itemmd.add(itemService.find(context, dso.getID()));
-               exporter = new MetadataExport(context, itemmd.iterator(), false);
+               List<BrowseDSpaceObject> bdo = new ArrayList<>();
+               for(Item item : itemmd) {            	   
+            	   bdo.add(new BrowseDSpaceObject(context, item));
+               }
+               exporter = new MetadataExport(context, bdo.iterator(), false);
             }
             else if(dso.getType() == Constants.COLLECTION)
             {
                Collection collection = (Collection)dso;
                Iterator<Item> toExport = itemService.findByCollection(context, collection);
-               exporter = new MetadataExport(context, toExport, false);
+               List<BrowseDSpaceObject> bdo = new ArrayList<>();
+               while(toExport.hasNext()) {            	   
+            	   bdo.add(new BrowseDSpaceObject(context, toExport.next()));
+               }
+               exporter = new MetadataExport(context, bdo.iterator(), false);
             }
             else if(dso.getType() == Constants.COMMUNITY)
             {
