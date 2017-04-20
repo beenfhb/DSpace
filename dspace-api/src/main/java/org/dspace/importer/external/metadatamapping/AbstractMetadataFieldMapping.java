@@ -63,11 +63,11 @@ public abstract class AbstractMetadataFieldMapping<RecordType> implements Metada
 
     /**
      * @param field MetadataFieldConfig representing what to map the value to
-     * @param value The value to map to a MetadataValueDTO
-     * @return A MetadataValueDTO created from the field and value
+     * @param value The value to map to a MetadatumDTO
+     * @return A MetadatumDTO created from the field and value
      */
-    public MetadataValueDTO toDCValue(MetadataFieldConfig field, String value) {
-        MetadataValueDTO dcValue = new MetadataValueDTO();
+    public MetadatumDTO toDCValue(MetadataFieldConfig field, String value) {
+        MetadatumDTO dcValue = new MetadatumDTO();
 
         if (field == null) return null;
         MetadataProcessorService metadataProcessor = getMetadataProcessor(field);
@@ -103,13 +103,13 @@ public abstract class AbstractMetadataFieldMapping<RecordType> implements Metada
     }
 
     /**
-     * Loop over the MetadataContributors and return their concatenated retrieved MetadataValueDTO objects
-     * @param record Used to retrieve the MetadataValueDTO
-     * @return Lit of MetadataValueDTO
+     * Loop over the MetadataContributors and return their concatenated retrieved MetadatumDTO objects
+     * @param record Used to retrieve the MetadatumDTO
+     * @return Lit of MetadatumDTO
      */
     @Override
-    public Collection<MetadataValueDTO> resultToDCValueMapping(RecordType record) {
-        List<MetadataValueDTO> values=new LinkedList<MetadataValueDTO>();
+    public Collection<MetadatumDTO> resultToDCValueMapping(RecordType record) {
+        List<MetadatumDTO> values=new LinkedList<MetadatumDTO>();
 
 
         for(MetadataContributor<RecordType> query:getMetadataFieldMap().values()){

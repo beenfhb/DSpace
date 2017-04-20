@@ -8,6 +8,14 @@
 
 package org.dspace.importer.external.pubmed.metadatamapping.contributor;
 
+import org.apache.log4j.Logger;
+import org.dspace.content.DCDate;
+import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
+import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
+import org.springframework.beans.factory.annotation.Required;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -15,22 +23,14 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.dspace.content.DCDate;
-import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
-import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
-import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
-import org.springframework.beans.factory.annotation.Required;
-
 /**
  * Pubmed specific implementation of {@link MetadataContributor}
  * Responsible for generating a set of Date metadata from the retrieved document.
  *
  * @author Philip Vissenaekens (philip at atmire dot com)
  */
-public class PubmedDateMetadataValueContributor<T> implements MetadataContributor<T> {
-    Logger log = Logger.getLogger(PubmedDateMetadataValueContributor.class);
+public class PubmedDateMetadatumContributor<T> implements MetadataContributor<T> {
+    Logger log = Logger.getLogger(PubmedDateMetadatumContributor.class);
 
     private MetadataFieldMapping<T, MetadataContributor<T>> metadataFieldMapping;
 
@@ -63,9 +63,9 @@ public class PubmedDateMetadataValueContributor<T> implements MetadataContributo
         year.setMetadataFieldMapping(metadataFieldMapping);
     }
     /**
-     * Initialize an empty PubmedDateMetadataValueContributor object
+     * Initialize an empty PubmedDateMetadatumContributor object
      */
-    public PubmedDateMetadataValueContributor() {
+    public PubmedDateMetadatumContributor() {
     }
 
     /**
@@ -75,7 +75,7 @@ public class PubmedDateMetadataValueContributor<T> implements MetadataContributo
      * @param month a {@link MetadataContributor}, representing a month
      * @param year a {@link MetadataContributor}, representing a year
      */
-    public PubmedDateMetadataValueContributor(MetadataFieldConfig field, MetadataContributor day, MetadataContributor month, MetadataContributor year) {
+    public PubmedDateMetadatumContributor(MetadataFieldConfig field, MetadataContributor day, MetadataContributor month, MetadataContributor year) {
         this.field = field;
         this.day = day;
         this.month = month;
@@ -90,14 +90,14 @@ public class PubmedDateMetadataValueContributor<T> implements MetadataContributo
      * @return a collection of import records. Only the identifier of the found records may be put in the record.
      */
     @Override
-    public Collection<MetadataValueDTO> contributeMetadata(T t) {
-        List<MetadataValueDTO> values = new LinkedList<>();
+    public Collection<MetadatumDTO> contributeMetadata(T t) {
+        List<MetadatumDTO> values = new LinkedList<>();
 
 
         try {
-            LinkedList<MetadataValueDTO> yearList = (LinkedList<MetadataValueDTO>) year.contributeMetadata(t);
-            LinkedList<MetadataValueDTO> monthList = (LinkedList<MetadataValueDTO>) month.contributeMetadata(t);
-            LinkedList<MetadataValueDTO> dayList = (LinkedList<MetadataValueDTO>) day.contributeMetadata(t);
+            LinkedList<MetadatumDTO> yearList = (LinkedList<MetadatumDTO>) year.contributeMetadata(t);
+            LinkedList<MetadatumDTO> monthList = (LinkedList<MetadatumDTO>) month.contributeMetadata(t);
+            LinkedList<MetadatumDTO> dayList = (LinkedList<MetadatumDTO>) day.contributeMetadata(t);
 
             for (int i = 0; i < yearList.size(); i++) {
                 DCDate dcDate = null;
@@ -137,7 +137,7 @@ public class PubmedDateMetadataValueContributor<T> implements MetadataContributo
     }
 
     /**
-     * Return the MetadataFieldConfig used while retrieving MetadataValueDTO
+     * Return the MetadataFieldConfig used while retrieving MetadatumDTO
      * @return MetadataFieldConfig
      */
     public MetadataFieldConfig getField() {
@@ -146,7 +146,7 @@ public class PubmedDateMetadataValueContributor<T> implements MetadataContributo
 
     /**
      * Setting the MetadataFieldConfig
-     * @param field MetadataFieldConfig used while retrieving MetadataValueDTO
+     * @param field MetadataFieldConfig used while retrieving MetadatumDTO
      */
     public void setField(MetadataFieldConfig field) {
         this.field = field;

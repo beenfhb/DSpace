@@ -16,7 +16,7 @@ import java.util.Locale;
 import org.apache.log4j.Logger;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
 
 /**
@@ -25,8 +25,8 @@ import org.dspace.importer.external.metadatamapping.contributor.MetadataContribu
  *
  * @author Philip Vissenaekens (philip at atmire dot com)
  */
-public class PubmedLanguageMetadataValueContributor<T> implements MetadataContributor<T> {
-    Logger log = Logger.getLogger(PubmedDateMetadataValueContributor.class);
+public class PubmedLanguageMetadatumContributor<T> implements MetadataContributor<T> {
+    Logger log = Logger.getLogger(PubmedDateMetadatumContributor.class);
 
     private MetadataFieldMapping<T,MetadataContributor<T>> metadataFieldMapping;
     private HashMap<String,String> iso3toIso2;
@@ -35,9 +35,9 @@ public class PubmedLanguageMetadataValueContributor<T> implements MetadataContri
     private MetadataContributor language;
 
     /**
-     * Initialize PubmedLanguageMetadataValueContributor and create the iso3toiso2 mapping used in the transforming of language codes
+     * Initialize PubmedLanguageMetadatumContributor and create the iso3toiso2 mapping used in the transforming of language codes
      */
-    public PubmedLanguageMetadataValueContributor() {
+    public PubmedLanguageMetadatumContributor() {
         iso3toIso2=new HashMap<>();
         // Populate the languageMap with the mapping between iso3 and iso2 language codes
         for (Locale locale : Locale.getAvailableLocales()) {
@@ -46,11 +46,11 @@ public class PubmedLanguageMetadataValueContributor<T> implements MetadataContri
     }
 
     /**
-     * Initialize the PubmedLanguageMetadataValueContributor class using a {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} and a language -{@link org.dspace.importer.external.metadatamapping.contributor.MetadataContributor}
+     * Initialize the PubmedLanguageMetadatumContributor class using a {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} and a language -{@link org.dspace.importer.external.metadatamapping.contributor.MetadataContributor}
      * @param field {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} used in mapping
      * @param language
      */
-    public PubmedLanguageMetadataValueContributor(MetadataFieldConfig field, MetadataContributor language) {
+    public PubmedLanguageMetadatumContributor(MetadataFieldConfig field, MetadataContributor language) {
         this();
         this.field = field;
         this.language = language;
@@ -71,15 +71,15 @@ public class PubmedLanguageMetadataValueContributor<T> implements MetadataContri
      * @return a collection of import records. Only the identifier of the found records may be put in the record.
      */
     @Override
-    public Collection<MetadataValueDTO> contributeMetadata(T t) {
-        List<MetadataValueDTO> values=new LinkedList<MetadataValueDTO>();
+    public Collection<MetadatumDTO> contributeMetadata(T t) {
+        List<MetadatumDTO> values=new LinkedList<MetadatumDTO>();
 
         try {
-            LinkedList<MetadataValueDTO> languageList = (LinkedList<MetadataValueDTO>) language.contributeMetadata(t);
+            LinkedList<MetadatumDTO> languageList = (LinkedList<MetadatumDTO>) language.contributeMetadata(t);
 
-            for (MetadataValueDTO MetadataValue : languageList) {
+            for (MetadatumDTO metadatum : languageList) {
                 // Add the iso2 language code corresponding to the retrieved iso3 code to the metadata
-                values.add(metadataFieldMapping.toDCValue(field, iso3toIso2.get(MetadataValue.getValue().toLowerCase())));
+                values.add(metadataFieldMapping.toDCValue(field, iso3toIso2.get(metadatum.getValue().toLowerCase())));
             }
         } catch (Exception e) {
             log.error("Error", e);
@@ -89,7 +89,7 @@ public class PubmedLanguageMetadataValueContributor<T> implements MetadataContri
     }
 
     /**
-     * Return the MetadataContributor used while retrieving MetadataValueDTO
+     * Return the MetadataContributor used while retrieving MetadatumDTO
      * @return MetadataContributor
      */
     public MetadataContributor getLanguage() {
@@ -98,14 +98,14 @@ public class PubmedLanguageMetadataValueContributor<T> implements MetadataContri
 
     /**
      * Setting the MetadataContributor
-     * @param language MetadataContributor used while retrieving MetadataValueDTO
+     * @param language MetadataContributor used while retrieving MetadatumDTO
      */
     public void setLanguage(MetadataContributor language) {
         this.language = language;
     }
 
     /**
-     * Return the MetadataFieldConfig used while retrieving MetadataValueDTO
+     * Return the MetadataFieldConfig used while retrieving MetadatumDTO
      * @return MetadataFieldConfig
      */
     public MetadataFieldConfig getField() {
@@ -114,7 +114,7 @@ public class PubmedLanguageMetadataValueContributor<T> implements MetadataContri
 
     /**
      * Setting the MetadataFieldConfig
-     * @param field MetadataFieldConfig used while retrieving MetadataValueDTO
+     * @param field MetadataFieldConfig used while retrieving MetadatumDTO
      */
     public void setField(MetadataFieldConfig field) {
         this.field = field;

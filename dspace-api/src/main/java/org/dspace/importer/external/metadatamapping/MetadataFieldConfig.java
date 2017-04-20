@@ -9,7 +9,7 @@ package org.dspace.importer.external.metadatamapping;
 
 /**
  * A generalised configuration for metadatafields.
- * This is used to make the link between values and the actual MetadataValueDTO object.
+ * This is used to make the link between values and the actual MetadatumDTO object.
  *
  * @author Roeland Dillen (roeland at atmire dot com)
  */
@@ -70,11 +70,11 @@ public class MetadataFieldConfig {
 
 
     /**
-     * Create a MetadataFieldConfig based on a given MetadataValueDTO
-     * This MetadataValueDTO object contains the schema, element and qualifier needed to initialize the MetadataFieldConfig
+     * Create a MetadataFieldConfig based on a given MetadatumDTO
+     * This MetadatumDTO object contains the schema, element and qualifier needed to initialize the MetadataFieldConfig
      * @param value
      */
-    public MetadataFieldConfig(MetadataValueDTO value) {
+    public MetadataFieldConfig(MetadatumDTO value) {
         this.schema = value.getSchema();
         this.element = value.getElement();
         this.qualifier = value.getQualifier();

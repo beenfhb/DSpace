@@ -20,7 +20,7 @@ import org.apache.axiom.om.OMText;
 import org.apache.axiom.om.xpath.AXIOMXPath;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.jaxen.JaxenException;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -90,7 +90,7 @@ public class SimpleXpathMetadataValueContributor implements MetadataContributor<
     private String query;
 
     /**
-     * Return the MetadataFieldConfig used while retrieving MetadataValueDTO
+     * Return the MetadataFieldConfig used while retrieving MetadatumDTO
      * @return MetadataFieldConfig
      */
     public MetadataFieldConfig getField() {
@@ -98,7 +98,7 @@ public class SimpleXpathMetadataValueContributor implements MetadataContributor<
     }
     /**
      * Setting the MetadataFieldConfig
-     * @param field MetadataFieldConfig used while retrieving MetadataValueDTO
+     * @param field MetadataFieldConfig used while retrieving MetadatumDTO
      */
     @Required
     public void setField(MetadataFieldConfig field) {
@@ -119,13 +119,13 @@ public class SimpleXpathMetadataValueContributor implements MetadataContributor<
 
     /**
      * Retrieve the metadata associated with the given object.
-     * Depending on the retrieved node (using the query), different types of values will be added to the MetadataValueDTO list
+     * Depending on the retrieved node (using the query), different types of values will be added to the MetadatumDTO list
      * @param t A class to retrieve metadata from.
      * @return a collection of import records. Only the identifier of the found records may be put in the record.
      */
     @Override
-    public Collection<MetadataValueDTO> contributeMetadata(OMElement t) {
-        List<MetadataValueDTO> values=new LinkedList<>();
+    public Collection<MetadatumDTO> contributeMetadata(OMElement t) {
+        List<MetadatumDTO> values=new LinkedList<>();
         try {
             AXIOMXPath xpath=new AXIOMXPath(query);
             for(String ns:prefixToNamespaceMapping.keySet()){

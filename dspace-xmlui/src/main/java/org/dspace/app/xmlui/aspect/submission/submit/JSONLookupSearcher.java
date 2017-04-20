@@ -26,7 +26,7 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.core.Context;
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.importer.external.service.ImportService;
 import org.dspace.utils.DSpace;
 import org.w3c.dom.Element;
@@ -118,7 +118,7 @@ public class JSONLookupSearcher extends AbstractGenerator {
 
                 HashMap<String,Element> MetadataValueValueNodes = new HashMap();
 
-                for (MetadataValueDTO MetadataValue : record.getValueList()) {
+                for (MetadatumDTO MetadataValue : record.getValueList()) {
                     if(!MetadataValueValueNodes.containsKey(getField(MetadataValue))) {
                         Element MetadataValueNode = document.createElement(getField(MetadataValue));
                         MetadataValueNode.setAttribute("array", "true");
@@ -157,7 +157,7 @@ public class JSONLookupSearcher extends AbstractGenerator {
         }
     }
 
-    private String getField(MetadataValueDTO MetadataValue) {
+    private String getField(MetadatumDTO MetadataValue) {
         return MetadataValue.getSchema()+"."+MetadataValue.getElement()+((MetadataValue.getQualifier()!=null)?"."+MetadataValue.getQualifier():"");
     }
 

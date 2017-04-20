@@ -7,10 +7,10 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
-import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
-
 import java.util.Collection;
+
+import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 
 /**
  * @author Roeland Dillen (roeland at atmire dot com)
@@ -25,9 +25,9 @@ public interface MetadataContributor<RecordType> {
 
     /**
      * Implementations have the responsibility to process/map their own type of metadata based on a given record
-     * and return a collection of the generalised MetadataValueDTO objects
+     * and return a collection of the generalised MetadatumDTO objects
      * @param t The recordType object to retrieve metadata from
-     * @return A collection of MetadataValueDTO objects, retrieve from the recordtype
+     * @return A collection of MetadatumDTO objects, retrieve from the recordtype
      */
-    public Collection<MetadataValueDTO> contributeMetadata(RecordType t);
+    public Collection<MetadatumDTO> contributeMetadata(RecordType t);
 }

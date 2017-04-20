@@ -19,7 +19,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.importer.external.exception.MetadataSourceException;
 import org.dspace.importer.external.datamodel.ImportRecord;
-import org.dspace.importer.external.metadatamapping.MetadataValueDTO;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.importer.external.service.ImportService;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.utils.DSpace;
@@ -55,7 +55,7 @@ public class XMLUIStartSubmissionLookupStep extends AbstractProcessingStep {
                     itemService.clearMetadata(context, item, MetadataValue.getMetadataField().getMetadataSchema().getName(), MetadataValue.getMetadataField().getElement(), MetadataValue.getMetadataField().getQualifier(), MetadataValue.getLanguage());
                 }
 
-                for (MetadataValueDTO MetadataValue : record.getValueList()) {
+                for (MetadatumDTO MetadataValue : record.getValueList()) {
                         itemService.addMetadata(context, item, MetadataValue.getSchema(), MetadataValue.getElement(), MetadataValue.getQualifier(),null, MetadataValue.getValue());
                 }
 
