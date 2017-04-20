@@ -32,7 +32,7 @@ import org.springframework.orm.hibernate4.SessionFactoryUtils;
 public class HibernateDBConnection implements DBConnection<Session> {
 
     @Autowired(required = true)
-    @Qualifier("sessionFactory")
+    @Qualifier("sessionFactoryDSpace")
     private SessionFactory sessionFactory;
 
     private boolean batchModeEnabled = false;

@@ -1506,7 +1506,7 @@ public class DatabaseUtils
     protected static DataSource getDataSource()
     {
         // DataSource is configured via our ServiceManager (i.e. via Spring).
-        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("dataSource", BasicDataSource.class);
+        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("dataSourceDSpace", BasicDataSource.class);
     }
 
     /**
