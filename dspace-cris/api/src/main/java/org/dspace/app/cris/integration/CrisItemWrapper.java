@@ -108,8 +108,7 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
     }
 
     private String getTypeText(MethodInvocation invocation) {
-    	String metadata = ConfigurationManager.getProperty(
-				CrisConstants.CFG_MODULE, "global.item.typing");
+    	String metadata = ConfigurationManager.getProperty("globalsearch.item.typing");
 		if (StringUtils.isNotBlank(metadata)) {
 			Item item = (Item) invocation.getThis();
 			List<MetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
@@ -118,8 +117,7 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
 					String value = dcval.getValue();					
 					if (StringUtils.isNotBlank(value)) {
 						 String valueWithoutWhitespace = StringUtils.deleteWhitespace(value);
-				    	 String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
-				    			 CrisConstants.CFG_MODULE, "facet.type."
+				    	 String isDefinedAsSystemEntity = ConfigurationManager.getProperty("facet.type."
 										+ valueWithoutWhitespace.toLowerCase());
 				    	 if(StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
 				    		 return value.toLowerCase();
