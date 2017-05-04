@@ -7,20 +7,16 @@
  */
 package org.dspace.content;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.hibernate.annotations.GenericGenerator;
 
-import java.util.List;
-import java.util.UUID;
-
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -36,12 +32,6 @@ public class Site extends DSpaceObject
     @Transient
     private transient SiteService siteService;
 
-    @Id
-    @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
-    @Column(name = "uuid", unique = true, nullable = false, insertable = true, updatable = false)
-    protected java.util.UUID id;
-    
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.SiteService#createSite(Context)}
@@ -106,5 +96,10 @@ public class Site extends DSpaceObject
 	@Override
 	public boolean haveHierarchy() {
 		return false;
+	}
+
+	@Override
+	public Integer getLegacyId() {		
+		return -1;
 	}
 }

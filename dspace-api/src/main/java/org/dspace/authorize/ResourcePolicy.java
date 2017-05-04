@@ -38,7 +38,7 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     @SequenceGenerator(name="resourcepolicy_seq", sequenceName="resourcepolicy_seq", allocationSize = 1)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade={CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.EAGER, cascade={CascadeType.PERSIST}, targetEntity = DSpaceObject.class)
     @JoinColumn(name = "dspace_object")
     private AuthorizableEntity dSpaceObject;
 
@@ -48,6 +48,9 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     @Column(name = "resource_type_id")
     private int resourceTypeId;
 
+    @Column(name = "resource_id")
+    private int resourceId;
+    
     /*
      * {@see org.dspace.core.Constants#Constants Constants}
      */
@@ -178,7 +181,12 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     }
 
     public void setdSpaceObject(AuthorizableEntity dSpaceObject) {
-        this.dSpaceObject = dSpaceObject;
+    	if(dSpaceObject.getType()>9) {
+    		this.resourceId = dSpaceObject.getLegacyId();
+    	}
+    	else {
+    		this.dSpaceObject = dSpaceObject;
+    	}
         this.resourceTypeId = dSpaceObject.getType();
     }
 

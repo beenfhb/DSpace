@@ -7,5 +7,5 @@ public interface AuthorizableEntity {
 	int getType();
 	boolean haveHierarchy();
 	UUID getID();
-
+	Integer getLegacyId();
 }

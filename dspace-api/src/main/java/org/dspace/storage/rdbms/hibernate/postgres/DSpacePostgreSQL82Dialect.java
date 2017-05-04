@@ -7,47 +7,41 @@
  */
 package org.dspace.storage.rdbms.hibernate.postgres;
 
-import java.sql.Types;
-
 import org.hibernate.dialect.PostgreSQL82Dialect;
+import org.hibernate.metamodel.spi.TypeContributions;
+import org.hibernate.service.ServiceRegistry;
+import org.hibernate.type.PostgresUUIDType;
 import org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+
+import java.sql.Types;
 
 /**
  * UUID's are not supported by default in hibernate due to differences in the database in order to fix this a custom sql dialect is needed.
  * Source: https://forum.hibernate.org/viewtopic.php?f=1&t=1014157
  *
- * NOTE: to DOWNGRADE hibernate at version 4.1.8.Final we use another mode to register UUID type
- *
  * @author kevinvandevelde at atmire.com
  */
 public class DSpacePostgreSQL82Dialect extends PostgreSQL82Dialect
 {
-//	--USING with 4.2.21.Final	
-//	@Override
-//	public void contributeTypes(final TypeContributions typeContributions, final ServiceRegistry serviceRegistry) {
-//		super.contributeTypes(typeContributions, serviceRegistry);
-//		typeContributions.contributeType(new InternalPostgresUUIDType());
-//	}
-
-//	--USING with 4.1.8.Final		
-	public DSpacePostgreSQL82Dialect() {
-		registerHibernateType(Types.OTHER, "pg-uuid");
-	}
+    @Override
+    public void contributeTypes(final TypeContributions typeContributions, final ServiceRegistry serviceRegistry) {
+        super.contributeTypes(typeContributions, serviceRegistry);
+        typeContributions.contributeType(new InternalPostgresUUIDType());
+    }
 
     @Override
     protected void registerHibernateType(int code, String name) {
         super.registerHibernateType(code, name);
     }
 
-//	--USING with 4.2.21.Final	
-//    protected static class InternalPostgresUUIDType extends PostgresUUIDType {
-//
-//        @Override
-//        protected boolean registerUnderJavaType() {
-//            return true;
-//        }
-//    }
+    protected static class InternalPostgresUUIDType extends PostgresUUIDType {
+
+        @Override
+        protected boolean registerUnderJavaType() {
+            return true;
+        }
+    }
 
     /**
      * Override is needed to properly support the CLOB on metadatavalue in postgres & oracle.

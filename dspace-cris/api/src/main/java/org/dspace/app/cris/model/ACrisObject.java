@@ -448,4 +448,9 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	public boolean haveHierarchy() {
 		return false;
 	}
+	
+    @Override
+    public Integer getLegacyId() {
+        return getId();
+    }
 }

@@ -37,6 +37,8 @@ import org.dspace.core.ReloadableEntity;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.handle.Handle;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 /**
  * Abstract base class for DSpace objects
@@ -49,7 +51,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     @Id
     @GeneratedValue(generator = "system-uuid")
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
-    @Column(name = "uuid", unique = true, nullable = false, insertable = true, updatable = false)
+    @Column(name = "uuid", unique = true, nullable = false, insertable = true, updatable = false)    
     protected java.util.UUID id;
     
     // accumulate information to add to "detail" element of content Event,
