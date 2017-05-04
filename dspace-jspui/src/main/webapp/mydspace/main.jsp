@@ -31,6 +31,7 @@
 
 <%@ page  import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 
+<%@page import="org.dspace.core.ConfigurationManager"%>
 <%@ page import="org.dspace.app.webui.servlet.MyDSpaceServlet" %>
 <%@ page import="org.dspace.content.WorkspaceItem" %>
 <%@ page import="org.dspace.core.Utils" %>
@@ -78,7 +79,7 @@
     boolean displayGroupMembership = (displayMembership == null ? false : displayMembership.booleanValue());
     
     ConfigurationService configurationService = new DSpace().getConfigurationService();
-    boolean crisEnabled = configurationService.getPropertyAsType("cris.enabled", false);
+    boolean crisEnabled = ConfigurationManager.getBooleanProperty("cris", "mydspace.enabled", "enabled");
     boolean rpChangeStatusAdmin =  configurationService.getPropertyAsType("cris.rp.changestatus.admin", false);
 
     if (crisEnabled)

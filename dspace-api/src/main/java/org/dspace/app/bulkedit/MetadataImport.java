@@ -7,6 +7,26 @@
  */
 package org.dspace.app.bulkedit;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang.StringUtils;
@@ -22,12 +42,12 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.service.TemplateItemService;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Context;
 import org.dspace.core.Constants;
-import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.eperson.EPerson;
+import org.dspace.utils.DSpace;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
@@ -78,6 +98,9 @@ public class MetadataImport
     protected final HandleService handleService;
     protected final WorkspaceItemService workspaceItemService;
 
+    private boolean applyTemplate;
+    private boolean applyAuthCollection;
+    
     /**
      * Create an instance of the metadata importer. Requires a context and an array of CSV lines
      * to examine.
@@ -97,6 +120,8 @@ public class MetadataImport
         handleService = HandleServiceFactory.getInstance().getHandleService();
         authorityValueService = AuthorityServiceFactory.getInstance().getAuthorityValueService();
         workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
+        applyTemplate = ConfigurationManager.getBooleanProperty("batch.metadata.import.applytemplate", true);
+        applyAuthCollection = ConfigurationManager.getBooleanProperty("batch.metadata.import.applyauthzcoll", true);
     }
 
     /**
@@ -1197,11 +1222,13 @@ public class MetadataImport
         options.addOption("s", "silent", false, "silent operation - doesn't request confirmation of changes USE WITH CAUTION");
         options.addOption("w", "workflow", false, "workflow - when adding new items, use collection workflow");
         options.addOption("n", "notify", false, "notify - when adding new items using a workflow, send notification emails");
-        options.addOption("t", "template", false, "template - when adding new items, use the collection template (if it exists)");        
+        options.addOption("t", "template", false, "template - when adding new items, use the collection template (if it exists)");
+        options.addOption("r", "rebuild", false, "rebuild template and inherit default collection authorization");
         options.addOption("h", "help", false, "help");
 
         // Parse the command line arguments
         CommandLine line;
+        boolean rebuildTemplateAndAuthorization = false;
         try
         {
             line = parser.parse(options, argv);
@@ -1227,12 +1254,17 @@ public class MetadataImport
         String filename = line.getOptionValue('f');
 
         // Option to apply template to new items
-        boolean useTemplate = false;
+        boolean useTemplate = false;        
         if (line.hasOption('t'))
         {
             useTemplate = true;
         }
 
+        if(line.hasOption('r'))
+        {
+            rebuildTemplateAndAuthorization = true;
+        }
+        
         // Options for workflows, and workflow notifications for new items
         boolean useWorkflow = false;
         boolean workflowNotify = false; 
@@ -1256,6 +1288,7 @@ public class MetadataImport
         {
             c = new Context();
             c.turnOffAuthorisationSystem();
+            c.turnOffItemWrapper();
         }
         catch (Exception e)
         {
@@ -1394,9 +1427,16 @@ public class MetadataImport
                 // Commit the change to the DB
 //                c.commit();
             }
+            
+            if(rebuildTemplateAndAuthorization)
+            {
+                importer.runRebuild();
+                c.commit();
+            }
 
             // Finsh off and tidy up
             c.restoreAuthSystemState();
+            c.restoreItemWrapperState();
             c.complete();
         }
         catch (Exception e)
@@ -1406,5 +1446,53 @@ public class MetadataImport
             System.err.println("Aborting most recent changes.");
             System.exit(1);
         }
+    }
+    
+
+    public void runRebuild()
+        throws SQLException, AuthorizeException
+    {
+        TemplateItemService tis = (TemplateItemService)(new DSpace()).getSingletonService(TemplateItemService.class);
+        for (DSpaceCSVLine line : toImport)
+        {
+            int id = line.getID();
+            if(id != -1)
+            {
+                Item item = Item.find(this.c, id);
+                if(item == null)
+                    log.warn((new StringBuilder("No item found:")).append(id).toString());
+                boolean firstRound = true;
+                if(applyAuthCollection)
+                {
+                    List newpolicies = new ArrayList();
+                    item.replaceAllItemPolicies(newpolicies);
+                    item.replaceAllBitstreamPolicies(newpolicies);
+                }
+                Collection acollection[];
+                int j = (acollection = item.getCollections()).length;
+                for(int i = 0; i < j; i++)
+                {
+                    Collection c = acollection[i];
+                    if(applyTemplate)
+                    {
+                        Item templateItem = c.getTemplateItem();
+                        if(templateItem != null)
+                        {
+                            if(firstRound)
+                            {
+                                tis.clearTemplate(this.c, item, templateItem);
+                                firstRound = false;
+                            }
+                            tis.applyTemplate(this.c, item, templateItem);
+                            item.update();
+                        }
+                    }
+                    if(applyAuthCollection)
+                        item.inheritCollectionDefaultPolicies(c);
+                }
+
+            }
+        }
+
     }
 }

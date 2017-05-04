@@ -240,7 +240,8 @@ public class MetadataExport
         // Create a context
         Context c = new Context();
         c.turnOffAuthorisationSystem();
-
+        c.turnOffItemWrapper();
+        
         // The things we'll export
         Iterator<Item> toExport = null;
         MetadataExport exporter = null;
@@ -311,6 +312,7 @@ public class MetadataExport
 
         // Finish off and tidy up
         c.restoreAuthSystemState();
+        c.restoreItemWrapperState();
         c.complete();
     }
 }

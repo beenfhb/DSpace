@@ -285,7 +285,7 @@ public class I18nUtil
     
     public static String getMessage(String key, Locale locale, boolean throwExcIfNotFound)
     {
-       return getMessage(key, null, locale, false);
+       return getMessage(key, null, locale, throwExcIfNotFound);
     }
     
     /**
