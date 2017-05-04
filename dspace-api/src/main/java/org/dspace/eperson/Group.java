@@ -23,6 +23,7 @@ import javax.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectLegacySupport;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
@@ -88,9 +89,6 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
     @Transient
     private boolean groupsChanged;
 
-    @Column
-    private Boolean isNotRelevant = false;
-    
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.eperson.service.GroupService#create(Context)}
@@ -276,15 +274,11 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
 		return EPersonServiceFactory.getInstance().getGroupService().getMetadataByMetadataString(this, mdString);
 	}
-
-	public Boolean getIsNotRelevant() {
-		return isNotRelevant;
-	}
-
-	public void setIsNotRelevant(Boolean isNotRelevant) {
-		this.isNotRelevant = isNotRelevant;
-	}
-
+    
+	public boolean isNotRelevant() {
+        return getMetadataValue(MetadataSchema.GROUP_SCHEMA +".notrelevant")!=null;
+    }
+    
 	@Override
 	public boolean haveHierarchy() {
 		return false;
