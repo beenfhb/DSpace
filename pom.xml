@@ -59,13 +59,9 @@
         <!--
             Hibernate version pinned to 4.2, 4.3 does not work with the spring version we are currently using
             Upgrading the spring version will make the XMLUI crash.
-            
-            ADDITIONAL: downgrade hibernate and spring version to a minor version; DSpace-CRIS and JDynA backward compatibility;
         -->
-        <!-- <hibernate.version>4.2.21.Final</hibernate.version>
-		<spring.version>3.2.16.RELEASE</spring.version> -->
-        <hibernate.version>4.1.8.Final</hibernate.version>
-        <spring.version>3.1.1.RELEASE</spring.version>
+        <hibernate.version>4.2.21.Final</hibernate.version>
+		<spring.version>3.2.16.RELEASE</spring.version>
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
