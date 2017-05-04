@@ -54,11 +54,11 @@ public class DSpaceTemplateItemService implements TemplateItemService {
         }
 	}
 	
-    public void clearTemplate(Context context, Item targetItem, Item templateItem)
+    public void clearTemplate(Context context, Item targetItem, Item templateItem) throws SQLException
     {
-        Metadatum md[] = templateItem.getMetadata("*", "*", "*", "*");
-        for(int n = 0; n < md.length; n++) {
-            targetItem.clearMetadata(md[n].schema, md[n].element, md[n].qualifier, "*");
+    	List<MetadataValue> mds = templateItem.getMetadata("*", "*", "*", "*");
+        for(MetadataValue md : mds) {
+            targetItem.clearMetadata(context, md.schema, md.element, md.qualifier, "*");
         }
 
     }

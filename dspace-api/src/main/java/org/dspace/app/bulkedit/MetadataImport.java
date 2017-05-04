@@ -15,9 +15,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,38 +28,32 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
-import org.apache.commons.cli.*;
-import org.apache.commons.lang.StringUtils;
-
-import org.apache.log4j.Logger;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
-import org.dspace.content.*;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.service.TemplateItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.utils.DSpace;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
+import org.dspace.utils.DSpace;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-
-import java.util.*;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * Metadata importer to allow the batch import of metadata from a file
@@ -1455,27 +1449,25 @@ public class MetadataImport
         TemplateItemService tis = (TemplateItemService)(new DSpace()).getSingletonService(TemplateItemService.class);
         for (DSpaceCSVLine line : toImport)
         {
-            int id = line.getID();
-            if(id != -1)
+            UUID id = line.getID();
+            if(id != null)
             {
-                Item item = Item.find(this.c, id);
+                Item item = ContentServiceFactory.getInstance().getItemService().find(this.c, id);
                 if(item == null)
                     log.warn((new StringBuilder("No item found:")).append(id).toString());
                 boolean firstRound = true;
                 if(applyAuthCollection)
                 {
                     List newpolicies = new ArrayList();
-                    item.replaceAllItemPolicies(newpolicies);
-                    item.replaceAllBitstreamPolicies(newpolicies);
+                    ContentServiceFactory.getInstance().getItemService().replaceAllItemPolicies(this.c, item, newpolicies);
+                    ContentServiceFactory.getInstance().getItemService().replaceAllBitstreamPolicies(this.c, item, newpolicies);
                 }
-                Collection acollection[];
-                int j = (acollection = item.getCollections()).length;
-                for(int i = 0; i < j; i++)
-                {
-                    Collection c = acollection[i];
+                List<Collection> acollection;
+                for(Collection collection : item.getCollections())
+                {                    
                     if(applyTemplate)
                     {
-                        Item templateItem = c.getTemplateItem();
+                        Item templateItem = collection.getTemplateItem();
                         if(templateItem != null)
                         {
                             if(firstRound)
@@ -1484,11 +1476,11 @@ public class MetadataImport
                                 firstRound = false;
                             }
                             tis.applyTemplate(this.c, item, templateItem);
-                            item.update();
+                            ContentServiceFactory.getInstance().getItemService().update(this.c, item);
                         }
                     }
                     if(applyAuthCollection)
-                        item.inheritCollectionDefaultPolicies(c);
+                    	ContentServiceFactory.getInstance().getItemService().inheritCollectionDefaultPolicies(this.c, item, collection);
                 }
 
             }

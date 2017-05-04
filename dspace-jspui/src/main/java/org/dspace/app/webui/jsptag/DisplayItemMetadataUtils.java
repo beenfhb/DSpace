@@ -42,7 +42,7 @@ public class DisplayItemMetadataUtils {
 	private static Logger log = Logger.getLogger(ItemTag.class);
 
 	/** Default DC fields to display, in absence of configuration */
-	private static String[] defaultFields = new String[] {"dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier"};
+	private static String defaultFields = "dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier";
 
 	private static StyleSelection styleSelection = (StyleSelection) CoreServiceFactory.getInstance().getPluginService().getSinglePlugin(StyleSelection.class);
 
@@ -138,7 +138,7 @@ public class DisplayItemMetadataUtils {
 		List<DisplayMetadata> metadata = new ArrayList<DisplayMetadata>();
 
 		String style = styleSelection.getStyleForItem(context, item, req);
-		String[] configLine;
+		String configLine;
 		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(context, style + "." + postfix, req)) {
 			configLine = styleSelection.getConfigurationForStyle(context, style + "." + postfix, req);
 		} else {
@@ -158,7 +158,7 @@ public class DisplayItemMetadataUtils {
 		 */
 		
 
-		for(String st : configLine) {
+		for(String st : configLine.split(",")) {
 			String field = st.trim();
 			String displayStrategyName = null;
 			Matcher fieldStyleMatcher = fieldStylePatter.matcher(field);

@@ -25,7 +25,6 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.IViewer;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.MetadataExposureService;
@@ -314,12 +313,7 @@ public class ItemTag extends TagSupport
     {
         try
         {
-            if (style == null || style.equals(""))
-            {
-                style = styleSelection.getStyleForItem(item);
-            }
-
-            if (style.equals("full"))
+        	 if (style!=null && style.equals("full"))
             {
                 renderFull();
             }

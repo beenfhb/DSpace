@@ -24,19 +24,19 @@ import org.dspace.core.Context;
  */
 public abstract class AKeyBasedStyleSelection implements StyleSelection
 {   
-    public String[] getConfigurationForStyle(Context context, String style, HttpServletRequest request) throws SQLException
+    public String getConfigurationForStyle(Context context, String style, HttpServletRequest request) throws SQLException
     {
     	Locale locale = UIUtil.getSessionLocale(request);
 		if (locale != null) {
 			String localeStyle = locale.getLanguage() + "." + style;
 			String config = DSpaceServicesFactory.getInstance().getConfigurationService()
-                .getArrayProperty("webui.itemdisplay." + localStyle);
+                .getProperty("webui.itemdisplay." + localeStyle);
 			if (config != null) {
 				return config;
 			}
 		}
         return DSpaceServicesFactory.getInstance().getConfigurationService()
-                .getArrayProperty("webui.itemdisplay." + style);
+                .getProperty("webui.itemdisplay." + style);
     }
     
     public boolean isConfigurationDefinedForStyle(Context context, String style, HttpServletRequest request) throws SQLException
@@ -45,7 +45,7 @@ public abstract class AKeyBasedStyleSelection implements StyleSelection
 		if (locale != null) {
 			String localeStyle = locale.getLanguage() + "." + style;
 			String config = DSpaceServicesFactory.getInstance().getConfigurationService()
-                .getArrayProperty("webui.itemdisplay." + localStyle);
+                .getProperty("webui.itemdisplay." + localeStyle);
 			if (config != null) {
 				return true;
 			}
