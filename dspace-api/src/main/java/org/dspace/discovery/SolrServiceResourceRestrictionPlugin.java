@@ -10,7 +10,6 @@ package org.dspace.discovery;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -96,7 +95,7 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                 //Retrieve all the groups the current user is a member of !
                 List<Group> groupIds = EPersonServiceFactory.getInstance().getGroupService().allMemberGroups(context, currentUser);
 				for (Group group : groupIds) {
-					if (!group.getIsNotRelevant()) {
+					if (!group.isNotRelevant()) {
 						resourceQuery.append(" OR g").append(group.getID());
 					}
 				}
