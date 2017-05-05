@@ -244,6 +244,12 @@ public class AuthorizeServiceImpl implements AuthorizeService
             return true;
         }
 
+        // If authorization was given before and cached
+        Boolean cachedResult = c.getCachedAuthorizationResult(o, action, e);
+        if (cachedResult != null) {
+            return cachedResult.booleanValue();
+        }
+
         // is eperson set? if not, userToCheck = null (anonymous)
         EPerson userToCheck = null;
         if (e != null)
@@ -256,6 +262,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
 
             if (isAdmin(c, adminObject))
             {
+                c.cacheAuthorizedAction(o, action, e, true, null);
                 return true;
             }
         }
@@ -297,6 +304,11 @@ public class AuthorizeServiceImpl implements AuthorizeService
             if (ignoreCustomPolicies
                     && ResourcePolicy.TYPE_CUSTOM.equals(rp.getRpType()))
             {
+                if(c.isReadOnly()) {
+                    //When we are in read-only mode, we will cache authorized actions in a different way
+                    //So we remove this resource policy from the cache.
+                    c.uncacheEntity(rp);
+                }
                 continue;
             }
 
@@ -305,6 +317,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
             {
                 if (rp.getEPerson() != null && rp.getEPerson().equals(userToCheck))
                 {
+                    c.cacheAuthorizedAction(o, action, e, true, rp);
                     return true; // match
                 }
 
@@ -313,12 +326,20 @@ public class AuthorizeServiceImpl implements AuthorizeService
                 {
                     // group was set, and eperson is a member
                     // of that group
+                    c.cacheAuthorizedAction(o, action, e, true, rp);
                     return true;
                 }
+            }
+
+            if(c.isReadOnly()) {
+                //When we are in read-only mode, we will cache authorized actions in a different way
+                //So we remove this resource policy from the cache.
+                c.uncacheEntity(rp);
             }
         }
 
         // default authorization is denial
+        c.cacheAuthorizedAction(o, action, e, false, null);
         return false;
     }
 
@@ -361,6 +382,11 @@ public class AuthorizeServiceImpl implements AuthorizeService
             return false;
         }
 
+        Boolean cachedResult = c.getCachedAuthorizationResult(o, Constants.ADMIN, c.getCurrentUser());
+        if (cachedResult != null) {
+            return cachedResult.booleanValue();
+        }
+
         //
         // First, check all Resource Policies directly on this object
         //
@@ -373,6 +399,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
             {
                 if (rp.getEPerson() != null && rp.getEPerson().equals(c.getCurrentUser()))
                 {
+                    c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), true, rp);
                     return true; // match
                 }
 
@@ -381,8 +408,15 @@ public class AuthorizeServiceImpl implements AuthorizeService
                 {
                     // group was set, and eperson is a member
                     // of that group
+                    c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), true, rp);
                     return true;
                 }
+            }
+
+            if(c.isReadOnly()) {
+                //When we are in read-only mode, we will cache authorized actions in a different way
+                //So we remove this resource policy from the cache.
+                c.uncacheEntity(rp);
             }
         }
 
@@ -393,11 +427,14 @@ public class AuthorizeServiceImpl implements AuthorizeService
         if(o.haveHierarchy()) {
             AuthorizableEntity parent = (AuthorizableEntity)(serviceFactory.getDSpaceObjectService((DSpaceObject)o).getParentObject(c, (DSpaceObject)o));
             if (parent != null)
-            {
-                return isAdmin(c, parent);
-            }        	
+			{
+            	boolean admin = isAdmin(c, parent);
+            	c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), admin, null);
+            	return admin;
+			}
         }
 
+        c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), false, null);
         return false;
     }
 
@@ -644,13 +681,14 @@ public class AuthorizeServiceImpl implements AuthorizeService
     @Override
     public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, AuthorizableEntity dso, Group group, int action, int policyID) throws SQLException
     {
-        return findByTypeIdGroupAction(c, dso, group, action, policyID) != null;
+        return !resourcePolicyService.findByTypeGroupActionExceptId(c, dso, group, action, policyID).isEmpty();
     }
 
     @Override
-    public ResourcePolicy findByTypeIdGroupAction(Context c, AuthorizableEntity dso, Group group, int action, int policyID) throws SQLException
+    public ResourcePolicy findByTypeGroupAction(Context c, DSpaceObject dso, Group group, int action)
+            throws SQLException
     {
-        List<ResourcePolicy> policies = resourcePolicyService.find(c, dso, group, action, policyID);
+        List<ResourcePolicy> policies = resourcePolicyService.find(c, dso, group, action);
 
         if (CollectionUtils.isNotEmpty(policies))
         {
@@ -659,7 +697,6 @@ public class AuthorizeServiceImpl implements AuthorizeService
             return null;
         }
     }
-
 
     /**
      * Generate Policies policies READ for the date in input adding reason. New policies are assigned automatically at the groups that
@@ -736,12 +773,19 @@ public class AuthorizeServiceImpl implements AuthorizeService
     public ResourcePolicy createOrModifyPolicy(ResourcePolicy policy, Context context, String name, Group group, EPerson ePerson,
                                                       Date embargoDate, int action, String reason, AuthorizableEntity dso) throws AuthorizeException, SQLException
     {
+        ResourcePolicy policyTemp = null;
+        if (policy != null)
+        {
+            List<ResourcePolicy> duplicates = resourcePolicyService.findByTypeGroupActionExceptId(context, dso, group, action, policy.getID());
+            if (!duplicates.isEmpty())
+            {
+                policy = duplicates.get(0);
+            }
+        } else {
+            // if an identical policy (same Action and same Group) is already in place modify it...
+            policyTemp = findByTypeGroupAction(context, dso, group, action);
+        }
 
-        int policyID = -1;
-        if (policy != null) policyID = policy.getID();
-
-        // if an identical policy (same Action and same Group) is already in place modify it...
-        ResourcePolicy policyTemp = findByTypeIdGroupAction(context, dso, group, action, policyID);
         if (policyTemp != null)
         {
             policy = policyTemp;

@@ -8,9 +8,6 @@
 package org.dspace.discovery;
 
 
-import java.sql.SQLException;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrInputDocument;
@@ -29,6 +26,10 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Restriction plugin that ensures that indexes all the resource policies.
@@ -69,6 +70,9 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                 }
 
                 document.addField("read", fieldValue);
+
+                //remove the policy from the cache to save memory
+                context.uncacheEntity(resourcePolicy);
             }
         } catch (SQLException e) {
             log.error(LogManager.getHeader(context, "Error while indexing resource policies", "DSpace object: (id " + dso.getID() + " type " + dso.getType() + ")"));
@@ -93,12 +97,12 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                 }
 
                 //Retrieve all the groups the current user is a member of !
-                List<Group> groupIds = EPersonServiceFactory.getInstance().getGroupService().allMemberGroups(context, currentUser);
-				for (Group group : groupIds) {
+                Set<Group> groups = groupService.allMemberGroupsSet(context, currentUser);
+                for (Group group : groups) {
 					if (!group.isNotRelevant()) {
-						resourceQuery.append(" OR g").append(group.getID());
+                    	resourceQuery.append(" OR g").append(group.getID());
 					}
-				}
+                }
 
                 resourceQuery.append(")"); 
                 

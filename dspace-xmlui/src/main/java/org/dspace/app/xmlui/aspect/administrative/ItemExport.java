@@ -247,7 +247,7 @@ public class ItemExport extends AbstractDSpaceTransformer implements
 
 					validity.add(context, (BrowsableDSpaceObject)eperson);
 
-					java.util.List<Group> groups = groupService.allMemberGroups(context, eperson);
+					java.util.Set<Group> groups = groupService.allMemberGroupsSet(context, eperson);
 					for (Group group : groups) {
 						validity.add(context, (BrowsableDSpaceObject)group);
 					}

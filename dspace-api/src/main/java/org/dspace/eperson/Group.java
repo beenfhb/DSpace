@@ -29,6 +29,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -37,6 +38,8 @@ import org.hibernate.proxy.HibernateProxyHelper;
  * @author David Stuve
  */
 @Entity
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
 @Table(name = "epersongroup" )
 public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 {

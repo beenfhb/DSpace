@@ -9,8 +9,7 @@ package org.dspace.app.xmlui.aspect.discovery;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.environment.ObjectModelHelper;
@@ -21,25 +20,16 @@ import org.dspace.app.xmlui.utils.HandleUtil;
 import org.dspace.app.xmlui.utils.UIException;
 import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
-import org.dspace.app.xmlui.wing.element.Body;
-import org.dspace.app.xmlui.wing.element.Cell;
-import org.dspace.app.xmlui.wing.element.Division;
+import org.dspace.app.xmlui.wing.element.*;
 import org.dspace.app.xmlui.wing.element.Item;
 import org.dspace.app.xmlui.wing.element.List;
-import org.dspace.app.xmlui.wing.element.PageMeta;
-import org.dspace.app.xmlui.wing.element.Row;
-import org.dspace.app.xmlui.wing.element.Select;
-import org.dspace.app.xmlui.wing.element.Table;
-import org.dspace.app.xmlui.wing.element.Text;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.Community;
-import org.dspace.content.DSpaceObject;
-import org.dspace.discovery.SearchServiceException;
-import org.dspace.discovery.SearchUtils;
+import org.dspace.content.*;
+import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.discovery.*;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.xml.sax.SAXException;
 
 /**
@@ -123,6 +113,9 @@ public class SimpleSearch extends AbstractSearch implements CacheableProcessingC
     public void addBody(Body body) throws SAXException, WingException,
             SQLException, IOException, AuthorizeException {
 
+        Context.Mode originalMode = context.getCurrentMode();
+        context.setMode(Context.Mode.READ_ONLY);
+
         Request request = ObjectModelHelper.getRequest(objectModel);
         String queryString = getQuery();
 
@@ -167,7 +160,7 @@ public class SimpleSearch extends AbstractSearch implements CacheableProcessingC
         }
 
         DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
         java.util.List<DiscoverySearchFilter> filterFields = discoveryConfiguration.getSearchFilters();
         java.util.List<String> filterTypes = DiscoveryUIUtils.getRepeatableParameters(request, "filtertype");
         java.util.List<String> filterOperators = DiscoveryUIUtils.getRepeatableParameters(request, "filter_relational_operator");
@@ -242,6 +235,7 @@ public class SimpleSearch extends AbstractSearch implements CacheableProcessingC
             throw new UIException(e.getMessage(), e);
         }
 
+        context.setMode(originalMode);
     }
 
     protected void addFilterRow(java.util.List<DiscoverySearchFilter> filterFields, int index, Row row, String selectedFilterType, String relationalOperator, String value) throws WingException {

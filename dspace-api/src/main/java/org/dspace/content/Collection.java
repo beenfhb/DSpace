@@ -7,22 +7,7 @@
  */
 package org.dspace.content;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
+import org.dspace.content.comparator.NameAscendingComparator;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -30,8 +15,15 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.Group;
-import org.dspace.handle.factory.HandleServiceFactory;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
+import org.dspace.handle.factory.HandleServiceFactory;
+
+import javax.persistence.*;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Class representing a collection.
@@ -49,7 +41,9 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="collection")
-public class Collection extends DSpaceObject implements BrowsableDSpaceObject, DSpaceObjectLegacySupport, IGlobalSearchResult
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
+public class Collection extends DSpaceObject implements DSpaceObjectLegacySupport
 {
 
     @Column(name="collection_id", insertable = false, updatable = false)
@@ -278,6 +272,7 @@ public class Collection extends DSpaceObject implements BrowsableDSpaceObject, D
      */
     public List<Community> getCommunities() throws SQLException
     {
+        Collections.sort(communities, new NameAscendingComparator());
         return communities;
     }
 

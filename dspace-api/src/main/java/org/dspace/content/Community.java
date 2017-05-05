@@ -26,6 +26,7 @@ import javax.persistence.Transient;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.comparator.NameAscendingComparator;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectService;
@@ -34,6 +35,7 @@ import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.Group;
 import org.dspace.handle.factory.HandleServiceFactory;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -48,7 +50,9 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="community")
-public class Community extends DSpaceObject implements BrowsableDSpaceObject, DSpaceObjectLegacySupport, IGlobalSearchResult
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
+public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
 {
     /** log4j category */
     private static final Logger log = Logger.getLogger(Community.class);
@@ -158,6 +162,7 @@ public class Community extends DSpaceObject implements BrowsableDSpaceObject, DS
      */
     public List<Collection> getCollections()
     {
+        Collections.sort(collections, new NameAscendingComparator());
         return collections;
     }
 
@@ -180,6 +185,7 @@ public class Community extends DSpaceObject implements BrowsableDSpaceObject, DS
      */
     public List<Community> getSubcommunities()
     {
+        Collections.sort(subCommunities, new NameAscendingComparator());
         return subCommunities;
     }
 
@@ -191,6 +197,7 @@ public class Community extends DSpaceObject implements BrowsableDSpaceObject, DS
      */
     public List<Community> getParentCommunities()
     {
+        Collections.sort(parentCommunities, new NameAscendingComparator());
         return parentCommunities;
     }
 

@@ -31,6 +31,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -40,6 +41,8 @@ import org.hibernate.proxy.HibernateProxyHelper;
  * @version $Revision$
  */
 @Entity
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
 @Table(name = "eperson")
 public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
 {
