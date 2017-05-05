@@ -27,6 +27,7 @@ import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.app.xmlui.wing.element.Para;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -111,19 +112,19 @@ public class CommunitySearch extends AbstractDSpaceTransformer implements Cachea
 	            community = (Community) dso;
 
 	            DSpaceValidity validity = new DSpaceValidity();
-	            validity.add(context, community);
+	            validity.add(context, (BrowsableDSpaceObject)community);
 
 	            List<Community> subCommunities = community.getSubcommunities();
 	            List<Collection> collections = community.getCollections();
 	            // Sub communities
 	            for (Community subCommunity : subCommunities)
 	            {
-	                validity.add(context, subCommunity);
+	                validity.add(context, (BrowsableDSpaceObject)subCommunity);
 	            }
 	            // Sub collections
 	            for (Collection collection : collections)
 	            {
-	                validity.add(context, collection);
+	                validity.add(context, (BrowsableDSpaceObject)collection);
 	            }
 
 	            this.validity = validity.complete();

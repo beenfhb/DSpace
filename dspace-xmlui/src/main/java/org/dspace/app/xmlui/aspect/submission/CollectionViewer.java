@@ -114,7 +114,7 @@ public class CollectionViewer extends AbstractDSpaceTransformer implements Cache
 	            DSpaceValidity validity = new DSpaceValidity();
 	            
 	            // Add the actual collection;
-	            validity.add(context, collection);
+	            validity.add(context, (BrowsableDSpaceObject)collection);
 	            
 	            // Add the eperson viewing the collection
 	            validity.add(context, (BrowsableDSpaceObject)eperson);

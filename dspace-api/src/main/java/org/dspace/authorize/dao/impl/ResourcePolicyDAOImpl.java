@@ -75,7 +75,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByTypeGroupAction(Context context, DSpaceObject dso, Group group, int action) throws SQLException {
+    public List<ResourcePolicy> findByTypeGroupAction(Context context, AuthorizableEntity dso, Group group, int action) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
                 Restrictions.eq("dSpaceObject", dso),
@@ -87,7 +87,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
     
     @Override
-    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, DSpaceObject dso, Group group, int action, int notPolicyID) throws SQLException {
+    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
                 Restrictions.eq("dSpaceObject", dso),

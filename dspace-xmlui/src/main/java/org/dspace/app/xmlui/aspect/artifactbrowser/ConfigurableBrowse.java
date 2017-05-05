@@ -184,7 +184,7 @@ public class ConfigurableBrowse extends AbstractDSpaceTransformer implements
 
                 if (dso != null)
                 {
-                    validity.add(context, dso);
+                    validity.add(context, (BrowsableDSpaceObject)dso);
                 }
                 
                 BrowseInfo info = getBrowseInfo();
@@ -848,7 +848,7 @@ public class ConfigurableBrowse extends AbstractDSpaceTransformer implements
         try
         {
             // Create a new browse engine, and perform the browse
-            BrowseEngine be = new BrowseEngine(context);
+            BrowseEngine be = new BrowseEngine(context, context.getCurrentLocale().toString());
             this.browseInfo = be.browse(params.scope);
 
             // figure out the setting for author list truncation

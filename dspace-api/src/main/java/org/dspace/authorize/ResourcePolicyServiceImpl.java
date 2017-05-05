@@ -108,7 +108,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     }
 
     @Override
-    public List<ResourcePolicy> find(Context c, DSpaceObject dso, Group group, int action) throws SQLException {
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity dso, Group group, int action) throws SQLException {
         return resourcePolicyDAO.findByTypeGroupAction(c, dso, group, action);
     }
     
@@ -118,7 +118,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
     }
     
     @Override
-    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, DSpaceObject dso, Group group, int action, int notPolicyID)
+    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID)
             throws SQLException
     {
         return resourcePolicyDAO.findByTypeGroupActionExceptId(context, dso, group, action, notPolicyID);

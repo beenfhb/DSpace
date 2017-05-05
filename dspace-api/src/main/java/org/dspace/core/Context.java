@@ -13,6 +13,7 @@ import java.util.EmptyStackException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
 
@@ -20,6 +21,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.content.Item;
 import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.DSpaceObject;
 import org.dspace.eperson.EPerson;
@@ -808,7 +810,7 @@ public class Context
         dbConnection.uncacheEntity(entity);
     }
 
-    public Boolean getCachedAuthorizationResult(DSpaceObject dspaceObject, int action, EPerson eperson) {
+    public Boolean getCachedAuthorizationResult(AuthorizableEntity dspaceObject, int action, EPerson eperson) {
         if(isReadOnly()) {
             return readOnlyCache.getCachedAuthorizationResult(dspaceObject, action, eperson);
         } else {
@@ -816,7 +818,7 @@ public class Context
         }
     }
 
-    public void cacheAuthorizedAction(DSpaceObject dspaceObject, int action, EPerson eperson, Boolean result, ResourcePolicy rp) {
+    public void cacheAuthorizedAction(AuthorizableEntity dspaceObject, int action, EPerson eperson, Boolean result, ResourcePolicy rp) {
         if(isReadOnly()) {
             readOnlyCache.cacheAuthorizedAction(dspaceObject, action, eperson, result);
             try {

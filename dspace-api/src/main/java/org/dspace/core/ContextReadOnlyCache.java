@@ -7,17 +7,18 @@
  */
 package org.dspace.core;
 
+import java.util.HashMap;
+import java.util.Set;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.content.DSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.springframework.util.CollectionUtils;
-
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * Object that manages the read-only caches for the Context class
@@ -41,11 +42,11 @@ public class ContextReadOnlyCache {
      */
     private final HashMap<String, Set<Group>> allMemberGroupsCache = new HashMap<>();
 
-    public Boolean getCachedAuthorizationResult(DSpaceObject dspaceObject, int action, EPerson eperson) {
+    public Boolean getCachedAuthorizationResult(AuthorizableEntity dspaceObject, int action, EPerson eperson) {
         return authorizedActionsCache.get(buildAuthorizedActionKey(dspaceObject, action, eperson));
     }
 
-    public void cacheAuthorizedAction(DSpaceObject dspaceObject, int action, EPerson eperson, Boolean result) {
+    public void cacheAuthorizedAction(AuthorizableEntity dspaceObject, int action, EPerson eperson, Boolean result) {
         authorizedActionsCache.put(buildAuthorizedActionKey(dspaceObject, action, eperson), result);
     }
 
@@ -89,7 +90,7 @@ public class ContextReadOnlyCache {
         return ePerson == null ? "" : ePerson.getID().toString();
     }
 
-    private ImmutableTriple<String, Integer, String> buildAuthorizedActionKey(DSpaceObject dspaceObject, int action, EPerson eperson) {
+    private ImmutableTriple<String, Integer, String> buildAuthorizedActionKey(AuthorizableEntity dspaceObject, int action, EPerson eperson) {
         return new ImmutableTriple<>(dspaceObject == null ? "" : dspaceObject.getID().toString(),
                 Integer.valueOf(action),
                 eperson == null ? "" : eperson.getID().toString());

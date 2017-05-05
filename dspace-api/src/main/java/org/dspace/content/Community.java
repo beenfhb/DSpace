@@ -9,9 +9,11 @@ package org.dspace.content;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,7 +34,6 @@ import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.Group;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -52,7 +53,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name="community")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
-public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
+public class Community extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
 {
     /** log4j category */
     private static final Logger log = Logger.getLogger(Community.class);

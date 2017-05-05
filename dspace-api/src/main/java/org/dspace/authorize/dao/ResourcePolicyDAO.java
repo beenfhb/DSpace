@@ -34,7 +34,7 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
 
     public List<ResourcePolicy> findByDSoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException;
 
-    public List<ResourcePolicy> findByTypeGroupAction(Context context, DSpaceObject dso, Group group, int action) throws SQLException;
+    public List<ResourcePolicy> findByTypeGroupAction(Context context, AuthorizableEntity dso, Group group, int action) throws SQLException;
     
     /**
      * Look for ResourcePolicies by DSpaceObject, Group, and action, ignoring IDs with a specific PolicyID.
@@ -43,7 +43,7 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
      * @return List of resource policies for the same DSpaceObject, group and action but other policyID.
      * @throws SQLException 
      */
-    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, DSpaceObject dso, Group group, int action, int notPolicyID) throws SQLException;
+    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException;
     
     public List<ResourcePolicy> findByEPersonGroupTypeIdAction(Context context, EPerson e, List<Group> groups, int action, int type_id) throws SQLException;
 

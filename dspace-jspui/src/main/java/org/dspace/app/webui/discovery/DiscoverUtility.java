@@ -71,11 +71,11 @@ public class DiscoverUtility
         {
             if (UIUtil.getCollectionLocation(request) != null)
             {
-                return UIUtil.getCollectionLocation(request);
+                return (BrowsableDSpaceObject)UIUtil.getCollectionLocation(request);
             }
             if (UIUtil.getCommunityLocation(request) != null)
             {
-                return UIUtil.getCommunityLocation(request);
+                return (BrowsableDSpaceObject)UIUtil.getCommunityLocation(request);
             }
             return null;
         }

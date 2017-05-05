@@ -317,7 +317,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 				throw new SearchProcessorException(e.getMessage(), e);
 			}
 			for (Community com : topCommunities) {
-				scopes.add(com);
+				scopes.add((BrowsableDSpaceObject)com);
 			}
 		} else {
 			try {
@@ -333,11 +333,11 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 				if (scope instanceof Community) {
 					List<Community> comms = ((Community) scope).getSubcommunities();
 					for (Community com : comms) {
-						scopes.add(com);
+						scopes.add((BrowsableDSpaceObject)com);
 					}
 					List<Collection> colls = ((Community) scope).getCollections();
 					for (Collection col : colls) {
-						scopes.add(col);
+						scopes.add((BrowsableDSpaceObject)col);
 					}
 				}
 			} catch (SQLException e) {

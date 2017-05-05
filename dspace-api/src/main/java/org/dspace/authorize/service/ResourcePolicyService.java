@@ -34,7 +34,7 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
 
     public List<ResourcePolicy> find(Context c, AuthorizableEntity o, int actionId) throws SQLException;
 
-    public List<ResourcePolicy> find(Context c, DSpaceObject dso, Group group, int action) throws SQLException;
+    public List<ResourcePolicy> find(Context c, AuthorizableEntity dso, Group group, int action) throws SQLException;
 
     public List<ResourcePolicy> find(Context context, Group group) throws SQLException;
     
@@ -47,7 +47,7 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
      * @return List of resource policies for the same DSpaceObject, group and action but other policyID.
      * @throws SQLException 
      */
-    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, DSpaceObject dso, Group group, int action, int notPolicyID)
+    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID)
             throws SQLException;
 
     public String getActionText(ResourcePolicy resourcePolicy);

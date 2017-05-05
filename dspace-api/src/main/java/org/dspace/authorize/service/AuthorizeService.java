@@ -411,7 +411,7 @@ public interface AuthorizeService {
      */
     public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, AuthorizableEntity o, Group group, int actionID, int policyID) throws SQLException;
     
-    public ResourcePolicy findByTypeGroupAction(Context c, DSpaceObject dso, Group group, int action) throws SQLException;
+    public ResourcePolicy findByTypeGroupAction(Context c, AuthorizableEntity dso, Group group, int action) throws SQLException;
 
 
     /**

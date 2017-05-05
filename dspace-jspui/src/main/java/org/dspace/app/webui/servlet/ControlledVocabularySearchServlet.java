@@ -171,7 +171,7 @@ public class ControlledVocabularySearchServlet extends DSpaceServlet
                 request.setAttribute("community", community);
                 request.setAttribute("collection", collection);
 
-                qResults = SearchUtils.getSearchService().search(context, collection, qArgs);
+                qResults = SearchUtils.getSearchService().search(context, (BrowsableDSpaceObject)collection, qArgs);
             }
             else if (community != null)
             {
@@ -179,7 +179,7 @@ public class ControlledVocabularySearchServlet extends DSpaceServlet
 
                 request.setAttribute("community", community);
 
-                qResults = SearchUtils.getSearchService().search(context, community, qArgs);
+                qResults = SearchUtils.getSearchService().search(context, (BrowsableDSpaceObject)community, qArgs);
             }
             else
             {

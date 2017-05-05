@@ -22,6 +22,7 @@ import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.*;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -126,7 +127,7 @@ public class CollectionSearch extends AbstractDSpaceTransformer implements Cache
 	            DSpaceValidity validity = new DSpaceValidity();
 
 	            // Add the actual collection;
-	            validity.add(context, collection);
+	            validity.add(context, (BrowsableDSpaceObject)collection);
 
 	            this.validity = validity.complete();
 	        }

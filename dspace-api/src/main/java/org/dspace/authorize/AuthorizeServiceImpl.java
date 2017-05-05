@@ -685,7 +685,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public ResourcePolicy findByTypeGroupAction(Context c, DSpaceObject dso, Group group, int action)
+    public ResourcePolicy findByTypeGroupAction(Context c, AuthorizableEntity dso, Group group, int action)
             throws SQLException
     {
         List<ResourcePolicy> policies = resourcePolicyService.find(c, dso, group, action);
