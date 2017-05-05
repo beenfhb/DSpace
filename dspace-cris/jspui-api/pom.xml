@@ -43,26 +43,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			  <exclusions>
-			  		<exclusion>
-	          			<groupId>org.hibernate.common</groupId>
-	          			<artifactId>hibernate-commons-annotations</artifactId>
-	        		</exclusion>
-			  </exclusions>				
-		</dependency>
-
-		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
 
 		<!-- JAX-RS: Java API for RESTful Web Services -->
 		<dependency>
-			<groupId>asm</groupId>
-			<artifactId>asm</artifactId>
-			<version>3.1</version>
+		    <groupId>org.ow2.asm</groupId>
+		    <artifactId>asm</artifactId>
+		    <version>4.1</version>
 		</dependency>
 
 		<!-- obtained from JEE5 Reference SDK -->

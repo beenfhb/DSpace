@@ -98,13 +98,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-		
-		
-			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-entitymanager</artifactId>
-				<version>${org.hibernate.entitymanager.version}</version>
-			</dependency>
 						        
 			<dependency>
 				<groupId>org.hibernate</groupId>
