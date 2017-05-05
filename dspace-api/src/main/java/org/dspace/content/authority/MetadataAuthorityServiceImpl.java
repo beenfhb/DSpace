@@ -124,16 +124,29 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
                             element = element.substring(0, dot);
                         }
 
-
+                        String fkey = null;
                         MetadataField metadataField = metadataFieldService.findByElement(context, schema, element, qualifier);
                         if(metadataField == null)
                         {
-                            throw new IllegalStateException("Error while configuring authority control, metadata field: " + field + " could not be found");
+							log.warn("Error while configuring authority control, metadata field: " + field
+									+ " could not be found");
+							log.warn(
+									"Instead thrown exception add the follow field to the authority controlled environment: "
+											+ field);
+
+							if (qualifier == null) {
+								fkey = schema + "_" + element;
+							} else {
+								fkey = schema + "_" + element + "_" + qualifier;
+							}
+                        }
+                        else {
+                        	fkey = metadataField.toString();
                         }
                         boolean ctl = ConfigurationManager.getBooleanProperty(key, true);
                         boolean req = ConfigurationManager.getBooleanProperty("authority.required."+field, false);
-                        controlled.put(metadataField.toString(), ctl);
-                        isAuthorityRequired.put(metadataField.toString(), req);
+                        controlled.put(fkey, ctl);
+                        isAuthorityRequired.put(fkey, req);
 
                         // get minConfidence level for this field if any
                         int mci = readConfidence("authority.minconfidence."+field);
