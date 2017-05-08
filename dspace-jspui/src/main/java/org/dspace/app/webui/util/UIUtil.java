@@ -49,6 +49,8 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.core.service.NewsService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -93,6 +95,8 @@ public class UIUtil extends Util
     private static DOIService doiService;
 
     private static HandleService handleService;
+    
+    private static NewsService newsService;
 
     private static synchronized void initialize()
     {
@@ -107,6 +111,7 @@ public class UIUtil extends Util
         identifierService = IdentifierServiceFactory.getInstance()
                 .getIdentifierService();
         personService = EPersonServiceFactory.getInstance().getEPersonService();
+        newsService = CoreServiceFactory.getInstance().getNewsService();
     }
 
 	private static final Set<String> RTL;
@@ -729,4 +734,14 @@ public class UIUtil extends Util
         return RTL.contains(locale.getLanguage());
     }
     
+    /**
+     * 
+     * Wrapper method 
+     * 
+     * @param newsFile
+     * @return
+     */
+    public static String readNewsFile(String newsFile) {
+    	return newsService.readNewsFile(newsFile);
+    }
 }

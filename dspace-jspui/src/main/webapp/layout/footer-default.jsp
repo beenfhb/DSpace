@@ -19,13 +19,13 @@
 
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
-<%@ page import="org.dspace.core.NewsManager" %>
+
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@ page import="org.dspace.app.webui.util.LocaleUIHelper" %>
 
 <%
-	String footerNews = NewsManager.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-footer.html"));
+	String footerNews = UIUtil.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-footer.html"));
     String sidebar = (String) request.getAttribute("dspace.layout.sidebar");
 	String[] mlinks = new String[0];
 	String mlinksConf = ConfigurationManager.getProperty("cris","navbar.cris-entities");

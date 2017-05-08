@@ -108,18 +108,19 @@
 		src='<%= request.getContextPath() %>/js/dedup-function.js'></script>
 	<script type='text/javascript'
 		src='<%= request.getContextPath() %>/js/dedup-behaviour.js'></script>
-			
-    <%
-
-    <dspace:include page="/layout/google-analytics-snippet.jsp" />
+		
+		
+    <%    
     if (extraHeadDataLast != null)
-    { %>
+    { 
+    %>
         <%= extraHeadDataLast %>
-        <%
+    <%
     }
     %>
     
-
+	<dspace:include page="/layout/google-analytics-snippet.jsp" />
+	
 <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!--[if lt IE 9]>
   <script src="<%= request.getContextPath() %>/static/js/html5shiv.js"></script>
