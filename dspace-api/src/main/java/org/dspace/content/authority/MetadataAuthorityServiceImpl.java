@@ -96,10 +96,8 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
             isAuthorityRequired = new HashMap<String,Boolean>();
             Enumeration pn = ConfigurationManager.propertyNames();
             final String authPrefix = "authority.controlled.";
-            Context context = null;
-            
-            try {
-            	context = new Context();
+            Context context = new Context();
+            try {            	
             	authorityDAO = AuthorityDAOFactory.getInstance(context);
                 while (pn.hasMoreElements())
                 {
@@ -160,11 +158,7 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
             } catch (SQLException e) {
                 log.error("Error reading authority config", e);
             }
-            finally {
-				if(context!=null && context.isValid()) {
-					context.abort();
-				}
-			}
+
 
             // get default min confidence if any:
             int dmc = readConfidence("authority.minconfidence");
