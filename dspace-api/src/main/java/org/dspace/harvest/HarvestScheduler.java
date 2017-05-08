@@ -7,6 +7,14 @@
  */
 package org.dspace.harvest;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Stack;
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -17,10 +25,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.harvest.factory.HarvestServiceFactory;
 import org.dspace.harvest.service.HarvestedCollectionService;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * The class responsible for scheduling harvesting cycles are regular intervals.

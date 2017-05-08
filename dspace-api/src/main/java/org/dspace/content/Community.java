@@ -299,7 +299,7 @@ public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
 	}
 
 	@Override
-	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
 		return getCommunityService().getMetadata(this, schema, element, qualifier, lang);
 	}
 

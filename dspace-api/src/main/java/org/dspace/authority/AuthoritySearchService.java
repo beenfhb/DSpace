@@ -7,12 +7,12 @@
  */
 package org.dspace.authority;
 
+import java.net.MalformedURLException;
+import java.util.List;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
-
-import java.net.MalformedURLException;
-import java.util.List;
 
 /**
  *

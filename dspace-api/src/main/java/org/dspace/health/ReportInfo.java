@@ -7,12 +7,12 @@
  */
 package org.dspace.health;
 
-import java.util.Date;
-import java.util.GregorianCalendar;
-
 import static java.util.Calendar.DAY_OF_MONTH;
 import static java.util.Calendar.MONTH;
 import static java.util.Calendar.YEAR;
+
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Information about a report run accessible by each check.

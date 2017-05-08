@@ -135,7 +135,7 @@ public class PackageUtils
     public static void checkItemMetadata(Item item)
         throws PackageValidationException
     {
-        List<MetadataValue> t = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+        List<IMetadataValue> t = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
         if (t == null || t.size() == 0)
         {
             throw new PackageValidationException("Item cannot be created without the required \"title\" DC metadata.");

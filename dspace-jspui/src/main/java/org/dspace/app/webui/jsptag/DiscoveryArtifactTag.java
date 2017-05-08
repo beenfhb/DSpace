@@ -30,8 +30,9 @@ import org.dspace.app.webui.util.ResolverDisplayStrategy;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -218,7 +219,7 @@ public class DiscoveryArtifactTag extends BodyTagSupport {
 		}
 		boolean unescapeHtml = false;
 		List<String> metadataValue = new ArrayList<String>();		
-		List<MetadataValue> dcMetadataValue = new ArrayList<MetadataValue>();
+		List<IMetadataValue> dcMetadataValue = new ArrayList<>();
 		String metadata = "";
 		if (hls != null) {
 			for (String[] hl : hls) {
@@ -227,21 +228,21 @@ public class DiscoveryArtifactTag extends BodyTagSupport {
 					metadata = hl[0];
 				} else {
 					unescapeHtml = true;
-					MetadataValue MetadataValue = new MetadataValue();
-					MetadataValue.setValue(hl[0]);
+					MetadataValueVolatile IMetadataValue = new MetadataValueVolatile();
+					IMetadataValue.setValue(hl[0]);
 					if (hl.length > 1) {
-						MetadataValue.setAuthority(hl[1]);		
+						IMetadataValue.setAuthority(hl[1]);		
 					}
-					MetadataValue.schema = schema;
-					MetadataValue.element = element;
-					MetadataValue.qualifier = qualifier;
-					MetadataValue.setConfidence(Choices.CF_ACCEPTED);
-					dcMetadataValue.add(MetadataValue);
+					IMetadataValue.schema = schema;
+					IMetadataValue.element = element;
+					IMetadataValue.qualifier = qualifier;
+					IMetadataValue.setConfidence(Choices.CF_ACCEPTED);
+					dcMetadataValue.add(IMetadataValue);
 				}
 			}
 		}
 		if ((!founded && dvfc.isMandatory()) || (founded && dvfc.getDecorator() != null)) {
-            List<MetadataValue> arrayDcMetadataValue = artifact
+            List<IMetadataValue> arrayDcMetadataValue = artifact
                     .getMetadataValueInDCFormat(field);      
             if (arrayDcMetadataValue == null || arrayDcMetadataValue.size() == 0) {
             	return;
@@ -276,7 +277,7 @@ public class DiscoveryArtifactTag extends BodyTagSupport {
 						}
 					}
 				} else {
-					for (MetadataValue vl : dcMetadataValue) {
+					for (IMetadataValue vl : dcMetadataValue) {
 						metadata += vl.getValue();
 						if (arrayDcMetadataValue.size() > 1) {
 							metadata +=  dvfc.getSeparator();

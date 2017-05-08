@@ -8,17 +8,30 @@
 package org.dspace.statistics;
 
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import com.maxmind.geoip.Location;
-import com.maxmind.geoip.LookupService;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
@@ -26,14 +39,12 @@ import org.dspace.statistics.service.ElasticSearchLoggerService;
 import org.dspace.statistics.util.DnsLookup;
 import org.dspace.statistics.util.LocationUtils;
 import org.dspace.statistics.util.SpiderDetector;
-
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequestBuilder;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Client;
-
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
@@ -44,13 +55,12 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.*;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import com.maxmind.geoip.Location;
+import com.maxmind.geoip.LookupService;
 
 /*
  * @deprecated  As of DSpace 6.0, ElasticSearch statistics are replaced by Solr statistics
@@ -76,6 +86,9 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
 
     protected Client client;
 
+    @Autowired
+    private SpiderDetector spiderDetector;
+    
     protected ElasticSearchLoggerServiceImpl() {
         // nobody should be instantiating this...
     }
@@ -191,7 +204,7 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
 
         client = getClient();
 
-        boolean isSpiderBot = SpiderDetector.isSpider(request);
+        boolean isSpiderBot = spiderDetector.isSpider(request);
 
         try {
             if (isSpiderBot &&
@@ -313,7 +326,7 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
 
         client = getClient();
 
-        boolean isSpiderBot = SpiderDetector.isSpider(ip);
+        boolean isSpiderBot = spiderDetector.isSpider(ip);
 
         try {
             if (isSpiderBot &&
@@ -625,5 +638,10 @@ public class ElasticSearchLoggerServiceImpl implements ElasticSearchLoggerServic
             return configDrivenValue;
         }
     }
+    
+
+	public void setSpiderDetector(SpiderDetector spiderDetector) {
+		this.spiderDetector = spiderDetector;
+	}
 
 }

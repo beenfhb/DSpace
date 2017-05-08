@@ -20,7 +20,8 @@ import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authority.orcid.OrcidService;
 import org.dspace.authority.orcid.jaxb.OrcidProfile;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -186,9 +187,9 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
                 	eperson.setEmail(email!=null?email:orcid);
                 } 
                 //eperson.setMetadata("access_token",token);
-                List<MetadataValue> md = ePersonService.getMetadata(eperson, "eperson", "orcid", null, null);
+                List<IMetadataValue> md = ePersonService.getMetadata(eperson, "eperson", "orcid", null, null);
                 boolean found = false;
-                for (MetadataValue m : md)
+                for (IMetadataValue m : md)
                 {
                     if (StringUtils.equals(m.getValue(), orcid))
                     {

@@ -7,6 +7,13 @@
  */
 package org.dspace.sword2;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -21,14 +28,14 @@ import org.dspace.core.LogManager;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-import org.swordapp.server.*;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import org.swordapp.server.AuthCredentials;
+import org.swordapp.server.ContainerManager;
+import org.swordapp.server.Deposit;
+import org.swordapp.server.DepositReceipt;
+import org.swordapp.server.SwordAuthException;
+import org.swordapp.server.SwordConfiguration;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.SwordServerException;
 
 public class ContainerManagerDSpace extends DSpaceSwordAPI
         implements ContainerManager

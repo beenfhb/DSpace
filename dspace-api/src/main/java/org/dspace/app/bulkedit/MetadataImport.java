@@ -33,8 +33,9 @@ import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -500,10 +501,10 @@ public class MetadataImport
                                        ",looking_for_language=" + language));
         String[] dcvalues;
         if(fromAuthority==null) {
-            List<MetadataValue> current = itemService.getMetadata(item, schema, element, qualifier, language);
+            List<IMetadataValue> current = itemService.getMetadata(item, schema, element, qualifier, language);
             dcvalues = new String[current.size()];
             int i = 0;
-            for (MetadataValue dcv : current) {
+            for (IMetadataValue dcv : current) {
                 if (dcv.getAuthority() == null || !isAuthorityControlledField(md)) {
                     dcvalues[i] = dcv.getValue();
                 } else {

@@ -13,7 +13,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Implementazione del virtual field processing per formattare in uppercase i metadati
@@ -35,11 +35,11 @@ public class VirtualFieldUpperCase implements VirtualFieldDisseminator,
 		// [2] metadato da usare dc.description.allauthor
 		String[] virtualFieldName = fieldName.split("\\.", 3);
 		
-		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(virtualFieldName[2]);
+		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(virtualFieldName[2]);
 		StringBuffer out = null;
 		if (dcvs != null && dcvs.size() > 0) {
 			out = new StringBuffer();
-			for (MetadataValue dc : dcvs)
+			for (IMetadataValue dc : dcvs)
 			{
 				out.append(
 						StringEscapeUtils.escapeXml(StringUtils

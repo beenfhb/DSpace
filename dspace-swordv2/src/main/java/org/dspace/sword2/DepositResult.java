@@ -7,11 +7,10 @@
  */
 package org.dspace.sword2;
 
-import org.dspace.content.Item;
-import org.dspace.content.Bitstream;
-
 import java.util.List;
-import java.util.Map;
+
+import org.dspace.content.Bitstream;
+import org.dspace.content.Item;
 
 /**
  * The DSpace class for representing the results of a deposit

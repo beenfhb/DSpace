@@ -7,6 +7,10 @@
  */
 package org.dspace.content;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -19,13 +23,9 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-
 /**
- * Service implementation for the MetadataValue object.
- * This class is responsible for all business logic calls for the MetadataValue object and is autowired by spring.
+ * Service implementation for the IMetadataValue object.
+ * This class is responsible for all business logic calls for the IMetadataValue object and is autowired by spring.
  * This class should never be accessed directly.
  *
  * @author kevinvandevelde at atmire.com
@@ -61,7 +61,7 @@ public class MetadataValueServiceImpl implements MetadataValueService {
     @Override
     public MetadataValue find(Context context, int valueId) throws IOException, SQLException {
         // Grab row from DB
-        return metadataValueDAO.findByID(context, MetadataValue.class, valueId);
+        return metadataValueDAO.findByID(context, IMetadataValue.class, valueId);
     }
 
     @Override

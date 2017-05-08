@@ -7,6 +7,9 @@
  */
 package org.dspace.versioning;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -17,9 +20,6 @@ import org.dspace.event.Event;
 import org.dspace.versioning.factory.VersionServiceFactory;
 import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  *

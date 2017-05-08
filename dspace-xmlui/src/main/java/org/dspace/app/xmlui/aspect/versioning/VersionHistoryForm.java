@@ -215,7 +215,7 @@ public class VersionHistoryForm extends AbstractDSpaceTransformer {
     {
         String itemHandle = version.getItem().getHandle();
 
-        java.util.List<MetadataValue> identifiers = itemService.getMetadata(version.getItem(), MetadataSchema.DC_SCHEMA, "identifier", null, Item.ANY);
+        java.util.List<IMetadataValue> identifiers = itemService.getMetadata(version.getItem(), MetadataSchema.DC_SCHEMA, "identifier", null, Item.ANY);
         String itemIdentifier=null;
         if(identifiers!=null && identifiers.size() > 0)
         {

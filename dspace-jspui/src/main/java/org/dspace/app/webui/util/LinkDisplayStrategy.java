@@ -14,7 +14,7 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Utils;
 
 public class LinkDisplayStrategy extends AUniformDisplayStrategy

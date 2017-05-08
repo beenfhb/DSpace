@@ -7,15 +7,18 @@
  */
 package org.dspace.sword2;
 
-import org.dspace.content.*;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.swordapp.server.Deposit;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.UriRegistry;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * This implementation of WorkflowManager is unrestricted and allows UPDATE and DELETE operations

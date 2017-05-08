@@ -114,7 +114,6 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 		return solr;
 	}
 
-
 	public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public static final String DATE_FORMAT_DCDATE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -344,7 +343,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
      * @throws SQLException in case of a database exception
      */
     private SolrInputDocument getCommonSolrDocByRequest(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) throws SQLException {
-        boolean isSpiderBot = request != null && SpiderDetector.isSpider(request);
+        boolean isSpiderBot = request != null && getSpiderDetector().isSpider(request);
         if(isSpiderBot &&
                 !configurationService.getBooleanProperty("usage-statistics.logBots", true))
         {
@@ -449,7 +448,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
     
     private SolrInputDocument getCommonSolrDocByFinalIP(BrowsableDSpaceObject dspaceObject, String ip, String dns, String userAgent, EPerson currentUser) throws SQLException {
-        boolean isSpiderBot = SpiderDetector.isSpider(ip);
+        boolean isSpiderBot = spiderDetector.isSpider(ip);
         if(isSpiderBot &&
                 !configurationService.getBooleanProperty("usage-statistics.logBots", true))
         {
@@ -722,7 +721,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public void markRobotsByIP()
     {
-        for(String ip : SpiderDetector.getSpiderIpAddresses()){
+        for(String ip : getSpiderDetector().getSpiderIpAddresses()){
 
             try {
 
@@ -799,7 +798,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public void deleteRobotsByIP()
     {
-        for(String ip : SpiderDetector.getSpiderIpAddresses()){
+        for(String ip : getSpiderDetector().getSpiderIpAddresses()){
             deleteIP(ip);
         }
     }
@@ -1187,7 +1186,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         if (filterQuery == null) {
             StringBuilder query = new StringBuilder();
             boolean first = true;
-            for (String ip : SpiderDetector.getSpiderIpAddresses()) {
+            for (String ip : getSpiderDetector().getSpiderIpAddresses()) {
                 if (first) {
                     query.append(" AND ");
                     first = false;

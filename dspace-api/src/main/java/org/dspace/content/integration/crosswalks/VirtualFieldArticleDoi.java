@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
 import org.hibernate.Session;
@@ -49,7 +49,7 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
             
             String result = "";
            
-            List<MetadataValue> mdpartof = item.getMetadata("dc", "relation", "ispartofjournal", Item.ANY);
+            List<IMetadataValue> mdpartof = item.getMetadata("dc", "relation", "ispartofjournal", Item.ANY);
             if(mdpartof.size()>0) {                         
                 result += mdpartof.get(0).getValue().toLowerCase();
                 result = result.replaceAll("[^a-z]+", "-");
@@ -60,28 +60,28 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
             
             result += ".";
             
-            List<MetadataValue> md = item.getMetadata("dc", "relation", "volume", Item.ANY);
+            List<IMetadataValue> md = item.getMetadata("dc", "relation", "volume", Item.ANY);
             if(md.size()>0){
                 result += md.get(0).getValue() + ".";    
             }                      
             
-            List<MetadataValue> mddaterel = item.getMetadata("dc", "relation", "issue", Item.ANY);
+            List<IMetadataValue> mddaterel = item.getMetadata("dc", "relation", "issue", Item.ANY);
             if(mddaterel.size()>0){
                 result += mddaterel.get(0).getValue() + ".";    
             }                       
 
-            List<MetadataValue> mdfirst = item.getMetadata("dc", "relation", "firstpage", Item.ANY);
+            List<IMetadataValue> mdfirst = item.getMetadata("dc", "relation", "firstpage", Item.ANY);
             if(mdfirst.size()>0){
                 result += mdfirst.get(0).getValue() + "-";    
             }                      
                        
             
-            List<MetadataValue> mdlast = item.getMetadata("dc", "relation", "lastpage", Item.ANY);
+            List<IMetadataValue> mdlast = item.getMetadata("dc", "relation", "lastpage", Item.ANY);
             if(mdlast.size()>0){
                 result += mdlast.get(0).getValue() + ".";    
             }                 
 
-            List<MetadataValue> mddate = item.getMetadata("dc", "date", "issued", Item.ANY);
+            List<IMetadataValue> mddate = item.getMetadata("dc", "date", "issued", Item.ANY);
             
             if(mddate.size()>0){
                 result += mddate.get(0).getValue();    

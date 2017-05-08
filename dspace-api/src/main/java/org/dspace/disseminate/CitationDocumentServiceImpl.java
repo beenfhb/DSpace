@@ -7,19 +7,33 @@
  */
 package org.dspace.disseminate;
 
+import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
@@ -29,12 +43,6 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.awt.*;
-import java.io.*;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
 
 /**
  * The Citation Document produces a dissemination package (DIP) that is different that the archival package (AIP).
@@ -453,11 +461,11 @@ public class CitationDocumentServiceImpl implements CitationDocumentService, Ini
 
     @Override
     public String getAllMetadataSeparated(Item item, String metadataKey) {
-        List<MetadataValue> dcValues = itemService.getMetadataByMetadataString(item, metadataKey);
+        List<IMetadataValue> dcValues = itemService.getMetadataByMetadataString(item, metadataKey);
 
         ArrayList<String> valueArray = new ArrayList<String>();
 
-        for(MetadataValue dcValue : dcValues) {
+        for(IMetadataValue dcValue : dcValues) {
             if(StringUtils.isNotBlank(dcValue.getValue())) {
                 valueArray.add(dcValue.getValue());
             }

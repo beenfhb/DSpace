@@ -28,7 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -823,8 +823,8 @@ public class ReportGenerator
         // build the referece
         // FIXME: here we have blurred the line between content and presentation
         // and it should probably be un-blurred
-        List<MetadataValue> title = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
-        List<MetadataValue> author = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", "author", Item.ANY);
+        List<IMetadataValue> title = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+        List<IMetadataValue> author = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", "author", Item.ANY);
         
         StringBuffer authors = new StringBuffer();
         if (author.size() > 0)

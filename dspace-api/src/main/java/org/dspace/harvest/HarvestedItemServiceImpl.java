@@ -7,14 +7,14 @@
  */
 package org.dspace.harvest;
 
+import java.sql.SQLException;
+
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.harvest.dao.HarvestedItemDAO;
 import org.dspace.harvest.service.HarvestedItemService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
 
 /**
  * Service implementation for the HarvestedItem object.

@@ -7,17 +7,18 @@
  */
 package org.dspace.content.service;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
-import org.dspace.core.Context;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.MetadataField;
+import org.dspace.content.IMetadataValue;
+import org.dspace.core.Context;
 
 /**
  * Service interface class for the DSpaceObject.
@@ -157,7 +158,7 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
      * 
      * @return metadata fields that match the parameters
      */
-    public List<MetadataValue> getMetadata(T dSpaceObject, String schema, String element, String qualifier, String lang);
+    public List<IMetadataValue> getMetadata(T dSpaceObject, String schema, String element, String qualifier, String lang);
 
     /**
      * Retrieve metadata field values from a given metadata string
@@ -169,7 +170,7 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
      *            {@code <schema prefix>.<element>[.<qualifier>|.*]}
      * @return metadata fields that match the parameters
      */
-    public List<MetadataValue> getMetadataByMetadataString(T dSpaceObject, String mdString);
+    public List<IMetadataValue> getMetadataByMetadataString(T dSpaceObject, String mdString);
 
 
     /**
@@ -187,9 +188,9 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
     public String getMetadata(T dSpaceObject, String value);
     public List<String> getAllMetadata(T dso, String value);
 
-    public List<MetadataValue> getMetadata(T dSpaceObject, String mdString, String authority);
+    public List<IMetadataValue> getMetadata(T dSpaceObject, String mdString, String authority);
 
-    public List<MetadataValue> getMetadata(T dSpaceObject, String schema, String element, String qualifier, String lang, String authority);
+    public List<IMetadataValue> getMetadata(T dSpaceObject, String schema, String element, String qualifier, String lang, String authority);
 
     /**
      * Add metadata fields. These are appended to existing values.
@@ -361,7 +362,7 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
      */
     public void clearMetadata(Context context, T dso, String schema, String element, String qualifier, String lang) throws SQLException;
 
-    public void removeMetadataValues(Context context, T dso, List<MetadataValue> values) throws SQLException;
+    public void removeMetadataValues(Context context, T dso, List<IMetadataValue> values) throws SQLException;
 
     public String getMetadataFirstValue(T dso, String schema, String element, String qualifier, String language);
     /**

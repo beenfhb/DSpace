@@ -7,9 +7,17 @@
  */
 package org.dspace.identifier;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -18,10 +26,6 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * The old DSpace handle identifier service, used to create handles or retrieve objects based on their handle
@@ -225,8 +229,8 @@ public class HandleIdentifierProvider extends IdentifierProvider {
         // Add handle as identifier.uri DC value.
         // First check that identifier doesn't already exist.
         boolean identifierExists = false;
-        List<MetadataValue> identifiers = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "identifier", "uri", Item.ANY);
-        for (MetadataValue identifier : identifiers)
+        List<IMetadataValue> identifiers = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "identifier", "uri", Item.ANY);
+        for (IMetadataValue identifier : identifiers)
         {
             if (handleref.equals(identifier.getValue()))
             {

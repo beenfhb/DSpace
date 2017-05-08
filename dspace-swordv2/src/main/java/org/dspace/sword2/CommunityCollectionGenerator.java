@@ -7,21 +7,20 @@
  */
 package org.dspace.sword2;
 
+import java.util.List;
+
 import org.apache.abdera.i18n.iri.IRI;
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Community;
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CommunityService;
 import org.dspace.core.Context;
-import org.dspace.handle.HandleServiceImpl;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.swordapp.server.SwordCollection;
-
-import java.util.List;
 
 public class CommunityCollectionGenerator implements AtomCollectionGenerator
 {
@@ -73,7 +72,7 @@ public class CommunityCollectionGenerator implements AtomCollectionGenerator
         // String collectionPolicy = col.getLicense();
 
         // abstract is the short description of the collection
-        List<MetadataValue> abstracts = communityService
+        List<IMetadataValue> abstracts = communityService
                 .getMetadataByMetadataString(com, "short_description");
         if (abstracts != null && !abstracts.isEmpty())
         {

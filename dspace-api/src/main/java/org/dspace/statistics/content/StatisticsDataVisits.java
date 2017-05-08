@@ -519,7 +519,7 @@ public class StatisticsDataVisits extends StatisticsData
                             break;
                         }
                         String name = "untitled";
-                        List<MetadataValue> vals = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
+                        List<IMetadataValue> vals = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
                         if(vals != null && 0 < vals.size())
                         {
                             name = vals.get(0).getValue();

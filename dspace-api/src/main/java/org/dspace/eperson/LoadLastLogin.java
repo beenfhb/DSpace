@@ -18,13 +18,7 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jdbm.RecordManager;
-import jdbm.RecordManagerFactory;
-import jdbm.RecordManagerOptions;
-import jdbm.btree.BTree;
-import jdbm.helper.StringComparator;
-import jdbm.helper.Tuple;
-import jdbm.helper.TupleBrowser;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.MissingOptionException;
@@ -34,6 +28,14 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+
+import jdbm.RecordManager;
+import jdbm.RecordManagerFactory;
+import jdbm.RecordManagerOptions;
+import jdbm.btree.BTree;
+import jdbm.helper.StringComparator;
+import jdbm.helper.Tuple;
+import jdbm.helper.TupleBrowser;
 
 /**
  * Examine a collection of DSpace log files, building a table of last login

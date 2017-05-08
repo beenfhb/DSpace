@@ -31,9 +31,9 @@ import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
@@ -254,7 +254,7 @@ public class ScriptDeleteRP
         String authorityKey = ResearcherPageUtils.getPersistentIdentifier(rpId, ResearcherPage.class);
         for (Item item : items)
         {
-            List<MetadataValue> values = null;
+            List<IMetadataValue> values = null;
             for (MetadataField md : fieldsWithAuthoritySupport)
             {
                 String schema = md.getMetadataSchema().getName();
@@ -262,7 +262,7 @@ public class ScriptDeleteRP
                 values = item.getMetadata(schema, md.getElement(), md.getQualifier(), Item.ANY);
                 item.getItemService().clearMetadata(dspaceContext, item, schema, md.getElement(), md.getQualifier(),
                         Item.ANY);
-                for (MetadataValue value : values)
+                for (IMetadataValue value : values)
                 {
                     if (authorityKey.equals(value.getAuthority()))
                     {
@@ -272,8 +272,8 @@ public class ScriptDeleteRP
                         value.setAuthority(null);
                     }
                     
-                    item.getItemService().addMetadata(dspaceContext, item, value.schema, value.element,
-                            value.qualifier, value.getLanguage(),
+                    item.getItemService().addMetadata(dspaceContext, item, value.getSchema(), value.getElement(),
+                            value.getQualifier(), value.getLanguage(),
                             value.getValue(), value.getAuthority(),
                             value.getConfidence());
                 }

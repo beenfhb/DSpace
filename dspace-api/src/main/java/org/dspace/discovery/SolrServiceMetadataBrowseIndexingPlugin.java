@@ -17,8 +17,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.ItemService;
@@ -127,7 +127,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                         for (int mdIdx = 0; mdIdx < bi.getMetadataCount(); mdIdx++)
                         {
                             String[] md = bi.getMdBits(mdIdx);
-                            List<MetadataValue> values = itemService.getMetadata(item, md[0], md[1],
+                            List<IMetadataValue> values = itemService.getMetadata(item, md[0], md[1],
                                     md[2], Item.ANY);
     
                             // if we have values to index on, then do so
@@ -319,7 +319,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
         {
             for (SortOption so : SortOption.getSortOptions())
             {
-                List<MetadataValue> dcvalue = itemService.getMetadataByMetadataString(item, so.getMetadata());
+                List<IMetadataValue> dcvalue = itemService.getMetadataByMetadataString(item, so.getMetadata());
                 if (dcvalue != null && dcvalue.size() > 0)
                 {
                     String nValue = OrderFormat

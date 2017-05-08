@@ -7,6 +7,15 @@
  */
 package org.dspace.content;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -24,9 +33,6 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Service implementation class for the DSpaceObject.
@@ -123,10 +129,10 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     }
 
     @Override
-    public List<MetadataValue> getMetadata(T dso, String schema, String element, String qualifier, String lang) {
+    public List<IMetadataValue> getMetadata(T dso, String schema, String element, String qualifier, String lang) {
         // Build up list of matching values
-        List<MetadataValue> values = new ArrayList<MetadataValue>();
-        for (MetadataValue dcv : dso.getMetadata())
+        List<IMetadataValue> values = new ArrayList<IMetadataValue>();
+        for (IMetadataValue dcv : dso.getMetadata())
         {
             if (match(schema, element, qualifier, lang, dcv))
             {
@@ -139,7 +145,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     }
 
     @Override
-    public List<MetadataValue> getMetadataByMetadataString(T dso, String mdString)
+    public List<IMetadataValue> getMetadataByMetadataString(T dso, String mdString)
     {
         StringTokenizer dcf = new StringTokenizer(mdString, ".");
 
@@ -154,7 +160,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         String element = tokens[1];
         String qualifier = tokens[2];
 
-        List<MetadataValue> values;
+        List<IMetadataValue> values;
         if (Item.ANY.equals(qualifier))
         {
             values = getMetadata(dso, schema, element, Item.ANY, Item.ANY);
@@ -173,7 +179,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 
     @Override
     public String getMetadata(T dso, String value) {
-        List<MetadataValue> metadataValues = getMetadataByMetadataString(dso, value);
+        List<IMetadataValue> metadataValues = getMetadataByMetadataString(dso, value);
 
         if(CollectionUtils.isNotEmpty(metadataValues)) {
             return metadataValues.iterator().next().getValue();
@@ -183,28 +189,32 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 
     @Override
     public List<String> getAllMetadata(T dso, String value) {
-        List<MetadataValue> metadataValues = getMetadataByMetadataString(dso, value);
+        List<IMetadataValue> metadataValues = getMetadataByMetadataString(dso, value);
         List<String> results = new ArrayList<String>();
-        for(MetadataValue val : metadataValues) {
+        for(IMetadataValue val : metadataValues) {
         	results.add(val.getValue());
         }
         return null;
     }
     
     @Override
-    public List<MetadataValue> getMetadata(T dso, String mdString, String authority) {
+    public List<IMetadataValue> getMetadata(T dso, String mdString, String authority) {
         String[] elements = getElements(mdString);
         return getMetadata(dso, elements[0], elements[1], elements[2], elements[3], authority);
     }
 
     @Override
-    public List<MetadataValue> getMetadata(T dso, String schema, String element, String qualifier, String lang, String authority){
-        List<MetadataValue> metadata = getMetadata(dso, schema, element, qualifier, lang);
-        List<MetadataValue> result = new ArrayList<>(metadata);
+    public List<IMetadataValue> getMetadata(T dso, String schema, String element, String qualifier, String lang, String authority){
+        List<IMetadataValue> metadata = getMetadata(dso, schema, element, qualifier, lang);
+        
+        List<IMetadataValue> result = new ArrayList<>();
+        for(IMetadataValue mm : metadata) {
+        	result.add((IMetadataValue)mm);
+        }
         if (!authority.equals(Item.ANY)) {
-            Iterator<MetadataValue> iterator = result.iterator();
+            Iterator<IMetadataValue> iterator = result.iterator();
             while (iterator.hasNext()) {
-                MetadataValue metadataValue = iterator.next();
+                IMetadataValue metadataValue = iterator.next();
                 if (!authority.equals(metadataValue.getAuthority())) {
                     iterator.remove();
                 }
@@ -244,7 +254,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         for (int i = 0; i < values.size(); i++)
         {
 
-            MetadataValue metadataValue = metadataValueService.create(context, dso, metadataField);
+            IMetadataValue metadataValue = metadataValueService.create(context, dso, metadataField);
             metadataValue.setLanguage(lang == null ? null : lang.trim());
 
             // Logic to set Authority and Confidence:
@@ -350,7 +360,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         Iterator<MetadataValue> metadata = dso.getMetadata().iterator();
         while (metadata.hasNext())
         {
-            MetadataValue metadataValue = metadata.next();
+        	MetadataValue metadataValue = (MetadataValue)metadata.next();
             // If this value matches, delete it
             if (match(schema, element, qualifier, lang, metadataValue))
             {
@@ -362,10 +372,10 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     }
 
     @Override
-    public void removeMetadataValues(Context context, T dso, List<MetadataValue> values) throws SQLException {
+    public void removeMetadataValues(Context context, T dso, List<IMetadataValue> values) throws SQLException {
         Iterator<MetadataValue> metadata = dso.getMetadata().iterator();
         while (metadata.hasNext()) {
-            MetadataValue metadataValue = metadata.next();
+        	MetadataValue metadataValue = (MetadataValue)metadata.next();
             if(values.contains(metadataValue))
             {
                 metadata.remove();
@@ -392,7 +402,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
      */
     @Override
     public String getMetadataFirstValue(T dso, String schema, String element, String qualifier, String language){
-        List<MetadataValue> metadataValues = getMetadata(dso, schema, element, qualifier, language);
+        List<IMetadataValue> metadataValues = getMetadata(dso, schema, element, qualifier, language);
         if(CollectionUtils.isNotEmpty(metadataValues)){
             return metadataValues.iterator().next().getValue();
         }
@@ -435,7 +445,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
      * @return <code>true</code> if there is a match
      */
     protected boolean match(String schema, String element, String qualifier,
-            String language, MetadataValue metadataValue)
+            String language, IMetadataValue metadataValue)
     {
 
         MetadataField metadataField = metadataValue.getMetadataField();
@@ -570,7 +580,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                 // A map created to store the latest place for each metadata field
                 Map<MetadataField, Integer> fieldToLastPlace = new HashMap<>();
                 List<MetadataValue> metadataValues = dso.getMetadata();
-                for (MetadataValue metadataValue : metadataValues)
+                for (IMetadataValue metadataValue : metadataValues)
                 {
                     //Retrieve & store the place for each metadata value
                     int mvPlace = getMetadataValuePlace(fieldToLastPlace, metadataValue);
@@ -585,7 +595,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
      * @param metadataValue the metadata value that needs to get a place
      * @return The new place for the metadata valu
      */
-    protected int getMetadataValuePlace(Map<MetadataField, Integer> fieldToLastPlace, MetadataValue metadataValue) {
+    protected int getMetadataValuePlace(Map<MetadataField, Integer> fieldToLastPlace, IMetadataValue metadataValue) {
         MetadataField metadataField = metadataValue.getMetadataField();
         if(fieldToLastPlace.containsKey(metadataField))
         {

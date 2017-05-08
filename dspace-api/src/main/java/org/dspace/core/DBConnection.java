@@ -7,10 +7,11 @@
  */
 package org.dspace.core;
 
-import org.dspace.storage.rdbms.DatabaseConfigVO;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
+
+import org.dspace.storage.rdbms.DatabaseConfigVO;
 
 /**
  * Interface representing a Database connection, this class should only be access by the context object.

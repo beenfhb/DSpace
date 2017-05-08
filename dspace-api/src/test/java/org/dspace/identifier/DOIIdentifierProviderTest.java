@@ -164,14 +164,14 @@ public class DOIIdentifierProviderTest
         // with the tests.
         provider.delete(context, item);
         
-        List<MetadataValue> metadata = itemService.getMetadata(item,
+        List<IMetadataValue> metadata = itemService.getMetadata(item,
                 DOIIdentifierProvider.MD_SCHEMA, 
                 DOIIdentifierProvider.DOI_ELEMENT,
                 DOIIdentifierProvider.DOI_QUALIFIER,
                 null);
         List<String> remainder = new ArrayList<String>();
 
-        for (MetadataValue id : metadata) {
+        for (IMetadataValue id : metadata) {
             if (!id.getValue().startsWith(DOI.RESOLVER))
             {
                 remainder.add(id.getValue());
@@ -302,12 +302,12 @@ public class DOIIdentifierProviderTest
         provider.saveDOIToObject(context, item, doi);
         context.restoreAuthSystemState();
         
-        List<MetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
+        List<IMetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
                 DOIIdentifierProvider.DOI_ELEMENT,
                 DOIIdentifierProvider.DOI_QUALIFIER,
                 null);
         boolean result = false;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().equals(doiService.DOIToExternalForm(doi)))
             {
@@ -357,12 +357,12 @@ public class DOIIdentifierProviderTest
         provider.removeDOIFromObject(context, item, doi);
         context.restoreAuthSystemState();
         
-        List<MetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
+        List<IMetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
                 DOIIdentifierProvider.DOI_ELEMENT,
                 DOIIdentifierProvider.DOI_QUALIFIER,
                 null);
         boolean foundDOI = false;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().equals(doiService.DOIToExternalForm(doi)))
             {
@@ -453,13 +453,13 @@ public class DOIIdentifierProviderTest
         context.restoreAuthSystemState();
 
         // assure that the right one was removed
-        List<MetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
+        List<IMetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
                 DOIIdentifierProvider.DOI_ELEMENT,
                 DOIIdentifierProvider.DOI_QUALIFIER,
                 null);
         boolean foundDOI1 = false;
         boolean foundDOI2 = false;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().equals(doiService.DOIToExternalForm(doi1)))
             {
@@ -486,7 +486,7 @@ public class DOIIdentifierProviderTest
                 null);
         foundDOI1 = false;
         foundDOI2 = false;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().equals(doiService.DOIToExternalForm(doi1)))
             {
@@ -631,13 +631,13 @@ public class DOIIdentifierProviderTest
         context.restoreAuthSystemState();
 
         // assure that the right one was removed
-        List<MetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
+        List<IMetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
                 DOIIdentifierProvider.DOI_ELEMENT,
                 DOIIdentifierProvider.DOI_QUALIFIER,
                 null);
         boolean foundDOI1 = false;
         boolean foundDOI2 = false;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().equals(doiService.DOIToExternalForm(doi1)))
             {
@@ -675,13 +675,13 @@ public class DOIIdentifierProviderTest
         context.restoreAuthSystemState();
 
         // assure that the right one was removed
-        List<MetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
+        List<IMetadataValue> metadata = itemService.getMetadata(item, DOIIdentifierProvider.MD_SCHEMA,
                 DOIIdentifierProvider.DOI_ELEMENT,
                 DOIIdentifierProvider.DOI_QUALIFIER,
                 null);
         boolean foundDOI1 = false;
         boolean foundDOI2 = false;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().equals(doiService.DOIToExternalForm(doi1)))
             {

@@ -30,8 +30,8 @@ import org.dspace.app.webui.util.ResolverDisplayStrategy;
 import org.dspace.app.webui.util.StyleSelection;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
@@ -202,7 +202,7 @@ public class DisplayItemMetadataUtils {
 			}
 
 			// FIXME: Still need to fix for metadata language?
-			List<MetadataValue> values = item.getMetadata(schema, element, qualifier, Item.ANY);
+			List<IMetadataValue> values = item.getMetadata(schema, element, qualifier, Item.ANY);
 
 			if (values!=null && values.size() > 0) {
 

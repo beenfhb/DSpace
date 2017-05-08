@@ -7,8 +7,6 @@
  */
 package org.dspace.content;
 
-import org.dspace.content.Bitstream;
-
 /**
  * Wrapper class for bitstreams with Thumbnails associated with them for
  * convenience in the browse system

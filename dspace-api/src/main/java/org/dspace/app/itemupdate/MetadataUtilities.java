@@ -62,7 +62,7 @@ public class MetadataUtilities {
 
     /**      
      * 
-     *  Working around Item API to delete a value-specific MetadataValue
+     *  Working around Item API to delete a value-specific IMetadataValue
   For a given element/qualifier/lang:
       get all DCValues
       clear (i.e. delete) all of these DCValues
@@ -76,7 +76,7 @@ public class MetadataUtilities {
      * @return true if metadata field is found with matching value and was deleted
      */
     public static boolean deleteMetadataByValue(Context context, Item item, DtoMetadata dtom, boolean isLanguageStrict) throws SQLException {
-    	List<MetadataValue> ar = null;
+    	List<IMetadataValue> ar = null;
     	
     	if (isLanguageStrict)
     	{   // get all for given type
@@ -91,7 +91,7 @@ public class MetadataUtilities {
     	
     	//build new set minus the one to delete
     	List<String> vals = new ArrayList<String>();
-    	for (MetadataValue dcv : ar)
+    	for (IMetadataValue dcv : ar)
     	{
     		if (dcv.getValue().equals(dtom.value))
     		{
@@ -133,7 +133,7 @@ public class MetadataUtilities {
     public static void appendMetadata(Context context, Item item, DtoMetadata dtom, boolean isLanguageStrict,
     		String textToAppend)
             throws IllegalArgumentException, SQLException {
-    	List<MetadataValue> ar = null;
+    	List<IMetadataValue> ar = null;
     	
     	// get all values for given element/qualifier
     	if (isLanguageStrict)  // get all for given element/qualifier
@@ -471,12 +471,12 @@ public class MetadataUtilities {
     }
 
     /**
-     *    Get display of MetadataValue    
+     *    Get display of IMetadataValue    
 	 *
-     * @param dcv MetadataValue
-     * @return string displaying elements of the MetadataValue
+     * @param dcv IMetadataValue
+     * @return string displaying elements of the IMetadataValue
      */
-    public static String getDCValueString(MetadataValue dcv)
+    public static String getDCValueString(IMetadataValue dcv)
     {
         MetadataField metadataField = dcv.getMetadataField();
         MetadataSchema metadataSchema = metadataField.getMetadataSchema();

@@ -18,7 +18,6 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authenticate.ExtraLoggedInAction;
-import org.dspace.authenticate.PostLoggedInAction;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;

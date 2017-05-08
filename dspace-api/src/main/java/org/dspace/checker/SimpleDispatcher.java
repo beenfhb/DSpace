@@ -7,13 +7,13 @@
  */
 package org.dspace.checker;
 
+import java.sql.SQLException;
+import java.util.Date;
+
 import org.dspace.checker.factory.CheckerServiceFactory;
 import org.dspace.checker.service.MostRecentChecksumService;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
-import java.util.Date;
 
 /**
  * An implementation of the selection strategy that selects bitstreams in the

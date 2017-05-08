@@ -7,10 +7,10 @@
  */
 package org.dspace.statistics;
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.gson.Gson;
 
 /**
  * A neutral data object to hold data for statistics.

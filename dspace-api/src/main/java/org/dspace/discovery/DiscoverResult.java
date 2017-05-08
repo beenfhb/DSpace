@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 
 /**
  * This class represents the result that the discovery search impl returns

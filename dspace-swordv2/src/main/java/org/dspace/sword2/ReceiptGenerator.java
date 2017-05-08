@@ -7,9 +7,21 @@
  */
 package org.dspace.sword2;
 
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.abdera.i18n.iri.IRI;
 import org.apache.log4j.Logger;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
@@ -19,14 +31,6 @@ import org.swordapp.server.DepositReceipt;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
 import org.swordapp.server.UriRegistry;
-
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Richard Jones
@@ -243,11 +247,11 @@ public class ReceiptGenerator
      */
     protected void addCategories(DepositResult result, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(result.getItem(), "dc.subject.*");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 receipt.getWrappedEntry()
                         .addCategory(UriRegistry.DC_NAMESPACE, aDcv.getValue(),
@@ -258,11 +262,11 @@ public class ReceiptGenerator
 
     protected void addCategories(Item item, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.subject.*");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 receipt.getWrappedEntry()
                         .addCategory(UriRegistry.DC_NAMESPACE, aDcv.getValue(),
@@ -277,7 +281,7 @@ public class ReceiptGenerator
      */
     protected void addPublishDate(DepositResult result, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(result.getItem(),
                         "dc.date.issued");
         if (dcv != null && !dcv.isEmpty())
@@ -298,7 +302,7 @@ public class ReceiptGenerator
 
     protected void addPublishDate(Item item, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.date.issued");
         if (dcv != null && dcv.size() == 1)
         {
@@ -325,7 +329,7 @@ public class ReceiptGenerator
     {
         String config = ConfigurationManager
                 .getProperty("swordv2-server", "updated.field");
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(result.getItem(), config);
         if (dcv != null && dcv.size() == 1)
         {
@@ -347,7 +351,7 @@ public class ReceiptGenerator
     {
         String config = ConfigurationManager
                 .getProperty("swordv2-server", "updated.field");
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, config);
         if (dcv != null && dcv.size() == 1)
         {

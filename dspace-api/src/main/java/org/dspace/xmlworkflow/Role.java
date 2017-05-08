@@ -7,18 +7,20 @@
  */
 package org.dspace.xmlworkflow;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
-import org.dspace.xmlworkflow.storedcomponents.*;
+import org.dspace.xmlworkflow.storedcomponents.CollectionRole;
+import org.dspace.xmlworkflow.storedcomponents.WorkflowItemRole;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.CollectionRoleService;
 import org.dspace.xmlworkflow.storedcomponents.service.WorkflowItemRoleService;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * The role that is responsible for a certain step

@@ -7,8 +7,6 @@
  */
 package org.dspace.sword2;
 
-import org.swordapp.server.SwordServerException;
-
 /**
  * This Exception class can be thrown by the internals of the
  * DSpace SWORD implementation

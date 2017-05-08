@@ -8,27 +8,28 @@
 
 package org.dspace.submit.step;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.dspace.app.util.SubmissionInfo;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.core.Context;
-import org.dspace.importer.external.exception.MetadataSourceException;
-import org.dspace.importer.external.datamodel.ImportRecord;
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
-import org.dspace.importer.external.service.ImportService;
-import org.dspace.submit.AbstractProcessingStep;
-import org.dspace.utils.DSpace;
+import java.io.IOException;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.dspace.app.util.SubmissionInfo;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
+import org.dspace.importer.external.datamodel.ImportRecord;
+import org.dspace.importer.external.exception.MetadataSourceException;
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.importer.external.service.ImportService;
+import org.dspace.submit.AbstractProcessingStep;
+import org.dspace.utils.DSpace;
 
 /**
  * Created by jonas - jonas@atmire.com on 06/11/15.
@@ -51,12 +52,12 @@ public class XMLUIStartSubmissionLookupStep extends AbstractProcessingStep {
             ImportRecord   record = importService.getRecord(getPublicationUrl(), publicationID);
 
 
-                for (MetadataValue MetadataValue : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
-                    itemService.clearMetadata(context, item, MetadataValue.getMetadataField().getMetadataSchema().getName(), MetadataValue.getMetadataField().getElement(), MetadataValue.getMetadataField().getQualifier(), MetadataValue.getLanguage());
+                for (IMetadataValue IMetadataValue : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
+                    itemService.clearMetadata(context, item, IMetadataValue.getMetadataField().getMetadataSchema().getName(), IMetadataValue.getMetadataField().getElement(), IMetadataValue.getMetadataField().getQualifier(), IMetadataValue.getLanguage());
                 }
 
-                for (MetadatumDTO MetadataValue : record.getValueList()) {
-                        itemService.addMetadata(context, item, MetadataValue.getSchema(), MetadataValue.getElement(), MetadataValue.getQualifier(),null, MetadataValue.getValue());
+                for (MetadatumDTO IMetadataValue : record.getValueList()) {
+                        itemService.addMetadata(context, item, IMetadataValue.getSchema(), IMetadataValue.getElement(), IMetadataValue.getQualifier(),null, IMetadataValue.getValue());
                 }
 
                 itemService.update(context, item);

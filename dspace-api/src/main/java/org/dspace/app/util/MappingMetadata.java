@@ -34,14 +34,13 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
-import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
-import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -174,7 +173,7 @@ public abstract class MappingMetadata {
             }
         }
 
-        MetadataValue v = resolveMetadataField(config);
+        IMetadataValue v = resolveMetadataField(config);
 
         if (null != v && (null != v.getValue()) && !v.getValue().trim().equals(""))
         {
@@ -233,10 +232,10 @@ public abstract class MappingMetadata {
      * @param configFilter
      * @return The first configured match of metadata field for the item.
      */
-    protected MetadataValue resolveMetadataField(String configFilter)
+    protected IMetadataValue resolveMetadataField(String configFilter)
     {
 
-        ArrayList<MetadataValue> fields = resolveMetadata(configFilter, SINGLE);
+        ArrayList<IMetadataValue> fields = resolveMetadata(configFilter, SINGLE);
         if (null != fields && fields.size() > 0)
         {
             return fields.get(0);
@@ -252,10 +251,10 @@ public abstract class MappingMetadata {
      * @return Aggregate of all matching metadata fields configured in the first
      *         option field-set to return any number of filter matches.
      */
-    protected ArrayList<MetadataValue> resolveMetadataFields(String configFilter)
+    protected ArrayList<IMetadataValue> resolveMetadataFields(String configFilter)
     {
 
-        ArrayList<MetadataValue> fields = resolveMetadata(configFilter, MULTI);
+        ArrayList<IMetadataValue> fields = resolveMetadata(configFilter, MULTI);
         if (null != fields && fields.size() > 0)
         {
             return fields;
@@ -271,7 +270,7 @@ public abstract class MappingMetadata {
      * @param returnType
      * @return Array of configuration to item-field matches
      */
-    protected ArrayList<MetadataValue> resolveMetadata(String configFilter,
+    protected ArrayList<IMetadataValue> resolveMetadata(String configFilter,
             int returnType)
     {
 
@@ -311,8 +310,8 @@ public abstract class MappingMetadata {
 
             int optionMatches = 0;
             String[] components;
-            List<MetadataValue> values;
-            ArrayList<MetadataValue> resolvedFields = new ArrayList<MetadataValue>();
+            List<IMetadataValue> values;
+            ArrayList<IMetadataValue> resolvedFields = new ArrayList<IMetadataValue>();
 
             for (String field : optionFields)
             {
@@ -323,7 +322,7 @@ public abstract class MappingMetadata {
 
                 if (values.size() > 0)
                 {
-                    for (MetadataValue v : values)
+                    for (IMetadataValue v : values)
                     {
 
                         resolvedFields.add(v);
@@ -336,7 +335,7 @@ public abstract class MappingMetadata {
                                 {
                                     log
                                             .debug("Resolved Field Value For This Item:");
-                                    for (MetadataValue r : resolvedFields)
+                                    for (IMetadataValue r : resolvedFields)
                                     {
                                         log.debug("{" + r.getValue() + "}");
                                     }
@@ -355,7 +354,7 @@ public abstract class MappingMetadata {
                 if (log.isDebugEnabled())
                 {
                     log.debug("Resolved Field Values For This Item:");
-                    for (MetadataValue v : resolvedFields)
+                    for (IMetadataValue v : resolvedFields)
                     {
                         log.debug("{" + v.getValue() + "}");
                     }
@@ -543,11 +542,11 @@ public abstract class MappingMetadata {
                 }
             }
 
-            List<MetadataValue> allMD = item.getMetadata(components[0], components[1],
+            List<IMetadataValue> allMD = item.getMetadata(components[0], components[1],
                     components[2], Item.ANY);
 
             ArrayList<String> expandedDC = new ArrayList<String>();
-            for (MetadataValue v : allMD)
+            for (IMetadataValue v : allMD)
             {
 
                 // De-dup multiple occurrences of field names in item
@@ -572,13 +571,13 @@ public abstract class MappingMetadata {
     }
     
     /**
-     * Construct metadata field name out of MetadataValue components
+     * Construct metadata field name out of IMetadataValue components
      * 
      * @param v
-     *            The MetadataValue to construct a name for.
+     *            The IMetadataValue to construct a name for.
      * @return The complete metadata field name.
      */
-    protected String buildFieldName(MetadataValue v)
+    protected String buildFieldName(IMetadataValue v)
     {
 
         StringBuilder name = new StringBuilder();
@@ -717,7 +716,7 @@ public abstract class MappingMetadata {
     {
 
         String authorConfig = configuredFields.get(field);
-        ArrayList<MetadataValue> fields = resolveMetadataFields(authorConfig);
+        ArrayList<IMetadataValue> fields = resolveMetadataFields(authorConfig);
 
         if (null != fields && !fields.isEmpty())
         {
@@ -725,7 +724,7 @@ public abstract class MappingMetadata {
             StringBuilder fieldMetadata = new StringBuilder();
             int count = 0;
 
-            for (MetadataValue metadataValue : fields)
+            for (IMetadataValue metadataValue : fields)
             {
                 fieldMetadata.append(metadataValue.getValue());
                 if (count < fields.size() - 1)
@@ -745,11 +744,11 @@ public abstract class MappingMetadata {
     protected void addMultipleValues(String FIELD)
     {
         String fieldConfig = configuredFields.get(FIELD);
-        ArrayList<MetadataValue> fields = resolveMetadataFields(fieldConfig);
+        ArrayList<IMetadataValue> fields = resolveMetadataFields(fieldConfig);
 
         if (null != fields && !fields.isEmpty())
         {
-            for (MetadataValue field : fields)
+            for (IMetadataValue field : fields)
             {
                 //TODO if this is author field, first-name first
                 metadataMappings.put(FIELD, field.getValue());
@@ -759,10 +758,10 @@ public abstract class MappingMetadata {
     
 	protected void addMultipleWithAuthorityValues(String FIELD) {
 		String fieldConfig = configuredFields.get(FIELD);
-		ArrayList<MetadataValue> fields = resolveMetadataFields(fieldConfig);
+		ArrayList<IMetadataValue> fields = resolveMetadataFields(fieldConfig);
 
 		if (null != fields && !fields.isEmpty()) {
-			for (MetadataValue field : fields) {
+			for (IMetadataValue field : fields) {
 				if (StringUtils.isNotBlank(field.getAuthority())) {
 					metadataMappings.put(FIELD, field.getAuthority());
 				} else {
@@ -822,9 +821,9 @@ public abstract class MappingMetadata {
 		}
 
 		// Check resolved/present metadata fields against configured values
-		ArrayList<MetadataValue> presentMD = resolveMetadataFields(sb.toString());
+		ArrayList<IMetadataValue> presentMD = resolveMetadataFields(sb.toString());
 		if (null != presentMD && presentMD.size() != 0) {
-			for (MetadataValue v : presentMD) {
+			for (IMetadataValue v : presentMD) {
 				String fieldName = buildFieldName(v);
 				if (mdPairs.containsKey(fieldName)) {
 					for (String configValue : mdPairs.get(fieldName)) {
@@ -897,11 +896,11 @@ public abstract class MappingMetadata {
 			config = config.replaceAll("\\(" + language + "\\)", "");
 		}
 		if (StringUtils.isEmpty(language)) {
-			MetadataValue v = resolveMetadataField(languageConfig);
+			IMetadataValue v = resolveMetadataField(languageConfig);
 			language = v.getValue();
 		}
 
-		MetadataValue v = resolveMetadataField(config);
+		IMetadataValue v = resolveMetadataField(config);
 
 		if (null != v && StringUtils.isNotBlank(v.getValue())) {
 			metadataMappings.put(fieldName, v.getValue());
@@ -923,7 +922,7 @@ public abstract class MappingMetadata {
 		DSpace dspace = new DSpace();
 		MultiFormatDateParser multiFormatDateParser = dspace.getSingletonService(MultiFormatDateParser.class);
 
-		MetadataValue v = resolveMetadataField(config);
+		IMetadataValue v = resolveMetadataField(config);
 		if (null != v && StringUtils.isNotBlank(v.getValue())) {
 			Date date = multiFormatDateParser.parse(v.getValue());
 			Calendar cal = Calendar.getInstance();
@@ -958,7 +957,7 @@ public abstract class MappingMetadata {
 			}
 		}
 
-		MetadataValue v = resolveMetadataField(config);
+		IMetadataValue v = resolveMetadataField(config);
 
 		if (null != v && StringUtils.isNotBlank(v.getValue())) {
 			metadataMappings.put(fieldName, v.getValue());
@@ -1013,10 +1012,10 @@ public abstract class MappingMetadata {
             } 
         }		
 		
-		ArrayList<MetadataValue> fields = resolveMetadataFields(result);
+		ArrayList<IMetadataValue> fields = resolveMetadataFields(result);
 
 		if (null != fields && !fields.isEmpty()) {
-			for (MetadataValue v : fields) {
+			for (IMetadataValue v : fields) {
 				if (null != v && StringUtils.isNotBlank(v.getValue())) {
 					metadataMappings.put(fieldName, v.getValue());
 					metadataMappings.put(v.getValue(), map.get(v.getMetadataField()));
@@ -1051,13 +1050,13 @@ public abstract class MappingMetadata {
 			config = config.replaceAll("\\(" + language + "\\)", "");
 		}
 		if (StringUtils.isEmpty(language)) {
-			MetadataValue v = resolveMetadataField(languageConfig);
+			IMetadataValue v = resolveMetadataField(languageConfig);
 			if (null != v && StringUtils.isNotBlank(v.getValue())) {
 				language = v.getValue();
 			}
 		}
 
-		MetadataValue v = resolveMetadataField(config);
+		IMetadataValue v = resolveMetadataField(config);
 
 		if (null != v && StringUtils.isNotBlank(v.getValue())) {
 			metadataMappings.put(fieldName, v.getValue());

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 /**
@@ -40,7 +40,7 @@ public class VirtualFieldCrossrefISBN implements VirtualFieldDisseminator,
             {
                 return new String[] { fieldCache.get(fieldName) };
             }
-            List<MetadataValue> mds = item.getMetadata("dc", "identifier", "other", Item.ANY);
+            List<IMetadataValue> mds = item.getMetadata("dc", "identifier", "other", Item.ANY);
             
             String element = "";
             if(mds!=null && mds.size()>0) {

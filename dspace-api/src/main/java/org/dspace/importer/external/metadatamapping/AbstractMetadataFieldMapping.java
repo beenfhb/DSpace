@@ -90,7 +90,7 @@ public abstract class AbstractMetadataFieldMapping<RecordType> implements Metada
         return metadataFieldMap;
     }
 
-    /** Defines which MetadataValue is mapped on which MetadataValue. Note that while the key must be unique it
+    /** Defines which IMetadataValue is mapped on which IMetadataValue. Note that while the key must be unique it
      * only matters here for postprocessing of the value. The mapped MetadataValueContributor has full control over
      * what metadatafield is generated.
      * @param metadataFieldMap The map containing the link between retrieve metadata and metadata that will be set to the item.

@@ -10,7 +10,6 @@ package org.dspace.sword2;
 import java.io.File;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -24,7 +23,6 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
-
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.swordapp.server.Deposit;

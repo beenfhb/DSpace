@@ -7,7 +7,18 @@
  */
 package org.dspace.app.xmlui.aspect.statisticsElasticSearch;
 
-import au.com.bytecode.opencsv.CSVWriter;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.avalon.excalibur.pool.Recyclable;
 import org.apache.avalon.framework.parameters.Parameters;
 import org.apache.cocoon.ProcessingException;
@@ -17,31 +28,25 @@ import org.apache.cocoon.environment.Response;
 import org.apache.cocoon.environment.SourceResolver;
 import org.apache.cocoon.reading.AbstractReader;
 import org.apache.log4j.Logger;
-import org.dspace.app.xmlui.aspect.statistics.StatisticsTransformer;
 import org.dspace.app.xmlui.utils.ContextUtil;
 import org.dspace.app.xmlui.utils.HandleUtil;
 import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.content.Bitstream;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-
 import org.elasticsearch.search.facet.datehistogram.DateHistogramFacet;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import au.com.bytecode.opencsv.CSVWriter;
 
 /**
  * Provides the usage statistics in CSV form
@@ -209,10 +214,10 @@ public class CSVOutputter extends AbstractReader implements Recyclable
         }
     }
     
-    public String wrapInDelimitedString(List<MetadataValue> metadataEntries) {
+    public String wrapInDelimitedString(List<IMetadataValue> metadataEntries) {
         StringBuilder metadataString = new StringBuilder();
 
-        for(MetadataValue metadataEntry : metadataEntries) {
+        for(IMetadataValue metadataEntry : metadataEntries) {
             if(metadataString.length() > 0) {
                 // Delimit entries with the || double pipe character sequence.
                 metadataString.append("\\|\\|");

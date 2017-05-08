@@ -15,14 +15,15 @@ import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.DCDate;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.I18nUtil;
 
 public class DateDisplayStrategy extends ASimpleDisplayStrategy
 {
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata = "-";
         if (metadataArray.size() > 0)
@@ -45,7 +46,7 @@ public class DateDisplayStrategy extends ASimpleDisplayStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, int itemid, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
             PageContext pageContext)
     {
         return "nowrap=\"nowrap\" align=\"right\"";

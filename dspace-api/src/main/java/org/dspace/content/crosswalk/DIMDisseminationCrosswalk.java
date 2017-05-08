@@ -67,9 +67,9 @@ public class DIMDisseminationCrosswalk
         }
         Item item = (Item)dso;
         
-    	List<MetadataValue> dc = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+    	List<IMetadataValue> dc = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         Element dim = new Element("dim", DIM_NS);
-        for (MetadataValue aDc : dc)
+        for (IMetadataValue aDc : dc)
         {
             MetadataField metadataField = aDc.getMetadataField();
             MetadataSchema metadataSchema = metadataField.getMetadataSchema();

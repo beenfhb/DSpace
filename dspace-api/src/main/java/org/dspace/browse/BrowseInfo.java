@@ -16,8 +16,8 @@ import java.util.List;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -891,7 +891,7 @@ public class BrowseInfo
     				sb.append("{{ NULL METADATA }}");
     				break;
     			}
-				List<MetadataValue> values = bi.getMetadata(md[0], md[1], md[2], Item.ANY);
+				List<IMetadataValue> values = bi.getMetadata(md[0], md[1], md[2], Item.ANY);
 				StringBuffer value = new StringBuffer();
 				if (values != null)
 				{

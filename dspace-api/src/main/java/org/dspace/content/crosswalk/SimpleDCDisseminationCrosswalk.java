@@ -101,11 +101,11 @@ public class SimpleDCDisseminationCrosswalk extends SelfNamedPlugin
         }
 
         Item item = (Item)dso;
-        List<MetadataValue> allDC = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, Item.ANY, Item.ANY, Item.ANY);
+        List<IMetadataValue> allDC = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, Item.ANY, Item.ANY, Item.ANY);
 
         List<Element> dcl = new ArrayList<Element>(allDC.size());
 
-        for (MetadataValue metadataValue : allDC) {
+        for (IMetadataValue metadataValue : allDC) {
             // Do not include description.provenance
             MetadataField metadataField = metadataValue.getMetadataField();
             if (!(metadataField.getElement().equals("description") &&

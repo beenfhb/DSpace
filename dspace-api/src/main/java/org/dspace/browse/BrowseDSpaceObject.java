@@ -14,7 +14,7 @@ import java.util.UUID;
 
 import javax.persistence.Transient;
 
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 public class BrowseDSpaceObject
@@ -31,7 +31,7 @@ public class BrowseDSpaceObject
         this.extraInfo = browseObject.getExtraInfo();
     }
     
-    public List<MetadataValue> getMetadata(String schema, String element,
+    public List<IMetadataValue> getMetadata(String schema, String element,
             String qualifier, String lang)
     {
         return browseObject.getMetadata(schema, element, qualifier, lang);
@@ -47,7 +47,7 @@ public class BrowseDSpaceObject
         return browseObject;
     }
 
-	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
 		return browseObject.getMetadataValueInDCFormat(mdString);
 	}
 

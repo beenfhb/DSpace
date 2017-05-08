@@ -8,8 +8,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthorityServiceImpl;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -51,12 +52,12 @@ public class MultilanguageAuthorityIndexer implements SolrServiceIndexPlugin
 
                         if (isMultilanguage)
                         {
-                            List<MetadataValue> MetadataValues = ContentServiceFactory.getInstance().getItemService()
+                            List<IMetadataValue> MetadataValues = ContentServiceFactory.getInstance().getItemService()
                                     .getMetadataByMetadataString(item, fieldKey);
-                            for (MetadataValue MetadataValue : MetadataValues)
+                            for (IMetadataValue IMetadataValue : MetadataValues)
                             {
 
-                                String value = MetadataValue.getValue();
+                                String value = IMetadataValue.getValue();
                                 if (StringUtils.isNotBlank(value))
                                 {
                                     String locales = ConfigurationManager
@@ -70,7 +71,7 @@ public class MultilanguageAuthorityIndexer implements SolrServiceIndexPlugin
                                         {
                                             Locale loc = new Locale(locStr);
                                             indexAuthorityLabel(document,
-                                                    makeFieldKey, MetadataValue.getAuthority(),
+                                                    makeFieldKey, IMetadataValue.getAuthority(),
                                                     loc != null
                                                             ? loc.getLanguage()
                                                             : null);

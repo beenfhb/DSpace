@@ -7,8 +7,6 @@
  */
 package org.dspace.browse;
 
-import org.dspace.content.Item;
-
 import java.util.List;
 import java.util.UUID;
 

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +43,10 @@ public class ItemMarkingMetadataStrategy implements ItemMarkingExtractor {
 		
 		if (metadataField != null && mapping!=null)
 		{
-			List<MetadataValue> vals = itemService.getMetadataByMetadataString(item, metadataField);
+			List<IMetadataValue> vals = itemService.getMetadataByMetadataString(item, metadataField);
 			if (vals.size() > 0)
 			{
-				for (MetadataValue value : vals){
+				for (IMetadataValue value : vals){
 					String type = value.getValue();
 					if (mapping.containsKey(type)){
 						return mapping.get(type);

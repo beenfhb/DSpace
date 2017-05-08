@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 
 public class IdentifierStatsIndexPlugin implements SolrStatsIndexPlugin
 {

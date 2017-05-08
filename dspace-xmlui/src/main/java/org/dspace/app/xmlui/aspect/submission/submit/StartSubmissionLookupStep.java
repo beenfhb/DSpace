@@ -15,7 +15,7 @@ import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.*;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
@@ -80,19 +80,19 @@ public class StartSubmissionLookupStep extends AbstractSubmissionStep {
 
         org.dspace.content.Item submissionItem = submission.getItem();
 
-        java.util.List<MetadataValue> pubmedId = itemService.getMetadata(submissionItem, "dc", "identifier", "other", org.dspace.content.Item.ANY);
+        java.util.List<IMetadataValue> pubmedId = itemService.getMetadata(submissionItem, "dc", "identifier", "other", org.dspace.content.Item.ANY);
 
         if(pubmedId.size()>0){
 
             form.addItem("publication-header","page-header").addContent(T_submit_publication_item);
 
-            java.util.List<MetadataValue> titles = itemService.getMetadata(submissionItem,"dc","title",null,org.dspace.content.Item.ANY);
+            java.util.List<IMetadataValue> titles = itemService.getMetadata(submissionItem,"dc","title",null,org.dspace.content.Item.ANY);
 
             if(titles.size()>0){
                 form.addItem("publication-title", "bold").addContent(titles.get(0).getValue());
             }
 
-            java.util.List<MetadataValue> authors = itemService.getMetadata(submissionItem,"dc", "contributor", "author", org.dspace.content.Item.ANY);
+            java.util.List<IMetadataValue> authors = itemService.getMetadata(submissionItem,"dc", "contributor", "author", org.dspace.content.Item.ANY);
 
             if(authors.size()>0){
                 StringBuilder builder = new StringBuilder();

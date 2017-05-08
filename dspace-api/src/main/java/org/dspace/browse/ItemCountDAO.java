@@ -7,8 +7,8 @@
  */
 package org.dspace.browse;
 
-import org.dspace.core.Context;
 import org.dspace.content.DSpaceObject;
+import org.dspace.core.Context;
 
 /**
  * Interface for data access of cached community and collection item count

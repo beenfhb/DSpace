@@ -7,17 +7,18 @@
  */
 package org.dspace.harvest;
 
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.core.*;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.dspace.harvest.factory.HarvestServiceFactory;
 import org.dspace.harvest.service.HarvestedCollectionService;
 import org.dspace.harvest.service.HarvestedItemService;
-
-import java.util.UUID;
 
 /**
  * Class for handling cleanup of harvest settings for collections and items

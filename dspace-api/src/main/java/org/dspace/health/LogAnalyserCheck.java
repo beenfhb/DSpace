@@ -8,12 +8,12 @@
 package org.dspace.health;
 
 
-import org.dspace.app.statistics.LogAnalyser;
-import org.dspace.core.Context;
-
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.dspace.app.statistics.LogAnalyser;
+import org.dspace.core.Context;
 
 /**
  * @author LINDAT/CLARIN dev team

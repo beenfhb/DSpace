@@ -12,26 +12,26 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
 public class SubmitterValueGenerator implements TemplateValueGenerator {
 
 	@Override
-	public List<MetadataValue> generator(Context context, Item targetItem, Item templateItem,
-			MetadataValue MetadataValue, String extraParams) {
-		List<MetadataValue> m = new ArrayList<>();
-		m.add(MetadataValue);
+	public List<IMetadataValue> generator(Context context, Item targetItem, Item templateItem,
+			IMetadataValue IMetadataValue, String extraParams) {
+		List<IMetadataValue> m = new ArrayList<>();
+		m.add(IMetadataValue);
 		EPerson eperson = targetItem.getSubmitter();
 		if (StringUtils.equalsIgnoreCase(extraParams, "email")) {
-			MetadataValue.setValue(eperson.getEmail());
+			IMetadataValue.setValue(eperson.getEmail());
 		} else if (StringUtils.equalsIgnoreCase(extraParams, "phone")) {
-			MetadataValue.setValue(eperson.getDSpaceObjectService().getMetadata(eperson, "phone"));
+			IMetadataValue.setValue(eperson.getDSpaceObjectService().getMetadata(eperson, "phone"));
 		} else if (StringUtils.equalsIgnoreCase(extraParams, "fullname")) {
-			MetadataValue.setValue(eperson.getFullName());
+			IMetadataValue.setValue(eperson.getFullName());
 		} else {
-			MetadataValue.setValue(eperson.getDSpaceObjectService().getMetadata(eperson, extraParams));
+			IMetadataValue.setValue(eperson.getDSpaceObjectService().getMetadata(eperson, extraParams));
 		}
 		if (StringUtils.isNotBlank(m.get(0).getValue())) {
 			return m;

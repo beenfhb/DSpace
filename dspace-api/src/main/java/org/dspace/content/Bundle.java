@@ -8,7 +8,19 @@
 package org.dspace.content;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BundleService;
@@ -16,8 +28,6 @@ import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
 
 /**
  * Class representing bundles of bitstreams stored in the DSpace system

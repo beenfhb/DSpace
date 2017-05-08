@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataSchemaService;
@@ -56,7 +56,7 @@ public class SubmissionLookupUtils
         {
             LookupProvidersCheck check = new LookupProvidersCheck();
             List<MetadataSchema> schemas = metadataSchemaService.findAll(context);
-            List<MetadataValue> values = itemService.getMetadata(item, dcSchema, dcElement,
+            List<IMetadataValue> values = itemService.getMetadata(item, dcSchema, dcElement,
                     dcQualifier, Item.ANY);
 
             for (MetadataSchema schema : schemas)
@@ -65,7 +65,7 @@ public class SubmissionLookupUtils
                 if (schema.getNamespace().startsWith(
                         SubmissionLookupService.SL_NAMESPACE_PREFIX))
                 {
-                    List<MetadataValue> slCache = itemService.getMetadata(item, schema.getName(),
+                    List<IMetadataValue> slCache = itemService.getMetadata(item, schema.getName(),
                             dcElement, dcQualifier, Item.ANY);
                     if (slCache.size() == 0)
                         continue;
@@ -78,8 +78,8 @@ public class SubmissionLookupUtils
                     {
                         for (int idx = 0; idx < values.size(); idx++)
                         {
-                            MetadataValue v = values.get(idx);
-                            MetadataValue sl = slCache.get(idx);
+                            IMetadataValue v = values.get(idx);
+                            IMetadataValue sl = slCache.get(idx);
                             // FIXME gestire authority e possibilita' multiple:
                             // match non sicuri, affiliation, etc.
                             if (!v.getValue().equals(sl.getValue()))

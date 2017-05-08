@@ -7,6 +7,11 @@
  */
 package org.dspace.workflowbasic;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
@@ -19,11 +24,6 @@ import org.dspace.workflowbasic.dao.BasicWorkflowItemDAO;
 import org.dspace.workflowbasic.service.BasicWorkflowItemService;
 import org.dspace.workflowbasic.service.TaskListItemService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Service implementation for the BasicWorkflowItem object.

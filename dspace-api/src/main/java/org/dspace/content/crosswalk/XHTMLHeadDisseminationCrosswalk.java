@@ -189,7 +189,7 @@ public class XHTMLHeadDisseminationCrosswalk extends SelfNamedPlugin implements
         Item item = (Item) dso;
         String handle = item.getHandle();
         List<Element> metas = new ArrayList<Element>();
-        List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        List<IMetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
         // Add in schema URLs e.g. <link rel="schema.DC" href="...." />
         Iterator<String> schemaIterator = schemaURLs.keySet().iterator();
@@ -205,7 +205,7 @@ public class XHTMLHeadDisseminationCrosswalk extends SelfNamedPlugin implements
 
         for (int i = 0; i < values.size(); i++)
         {
-            MetadataValue v = values.get(i);
+            IMetadataValue v = values.get(i);
             MetadataField metadataField = v.getMetadataField();
             MetadataSchema metadataSchema = metadataField.getMetadataSchema();
 

@@ -10,7 +10,7 @@ package org.dspace.importer.external.metadatamapping;
 import java.util.Collection;
 
 /**
- * Represents an interface for the mapping of the MetadataValue fields
+ * Represents an interface for the mapping of the IMetadataValue fields
  *
  * @author Roeland Dillen (roeland at atmire dot com)
  */

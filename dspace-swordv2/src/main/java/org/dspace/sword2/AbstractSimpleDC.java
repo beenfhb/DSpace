@@ -8,16 +8,16 @@
 
 package org.dspace.sword2;
 
-import org.dspace.content.Item;
-import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.core.ConfigurationManager;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.ConfigurationManager;
 
 public class AbstractSimpleDC
 {
@@ -71,10 +71,10 @@ public class AbstractSimpleDC
         this.loadMetadataMaps();
 
         SimpleDCMetadata md = new SimpleDCMetadata();
-        List<MetadataValue> all = itemService
+        List<IMetadataValue> all = itemService
                 .getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
-        for (MetadataValue dcv : all)
+        for (IMetadataValue dcv : all)
         {
             MetadataField field = dcv.getMetadataField();
             String valueMatch = field.getMetadataSchema().getName() + "." +

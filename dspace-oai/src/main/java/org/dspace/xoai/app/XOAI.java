@@ -236,9 +236,9 @@ public class XOAI {
             doc.addField("item.communities",
                     "com_" + com.getHandle().replace("/", "_"));
 
-        List<MetadataValue> allData = itemService.getMetadata(item,
+        List<IMetadataValue> allData = itemService.getMetadata(item,
                 Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue dc : allData) {
+        for (IMetadataValue dc : allData) {
             MetadataField field = dc.getMetadataField();
             String key = "metadata."
                     + field.getMetadataSchema().getName() + "."

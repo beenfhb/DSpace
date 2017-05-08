@@ -7,15 +7,15 @@
  */
 package org.dspace.health;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.apache.commons.io.FileUtils;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.services.ConfigurationService;
 import org.dspace.storage.bitstore.DSBitStoreService;
 import org.dspace.utils.DSpace;
-
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author LINDAT/CLARIN dev team

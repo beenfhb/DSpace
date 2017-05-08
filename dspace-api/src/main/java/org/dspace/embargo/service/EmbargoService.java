@@ -10,7 +10,7 @@ package org.dspace.embargo.service;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DCDate;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 import java.io.IOException;
@@ -86,7 +86,7 @@ public interface EmbargoService {
 
     public void checkEmbargo(Context context, Item item) throws SQLException, IOException, AuthorizeException;
 
-    public List<MetadataValue> getLiftMetadata(Context context, Item item);
+    public List<IMetadataValue> getLiftMetadata(Context context, Item item);
 
     public Iterator<Item> findItemsByLiftMetadata(Context context) throws SQLException, IOException, AuthorizeException;
 }

@@ -7,14 +7,18 @@
  */
 package org.dspace.health;
 
-import org.dspace.checker.*;
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import org.dspace.checker.CheckerCommand;
+import org.dspace.checker.ChecksumResultCode;
+import org.dspace.checker.ChecksumResultsCollector;
+import org.dspace.checker.MostRecentChecksum;
+import org.dspace.checker.SimpleDispatcher;
+import org.dspace.core.Context;
 
 /**
  * @author LINDAT/CLARIN dev team

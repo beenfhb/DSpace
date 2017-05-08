@@ -33,7 +33,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
@@ -347,10 +347,10 @@ public class ScriptDataCiteDOIActivate
                     + responseCode + " MESSAGE:" + result.get(target.getID()));
             if (responseCode == 201)
             {
-                List<MetadataValue> values = target.getMetadata("dc", "identifier",
+                List<IMetadataValue> values = target.getMetadata("dc", "identifier",
                         "doi", null);
                 boolean found = false;
-                for (MetadataValue dcval : values)
+                for (IMetadataValue dcval : values)
                 {
                     if (dcval.equals(doi))
                     {

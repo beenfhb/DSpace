@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.ConfigurationManager;
 
 /**
@@ -29,15 +29,15 @@ public class VirtualFieldWosElement implements VirtualFieldDisseminator {
 	@Override
 	public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName) {
 		String result = "<map name=\"" + item.getID() + "\">";
-		List<MetadataValue> MetadataValuePMID = item.getMetadataValueInDCFormat(fieldPubmedID);
+		List<IMetadataValue> MetadataValuePMID = item.getMetadataValueInDCFormat(fieldPubmedID);
 		if (MetadataValuePMID != null && MetadataValuePMID.size() > 0) {
 			result += "<val name=\"pmid\">" + MetadataValuePMID.get(0).getValue() + "</val>";
 		}
-		List<MetadataValue> MetadataValueDoi = item.getMetadataValueInDCFormat(fieldDoiID);
+		List<IMetadataValue> MetadataValueDoi = item.getMetadataValueInDCFormat(fieldDoiID);
 		if (MetadataValueDoi != null && MetadataValueDoi.size() > 0) {
 			result += "<val name=\"doi\">" + MetadataValueDoi.get(0).getValue() + "</val>";
 		}
-		List<MetadataValue> MetadataValueWos = item.getMetadataValueInDCFormat(fieldWosID);
+		List<IMetadataValue> MetadataValueWos = item.getMetadataValueInDCFormat(fieldWosID);
 		if (MetadataValueWos != null && MetadataValueWos.size() > 0) {
 			result += "<val name=\"ut\">" + MetadataValueWos.get(0).getValue() + "</val>";
 		}

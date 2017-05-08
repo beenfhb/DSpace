@@ -7,17 +7,17 @@
  */
 package org.dspace.harvest;
 
+import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.harvest.dao.HarvestedCollectionDAO;
 import org.dspace.harvest.service.HarvestedCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Service implementation for the HarvestedCollection object.

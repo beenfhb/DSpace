@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * SpiderDetector delegates static methods to SpiderDetectorService, which is used to find IP's that are spiders...
@@ -29,17 +30,17 @@ public class SpiderDetector {
     private static final Logger log = LoggerFactory.getLogger(SpiderDetector.class);
 
     //Service where all methods get delegated to, this is instantiated by a spring-bean defined in core-services.xml
-    private static SpiderDetectorService spiderDetectorService = StatisticsServiceFactory.getInstance().getSpiderDetectorService();
+    private SpiderDetectorService spiderDetectorService;
 
     /**
      * Get an immutable Set representing all the Spider Addresses here
      *
      * @return a set of IP addresses as strings
      */
-    public static Set<String> getSpiderIpAddresses() {
+    public Set<String> getSpiderIpAddresses() {
 
-        spiderDetectorService.loadSpiderIpAddresses();
-        return spiderDetectorService.getTable().toSet();
+        getSpiderDetectorService().loadSpiderIpAddresses();
+        return getSpiderDetectorService().getTable().toSet();
     }
 
     /**
@@ -49,10 +50,10 @@ public class SpiderDetector {
      * @return a vector full of patterns
      * @throws IOException could not happen since we check the file be4 we use it
      */
-    public static Set<String> readPatterns(File patternFile)
+    public Set<String> readPatterns(File patternFile)
             throws IOException
     {
-        return spiderDetectorService.readPatterns(patternFile);
+        return getSpiderDetectorService().readPatterns(patternFile);
     }
 
     /**
@@ -67,10 +68,10 @@ public class SpiderDetector {
      * @param agent User-Agent header value, or null.
      * @return true if the client matches any spider characteristics list.
      */
-    public static boolean isSpider(String clientIP, String proxyIPs,
+    public boolean isSpider(String clientIP, String proxyIPs,
                                    String hostname, String agent)
     {
-        return spiderDetectorService.isSpider(clientIP, proxyIPs, hostname, agent);
+        return getSpiderDetectorService().isSpider(clientIP, proxyIPs, hostname, agent);
     }
 
     /**
@@ -79,9 +80,9 @@ public class SpiderDetector {
      * @param request
      * @return true|false if the request was detected to be from a spider.
      */
-    public static boolean isSpider(HttpServletRequest request)
+    public boolean isSpider(HttpServletRequest request)
     {
-        return spiderDetectorService.isSpider(request);
+        return getSpiderDetectorService().isSpider(request);
     }
 
     /**
@@ -90,8 +91,19 @@ public class SpiderDetector {
      * @param ip
      * @return if is spider IP
      */
-    public static boolean isSpider(String ip) {
-        return spiderDetectorService.isSpider(ip);
+    public boolean isSpider(String ip) {
+        return getSpiderDetectorService().isSpider(ip);
     }
+
+	public SpiderDetectorService getSpiderDetectorService() {
+		if(spiderDetectorService==null) {
+			spiderDetectorService =  StatisticsServiceFactory.getInstance().getSpiderDetectorService();
+		}
+		return spiderDetectorService;
+	}
+
+	public void setSpiderDetectorService(SpiderDetectorService spiderDetectorService) {
+		this.spiderDetectorService = spiderDetectorService;
+	}
 
 }

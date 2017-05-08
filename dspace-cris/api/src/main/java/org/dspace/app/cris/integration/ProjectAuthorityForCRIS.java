@@ -7,11 +7,8 @@
  */
 package org.dspace.app.cris.integration;
 
-import org.apache.commons.lang.StringUtils;
-import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.Project;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 
 public class ProjectAuthorityForCRIS extends CRISAuthorityForCRIS<Project>
 {

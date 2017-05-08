@@ -7,9 +7,9 @@
  */
 package org.dspace.util;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility class to read UUIDs

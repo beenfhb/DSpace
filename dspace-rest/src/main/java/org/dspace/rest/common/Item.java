@@ -14,7 +14,7 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bundle;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -70,9 +70,9 @@ public class Item extends DSpaceObject {
 
         if(expandFields.contains("metadata") || expandFields.contains("all")) {
             metadata = new ArrayList<MetadataEntry>();
-            List<MetadataValue> metadataValues = itemService.getMetadata(item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY);
+            List<IMetadataValue> metadataValues = itemService.getMetadata(item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY);
 
-            for (MetadataValue metadataValue : metadataValues) {
+            for (IMetadataValue metadataValue : metadataValues) {
                 MetadataField metadataField = metadataValue.getMetadataField();
                 if (!metadataExposureService.isHidden(context, metadataField.getMetadataSchema().getName(), metadataField.getElement(), metadataField.getQualifier())) {
                     metadata.add(new MetadataEntry(metadataField.toString('.'), metadataValue.getValue(), metadataValue.getLanguage()));

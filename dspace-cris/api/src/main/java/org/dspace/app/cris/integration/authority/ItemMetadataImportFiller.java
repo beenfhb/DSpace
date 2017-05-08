@@ -28,8 +28,9 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 
@@ -66,13 +67,13 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
 
     @Override
     public boolean allowsUpdate(Context ctx, Item item,
-            List<MetadataValue> MetadataValueList, String authorityKey, ACrisObject rp)
+            List<IMetadataValue> MetadataValueList, String authorityKey, ACrisObject rp)
     {
         if (MetadataValueList != null && MetadataValueList.size() > 0)
         {
-            MetadataValue m = MetadataValueList.get(0);
-            String mdString = m.schema + "." + m.element
-                    + (m.qualifier != null ? "." + m.qualifier : "");
+            IMetadataValue m = MetadataValueList.get(0);
+            String mdString = m.getSchema() + "." + m.getElement()
+                    + (m.getQualifier() != null ? "." + m.getQualifier() : "");
             ItemMetadataImportFillerConfiguration conf = configurations
                     .get(mdString);
             if (conf != null && conf.getUpdateEnabled() != null)
@@ -88,14 +89,14 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     }
 
     @Override
-    public void fillRecord(Context context, Item item, List<MetadataValue> metadata,
+    public void fillRecord(Context context, Item item, List<IMetadataValue> metadata,
             String hashedValue, ACrisObject crisObject)
     {
         int idx = 0;
-        for (MetadataValue m : metadata)
+        for (IMetadataValue m : metadata)
         {
-            String mdString = m.schema + "." + m.element
-                    + (m.qualifier != null ? "." + m.qualifier : "");
+            String mdString = m.getSchema() + "." + m.getElement()
+                    + (m.getQualifier() != null ? "." + m.getQualifier() : "");
             log.debug("fillRecord -> " + mdString);
             log.debug("fillRecord -> " + crisObject.getAnagrafica4view());
             ItemMetadataImportFillerConfiguration conf = configurations
@@ -157,11 +158,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                             "fillRecord -> conf -> " + details.getShortName());
                     List<? extends Property> props = (List<? extends Property>) crisObject
                             .getAnagrafica4view().get(details.getShortName());
-                    List<MetadataValue> inputs = item.getItemService()
+                    List<IMetadataValue> inputs = item.getItemService()
                             .getMetadataByMetadataString(item, mdInput);
                     if (details.isUseAll())
                     {
-                        for (MetadataValue value : inputs)
+                        for (IMetadataValue value : inputs)
                         {
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
@@ -178,7 +179,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                     {
                         try
                         {
-                            MetadataValue value = null;
+                            IMetadataValue value = null;
                             try {
                                 value = inputs.get(m.getPlace());
                             }
@@ -212,10 +213,10 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     }
 
     public static void buildMetric(Context context, Item item,
-            ACrisObject crisObject, MetadataValue m, String mdInput,
+            ACrisObject crisObject, IMetadataValue m, String mdInput,
             MetricsMappingDetails mmd, MetricsPersistenceService metricService)
     {
-        List<MetadataValue> mm = item.getItemService().getMetadataByMetadataString(item, mdInput);
+        List<IMetadataValue> mm = item.getItemService().getMetadataByMetadataString(item, mdInput);
         if (mm != null && mm.size() > 0)
         {
             try
@@ -300,7 +301,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     }
 
     private Object buildGenericValue(Context context, Item item,
-            MetadataValue value, MappingDetails details)
+            IMetadataValue value, MappingDetails details)
     {
         Object dcvalue = value.getValue();
         if (details.formatAsDate())
@@ -319,7 +320,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
         return dcvalue;
     }
 
-    private static Object formatAsDate(Context context, Item item, MetadataValue value)
+    private static Object formatAsDate(Context context, Item item, IMetadataValue value)
     {
         Object dcvalue;
         SimpleDateFormat sdf;

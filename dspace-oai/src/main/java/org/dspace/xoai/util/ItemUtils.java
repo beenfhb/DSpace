@@ -78,8 +78,8 @@ public class ItemUtils
 
         // read all metadata into Metadata Object
         metadata = new Metadata();
-        List<MetadataValue> vals = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue val : vals)
+        List<IMetadataValue> vals = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue val : vals)
         {
             MetadataField field = val.getMetadataField();
             

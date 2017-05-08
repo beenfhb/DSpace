@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.SQLException;
 import java.util.Date;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataValueService;
 
@@ -33,7 +33,7 @@ public class DSpaceEarliestDateResolver implements EarliestDateResolver {
         String query = "SELECT MIN(text_value) as value FROM metadatavalue WHERE metadata_field_id = ?";
 
         MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
-        MetadataValue minimum = metadataValueService.getMinimum(context,
+        IMetadataValue minimum = metadataValueService.getMinimum(context,
                 fieldResolver.getFieldID(context, "dc.date.available"));
         if (null != minimum)
         {

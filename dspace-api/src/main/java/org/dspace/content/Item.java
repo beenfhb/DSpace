@@ -413,7 +413,7 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
     }
 
 	@Override
-	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
 		return getItemService().getMetadata(this, schema, element, qualifier, lang);
 	}
 

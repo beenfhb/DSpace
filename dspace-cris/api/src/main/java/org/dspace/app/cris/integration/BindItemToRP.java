@@ -31,9 +31,9 @@ import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowseException;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.content.authority.ChoiceAuthority;
@@ -106,11 +106,11 @@ public class BindItemToRP
                     String schema = mf.getMetadataSchema().getName();
                     String element = mf.getElement();
                     String qualifier = mf.getQualifier();
-                    List<MetadataValue> values = item.getMetadata(schema, element,
+                    List<IMetadataValue> values = item.getMetadata(schema, element,
                             qualifier, Item.ANY);
                     ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, schema, element, qualifier, Item.ANY);
 
-                    for (MetadataValue val : values)
+                    for (IMetadataValue val : values)
                     {
                         if (val.getAuthority() == null
                                 && val.getValue() != null
@@ -425,7 +425,7 @@ public class BindItemToRP
             {
                 boolean modified = false;
 
-                List<MetadataValue> values = null;
+                List<IMetadataValue> values = null;
                 for (MetadataField md : fieldsWithAuthoritySupport)
                 {
                     String schema = md.getMetadataSchema().getName();
@@ -434,7 +434,7 @@ public class BindItemToRP
                             md.getQualifier(), Item.ANY);
                     item.getItemService().clearMetadata(context, item, schema, md.getElement(),
                             md.getQualifier(), Item.ANY);
-                    for (MetadataValue value : values)
+                    for (IMetadataValue value : values)
                     {
 
                         int matches = 0;
@@ -446,9 +446,9 @@ public class BindItemToRP
                             matches = countNamesMatching(cacheCount,
                                     tempName.getName());
                             item.getItemService().addMetadata(context, item,
-                                    value.schema,
-                                    value.element,
-                                    value.qualifier,
+                                    value.getSchema(),
+                                    value.getElement(),
+                                    value.getQualifier(),
                                     value.getLanguage(),
                                     tempName.getName(),
                                     tempName.getPersistentIdentifier(),
@@ -459,8 +459,8 @@ public class BindItemToRP
                         }
                         else
                         {
-                        	item.getItemService().addMetadata(context, item, value.schema, value.element,
-                                    value.qualifier, value.getLanguage(),
+                        	item.getItemService().addMetadata(context, item, value.getSchema(), value.getElement(),
+                                    value.getQualifier(), value.getLanguage(),
                                     value.getValue(), value.getAuthority(),
                                     value.getConfidence());
                         }

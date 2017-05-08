@@ -7,16 +7,23 @@
  */
 package org.dspace.sword2;
 
+import java.io.IOException;
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.swordapp.server.*;
-
-import java.io.IOException;
-import java.util.Date;
+import org.swordapp.server.AuthCredentials;
+import org.swordapp.server.CollectionDepositManager;
+import org.swordapp.server.Deposit;
+import org.swordapp.server.DepositReceipt;
+import org.swordapp.server.SwordAuthException;
+import org.swordapp.server.SwordConfiguration;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.SwordServerException;
 
 public class CollectionDepositManagerDSpace extends DSpaceSwordAPI
         implements CollectionDepositManager

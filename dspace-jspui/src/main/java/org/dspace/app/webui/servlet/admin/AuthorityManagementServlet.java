@@ -31,8 +31,10 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.StringConfigurationComparator;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.content.authority.AuthorityInfo;
@@ -142,10 +144,10 @@ public class AuthorityManagementServlet extends DSpaceServlet
                     for (String issued : metadataList)
                     {
                         String[] metadata = issued.split("\\.");
-                        List<MetadataValue> original = item.getMetadataValueInDCFormat(issued);
+                        List<IMetadataValue> original = item.getMetadataValueInDCFormat(issued);
                         item.getItemService().clearMetadata(context, item, metadata[0], metadata[1],
                                 metadata.length > 2 ? metadata[2] : null, Item.ANY);
-                        for (MetadataValue md : original)
+                        for (IMetadataValue md : original)
                         {
                             if (key.equals(md.getAuthority()))
                             {
@@ -168,7 +170,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
                                     itemRejectedIDs.add(itemID);
                                 }
                             }
-                            item.getItemService().addMetadata(context, item, md.schema, md.element, md.qualifier,
+                            item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
                                     md.getLanguage(), md.getValue(), md.getAuthority(),
                                     md.getConfidence());
                         }
@@ -392,7 +394,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
                 UIUtil.getSessionLocale(request).toString());
         String[] md = issued.split("\\.");
 
-        MetadataValue metadataValue = new MetadataValue(md[0], md[1],
+        IMetadataValue metadataValue = new MetadataValueVolatile(md[0], md[1],
                 md.length > 2 ? md[2] : null, authkey, UIUtil.getSessionLocale(
                         request).toString());
         List<String> variants = cam.getVariants(metadataValue);
@@ -459,7 +461,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
                 UIUtil.getSessionLocale(request).toString());
         String[] md = mdString.split("\\.");
 
-        MetadataValue metadataValue = new MetadataValue(md[0], md[1],
+        IMetadataValue metadataValue = new MetadataValueVolatile(md[0], md[1],
                 md.length > 2 ? md[2] : null, authkey, UIUtil.getSessionLocale(
                         request).toString());
         List<String> variants = cam.getVariants(metadataValue);

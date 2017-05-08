@@ -13,7 +13,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Costruisce i singoli autori a partire dalla stringa allauthor
@@ -28,11 +28,11 @@ public class VirtualFieldBibtexAuthors implements VirtualFieldDisseminator, Virt
 		String metadata = "dc.contributor.author";
 
 		// Get the citation from the item
-		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
+		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
 
 		if (dcvs != null && dcvs.size() > 0) {
 			StringBuffer sb = new StringBuffer();
-			for (MetadataValue a : dcvs) {
+			for (IMetadataValue a : dcvs) {
 				String[] split = a.getValue().split(", ");
 				int splitLength = split.length;
 				String str = (splitLength > 1) ? split[1] : "";

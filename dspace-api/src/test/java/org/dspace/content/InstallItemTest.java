@@ -190,9 +190,9 @@ public class InstallItemTest extends AbstractUnitTest
         assertThat("testRestoreItem 0", result, equalTo(is.getItem()));
 
         //Make sure that restore did NOT insert a new provenance message with today's date
-        List<MetadataValue> provMsgValues = itemService.getMetadata(result, "dc", "description", "provenance", Item.ANY);
+        List<IMetadataValue> provMsgValues = itemService.getMetadata(result, "dc", "description", "provenance", Item.ANY);
         int i = 1;
-        for(MetadataValue val : provMsgValues)
+        for(IMetadataValue val : provMsgValues)
         {
             assertFalse("testRestoreItem " + i, val.getValue().startsWith(provDescriptionBegins));
             i++;
@@ -260,7 +260,7 @@ public class InstallItemTest extends AbstractUnitTest
         context.restoreAuthSystemState();
 
         //Make sure the string "today" was replaced with today's date
-        List<MetadataValue> issuedDates = itemService.getMetadata(result, "dc", "date", "issued", Item.ANY);
+        List<IMetadataValue> issuedDates = itemService.getMetadata(result, "dc", "date", "issued", Item.ANY);
 
         assertThat("testInstallItem_todayAsIssuedDate 0", issuedDates.get(0).getValue(), equalTo(date));
         assertThat("testInstallItem_todayAsIssuedDate 1", issuedDates.get(1).getValue(), equalTo("2011-01-01"));
@@ -281,7 +281,7 @@ public class InstallItemTest extends AbstractUnitTest
         context.restoreAuthSystemState();
 
         //Make sure dc.date.issued is NOT set
-        List<MetadataValue> issuedDates = itemService.getMetadata(result, "dc", "date", "issued", Item.ANY);
+        List<IMetadataValue> issuedDates = itemService.getMetadata(result, "dc", "date", "issued", Item.ANY);
         assertThat("testInstallItem_nullIssuedDate 0", issuedDates.size(), equalTo(0));
     }
 
@@ -311,7 +311,7 @@ public class InstallItemTest extends AbstractUnitTest
         context.restoreAuthSystemState();
 
         //Make sure the string "today" was replaced with today's date
-        List<MetadataValue> issuedDates = itemService.getMetadata(result, "dc", "date", "issued", Item.ANY);
+        List<IMetadataValue> issuedDates = itemService.getMetadata(result, "dc", "date", "issued", Item.ANY);
 
         assertThat("testRestoreItem_todayAsIssuedDate 0", issuedDates.get(0).getValue(), equalTo(date));
         assertThat("testRestoreItem_todayAsIssuedDate 1", issuedDates.get(1).getValue(), equalTo("2011-01-01"));

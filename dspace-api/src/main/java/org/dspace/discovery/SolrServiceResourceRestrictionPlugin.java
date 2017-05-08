@@ -8,6 +8,10 @@
 package org.dspace.discovery;
 
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrInputDocument;
@@ -22,14 +26,9 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Restriction plugin that ensures that indexes all the resource policies.

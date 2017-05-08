@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Implements virtual field processing for split pagenumber range information.
@@ -34,7 +34,7 @@ public class VirtualFieldDate implements VirtualFieldDisseminator, VirtualFieldI
         if(qualifier.equals("date")){
         
 	        // Get the citation from the item
-	        List<MetadataValue> dcvs = item.getMetadataValueInDCFormat("dc.date.issued");
+	        List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat("dc.date.issued");
 	        
 	        if (dcvs != null && dcvs.size() > 0) 
 	        {   

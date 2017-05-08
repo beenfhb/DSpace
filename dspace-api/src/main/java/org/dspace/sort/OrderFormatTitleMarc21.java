@@ -7,8 +7,11 @@
  */
 package org.dspace.sort;
 
-import org.dspace.text.filter.*;
-import org.dspace.sort.AbstractTextFilterOFD;
+import org.dspace.text.filter.DecomposeDiactritics;
+import org.dspace.text.filter.LowerCaseAndTrim;
+import org.dspace.text.filter.MARC21InitialArticleWord;
+import org.dspace.text.filter.StripLeadingNonAlphaNum;
+import org.dspace.text.filter.TextFilter;
 
 /**
  * MARC 21 title ordering delegate implementation

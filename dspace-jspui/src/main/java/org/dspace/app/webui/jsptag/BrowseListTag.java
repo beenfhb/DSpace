@@ -35,8 +35,10 @@ import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.CrossLinks;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -656,7 +658,7 @@ public class BrowseListTag extends TagSupport
                     String qualifier = tokens[2];
 
                     // first get hold of the relevant metadata for this column
-                    List<MetadataValue> metadataArray = new ArrayList<>();
+                    List<IMetadataValue> metadataArray = new ArrayList<>();
                     
                     if (schema.equalsIgnoreCase("extra")) {
                     	
@@ -666,7 +668,7 @@ public class BrowseListTag extends TagSupport
 							val = String.valueOf(obj);
 						}
                     	if (StringUtils.isNotBlank(val)) {
-                    		MetadataValue metadataValue = new MetadataValue();
+                    		MetadataValueVolatile metadataValue = new MetadataValueVolatile();
                     		metadataValue.setValue(val);
                     		metadataValue.schema = "extra";
                     		metadataValue.element = element;

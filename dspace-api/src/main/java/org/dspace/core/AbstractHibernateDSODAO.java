@@ -7,6 +7,10 @@
  */
 package org.dspace.core;
 
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -14,10 +18,6 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataField;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Hibernate implementation used by DSO Database Access Objects , includes commonly used methods

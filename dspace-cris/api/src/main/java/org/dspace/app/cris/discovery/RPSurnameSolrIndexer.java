@@ -7,12 +7,6 @@
  */
 package org.dspace.app.cris.discovery;
 
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.integration.NameResearcherPage;
 import org.dspace.app.cris.model.ACrisObject;
@@ -20,6 +14,12 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.content.DCPersonName;
+
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
 /*
  * @author: Sergio Bilello
  * 

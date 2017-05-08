@@ -14,8 +14,8 @@ import java.util.UUID;
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.RelationPreference;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -109,12 +109,12 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
             for (String issued : metadata)
             {
                 String[] metadata = issued.split("\\.");
-                List<MetadataValue> original = item.getItemService().getMetadataByMetadataString(item, issued);
+                List<IMetadataValue> original = item.getItemService().getMetadataByMetadataString(item, issued);
                 String schema = metadata[0];
                 String element = metadata[1];
                 String qualifier = metadata.length > 2 ? metadata[2] : null;
                 item.getItemService().clearMetadata(context, item, schema, element, qualifier, Item.ANY);
-                for (MetadataValue md : original)
+                for (IMetadataValue md : original)
                 {
                     if (rpKey.equals(md.getAuthority()))
                     {
@@ -130,7 +130,7 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
                         // cam.notifyReject(item.getID(), schema, element,
                         // qualifier, rpKey);
                     }
-                    item.getItemService().addMetadata(context, item, md.schema, md.element, md.qualifier,
+                    item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
                             md.getLanguage(), md.getValue(), md.getAuthority(), md.getConfidence());
 
                 }
@@ -171,13 +171,13 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
             for (String issued : metadata)
             {
                 String[] metadata = issued.split("\\.");
-                List<MetadataValue> original = item.getItemService().getMetadataByMetadataString(item, issued);
+                List<IMetadataValue> original = item.getItemService().getMetadataByMetadataString(item, issued);
                 String schema = metadata[0];
                 String element = metadata[1];
                 String qualifier = metadata.length > 2 ? metadata[2] : null;
                 item.getItemService().clearMetadata(context, item, schema, element, qualifier, Item.ANY);
 
-                for (MetadataValue md : original)
+                for (IMetadataValue md : original)
                 {
                     for (String tempName : names)
                     {
@@ -192,7 +192,7 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
                             md.setConfidence(Choices.CF_ACCEPTED);
                         }
                     }
-                    item.getItemService().addMetadata(context, item, md.schema, md.element, md.qualifier,
+                    item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
                             md.getLanguage(), md.getValue(), md.getAuthority(), md.getConfidence());
                 }
             }

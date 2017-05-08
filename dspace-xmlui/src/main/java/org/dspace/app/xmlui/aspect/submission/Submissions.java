@@ -18,7 +18,7 @@ import org.dspace.app.xmlui.wing.element.*;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -393,9 +393,9 @@ public class Submissions extends AbstractDSpaceTransformer
             Item published = i.next();
             String collUrl = contextPath+"/handle/"+published.getOwningCollection().getHandle();
             String itemUrl = contextPath+"/handle/"+published.getHandle();
-            java.util.List<MetadataValue> titles = itemService.getMetadata(published, "dc", "title", null, Item.ANY);
+            java.util.List<IMetadataValue> titles = itemService.getMetadata(published, "dc", "title", null, Item.ANY);
             String collectionName = published.getOwningCollection().getName();
-            java.util.List<MetadataValue> ingestDate = itemService.getMetadata(published, "dc", "date", "accessioned", Item.ANY);
+            java.util.List<IMetadataValue> ingestDate = itemService.getMetadata(published, "dc", "date", "accessioned", Item.ANY);
 
             Row row = table.addRow();
 

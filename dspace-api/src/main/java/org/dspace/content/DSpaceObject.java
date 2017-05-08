@@ -31,14 +31,11 @@ import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.handle.Handle;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 /**
  * Abstract base class for DSpace objects
@@ -227,7 +224,7 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
 	}
 
 	@Override
-	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
 		return getDSpaceObjectService().getMetadataByMetadataString(this, mdString);
 	}
 	

@@ -18,7 +18,16 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -26,20 +35,27 @@ import javax.mail.MessagingException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
 import org.dspace.app.itemexport.service.ItemExportService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.core.Utils;
-import org.dspace.core.Email;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.handle.service.HandleService;
@@ -190,8 +206,8 @@ public class ItemExportServiceImpl implements ItemExportService
             throws Exception
     {
         Set<String> schemas = new HashSet<String>();
-        List<MetadataValue> dcValues = itemService.getMetadata(i, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue metadataValue : dcValues)
+        List<IMetadataValue> dcValues = itemService.getMetadata(i, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue metadataValue : dcValues)
         {
             schemas.add(metadataValue.getMetadataField().getMetadataSchema().getName());
         }
@@ -234,7 +250,7 @@ public class ItemExportServiceImpl implements ItemExportService
             BufferedOutputStream out = new BufferedOutputStream(
                     new FileOutputStream(outFile));
 
-            List<MetadataValue> dcorevalues = itemService.getMetadata(i, schema, Item.ANY, Item.ANY,
+            List<IMetadataValue> dcorevalues = itemService.getMetadata(i, schema, Item.ANY, Item.ANY,
                     Item.ANY);
 
             // XML preamble
@@ -249,7 +265,7 @@ public class ItemExportServiceImpl implements ItemExportService
             String dateIssued = null;
             String dateAccessioned = null;
 
-            for (MetadataValue dcv : dcorevalues)
+            for (IMetadataValue dcv : dcorevalues)
             {
                 MetadataField metadataField = dcv.getMetadataField();
                 String qualifier = metadataField.getQualifier();

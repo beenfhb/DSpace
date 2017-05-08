@@ -7,17 +7,54 @@
  */
 package org.dspace.harvest;
 
-import ORG.oclc.oai.harvester2.verb.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.ConnectException;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.IngestionCrosswalk;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.*;
-import org.dspace.core.*;
+import org.dspace.content.service.BitstreamFormatService;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.core.Email;
+import org.dspace.core.I18nUtil;
+import org.dspace.core.Utils;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.core.service.PluginService;
 import org.dspace.handle.factory.HandleServiceFactory;
@@ -34,13 +71,11 @@ import org.jdom.input.DOMBuilder;
 import org.jdom.output.XMLOutputter;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.*;
-import java.net.ConnectException;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import ORG.oclc.oai.harvester2.verb.GetRecord;
+import ORG.oclc.oai.harvester2.verb.Identify;
+import ORG.oclc.oai.harvester2.verb.ListIdentifiers;
+import ORG.oclc.oai.harvester2.verb.ListMetadataFormats;
+import ORG.oclc.oai.harvester2.verb.ListRecords;
 
 
 /**
@@ -654,11 +689,11 @@ public class OAIHarvester {
             rejectedHandlePrefixes = new String[]{"123456789"};
         }
 
-    	List<MetadataValue> values = itemService.getMetadata(item, "dc", "identifier", Item.ANY, Item.ANY);
+    	List<IMetadataValue> values = itemService.getMetadata(item, "dc", "identifier", Item.ANY, Item.ANY);
 
     	if (values.size() > 0 && acceptedHandleServers != null)
     	{
-    		for (MetadataValue value : values)
+    		for (IMetadataValue value : values)
     		{
     			//     0   1       2         3   4
     			//   http://hdl.handle.net/1234/12

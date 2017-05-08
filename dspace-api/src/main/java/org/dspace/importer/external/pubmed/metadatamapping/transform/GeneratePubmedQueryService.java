@@ -9,7 +9,7 @@
 package org.dspace.importer.external.pubmed.metadatamapping.transform;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.importer.external.exception.MetadataSourceException;
@@ -41,7 +41,7 @@ public class GeneratePubmedQueryService implements GenerateQueryService {
 
         // Retrieve an instance of the ItemService to access business calls on an item.
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-        List<MetadataValue> doi = itemService.getMetadata(item, "dc", "identifier", "doi", Item.ANY);
+        List<IMetadataValue> doi = itemService.getMetadata(item, "dc", "identifier", "doi", Item.ANY);
 
         if(doi.size()>0){
             query.addParameter("term", doi.get(0).getValue());
@@ -49,7 +49,7 @@ public class GeneratePubmedQueryService implements GenerateQueryService {
             return query;
         }
 
-        List<MetadataValue> title = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
+        List<IMetadataValue> title = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
 
         if(title.size()>0) {
             query.addParameter("term", title.get(0).getValue());

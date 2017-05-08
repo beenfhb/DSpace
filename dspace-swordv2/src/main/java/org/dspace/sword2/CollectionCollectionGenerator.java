@@ -7,20 +7,19 @@
  */
 package org.dspace.sword2;
 
+import java.util.List;
+
 import org.apache.abdera.i18n.iri.IRI;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.ConfigurationManager;
-import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.swordapp.server.SwordCollection;
-
-import java.util.Map;
-import java.util.List;
 
 /**
  * Class to generate ATOM Collection Elements which represent
@@ -74,7 +73,7 @@ public class CollectionCollectionGenerator implements AtomCollectionGenerator
         // String treatment = " ";
 
         // abstract is the short description of the collection
-        List<MetadataValue> dcAbstracts = collectionService
+        List<IMetadataValue> dcAbstracts = collectionService
                 .getMetadataByMetadataString(col, "short_description");
 
         // we just do support mediation

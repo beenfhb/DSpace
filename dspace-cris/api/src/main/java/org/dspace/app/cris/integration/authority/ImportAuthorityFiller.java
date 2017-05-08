@@ -10,13 +10,13 @@ package org.dspace.app.cris.integration.authority;
 import java.util.List;
 
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 
 public interface ImportAuthorityFiller {
-	void fillRecord(Context context, Item item, List<MetadataValue> metadata, String authorityID, ACrisObject crisObject);
+	void fillRecord(Context context, Item item, List<IMetadataValue> metadata, String authorityID, ACrisObject crisObject);
 
-	boolean allowsUpdate(Context ctx, Item item, List<MetadataValue> MetadataValueList, String authorityKey, ACrisObject rp);
+	boolean allowsUpdate(Context ctx, Item item, List<IMetadataValue> MetadataValueList, String authorityKey, ACrisObject rp);
 	
 }

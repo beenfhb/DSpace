@@ -8,12 +8,26 @@
 package org.dspace.health;
 
 
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.io.FileUtils;
 import org.dspace.app.util.CollectionDropDown;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.*;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataValueService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -22,9 +36,6 @@ import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.workflowbasic.factory.BasicWorkflowServiceFactory;
 import org.dspace.workflowbasic.service.BasicWorkflowItemService;
-
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * @author LINDAT/CLARIN dev team
@@ -111,7 +122,7 @@ public class ItemCheck extends Check {
                 String.valueOf(collectionService.countTotal(context))));
         sb.append(String.format("Count %-14s: %s\n", "Community",
                 String.valueOf(communityService.countTotal(context))));
-        sb.append(String.format("Count %-14s: %s\n", "MetadataValue",
+        sb.append(String.format("Count %-14s: %s\n", "IMetadataValue",
                 String.valueOf(metadataValueService.countTotal(context))));
         sb.append(String.format("Count %-14s: %s\n", "EPerson",
                 String.valueOf(ePersonService.countTotal(context))));

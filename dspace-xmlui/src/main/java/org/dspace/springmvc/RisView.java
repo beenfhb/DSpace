@@ -9,18 +9,6 @@
 package org.dspace.springmvc;
 
 
-import org.dspace.content.MetadataValue;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.core.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.View;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -28,6 +16,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.View;
 
 /**
  * @author Fabio Bolognesi (fabio at atmire dot com)
@@ -169,7 +171,7 @@ public class RisView implements View {
     {
         ArrayList<String> keywordList = new ArrayList<String>();
 
-        for (MetadataValue keyword : itemService.getMetadataByMetadataString(aItem, "dc.subject"))
+        for (IMetadataValue keyword : itemService.getMetadataByMetadataString(aItem, "dc.subject"))
         {
             if (keyword.getValue().length() < 255)
             {
@@ -177,7 +179,7 @@ public class RisView implements View {
             }
         }
 
-        for (MetadataValue keyword : itemService.getMetadataByMetadataString(aItem, "dwc.ScientificName"))
+        for (IMetadataValue keyword : itemService.getMetadataByMetadataString(aItem, "dwc.ScientificName"))
         {
             if (keyword.getValue().length() < 255)
             {
@@ -192,7 +194,7 @@ public class RisView implements View {
     {
         StringTokenizer tokenizer;
 
-        for (MetadataValue date : itemService.getMetadataByMetadataString(item, "dc.date.issued"))
+        for (IMetadataValue date : itemService.getMetadataByMetadataString(item, "dc.date.issued"))
         {
             tokenizer = new StringTokenizer(date.getValue(), "-/ T");
             String[] dateParts = new String[tokenizer.countTokens()];
@@ -210,19 +212,19 @@ public class RisView implements View {
 
     private String getMetadataValue(Item item, String metadatafield)
     {
-        for (MetadataValue value : itemService.getMetadataByMetadataString(item, metadatafield))
+        for (IMetadataValue value : itemService.getMetadataByMetadataString(item, metadatafield))
         {
             return value.getValue();
         }
         return null;
     }
 
-    private List<String> getAuthors(List<MetadataValue> aMetadata)
+    private List<String> getAuthors(List<IMetadataValue> aMetadata)
     {
         ArrayList<String> authors = new ArrayList<String>();
         StringTokenizer tokenizer;
 
-        for (MetadataValue metadata : aMetadata)
+        for (IMetadataValue metadata : aMetadata)
         {
             StringBuilder builder = new StringBuilder();
 

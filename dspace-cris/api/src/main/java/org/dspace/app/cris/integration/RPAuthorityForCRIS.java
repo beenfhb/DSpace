@@ -9,8 +9,6 @@ package org.dspace.app.cris.integration;
 
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
-import org.dspace.content.Collection;
-import org.dspace.content.authority.Choices;
 
 public class RPAuthorityForCRIS extends CRISAuthorityForCRIS<ResearcherPage> 
 {

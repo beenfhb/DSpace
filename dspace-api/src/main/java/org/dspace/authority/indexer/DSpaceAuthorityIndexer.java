@@ -13,8 +13,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
@@ -127,9 +128,9 @@ public class DSpaceAuthorityIndexer implements AuthorityIndexerInterface, Initia
         // 1. iterate over the metadata values
 
         String metadataField = metadataFields.get(currentFieldIndex);
-        List<MetadataValue> values = itemService.getMetadataByMetadataString(currentItem, metadataField);
+        List<IMetadataValue> values = itemService.getMetadataByMetadataString(currentItem, metadataField);
         if (currentMetadataIndex < values.size()) {
-            prepareNextValue(metadataField, values.get(currentMetadataIndex));
+            prepareNextValue(metadataField, (MetadataValue)values.get(currentMetadataIndex));
 
             currentMetadataIndex++;
             return true;

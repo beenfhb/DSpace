@@ -157,7 +157,7 @@ public class InitialQuestionsStep extends AbstractProcessingStep
                 // shouldn't need to check if submission is null, but just in case!
                 if (!multipleTitles)
                 {
-                    List<MetadataValue> altTitles = itemService
+                    List<IMetadataValue> altTitles = itemService
                             .getMetadata(item, MetadataSchema.DC_SCHEMA, "title", "alternative", Item.ANY);
 
                     willRemoveTitles = altTitles.size() > 0;
@@ -165,11 +165,11 @@ public class InitialQuestionsStep extends AbstractProcessingStep
 
                 if (!publishedBefore)
                 {
-                    List<MetadataValue> dateIssued = itemService
+                    List<IMetadataValue> dateIssued = itemService
                             .getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
-                    List<MetadataValue> citation = itemService
+                    List<IMetadataValue> citation = itemService
                             .getMetadata(item, MetadataSchema.DC_SCHEMA, "identifier", "citation", Item.ANY);
-                    List<MetadataValue> publisher = itemService
+                    List<IMetadataValue> publisher = itemService
                             .getMetadata(item, MetadataSchema.DC_SCHEMA, "publisher", null, Item.ANY);
 
                     willRemoveDate = (dateIssued.size() > 0)
@@ -221,7 +221,7 @@ public class InitialQuestionsStep extends AbstractProcessingStep
         // (This logic is necessary since the date field is hidden on DescribeStep when publishedBefore==false)
         if(!publishedBefore)
         {
-            List<MetadataValue> dateIssued = itemService
+            List<IMetadataValue> dateIssued = itemService
                             .getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
             if(dateIssued.size()==0)
             {

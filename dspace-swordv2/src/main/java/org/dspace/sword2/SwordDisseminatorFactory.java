@@ -7,14 +7,14 @@
  */
 package org.dspace.sword2;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
 import org.swordapp.server.UriRegistry;
-
-import java.util.List;
-import java.util.Map;
-import org.apache.commons.lang.StringUtils;
-import org.dspace.core.factory.CoreServiceFactory;
 
 public class SwordDisseminatorFactory
 {

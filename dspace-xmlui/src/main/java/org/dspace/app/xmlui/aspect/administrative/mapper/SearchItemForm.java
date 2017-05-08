@@ -108,13 +108,13 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
 			if (owningCollection != null)
 				owning = owningCollection.getName();
 			String author = "unknown";
-			List<MetadataValue> dcCreators = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "creator", Item.ANY, Item.ANY);
+			List<IMetadataValue> dcCreators = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "creator", Item.ANY, Item.ANY);
 			if (dcCreators != null && dcCreators.size() >= 1)
             {
                 author = dcCreators.get(0).getValue();
             } else {
             	// Do a fallback look for contributors
-				List<MetadataValue> dcContributors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
+				List<IMetadataValue> dcContributors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
 				if (dcContributors != null && dcContributors.size() >= 1)
 	            {
 	                author = dcContributors.get(0).getValue();
@@ -122,7 +122,7 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
 			}
 			
 			String title = "untitled";
-			List<MetadataValue> dcTitles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+			List<IMetadataValue> dcTitles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
 			if (dcTitles != null && dcTitles.size() >= 1)
             {
                 title = dcTitles.get(0).getValue();

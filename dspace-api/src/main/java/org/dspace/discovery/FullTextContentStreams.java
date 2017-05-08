@@ -7,8 +7,22 @@
  */
 package org.dspace.discovery;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import static org.dspace.core.Utils.emptyIfNull;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
@@ -23,16 +37,8 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 
-import javax.annotation.Nullable;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import static org.dspace.core.Utils.emptyIfNull;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 
 /**
  * Construct a <code>ContentStream</code> from a <code>File</code>

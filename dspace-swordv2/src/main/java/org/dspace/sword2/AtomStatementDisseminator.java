@@ -7,8 +7,10 @@
  */
 package org.dspace.sword2;
 
+import java.util.List;
+
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
@@ -17,8 +19,6 @@ import org.swordapp.server.AtomStatement;
 import org.swordapp.server.Statement;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
-
-import java.util.List;
 
 public class AtomStatementDisseminator extends GenericStatementDisseminator
         implements SwordStatementDisseminator
@@ -56,7 +56,7 @@ public class AtomStatementDisseminator extends GenericStatementDisseminator
             return null;
         }
 
-        List<MetadataValue> dcvs = itemService
+        List<IMetadataValue> dcvs = itemService
                 .getMetadataByMetadataString(item, field);
         if (dcvs == null || dcvs.isEmpty())
         {
@@ -64,7 +64,7 @@ public class AtomStatementDisseminator extends GenericStatementDisseminator
         }
 
         StringBuilder md = new StringBuilder();
-        for (MetadataValue dcv : dcvs)
+        for (IMetadataValue dcv : dcvs)
         {
             if (md.length() > 0)
             {

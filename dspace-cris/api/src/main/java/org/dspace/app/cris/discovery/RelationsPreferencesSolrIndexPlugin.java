@@ -7,12 +7,6 @@
  */
 package org.dspace.app.cris.discovery;
 
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +20,12 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
+
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
 
 public class RelationsPreferencesSolrIndexPlugin implements
         CrisServiceIndexPlugin, SolrServiceIndexPlugin

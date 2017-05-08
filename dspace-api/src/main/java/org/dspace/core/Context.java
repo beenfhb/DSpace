@@ -18,12 +18,11 @@ import java.util.Stack;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizableEntity;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.content.Item;
 import org.dspace.core.factory.CoreServiceFactory;
-import org.dspace.authorize.AuthorizableEntity;
-import org.dspace.authorize.ResourcePolicy;
-import org.dspace.content.DSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -112,7 +111,7 @@ public class Context
 
     protected EventService eventService;
 
-    private DBConnection dbConnection;
+    DBConnection dbConnection;
 
     public enum Mode {
         READ_ONLY,

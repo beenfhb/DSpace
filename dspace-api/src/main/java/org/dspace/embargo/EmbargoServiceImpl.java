@@ -15,7 +15,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.DCDate;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.service.PluginService;
@@ -114,7 +117,7 @@ public class EmbargoServiceImpl implements EmbargoService
     public DCDate getEmbargoTermsAsDate(Context context, Item item)
         throws SQLException, AuthorizeException
     {
-        List<MetadataValue> terms = itemService.getMetadata(item, terms_schema, terms_element,
+        List<IMetadataValue> terms = itemService.getMetadata(item, terms_schema, terms_element,
                 terms_qualifier, Item.ANY);
 
         DCDate result = null;
@@ -224,7 +227,7 @@ public class EmbargoServiceImpl implements EmbargoService
     // it was never under embargo, or the lift date has passed.
     protected DCDate recoverEmbargoDate(Item item) {
         DCDate liftDate = null;
-        List<MetadataValue> lift = itemService.getMetadata(item, lift_schema, lift_element, lift_qualifier, Item.ANY);
+        List<IMetadataValue> lift = itemService.getMetadata(item, lift_schema, lift_element, lift_qualifier, Item.ANY);
         if (lift.size() > 0)
         {
             liftDate = new DCDate(lift.get(0).getValue());
@@ -243,7 +246,7 @@ public class EmbargoServiceImpl implements EmbargoService
     }
 
     @Override
-    public List<MetadataValue> getLiftMetadata(Context context, Item item)
+    public List<IMetadataValue> getLiftMetadata(Context context, Item item)
     {
         return itemService.getMetadata(item, lift_schema, lift_element, lift_qualifier, Item.ANY);
     }

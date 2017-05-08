@@ -77,8 +77,8 @@ import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -272,7 +272,7 @@ public class ScriptCrisSubscribe
                     Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString((String) solrDoc
                             .getFieldValue("search.resourceid")));
 
-                    List<MetadataValue> titles = item.getMetadata("title", null, Item.ANY, Item.ANY);
+                    List<IMetadataValue> titles = item.getMetadata("title", null, Item.ANY, Item.ANY);
                     emailText
                             .append("      ")
                             .append(I18nUtil.getMessage(
@@ -290,7 +290,7 @@ public class ScriptCrisSubscribe
                                 supportedLocale));
                     }
 
-                    List<MetadataValue> authors = item.getMetadata("contributor", Item.ANY,
+                    List<IMetadataValue> authors = item.getMetadata("contributor", Item.ANY,
                             Item.ANY, Item.ANY);
 
                     if (authors.size() > 0)

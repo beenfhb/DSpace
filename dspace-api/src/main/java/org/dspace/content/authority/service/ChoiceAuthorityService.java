@@ -8,7 +8,8 @@
 package org.dspace.content.authority.service;
 
 import org.dspace.content.Collection;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 
@@ -93,7 +94,7 @@ public interface ChoiceAuthorityService
      * @param locale explicit localization key if available
      * @return label
      */
-    public String getLabel(MetadataValue metadataValue, String locale);
+    public String getLabel(IMetadataValue metadataValue, String locale);
 
     /**
      *  Wrapper that calls getLabel method of the plugin corresponding to
@@ -135,7 +136,7 @@ public interface ChoiceAuthorityService
      * @param metadataValue metadata value
      * @return List of variants
      */
-    public List<String> getVariants(MetadataValue metadataValue);
+    public List<String> getVariants(IMetadataValue metadataValue);
     
     
     public void notifyAccept(int itemID, String schema, String element,

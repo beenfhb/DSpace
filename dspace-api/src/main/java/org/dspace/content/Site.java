@@ -10,17 +10,17 @@ package org.dspace.content;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.Cacheable;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.Cacheable;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
 /**
  * Represents the root of the DSpace Archive.
@@ -82,7 +82,7 @@ public class Site extends DSpaceObject
 	}
 
 	@Override
-	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
 		return siteService.getMetadataByMetadataString(this, mdString);
 	}
 

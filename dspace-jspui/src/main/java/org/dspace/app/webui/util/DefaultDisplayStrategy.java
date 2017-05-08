@@ -19,7 +19,7 @@ import javax.servlet.jsp.JspException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.I18nUtil;
@@ -37,7 +37,7 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
     {
         String metadata;
         // limit the number of records if this is the author field (if
@@ -66,7 +66,7 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
                 try {
 					if (metadataArray.get(j).getAuthority() != null &&
 					        metadataArray.get(j).getConfidence() >= metadataAuthorityService
-					            .getMinConfidence(UIUtil.obtainContext(hrq), metadataArray.get(j).schema, metadataArray.get(j).element, metadataArray.get(j).qualifier))
+					            .getMinConfidence(UIUtil.obtainContext(hrq), metadataArray.get(j).getSchema(), metadataArray.get(j).getElement(), metadataArray.get(j).getQualifier()))
 					{
 					    argument = "authority";
 					    value = metadataArray.get(j).getAuthority();

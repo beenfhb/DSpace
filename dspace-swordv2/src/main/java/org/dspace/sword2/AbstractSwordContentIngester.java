@@ -7,8 +7,17 @@
  */
 package org.dspace.sword2;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.StringTokenizer;
+
 import org.apache.log4j.Logger;
-import org.dspace.content.*;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.ItemService;
@@ -18,11 +27,6 @@ import org.swordapp.server.Deposit;
 import org.swordapp.server.SwordAuthException;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.StringTokenizer;
 
 public abstract class AbstractSwordContentIngester
         implements SwordContentIngester
@@ -195,11 +199,11 @@ public abstract class AbstractSwordContentIngester
 
     /**
      * Utility method to turn given metadata fields of the form
-     schema.element.qualifier into MetadataValue objects which can be
+     schema.element.qualifier into IMetadataValue objects which can be
      used to access metadata in items.
      *
      * The def parameter should be null, * or "" depending on how
-     you intend to use the MetadataValue object.
+     you intend to use the IMetadataValue object.
      *
      * @param config
      * @param def

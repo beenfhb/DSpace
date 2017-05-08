@@ -15,9 +15,10 @@ import java.util.List;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -872,8 +873,8 @@ public class DOIIdentifierProvider
         }
         Item item = (Item)dso;
 
-        List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
-        for (MetadataValue id : metadata)
+        List<IMetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        for (IMetadataValue id : metadata)
         {
             if (id.getValue().startsWith(DOI.RESOLVER + String.valueOf(SLASH) + PREFIX + String.valueOf(SLASH) + NAMESPACE_SEPARATOR)) {
                 return doiService.DOIFromExternalFormat(id.getValue());
@@ -933,10 +934,10 @@ public class DOIIdentifierProvider
         }
         Item item = (Item)dso;
 
-        List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        List<IMetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
         List<String> remainder = new ArrayList<String>();
 
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (!id.getValue().equals(doiService.DOIToExternalForm(doi)))
             {

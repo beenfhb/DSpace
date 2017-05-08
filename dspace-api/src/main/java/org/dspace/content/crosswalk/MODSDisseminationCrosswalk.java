@@ -27,7 +27,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Site;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -609,10 +609,10 @@ public class MODSDisseminationCrosswalk extends SelfNamedPlugin
      */
     protected List<MockMetadataValue> item2Metadata(Item item)
     {
-        List<MetadataValue> dcvs = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY,
+        List<IMetadataValue> dcvs = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY,
                 Item.ANY);
         List<MockMetadataValue> result = new ArrayList<>();
-        for (MetadataValue metadataValue : dcvs) {
+        for (IMetadataValue metadataValue : dcvs) {
             result.add(new MockMetadataValue(metadataValue));
         }
 

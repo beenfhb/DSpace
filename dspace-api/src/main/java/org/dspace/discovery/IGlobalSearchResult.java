@@ -10,7 +10,7 @@ package org.dspace.discovery;
 import java.util.List;
 import java.util.UUID;
 
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 public interface IGlobalSearchResult {
 
@@ -18,7 +18,7 @@ public interface IGlobalSearchResult {
 	
 	public List<String> getMetadataValue(String mdString);
 	
-	public List<MetadataValue> getMetadataValueInDCFormat(String mdString);
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString);
 	
 	public String getTypeText();
 	

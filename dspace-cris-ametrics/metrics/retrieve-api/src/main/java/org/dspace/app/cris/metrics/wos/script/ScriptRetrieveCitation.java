@@ -31,8 +31,8 @@ import org.dspace.app.cris.metrics.wos.dto.WosResponse;
 import org.dspace.app.cris.metrics.wos.services.WosService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -288,17 +288,17 @@ public class ScriptRetrieveCitation
                         if (StringUtils.isNotBlank(citation.getIdentifier()))
                         {
                         	Item item = (Item) ContentServiceFactory.getInstance().getItemService().find(context, citation.getResourceId());
-                            List<MetadataValue> MetadataValueisi = item
+                            List<IMetadataValue> MetadataValueisi = item
                                     .getMetadataValueInDCFormat(fieldWosID);
                             if (MetadataValueisi != null && MetadataValueisi.size() > 0)
                             {
-                            	ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, MetadataValueisi.get(0).schema,
-                                        MetadataValueisi.get(0).element,
-                                        MetadataValueisi.get(0).qualifier,
+                            	ContentServiceFactory.getInstance().getItemService().clearMetadata(context, item, MetadataValueisi.get(0).getSchema(),
+                                        MetadataValueisi.get(0).getElement(),
+                                        MetadataValueisi.get(0).getQualifier(),
                                         MetadataValueisi.get(0).getLanguage());
-                            	ContentServiceFactory.getInstance().getItemService().addMetadata(context, item, MetadataValueisi.get(0).schema,
-                                        MetadataValueisi.get(0).element,
-                                        MetadataValueisi.get(0).qualifier,
+                            	ContentServiceFactory.getInstance().getItemService().addMetadata(context, item, MetadataValueisi.get(0).getSchema(),
+                                        MetadataValueisi.get(0).getElement(),
+                                        MetadataValueisi.get(0).getQualifier(),
                                         MetadataValueisi.get(0).getLanguage(),
                                         citation.getIdentifier());
                             }

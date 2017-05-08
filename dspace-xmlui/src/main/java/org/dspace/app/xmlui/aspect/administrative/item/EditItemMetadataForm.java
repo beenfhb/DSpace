@@ -109,7 +109,7 @@ public class EditItemMetadataForm extends AbstractDSpaceTransformer {
                 // Get our parameters and state
                 UUID itemID = UUID.fromString(parameters.getParameter("itemID", null));
                 Item item = itemService.find(context, itemID);
-                java.util.List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+                java.util.List<IMetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
                 Collections.sort(values, new DCValueComparator());
                 String baseURL = contextPath+"/admin/item?administrative-continue="+knot.getId();
 
@@ -214,7 +214,7 @@ public class EditItemMetadataForm extends AbstractDSpaceTransformer {
                 header.addCell().addContent(T_column3);
                 header.addCell().addContent(T_column4);
 
-                for(MetadataValue value : values)
+                for(IMetadataValue value : values)
                 {
                         String name = value.getMetadataField().toString('_');
 
@@ -301,8 +301,8 @@ public class EditItemMetadataForm extends AbstractDSpaceTransformer {
          */
         static class DCValueComparator implements Comparator, Serializable {
             public int compare(Object arg0, Object arg1) {
-          			final MetadataValue o1 = (MetadataValue)arg0;
-          			final MetadataValue o2 = (MetadataValue)arg1;
+          			final IMetadataValue o1 = (IMetadataValue)arg0;
+          			final IMetadataValue o2 = (IMetadataValue)arg1;
           			MetadataField o1Field = o1.getMetadataField();
           			MetadataField o2Field = o2.getMetadataField();
           			final String s1 = o1Field.getMetadataSchema().getName() + o1Field.getElement() + (o1Field.getQualifier()==null?"":("." + o1Field.getQualifier()));

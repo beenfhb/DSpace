@@ -7,22 +7,28 @@
  */
 package org.dspace.authority;
 
-import org.apache.commons.cli.*;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  *
@@ -155,9 +161,9 @@ public class UpdateAuthorities {
             Iterator<Item> itemIterator = itemService.findByMetadataFieldAuthority(context, authority.getField(), authority.getId());
             while (itemIterator.hasNext()) {
                 Item next = itemIterator.next();
-                List<MetadataValue> metadata = itemService.getMetadata(next, authority.getField(), authority.getId());
-                authority.updateItem(context, next, metadata.get(0)); //should be only one
-                List<MetadataValue> metadataAfter = itemService.getMetadata(next, authority.getField(), authority.getId());
+                List<IMetadataValue> metadata = itemService.getMetadata(next, authority.getField(), authority.getId());
+                authority.updateItem(context, next, (MetadataValue)metadata.get(0)); //should be only one
+                List<IMetadataValue> metadataAfter = itemService.getMetadata(next, authority.getField(), authority.getId());
                 if (!metadata.get(0).getValue().equals(metadataAfter.get(0).getValue())) {
                     print.println("Updated item with handle " + next.getHandle());
                 }

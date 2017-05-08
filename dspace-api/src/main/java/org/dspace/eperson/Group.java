@@ -24,8 +24,8 @@ import javax.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectLegacySupport;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -275,7 +275,7 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 	}
 
 	@Override
-	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
 		return EPersonServiceFactory.getInstance().getGroupService().getMetadataByMetadataString(this, mdString);
 	}
     

@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Effettua l'escape html di un altro metadato
@@ -37,13 +37,13 @@ public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
         String metadata = virtualFieldName[2];
 
         // Get the metadatavalue
-        List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
+        List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
 
         if (dcvs != null && dcvs.size() > 0)
         {
             StringBuffer sb = new StringBuffer();
             boolean start = true;
-            for (MetadataValue dc : dcvs)
+            for (IMetadataValue dc : dcvs)
             {
                 if (!start)
                 {

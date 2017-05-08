@@ -7,6 +7,9 @@
  */
 package org.dspace.authority;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authority.indexer.AuthorityIndexerInterface;
 import org.dspace.authority.indexer.AuthorityIndexingService;
 import org.dspace.authority.service.AuthorityService;
@@ -14,9 +17,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
 
 
 /**

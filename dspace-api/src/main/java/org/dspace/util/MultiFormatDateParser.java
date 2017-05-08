@@ -21,8 +21,9 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import javax.inject.Inject;
-import org.dspace.kernel.DSpaceKernel;
+
 import org.dspace.servicemanager.DSpaceKernelInit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

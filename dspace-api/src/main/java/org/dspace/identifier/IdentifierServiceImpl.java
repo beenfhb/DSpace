@@ -7,6 +7,11 @@
  */
 package org.dspace.identifier;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
@@ -16,12 +21,6 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.identifier.service.IdentifierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.commons.lang.StringUtils;
-import org.dspace.core.Constants;
 
 /**
  * The main service class used to reserve, register and resolve identifiers

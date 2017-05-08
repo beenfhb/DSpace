@@ -7,7 +7,11 @@
  */
 package org.dspace.curate;
 
-import org.dspace.content.Item;
+// Warning - static import ahead!
+import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,14 +20,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -39,9 +44,6 @@ import org.dspace.workflowbasic.BasicWorkflowServiceImpl;
 import org.dspace.workflowbasic.service.BasicWorkflowItemService;
 import org.dspace.workflowbasic.service.BasicWorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-// Warning - static import ahead!
-import static javax.xml.stream.XMLStreamConstants.*;
 
 
 /**

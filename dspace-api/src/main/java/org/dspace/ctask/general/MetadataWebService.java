@@ -7,8 +7,8 @@
  */
 package org.dspace.ctask.general;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,15 +18,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import javax.xml.XMLConstants;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -35,23 +35,20 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
-
-import org.dspace.content.MetadataValue;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import org.xml.sax.SAXException;
-
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.curate.AbstractCurationTask;
 import org.dspace.curate.Curator;
 import org.dspace.curate.Mutative;
 import org.dspace.curate.Suspendable;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * MetadataWebService task calls a web service using metadata from
@@ -226,7 +223,7 @@ public class MetadataWebService extends AbstractCurationTask implements Namespac
             String itemId = item.getHandle();
             if (itemId == null) {
             	// we are still in workflow - no handle assigned - try title
-            	List<MetadataValue> titleDc = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
+            	List<IMetadataValue> titleDc = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
             	String title = (titleDc.size() > 0) ? titleDc.get(0).getValue() : "untitled - dbId: " + item.getID();
             	itemId = "Workflow item: " + title;
             } else {
@@ -234,7 +231,7 @@ public class MetadataWebService extends AbstractCurationTask implements Namespac
             }
             resultSb.append(itemId);
             // Only proceed if item has a value for service template parameter
-			List<MetadataValue> dcVals = itemService.getMetadataByMetadataString(item, lookupField);
+			List<IMetadataValue> dcVals = itemService.getMetadataByMetadataString(item, lookupField);
             if (dcVals.size() > 0 && dcVals.get(0).getValue().length() > 0) {
             	String value = transform(dcVals.get(0).getValue(), lookupTransform);
             	status = callService(value, item, resultSb);
@@ -317,7 +314,7 @@ public class MetadataWebService extends AbstractCurationTask implements Namespac
        						continue;
        					}
        				} else {
-       					for (MetadataValue dcVal : itemService.getMetadata(item, info.getSchema(), info.getElement(), info.getQualifier(), Item.ANY)) {
+       					for (IMetadataValue dcVal : itemService.getMetadata(item, info.getSchema(), info.getElement(), info.getQualifier(), Item.ANY)) {
        						values.add(dcVal.getValue());
        					}
        				}

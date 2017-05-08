@@ -11,8 +11,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.Context;
 import org.hibernate.Session;
@@ -47,16 +47,16 @@ public class VirtualFieldCrossrefConferenceDOI implements VirtualFieldDisseminat
             
             String result = "";
             
-            MetadataValue md = item.getItemService().getMetadata(item, "dc", "contributor", "author", Item.ANY).get(0);
+            IMetadataValue md = item.getItemService().getMetadata(item, "dc", "contributor", "author", Item.ANY).get(0);
             String mdValue = md.getValue().toLowerCase();
             mdValue = mdValue.replaceAll("[^a-z]+", "-");
             result += mdValue;
              
             
-            MetadataValue mddate = item.getItemService().getMetadata(item, "dc", "date", "issued", Item.ANY).get(0);
+            IMetadataValue mddate = item.getItemService().getMetadata(item, "dc", "date", "issued", Item.ANY).get(0);
             result += mddate.getValue();
            
-            MetadataValue mdtitle = item.getItemService().getMetadata(item, "dc", "title", null, Item.ANY).get(0);
+            IMetadataValue mdtitle = item.getItemService().getMetadata(item, "dc", "title", null, Item.ANY).get(0);
             String mdtitleValue = mdtitle.getValue().toLowerCase();
             mdtitleValue = mdtitleValue.replaceAll("[^a-z]+", "-");
             

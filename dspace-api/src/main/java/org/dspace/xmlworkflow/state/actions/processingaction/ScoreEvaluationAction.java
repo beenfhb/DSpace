@@ -8,7 +8,7 @@
 package org.dspace.xmlworkflow.state.actions.processingaction;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
 import org.dspace.core.Context;
@@ -48,10 +48,10 @@ public class ScoreEvaluationAction extends ProcessingAction{
     public ActionResult execute(Context c, XmlWorkflowItem wfi, Step step, HttpServletRequest request) throws SQLException, AuthorizeException, IOException, WorkflowException {
         boolean hasPassed = false;
         //Retrieve all our scores from the metadata & add em up
-        List<MetadataValue> scores = itemService.getMetadata(wfi.getItem(), WorkflowRequirementsService.WORKFLOW_SCHEMA, "score", null, Item.ANY);
+        List<IMetadataValue> scores = itemService.getMetadata(wfi.getItem(), WorkflowRequirementsService.WORKFLOW_SCHEMA, "score", null, Item.ANY);
         if(0 < scores.size()){
             int totalScoreCount = 0;
-            for (MetadataValue score : scores) {
+            for (IMetadataValue score : scores) {
                 totalScoreCount += Integer.parseInt(score.getValue());
             }
             int scoreMean = totalScoreCount / scores.size();

@@ -7,28 +7,47 @@
  */
 package org.dspace.eperson;
 
-import org.apache.commons.cli.*;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.TimeZone;
+
+import javax.mail.MessagingException;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.dspace.content.*;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.*;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.core.Email;
+import org.dspace.core.I18nUtil;
+import org.dspace.core.LogManager;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.search.Harvest;
 import org.dspace.search.HarvestedItemInfo;
-
-import javax.mail.MessagingException;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * CLI tool used for sending new item e-mail alerts to users
@@ -198,7 +217,7 @@ public class SubscribeCLITool {
                             emailText.append(labels.getString("org.dspace.eperson.Subscribe.untitled"));
                         }
 
-                        List<MetadataValue> authors = itemService.getMetadata(hii.item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
+                        List<IMetadataValue> authors = itemService.getMetadata(hii.item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
 
                         if (authors.size() > 0) {
                             emailText.append("\n    ").append(labels.getString("org.dspace.eperson.Subscribe.authors")).append(" ").append(
@@ -320,11 +339,11 @@ public class SubscribeCLITool {
 
             // has the item modified today?
             if (lastUpdateStr.equals(today)) {
-                List<MetadataValue> dateAccArr = itemService.getMetadata(infoObject.item, "dc",
+                List<IMetadataValue> dateAccArr = itemService.getMetadata(infoObject.item, "dc",
                         "date", "accessioned", Item.ANY);
                 // we need only the item archived yesterday
                 if (dateAccArr != null && dateAccArr.size() > 0) {
-                    for (MetadataValue date : dateAccArr) {
+                    for (IMetadataValue date : dateAccArr) {
                         if (date != null && date.getValue() != null) {
                             // if it hasn't been archived today
                             if (date.getValue().startsWith(yesterday)) {
@@ -365,10 +384,10 @@ public class SubscribeCLITool {
         String yesterday = sdf.format(thisTimeYesterday);
 
         for (HarvestedItemInfo infoObject : completeList) {
-            List<MetadataValue> dateAccArr = itemService.getMetadata(infoObject.item, "dc", "date", "accessioned", Item.ANY);
+            List<IMetadataValue> dateAccArr = itemService.getMetadata(infoObject.item, "dc", "date", "accessioned", Item.ANY);
 
             if (dateAccArr != null && dateAccArr.size() > 0) {
-                for (MetadataValue date : dateAccArr) {
+                for (IMetadataValue date : dateAccArr) {
                     if (date != null && date.getValue() != null) {
                         // if it has been archived yesterday
                         if (date.getValue().startsWith(yesterday)) {

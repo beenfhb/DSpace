@@ -7,14 +7,6 @@
  */
 package org.dspace.app.cris.discovery;
 
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.AValue;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-import it.cilea.osd.jdyna.value.PointerValue;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +25,14 @@ import org.dspace.sort.OrderFormat;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 import org.dspace.utils.DSpace;
+
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.AValue;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.PointerValue;
 
 public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 {

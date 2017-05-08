@@ -9,13 +9,20 @@
 package org.dspace.identifier;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
@@ -143,8 +150,8 @@ public class EZIDIdentifierProvider
         log.debug("register {}", dso);
 
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
-        List<MetadataValue> identifiers = dsoService.getMetadata(dso, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
-        for (MetadataValue identifier : identifiers)
+        List<IMetadataValue> identifiers = dsoService.getMetadata(dso, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        for (IMetadataValue identifier : identifiers)
         {
             if ((null != identifier.getValue()) && (identifier.getValue().startsWith(DOI_SCHEME)))
             {
@@ -329,9 +336,9 @@ public class EZIDIdentifierProvider
     {
         log.debug("lookup {}", object);
 
-        MetadataValue found = null;
+        IMetadataValue found = null;
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(object);
-        for (MetadataValue candidate : dsoService.getMetadata(object, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null))
+        for (IMetadataValue candidate : dsoService.getMetadata(object, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null))
         {
             if (candidate.getValue().startsWith(DOI_SCHEME))
             {
@@ -359,10 +366,10 @@ public class EZIDIdentifierProvider
 
         // delete from EZID
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
-        List<MetadataValue> metadata = dsoService.getMetadata(dso, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        List<IMetadataValue> metadata = dsoService.getMetadata(dso, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
         List<String> remainder = new ArrayList<>();
         int skipped = 0;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (!id.getValue().startsWith(DOI_SCHEME))
             {
@@ -419,10 +426,10 @@ public class EZIDIdentifierProvider
         log.debug("delete {} from {}", identifier, dso);
 
         DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
-        List<MetadataValue> metadata = dsoService.getMetadata(dso, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        List<IMetadataValue> metadata = dsoService.getMetadata(dso, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
         List<String> remainder = new ArrayList<>();
         int skipped = 0;
-        for (MetadataValue id : metadata)
+        for (IMetadataValue id : metadata)
         {
             if (!id.getValue().equals(idToDOI(identifier)))
             {
@@ -572,10 +579,10 @@ public class EZIDIdentifierProvider
 
         for (Entry<String, String> datum : crosswalk.entrySet())
         {
-            List<MetadataValue> values = itemService.getMetadataByMetadataString(item, datum.getValue());
+            List<IMetadataValue> values = itemService.getMetadataByMetadataString(item, datum.getValue());
             if (null != values)
             {
-                for (MetadataValue value : values)
+                for (IMetadataValue value : values)
                 {
                     String key = datum.getKey();
                     String mappedValue;

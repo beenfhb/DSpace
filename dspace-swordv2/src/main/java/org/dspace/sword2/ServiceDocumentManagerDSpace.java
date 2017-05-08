@@ -7,6 +7,8 @@
  */
 package org.dspace.sword2;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
@@ -25,8 +27,6 @@ import org.swordapp.server.SwordConfiguration;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
 import org.swordapp.server.SwordWorkspace;
-
-import java.util.List;
 
 public class ServiceDocumentManagerDSpace implements ServiceDocumentManager
 {

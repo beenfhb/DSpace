@@ -40,7 +40,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -449,7 +449,7 @@ public class ItemTag extends TagSupport
         Context context = UIUtil.obtainContext(request);
 
         // Get all the metadata
-        List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        List<IMetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
         out.println("<div class=\"panel panel-info\"><div class=\"panel-heading\">"
                 + LocaleSupport.getLocalizedMessage(pageContext,
@@ -468,7 +468,7 @@ public class ItemTag extends TagSupport
                         "org.dspace.app.webui.jsptag.ItemTag.lang")
                 + "</th></tr>");
 
-        for (MetadataValue val : values)
+        for (IMetadataValue val : values)
         {
         	MetadataField field = val.getMetadataField();
             if (!metadataExposureService.isHidden(context, field.getMetadataSchema().getName(),

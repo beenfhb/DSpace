@@ -7,22 +7,26 @@
  */
 package org.dspace.sword2;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.abdera.i18n.iri.IRI;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
-import org.dspace.handle.HandleServiceImpl;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.swordapp.server.SwordError;
-
-import java.sql.SQLException;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.List;
 
 /**
  * @author Richard Jones

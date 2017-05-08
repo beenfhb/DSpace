@@ -12,8 +12,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.dspace.content.DCDate;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -75,7 +75,7 @@ public class VersioningServiceImpl implements VersioningService {
                 vh= versionHistoryService.create(c);
 
                 // get dc:date.accessioned to be set as first version date...
-                List<MetadataValue> values = itemService.getMetadata(item, "dc", "date", "accessioned", Item.ANY);
+                List<IMetadataValue> values = itemService.getMetadata(item, "dc", "date", "accessioned", Item.ANY);
                 Date versionDate = new Date();
                 if(values!=null && values.size() > 0){
                     String date = values.get(0).getValue();

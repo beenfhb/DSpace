@@ -7,6 +7,12 @@
  */
 package org.dspace.sword2;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Collection;
@@ -15,16 +21,10 @@ import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.core.Context;
-import org.swordapp.server.SwordConfiguration;
-import org.swordapp.server.SwordError;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.swordapp.server.SwordConfiguration;
+import org.swordapp.server.SwordError;
 
 public class SwordConfigurationDSpace implements SwordConfiguration
 {

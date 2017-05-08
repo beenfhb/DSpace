@@ -7,8 +7,8 @@
  */
 package org.dspace.sword2;
 
-import org.dspace.core.Context;
 import org.dspace.content.DSpaceObject;
+import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.core.service.PluginService;
 import org.swordapp.server.Deposit;

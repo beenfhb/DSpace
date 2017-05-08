@@ -7,11 +7,11 @@
  */
 package org.dspace.app.bulkedit;
 
-import org.dspace.content.Item;
-import org.dspace.content.Collection;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
 
 /**
  * Utility class to store changes to item that may occur during a batch edit.

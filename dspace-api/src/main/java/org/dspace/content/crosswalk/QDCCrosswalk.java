@@ -92,7 +92,7 @@ public class QDCCrosswalk extends SelfNamedPlugin
     // map of qdc to JDOM Element
     private Map<String, Element> qdc2element = new HashMap<String, Element>();
 
-    // map of JDOM Element to qdc MetadataValue
+    // map of JDOM Element to qdc IMetadataValue
     private Map<String, String> element2qdc = new HashMap<String, String>();
 
     // the XML namespaces from config file for this name.
@@ -358,11 +358,11 @@ public class QDCCrosswalk extends SelfNamedPlugin
         Item item = (Item)dso;
         init();
 
-        List<MetadataValue> dc = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        List<IMetadataValue> dc = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         List<Element> result = new ArrayList<Element>(dc.size());
         for (int i = 0; i < dc.size(); i++)
         {
-            MetadataValue metadataValue = dc.get(i);
+            IMetadataValue metadataValue = dc.get(i);
             MetadataField metadataField = metadataValue.getMetadataField();
             MetadataSchema metadataSchema = metadataField.getMetadataSchema();
 

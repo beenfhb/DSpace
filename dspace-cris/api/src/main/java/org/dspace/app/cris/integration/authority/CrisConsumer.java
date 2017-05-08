@@ -31,7 +31,7 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
@@ -92,8 +92,8 @@ public class CrisConsumer implements Consumer
             ctx.turnOffAuthorisationSystem();
             Set<String> listAuthoritiesManager = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getAuthorities();
 
-            Map<String, List<MetadataValue>> toBuild = new HashMap<String, List<MetadataValue>>();
-            Map<String, List<MetadataValue>> toUpdate = new HashMap<String, List<MetadataValue>>();
+            Map<String, List<IMetadataValue>> toBuild = new HashMap<String, List<IMetadataValue>>();
+            Map<String, List<IMetadataValue>> toUpdate = new HashMap<String, List<IMetadataValue>>();
             Map<String, String> toBuildType = new HashMap<String, String>();
             Map<String, CRISAuthority> toBuildChoice = new HashMap<String, CRISAuthority>();
             Map<String, String> toBuildMetadata = new HashMap<String, String>();
@@ -105,14 +105,14 @@ public class CrisConsumer implements Consumer
 
                 for (String metadata : listMetadata)
                 {
-                    List<MetadataValue> MetadataValues = item
+                    List<IMetadataValue> MetadataValues = item
                             .getMetadataValueInDCFormat(metadata);
                     ChoiceAuthority choiceAuthority = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getChoiceAuthority(metadata);
                     if (CRISAuthority.class
                             .isAssignableFrom(choiceAuthority.getClass()))
                     {
                         int idx = 0;
-                        for (MetadataValue dcval : MetadataValues)
+                        for (IMetadataValue dcval : MetadataValues)
                         {
                             dcval.setPlace(idx);
                             String authority = dcval.getAuthority();
@@ -141,7 +141,7 @@ public class CrisConsumer implements Consumer
                                 }
                                 toBuildType.put(info, type);
 
-                                List<MetadataValue> list = new ArrayList<MetadataValue>();
+                                List<IMetadataValue> list = new ArrayList<IMetadataValue>();
                                 if (toBuild.containsKey(info))
                                 {
                                     list = toBuild.get(info);
@@ -166,7 +166,7 @@ public class CrisConsumer implements Consumer
                                 {
                                     String valueHashed = HashUtil
                                             .hashMD5(dcval.getValue());
-                                    List<MetadataValue> list = new ArrayList<MetadataValue>();
+                                    List<IMetadataValue> list = new ArrayList<IMetadataValue>();
                                     if (toBuild.containsKey(valueHashed))
                                     {
                                         list = toBuild.get(valueHashed);
@@ -266,7 +266,7 @@ public class CrisConsumer implements Consumer
                         rp.setSourceID(authorityKey);
                         rp.setSourceRef(typeAuthority);
 
-                        List<MetadataValue> MetadataValueAuthority = toBuild
+                        List<IMetadataValue> MetadataValueAuthority = toBuild
                                 .get(authorityKey);
                         String prefix = "";
                         if (choiceAuthorityObject instanceof DOAuthority)
@@ -340,9 +340,9 @@ public class CrisConsumer implements Consumer
 
             for (String orcid : toBuildAuthority.keySet())
             {
-                for (MetadataValue MetadataValue : toBuild.get(orcid))
+                for (IMetadataValue IMetadataValue : toBuild.get(orcid))
                 {               	
-                    item.getItemService().addMetadata(ctx, item, MetadataValue.getMetadataField(), MetadataValue.getLanguage(), MetadataValue.getValue(), toBuildAuthority.get(orcid), Choices.CF_ACCEPTED, MetadataValue.getPlace());
+                    item.getItemService().addMetadata(ctx, item, IMetadataValue.getMetadataField(), IMetadataValue.getLanguage(), IMetadataValue.getValue(), toBuildAuthority.get(orcid), Choices.CF_ACCEPTED, IMetadataValue.getPlace());
                 }
                 item.getItemService().removeMetadataValues(ctx, item, toBuild.get(orcid));
             }
@@ -359,7 +359,7 @@ public class CrisConsumer implements Consumer
     }
 
     private void fillerAuthority(Context ctx, Item item,
-            Map<String, List<MetadataValue>> toBuild,
+            Map<String, List<IMetadataValue>> toBuild,
             Map<String, String> toBuildType,
             Map<String, ACrisObject> createdObjects,
             Map<String, ACrisObject> referencedObjects)
@@ -425,7 +425,7 @@ public class CrisConsumer implements Consumer
                 for (String metadataMetric : plugins.keySet())
                 {
 
-                    List<MetadataValue> metadata = item
+                    List<IMetadataValue> metadata = item
                             .getMetadataValueInDCFormat(metadataMetric);
                     if (metadata != null && metadata.size() > 0)
                     {

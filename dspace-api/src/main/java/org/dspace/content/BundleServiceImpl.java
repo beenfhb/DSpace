@@ -7,6 +7,13 @@
  */
 package org.dspace.content;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -24,10 +31,6 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Service implementation for the Bundle object.

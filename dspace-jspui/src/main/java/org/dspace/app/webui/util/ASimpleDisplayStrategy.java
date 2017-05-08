@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
 import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.discovery.IGlobalSearchResult;
 
@@ -24,19 +24,19 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 {
     public abstract String getMetadataDisplay(HttpServletRequest hrq,
             int limit, boolean viewFull, String browseType, int colIdx, UUID itemid,
-            String field, List<MetadataValue> metadataArray, boolean disableCrossLinks,
+            String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks,
             boolean emph) throws JspException;
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
     {
         return null;
     }
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
             throws JspException
     {
@@ -46,7 +46,7 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return getExtraCssDisplay(hrq, limit, b, browseType, colIdx, field,
@@ -55,7 +55,7 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject item,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
             throws JspException
     {
@@ -65,7 +65,7 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return getMetadataDisplay(hrq, limit, viewFull, browseType, colIdx,item.getID(),
@@ -81,7 +81,7 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 	}
 	
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			int colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException 
 	{		
         return getMetadataDisplay(hrq, limit, viewFull, browseType, colIdx, item.getID(),

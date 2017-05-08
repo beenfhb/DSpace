@@ -8,6 +8,7 @@
 package org.dspace.versioning;
 
 import java.sql.SQLException;
+
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 

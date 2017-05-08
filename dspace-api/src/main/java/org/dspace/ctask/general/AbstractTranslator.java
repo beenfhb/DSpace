@@ -7,19 +7,19 @@
  */
 package org.dspace.ctask.general;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.curate.AbstractCurationTask;
 import org.dspace.curate.Curator;
 import org.dspace.curate.Distributive;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -92,7 +92,7 @@ public abstract class AbstractTranslator extends AbstractCurationTask
             String handle = item.getHandle();
             log.debug("Translating metadata for " + handle);
 
-            List<MetadataValue> authLangs = itemService.getMetadataByMetadataString(item, authLangField);
+            List<IMetadataValue> authLangs = itemService.getMetadataByMetadataString(item, authLangField);
             if(authLangs.size() > 0)
             {
                 /* Assume the first... multiple
@@ -110,11 +110,11 @@ public abstract class AbstractTranslator extends AbstractCurationTask
                     boolean translated = false;
                     field = field.trim();
                     String[] fieldSegments = field.split("\\.");
-                    List<MetadataValue> fieldMetadata = null;
+                    List<IMetadataValue> fieldMetadata = null;
                     
                     if(fieldSegments.length > 2) {
                         // First, check to see if we've already got this in the target language
-                        List<MetadataValue> checkMetadata = itemService.getMetadata(item, fieldSegments[0], fieldSegments[1], fieldSegments[2], lang);
+                        List<IMetadataValue> checkMetadata = itemService.getMetadata(item, fieldSegments[0], fieldSegments[1], fieldSegments[2], lang);
                         if(checkMetadata.size() > 0)
                         {
                             // We've already translated this, move along
@@ -129,7 +129,7 @@ public abstract class AbstractTranslator extends AbstractCurationTask
                     }
                     else {
                         // First, check to see if we've already got this in the target language
-                        List<MetadataValue> checkMetadata = itemService.getMetadata(item, fieldSegments[0], fieldSegments[1], null, lang);
+                        List<IMetadataValue> checkMetadata = itemService.getMetadata(item, fieldSegments[0], fieldSegments[1], null, lang);
                         if(checkMetadata.size() > 0)
                         {
                             // We've already translated this, move along
@@ -146,7 +146,7 @@ public abstract class AbstractTranslator extends AbstractCurationTask
 
                     if(!translated && fieldMetadata.size() > 0)
                     {
-                        for(MetadataValue metadataValue : fieldMetadata) {
+                        for(IMetadataValue metadataValue : fieldMetadata) {
                             String value = metadataValue.getValue();
                             String translatedText = translateText(authLang, lang, value);
                             if(translatedText != null && !"".equals(translatedText))

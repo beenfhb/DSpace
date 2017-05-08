@@ -7,8 +7,8 @@
  */
 package org.dspace.app.util;
 
-import java.util.Map;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Class representing configuration for a single step within an Item Submission

@@ -24,8 +24,9 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DCDate;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -289,7 +290,7 @@ public class SyndicationFeed
                         df = df.replaceAll("\\(date\\)", "");
                     }
              
-                    List<MetadataValue> dcv = itemService.getMetadataByMetadataString(item, df);
+                    List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(item, df);
                     if (dcv.size() > 0)
                     {
                         String fieldLabel = labels.get(MSG_METADATA + df);
@@ -298,7 +299,7 @@ public class SyndicationFeed
                             db.append(fieldLabel).append(": ");
                         }
                         boolean first = true;
-                        for (MetadataValue v : dcv)
+                        for (IMetadataValue v : dcv)
                         {
                             if (first)
                             {
@@ -322,11 +323,11 @@ public class SyndicationFeed
                 }
 
                 // This gets the authors into an ATOM feed
-                List<MetadataValue> authors = itemService.getMetadataByMetadataString(item, authorField);
+                List<IMetadataValue> authors = itemService.getMetadataByMetadataString(item, authorField);
                 if (authors.size() > 0)
                 {
                     List<SyndPerson> creators = new ArrayList<SyndPerson>();
-                    for (MetadataValue author : authors)
+                    for (IMetadataValue author : authors)
                     {
                         SyndPerson sp = new SyndPersonImpl();
                         sp.setName(author.getValue());
@@ -342,11 +343,11 @@ public class SyndicationFeed
                     DCModule dc = new DCModuleImpl();
                     if (dcCreatorField != null)
                     {
-                        List<MetadataValue> dcAuthors = itemService.getMetadataByMetadataString(item, dcCreatorField);
+                        List<IMetadataValue> dcAuthors = itemService.getMetadataByMetadataString(item, dcCreatorField);
                         if (dcAuthors.size() > 0)
                         {
                             List<String> creators = new ArrayList<String>();
-                            for (MetadataValue author : dcAuthors)
+                            for (IMetadataValue author : dcAuthors)
                             {
                                 creators.add(author.getValue());
                             }
@@ -355,7 +356,7 @@ public class SyndicationFeed
                     }
                     if (dcDateField != null && !hasDate)
                     {
-                        List<MetadataValue> v = itemService.getMetadataByMetadataString(item, dcDateField);
+                        List<IMetadataValue> v = itemService.getMetadataByMetadataString(item, dcDateField);
                         if (v.size() > 0)
                         {
                             dc.setDate((new DCDate(v.get(0).getValue())).toDate());
@@ -363,11 +364,11 @@ public class SyndicationFeed
                     }
                     if (dcDescriptionField != null)
                     {
-                        List<MetadataValue> v = itemService.getMetadataByMetadataString(item, dcDescriptionField);
+                        List<IMetadataValue> v = itemService.getMetadataByMetadataString(item, dcDescriptionField);
                         if (v.size() > 0)
                         {
                             StringBuffer descs = new StringBuffer();
-                            for (MetadataValue d : v)
+                            for (IMetadataValue d : v)
                             {
                                 if (descs.length() > 0)
                                 {
@@ -405,10 +406,10 @@ public class SyndicationFeed
                         }
                         //Also try to add an external value from dc.identifier.other
                         // We are assuming that if this is set, then it is a media file
-                        List<MetadataValue> externalMedia = itemService.getMetadataByMetadataString(item, externalSourceField);
+                        List<IMetadataValue> externalMedia = itemService.getMetadataByMetadataString(item, externalSourceField);
                         if(externalMedia.size() > 0)
                         {
-                            for (MetadataValue anExternalMedia : externalMedia) {
+                            for (IMetadataValue anExternalMedia : externalMedia) {
                                 SyndEnclosure enc = new SyndEnclosureImpl();
                                 enc.setType("audio/x-mpeg");        //We can't determine MIME of external file, so just picking one.
                                 enc.setLength(1);
@@ -597,7 +598,7 @@ public class SyndicationFeed
     // spoonful of syntactic sugar when we only need first value
     protected String getOneDC(Item item, String field)
     {
-        List<MetadataValue> dcv = itemService.getMetadataByMetadataString(item, field);
+        List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(item, field);
         return (dcv.size() > 0) ? dcv.get(0).getValue() : null;
     }
 }

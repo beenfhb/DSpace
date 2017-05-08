@@ -8,13 +8,21 @@
 
 package org.dspace.rdf;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.Site;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -26,6 +34,8 @@ import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
+
+import com.hp.hpl.jena.rdf.model.Model;
 
 /**
  *

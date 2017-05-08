@@ -44,10 +44,11 @@ import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.crosswalk.CrosswalkException;
@@ -872,7 +873,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             List<DTODCValue> dtodcvalue = new LinkedList<DTODCValue>();
 
             String mdString = metadataFields.get(fieldID);
-            List<MetadataValue> value = item.getMetadataValueInDCFormat(mdString);
+            List<IMetadataValue> value = item.getMetadataValueInDCFormat(mdString);
             if (value != null && value.size() > 0)
             {
                 if (dcinputs.get(fieldID) == null)
@@ -897,7 +898,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 inner: for (Item other : others)
                 {
 
-                    List<MetadataValue> valueOther = other
+                    List<IMetadataValue> valueOther = other
                             .getMetadataValueInDCFormat(mdString);
                     if (valueOther == null || valueOther.size() == 0)
                     {
@@ -905,9 +906,9 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     }
                     else
                     {
-                        for (MetadataValue v : valueOther)
+                        for (IMetadataValue v : valueOther)
                         {
-                            itemService.addMetadata(context, item, v.schema, v.element, v.qualifier,
+                            itemService.addMetadata(context, item, v.getSchema(), v.getElement(), v.getQualifier(),
                                     v.getLanguage(), v.getValue());
                             createDTODCValue(fieldID, dtodcvalue, other, v,
                                     false, mdString);
@@ -938,7 +939,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             {
                 metadataSourceInfo.put(mdString.replaceAll("\\.", "_"),
                         item.getID());
-                for (MetadataValue v : value)
+                for (IMetadataValue v : value)
                 {
                     createDTODCValue(fieldID, dtodcvalue, item, v, false,
                             mdString);
@@ -947,7 +948,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 {
                     if (other.getID() != item.getID())
                     {
-                        List<MetadataValue> valueOther = other.getItemService()
+                        List<IMetadataValue> valueOther = other.getItemService()
                                 .getMetadataByMetadataString(other, mdString);
                         if (valueOther == null || valueOther.size() == 0)
                         {
@@ -955,14 +956,14 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                         }
                         else
                         {
-                            for (MetadataValue v : valueOther)
+                            for (IMetadataValue v : valueOther)
                             {
 
                                 boolean removed = checkContentEquality(value,
                                         v);
 
-                                itemService.addMetadata(context, item, v.schema, v.element,
-                                        v.qualifier, v.getLanguage(), v.getValue(),
+                                itemService.addMetadata(context, item, v.getSchema(), v.getElement(),
+                                        v.getQualifier(), v.getLanguage(), v.getValue(),
                                         v.getAuthority(), v.getConfidence());
                                 createDTODCValue(fieldID, dtodcvalue, other, v,
                                         true, removed, mdString);
@@ -1030,7 +1031,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @throws SQLException
      */
     private DTODCValue createDTODCValue(Integer fieldID,
-            List<DTODCValue> dtodcvalue, Item other, MetadataValue v,
+            List<DTODCValue> dtodcvalue, Item other, IMetadataValue v,
             boolean hidden, boolean removed, String mdString)
                     throws SQLException
     {
@@ -1071,21 +1072,21 @@ public class DuplicateCheckerServlet extends DSpaceServlet
      * @throws SQLException
      */
     private DTODCValue createDTODCValue(Integer fieldID,
-            List<DTODCValue> dtodcvalue, Item other, MetadataValue v,
+            List<DTODCValue> dtodcvalue, Item other, IMetadataValue v,
             boolean hidden, String mdString) throws SQLException
     {
         return createDTODCValue(fieldID, dtodcvalue, other, v, hidden, false,
                 mdString);
     }
 
-    private boolean checkContentEquality(List<MetadataValue> value, MetadataValue v)
+    private boolean checkContentEquality(List<IMetadataValue> value, IMetadataValue v)
     {
         DTODCValue dtoValue = new DTODCValue();
         dtoValue.setDcValue(v);
         boolean result = false;
-        for (MetadataValue adcvalue : value)
+        for (IMetadataValue adcvalue : value)
         {
-            MetadataValue vv = adcvalue;
+            IMetadataValue vv = adcvalue;
             DTODCValue dtoValueToCompare = new DTODCValue();
             dtoValueToCompare.setDcValue(vv);
             if ((dtoValueToCompare.getValue() == null)

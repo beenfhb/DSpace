@@ -9,7 +9,6 @@ package org.dspace.app.cris.integration;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -17,10 +16,9 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.ItemWrapperIntegration;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
@@ -78,27 +76,27 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
                 lang = Item.ANY;
             }
             if("item".equals(schema)) {
-            	List<MetadataValue> basic = (List<MetadataValue>) invocation.proceed();
-                List<MetadataValue> MetadataValues = addEnhancedMetadata(
+            	List<IMetadataValue> basic = (List<IMetadataValue>) invocation.proceed();
+                List<IMetadataValue> MetadataValues = addEnhancedMetadata(
                         (Item) invocation.getThis(), basic, schema,
                         element, qualifier, lang);
                return MetadataValues;
             }
             else if ("crisitem".equals(schema))
             {
-                List<MetadataValue> basic = (List<MetadataValue>) invocation.proceed();
-                List<MetadataValue> MetadataValues = addCrisEnhancedMetadata(
+                List<IMetadataValue> basic = (List<IMetadataValue>) invocation.proceed();
+                List<IMetadataValue> MetadataValues = addCrisEnhancedMetadata(
                         (Item) invocation.getThis(), basic, schema,
                         element, qualifier, lang);
                 return MetadataValues;
             }
             else if (schema == Item.ANY)
             {
-            	List<MetadataValue> basic = (List<MetadataValue>) invocation.proceed();
-            	List<MetadataValue> MetadataValuesItem = addEnhancedMetadata(
+            	List<IMetadataValue> basic = (List<IMetadataValue>) invocation.proceed();
+            	List<IMetadataValue> MetadataValuesItem = addEnhancedMetadata(
                         (Item) invocation.getThis(), basic, schema,
                         element, qualifier, lang);
-                List<MetadataValue> MetadataValuesCris = addCrisEnhancedMetadata(
+                List<IMetadataValue> MetadataValuesCris = addCrisEnhancedMetadata(
                         (Item) invocation.getThis(), MetadataValuesItem, schema,
                         element, qualifier, lang);
                 return MetadataValuesCris;
@@ -111,9 +109,9 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
     	String metadata = ConfigurationManager.getProperty("globalsearch.item.typing");
 		if (StringUtils.isNotBlank(metadata)) {
 			Item item = (Item) invocation.getThis();
-			List<MetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
+			List<IMetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
 			if (MetadataValues != null && MetadataValues.size() > 0) {
-				for (MetadataValue dcval : MetadataValues) {
+				for (IMetadataValue dcval : MetadataValues) {
 					String value = dcval.getValue();					
 					if (StringUtils.isNotBlank(value)) {
 						 String valueWithoutWhitespace = StringUtils.deleteWhitespace(value);
@@ -129,10 +127,10 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
         return Constants.typeText[Constants.ITEM].toLowerCase();
 	}
 
-	private List<MetadataValue> addCrisEnhancedMetadata(Item item, List<MetadataValue> basic,
+	private List<IMetadataValue> addCrisEnhancedMetadata(Item item, List<IMetadataValue> basic,
             String schema, String element, String qualifier, String lang)
     {
-        List<MetadataValue> extraMetadata = new ArrayList<MetadataValue>();
+        List<IMetadataValue> extraMetadata = new ArrayList<>();
         if (schema == Item.ANY)
         {
             List<String> crisMetadata = CrisItemEnhancerUtility
@@ -158,17 +156,17 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
         }
         else
         {
-            List<MetadataValue> resultList = new ArrayList<MetadataValue>();
+            List<IMetadataValue> resultList = new ArrayList<>();
             resultList.addAll(basic);
             resultList.addAll(extraMetadata);
             return resultList;
         }
     }
     
-    private List<MetadataValue> addEnhancedMetadata(Item item, List<MetadataValue> basic,
+    private List<IMetadataValue> addEnhancedMetadata(Item item, List<IMetadataValue> basic,
             String schema, String element, String qualifier, String lang)
     {
-        List<MetadataValue> extraMetadata = new ArrayList<MetadataValue>();
+        List<IMetadataValue> extraMetadata = new ArrayList<>();
         
 
 		extraMetadata = ItemEnhancerUtility.getMetadata(item, schema + "." + element
@@ -180,7 +178,7 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
         }
         else
         {
-            List<MetadataValue> resultList = new ArrayList<MetadataValue>();
+            List<IMetadataValue> resultList = new ArrayList<>();
             resultList.addAll(basic);
             resultList.addAll(extraMetadata);
             return resultList;

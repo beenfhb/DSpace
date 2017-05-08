@@ -24,8 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Constants;
 import org.dspace.core.I18nUtil;
 
@@ -450,7 +451,7 @@ public class Util {
      * @param item
      *            The Dspace Item
      * @param values
-     *            A List<MetadataValue> array of the specific "stored-value(s)"
+     *            A List<IMetadataValue> array of the specific "stored-value(s)"
      * @param schema
      *            A String with the schema name of the metadata field
      * @param element
@@ -464,7 +465,7 @@ public class Util {
      */
 
     public static List<String> getControlledVocabulariesDisplayValueLocalized(
-            Item item, List<MetadataValue> values, String schema, String element,
+            Item item, List<IMetadataValue> values, String schema, String element,
             String qualifier, Locale locale) throws SQLException,
             DCInputsReaderException
     {
@@ -491,7 +492,7 @@ public class Util {
 
         DCInputSet inputSet = inputsReader.getInputs(col_handle);
 
-        // Replace the values of List<MetadataValue> with the correct ones in case of
+        // Replace the values of List<IMetadataValue> with the correct ones in case of
         // controlled vocabularies
         String currentField = schema + "." + element
                 + (qualifier == null ? "" : "." + qualifier);
@@ -534,7 +535,7 @@ public class Util {
         if (myInputsFound)
         {
 
-            for (MetadataValue value : values) {
+            for (IMetadataValue value : values) {
 
                 String pairsName = myInputs.getPairsType();
                 String stored_value = value.getValue();

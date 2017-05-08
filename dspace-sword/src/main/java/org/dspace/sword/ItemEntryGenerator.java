@@ -49,11 +49,11 @@ public class ItemEntryGenerator extends DSpaceATOMEntry
      */
     protected void addCategories()
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.subject.*");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 entry.addCategory(aDcv.getValue());
             }
@@ -254,7 +254,7 @@ public class ItemEntryGenerator extends DSpaceATOMEntry
      */
     protected void addPublishDate()
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.date.issued");
         if (dcv != null && !dcv.isEmpty())
         {
@@ -316,11 +316,11 @@ public class ItemEntryGenerator extends DSpaceATOMEntry
      */
     protected void addSummary()
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.description.abstract");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 Summary summary = new Summary();
                 summary.setContent(aDcv.getValue());
@@ -336,11 +336,11 @@ public class ItemEntryGenerator extends DSpaceATOMEntry
      */
     protected void addTitle()
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.title");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 Title title = new Title();
                 title.setContent(aDcv.getValue());
@@ -358,7 +358,7 @@ public class ItemEntryGenerator extends DSpaceATOMEntry
     {
         String config = ConfigurationManager
                 .getProperty("sword-server", "updated.field");
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, config);
         if (dcv != null && dcv.size() == 1)
         {

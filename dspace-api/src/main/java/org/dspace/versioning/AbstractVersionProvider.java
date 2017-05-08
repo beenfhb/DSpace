@@ -7,21 +7,26 @@
  */
 package org.dspace.versioning;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
+
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
-import org.dspace.authorize.ResourcePolicy;
 
 /**
  *
@@ -46,8 +51,8 @@ public abstract class AbstractVersionProvider {
     protected ItemService itemService;
 
     protected void copyMetadata(Context context, Item itemNew, Item nativeItem) throws SQLException {
-        List<MetadataValue> md = itemService.getMetadata(nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue aMd : md) {
+        List<IMetadataValue> md = itemService.getMetadata(nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue aMd : md) {
             MetadataField metadataField = aMd.getMetadataField();
             MetadataSchema metadataSchema = metadataField.getMetadataSchema();
             String unqualifiedMetadataField = metadataSchema.getName() + "." + metadataField.getElement();
@@ -105,8 +110,8 @@ public abstract class AbstractVersionProvider {
 
     protected Bitstream createBitstream(Context context, Bitstream nativeBitstream) throws AuthorizeException, SQLException, IOException {
         Bitstream newBitstream = bitstreamStorageService.clone(context, nativeBitstream);
-	    List<MetadataValue> bitstreamMeta = bitstreamService.getMetadata(nativeBitstream, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-	    for (MetadataValue value : bitstreamMeta) {
+	    List<IMetadataValue> bitstreamMeta = bitstreamService.getMetadata(nativeBitstream, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+	    for (IMetadataValue value : bitstreamMeta) {
 		    bitstreamService.addMetadata(context, newBitstream, value.getMetadataField(), value.getLanguage(), value.getValue(), value.getAuthority(), value.getConfidence());
 	    }
 	    return newBitstream;

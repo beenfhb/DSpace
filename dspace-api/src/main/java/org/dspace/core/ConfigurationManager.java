@@ -9,9 +9,9 @@ package org.dspace.core;
 
 import java.util.Enumeration;
 import java.util.Properties;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
-
 import org.apache.log4j.Logger;
 import org.dspace.services.factory.DSpaceServicesFactory;
 

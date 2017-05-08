@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Implements virtual field processing for split pagenumber range information.
@@ -34,8 +34,8 @@ public class VirtualFieldPageNumber implements VirtualFieldDisseminator, Virtual
 			separator = "--";
 		}
 		// Get the citation from the item
-		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat("dc.relation.firstpage");
-		List<MetadataValue> dcvs2 = item.getMetadataValueInDCFormat("dc.relation.lastpage");
+		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat("dc.relation.firstpage");
+		List<IMetadataValue> dcvs2 = item.getMetadataValueInDCFormat("dc.relation.lastpage");
 
 		if ((dcvs != null && dcvs.size() > 0) && (dcvs2 != null && dcvs2.size() > 0)) {
 			String value = dcvs.get(0).getValue() + separator + dcvs2.get(0).getValue();

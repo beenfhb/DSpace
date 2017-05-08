@@ -7,17 +7,17 @@
  */
 package org.dspace.app.util;
 
-import org.apache.log4j.Logger;
-
-import javax.servlet.ServletContextListener;
-import javax.servlet.ServletContextEvent;
-
 import java.beans.Introspector;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.Enumeration;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+import org.apache.log4j.Logger;
 
 /**
  * Class to initialize / cleanup resources used by DSpace when the web application

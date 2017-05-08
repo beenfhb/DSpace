@@ -7,6 +7,9 @@
  */
 package org.dspace.harvest;
 
+import java.sql.SQLException;
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -14,9 +17,6 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.harvest.factory.HarvestServiceFactory;
 import org.dspace.harvest.service.HarvestedCollectionService;
-
-import java.sql.SQLException;
-import java.util.UUID;
 
 /**
  * A harvester thread used to execute a single harvest cycle on a collection

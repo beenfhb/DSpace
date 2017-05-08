@@ -17,20 +17,21 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.I18nUtil;
 
 public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy {
 	
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			UUID itemid, String field, List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
+			UUID itemid, String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
 			throws JspException {
 		String metadataDisplay = "-";
 		boolean found = false;
 
-		for (MetadataValue descrMetadata : metadataArray) {
-			if (StringUtils.startsWith(descrMetadata.qualifier, "abstract")) {
+		for (IMetadataValue descrMetadata : metadataArray) {
+			if (StringUtils.startsWith(descrMetadata.getQualifier(), "abstract")) {
 				found = true;
 				break;
 			}
@@ -63,7 +64,7 @@ public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy {
 	}
 
 	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String string, int colIdx,
-			String field, List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
+			String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
 			PageContext pageContext) {
 		return "nowrap=\"nowrap\" align=\"center\"";
 	}

@@ -315,7 +315,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         String element = "contributor";
         String qualifier = "author";
         String lang = Item.ANY;
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testGetMetadata_4args 0",dc,notNullValue());
         assertTrue("testGetMetadata_4args 1",dc.size() == 0);
     }
@@ -327,7 +327,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
     public void testGetMetadata_String()
     {
         String mdString = "dc.contributor.author";
-        List<MetadataValue> dc = itemService.getMetadataByMetadataString(it, mdString);
+        List<IMetadataValue> dc = itemService.getMetadataByMetadataString(it, mdString);
         assertThat("testGetMetadata_String 0",dc,notNullValue());
         assertTrue("testGetMetadata_String 1",dc.size() == 0);
 
@@ -360,7 +360,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         itemService.addMetadata(context, it, "test", "type", null, null, testType);
 
         // Check that only one is returned when we ask for all dc.type values
-        List<MetadataValue> values = itemService.getMetadata(it, "dc", "type", null, null);
+        List<IMetadataValue> values = itemService.getMetadata(it, "dc", "type", null, null);
         assertTrue("Return results", values.size() == 1);
 
         //Delete the field & schema
@@ -384,7 +384,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         String[] values = {"value0","value1"};
         itemService.addMetadata(context, it, schema, element, qualifier, lang, Arrays.asList(values));
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_5args_1 0",dc,notNullValue());
         assertTrue("testAddMetadata_5args_1 1",dc.size() == 2);
         assertThat("testAddMetadata_5args_1 2",dc.get(0).getMetadataField().getMetadataSchema().getName(),equalTo(schema));
@@ -416,7 +416,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         List<Integer> confidences = Arrays.asList(0,0);
         itemService.addMetadata(context, it, schema, element, qualifier, lang, values, authorities, confidences);
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_7args_1 0",dc,notNullValue());
         assertTrue("testAddMetadata_7args_1 1",dc.size() == 2);
         assertThat("testAddMetadata_7args_1 2",dc.get(0).getMetadataField().getMetadataSchema().getName(),equalTo(schema));
@@ -452,7 +452,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         List<Integer> confidences = Arrays.asList(0,0);
         itemService.addMetadata(context, it, schema, element, qualifier, lang, values, authorities, confidences);
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_7args_1 0",dc,notNullValue());
         assertTrue("testAddMetadata_7args_1 1",dc.size() == 2);
         assertThat("testAddMetadata_7args_1 2",dc.get(0).getMetadataField().getMetadataSchema().getName(),equalTo(schema));
@@ -483,7 +483,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         List<String> values = Arrays.asList("value0","value1");
         itemService.addMetadata(context, it, schema, element, qualifier, lang, values);
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_5args_2 0",dc,notNullValue());
         assertTrue("testAddMetadata_5args_2 1",dc.size() == 2);
         assertThat("testAddMetadata_5args_2 2",dc.get(0).getMetadataField().getMetadataSchema().getName(),equalTo(schema));
@@ -516,7 +516,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         int confidences = 0;
         itemService.addMetadata(context, it, schema, element, qualifier, lang, values, authorities, confidences);
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_7args_2 0",dc,notNullValue());
         assertTrue("testAddMetadata_7args_2 1",dc.size() == 1);
         assertThat("testAddMetadata_7args_2 2",dc.get(0).getMetadataField().getMetadataSchema().getName(),equalTo(schema));
@@ -544,7 +544,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
         int confidences = 0;
         itemService.addMetadata(context, it, schema, element, qualifier, lang, values, authorities, confidences);
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_7args_2 0",dc,notNullValue());
         assertTrue("testAddMetadata_7args_2 1",dc.size() == 1);
         assertThat("testAddMetadata_7args_2 2",dc.get(0).getMetadataField().getMetadataSchema().getName(),equalTo(schema));
@@ -570,7 +570,7 @@ public class ItemTest  extends AbstractDSpaceObjectTest
 
         itemService.clearMetadata(context, it, schema, element, qualifier, lang);
 
-        List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
+        List<IMetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testClearMetadata 0",dc,notNullValue());
         assertTrue("testClearMetadata 1", dc.size() == 0);
     }

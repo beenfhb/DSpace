@@ -7,12 +7,18 @@
  */
 package org.dspace.app.bulkedit;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * Utility class to store a line from a CSV file

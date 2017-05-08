@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -41,14 +41,14 @@ public class RequestItemMetadataStrategy extends RequestItemSubmitterStrategy {
 			throws SQLException {
 		if (emailMetadata != null)
 		{
-			List<MetadataValue> vals = itemService.getMetadataByMetadataString(item, emailMetadata);
+			List<IMetadataValue> vals = itemService.getMetadataByMetadataString(item, emailMetadata);
 			if (vals.size() > 0)
 			{
 				String email = vals.iterator().next().getValue();
 				String fullname = null;
 				if (fullNameMetadata != null)
 				{
-                    List<MetadataValue> nameVals = itemService.getMetadataByMetadataString(item, fullNameMetadata);
+                    List<IMetadataValue> nameVals = itemService.getMetadataByMetadataString(item, fullNameMetadata);
 					if (nameVals.size() > 0)
 					{
 						fullname = nameVals.iterator().next().getValue();

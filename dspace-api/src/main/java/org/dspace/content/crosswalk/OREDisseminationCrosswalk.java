@@ -120,8 +120,8 @@ public class OREDisseminationCrosswalk
         aggregation.addContent(atomId);
         
         Element aggLink;
-        List<MetadataValue> uris = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA,"identifier","uri",Item.ANY);
-        for (MetadataValue uri : uris) {
+        List<IMetadataValue> uris = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA,"identifier","uri",Item.ANY);
+        for (IMetadataValue uri : uris) {
         	aggLink = new Element("link",ATOM_NS);
         	aggLink.setAttribute("rel", "alternate");
         	aggLink.setAttribute("href", uri.getValue());
@@ -157,7 +157,7 @@ public class OREDisseminationCrosswalk
         
         // Information about the aggregation (item) itself 
         Element aggTitle = new Element("title",ATOM_NS);
-        List<MetadataValue> titles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+        List<IMetadataValue> titles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
         if (titles != null && titles.size()>0)
         {
             aggTitle.addContent(titles.get(0).getValue());
@@ -170,8 +170,8 @@ public class OREDisseminationCrosswalk
         
         Element aggAuthor;
         Element aggAuthorName;
-        List<MetadataValue> authors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA,"contributor","author",Item.ANY);
-        for (MetadataValue author : authors) {
+        List<IMetadataValue> authors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA,"contributor","author",Item.ANY);
+        for (IMetadataValue author : authors) {
         	aggAuthor = new Element("author",ATOM_NS);
         	aggAuthorName = new Element("name",ATOM_NS);
         	aggAuthorName.addContent(author.getValue());

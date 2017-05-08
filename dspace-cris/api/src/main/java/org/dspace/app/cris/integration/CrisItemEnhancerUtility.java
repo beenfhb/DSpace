@@ -21,8 +21,9 @@ import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -51,7 +52,7 @@ public class CrisItemEnhancerUtility {
 		return result;
 	}
 
-	public static List<MetadataValue> getCrisMetadata(Item item, String metadata) {
+	public static List<IMetadataValue> getCrisMetadata(Item item, String metadata) {
 		StringTokenizer dcf = new StringTokenizer(metadata, ".");
 
 		String[] tokens = { "", "", "" };
@@ -72,14 +73,14 @@ public class CrisItemEnhancerUtility {
 		}
 
 		List<CrisItemEnhancer> enhancers = getEnhancers(element);
-		List<MetadataValue> result = new ArrayList<MetadataValue>();
+		List<IMetadataValue> result = new ArrayList<>();
 		if (Item.ANY.equals(qualifier)) {
 			for (CrisItemEnhancer enh : enhancers) {
 				Set<String> qualifiers = enh.getQualifiers2path().keySet();
 				for (String qual : qualifiers) {
 					List<String[]> vals = getCrisMetadata(item, enh, qual);
 					for (String[] e : vals) {
-						MetadataValue dc = new MetadataValue();
+						MetadataValueVolatile dc = new MetadataValueVolatile();
 						dc.schema = "crisitem";
 						dc.element = enh.getAlias();
 						dc.qualifier = qual;
@@ -103,7 +104,7 @@ public class CrisItemEnhancerUtility {
 			for (CrisItemEnhancer enh : enhancers) {
 				List<String[]> vals = getCrisMetadata(item, enh, qualifier);
 				for (String[] e : vals) {
-					MetadataValue dc = new MetadataValue();
+					MetadataValueVolatile dc = new MetadataValueVolatile();
 					dc.schema = "crisitem";
 					dc.element = enh.getAlias();
 					dc.qualifier = qualifier;
@@ -125,8 +126,8 @@ public class CrisItemEnhancerUtility {
 		MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
 
 		for (String md : mdList) {
-			List<MetadataValue> MetadataValues = item.getMetadataValueInDCFormat(md);
-			for (MetadataValue dc : MetadataValues) {
+			List<IMetadataValue> MetadataValues = item.getMetadataValueInDCFormat(md);
+			for (IMetadataValue dc : MetadataValues) {
 				try {
 					ACrisObject newInstance = enh.getClazz().newInstance();
 					if (dc.getAuthority() != null

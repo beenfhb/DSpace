@@ -21,8 +21,9 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
@@ -44,7 +45,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject item,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
     {
         ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item)
@@ -55,7 +56,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph)
     {
         if (metadataArray != null && metadataArray.size() > 0)
@@ -75,7 +76,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
 		return null;
@@ -84,7 +85,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
 	@Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
                     throws JspException
     {
@@ -94,7 +95,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
 	@Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, IGlobalSearchResult item,
+            List<IMetadataValue> metadataArray, IGlobalSearchResult item,
             boolean disableCrossLinks, boolean emph)
                     throws JspException
     {
@@ -105,7 +106,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
 	}
 	
     private String internalDisplay(HttpServletRequest hrq,
-            List<MetadataValue> metadataArray, ACrisObject crisObject)
+            List<IMetadataValue> metadataArray, ACrisObject crisObject)
     {
         String metadata = "N/A";
         if (metadataArray != null && metadataArray.size() > 0)

@@ -7,22 +7,6 @@
  */
 package org.dspace.sword2;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Bitstream;
-import org.dspace.content.BitstreamFormat;
-import org.dspace.content.Bundle;
-import org.dspace.content.Collection;
-import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.*;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.swordapp.server.Deposit;
-import org.swordapp.server.SwordAuthException;
-import org.swordapp.server.SwordError;
-import org.swordapp.server.UriRegistry;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +17,24 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.swordapp.server.Deposit;
+import org.swordapp.server.SwordAuthException;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.UriRegistry;
 
 public class SimpleZipContentIngester extends AbstractSwordContentIngester
 {

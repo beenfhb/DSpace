@@ -8,9 +8,9 @@
 
 package org.dspace.rdf;
 
-import org.dspace.core.Constants;
-
 import java.util.UUID;
+
+import org.dspace.core.Constants;
 
 /**
  * RDFConverter Exception

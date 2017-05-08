@@ -7,6 +7,18 @@
  */
 package org.dspace.xmlworkflow;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.TransformerException;
+
 import org.apache.log4j.Logger;
 import org.apache.xpath.XPathAPI;
 import org.dspace.content.Collection;
@@ -14,20 +26,13 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
 import org.dspace.xmlworkflow.state.Step;
-import org.dspace.xmlworkflow.state.actions.UserSelectionActionConfig;
 import org.dspace.xmlworkflow.state.Workflow;
+import org.dspace.xmlworkflow.state.actions.UserSelectionActionConfig;
 import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import javax.annotation.PostConstruct;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.TransformerException;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * The workflowfactory is responsible for parsing the

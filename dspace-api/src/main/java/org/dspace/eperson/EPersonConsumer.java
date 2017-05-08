@@ -7,16 +7,22 @@
  */
 package org.dspace.eperson;
 
+import java.util.Date;
+import java.util.UUID;
+
+import javax.mail.MessagingException;
+
 import org.apache.log4j.Logger;
-import org.dspace.core.*;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.core.Email;
+import org.dspace.core.I18nUtil;
+import org.dspace.core.LogManager;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
-
-import javax.mail.MessagingException;
-import java.util.Date;
-import java.util.UUID;
 
 /**
  * Class for handling updates to EPersons

@@ -7,14 +7,17 @@
  */
 package org.dspace.ctask.general;
 
-import org.apache.log4j.Logger;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
-import org.dspace.curate.AbstractCurationTask;
-import org.dspace.curate.Curator;
-
 import java.sql.SQLException;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.curate.AbstractCurationTask;
+import org.dspace.curate.Curator;
 
 /**
  * A curation job to take bitstream URLs and place them into metadata elements.

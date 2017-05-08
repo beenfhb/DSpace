@@ -7,24 +7,20 @@
  */
 package org.dspace.content.authority;
 
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Iterator;
-
 
 import org.apache.log4j.Logger;
-import org.dspace.app.util.DSpaceContextListener;
 import org.dspace.content.Collection;
-import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataFieldServiceImpl;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.ConfigurationManager;
@@ -156,7 +152,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     }
 
     @Override
-    public String getLabel(MetadataValue metadataValue, String locale)
+    public String getLabel(IMetadataValue metadataValue, String locale)
     {
         return getLabel(metadataValue.getMetadataField().toString(), metadataValue.getAuthority(), locale);
     }
@@ -191,7 +187,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     }
 
     @Override
-    public List<String> getVariants(MetadataValue metadataValue)
+    public List<String> getVariants(IMetadataValue metadataValue)
     {
         ChoiceAuthority ma = getChoiceAuthorityMap().get(metadataValue.getMetadataField().toString());
         if (ma instanceof AuthorityVariantsSupport)

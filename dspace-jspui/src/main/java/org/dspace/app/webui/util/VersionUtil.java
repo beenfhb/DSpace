@@ -18,7 +18,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -300,7 +300,7 @@ public class VersionUtil
         String[] result = null;
         String itemHandle = version.getItem().getHandle();
 
-        List<MetadataValue> identifiers = itemService.getMetadata(item,
+        List<IMetadataValue> identifiers = itemService.getMetadata(item,
                 MetadataSchema.DC_SCHEMA, "identifier", null, Item.ANY);
         String itemIdentifier = null;
         if (identifiers != null && identifiers.size() > 0)

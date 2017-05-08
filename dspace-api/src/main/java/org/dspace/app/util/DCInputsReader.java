@@ -8,14 +8,23 @@
 package org.dspace.app.util;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.xml.sax.SAXException;
-import org.w3c.dom.*;
-import javax.xml.parsers.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
 
 import org.dspace.content.MetadataSchema;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Submission form generator for DSpace. Reads and parses the installation

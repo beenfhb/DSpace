@@ -7,14 +7,24 @@
  */
 package org.dspace.versioning;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.log4j.Logger;
 
 /**
  *

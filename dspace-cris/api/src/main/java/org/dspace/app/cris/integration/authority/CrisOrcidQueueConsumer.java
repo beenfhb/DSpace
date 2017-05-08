@@ -17,7 +17,7 @@ import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.core.Context;
@@ -52,8 +52,8 @@ public class CrisOrcidQueueConsumer implements Consumer {
 						if (ORCIDAuthority.class.isAssignableFrom(choiceAuthority.getClass())) {
 							// 2)check for each internal contributors if has
 							// authority
-							List<MetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
-							for (MetadataValue dcval : MetadataValues) {
+							List<IMetadataValue> MetadataValues = item.getItemService().getMetadataByMetadataString(item, metadata);
+							for (IMetadataValue dcval : MetadataValues) {
 								String authority = dcval.getAuthority();
 								if (StringUtils.isNotBlank(authority)) {
 									// 3)check the orcid preferences

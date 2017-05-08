@@ -18,7 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
@@ -92,9 +92,9 @@ public class ItemAuthorityConsumer implements Consumer
 
 	private boolean checkItemRefs(Context ctx, Item item, String m) throws SQLException {
 		boolean needCommit = false;
-		List<MetadataValue> meta = item.getItemService().getMetadataByMetadataString(item, m);
+		List<IMetadataValue> meta = item.getItemService().getMetadataByMetadataString(item, m);
 		if (meta != null) {
-			for (MetadataValue md : meta) {
+			for (IMetadataValue md : meta) {
 				if (md.getAuthority() != null) {
 					DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(ctx, md.getAuthority());
 		    		if (dso != null && dso instanceof Item) {
@@ -108,12 +108,12 @@ public class ItemAuthorityConsumer implements Consumer
 	}
 
     private boolean assureReciprocalLink(Context ctx, Item target, String mdString, String name, String handle) throws SQLException {
-    	List<MetadataValue> meta = target.getItemService().getMetadataByMetadataString(target, mdString);
+    	List<IMetadataValue> meta = target.getItemService().getMetadataByMetadataString(target, mdString);
     	String[] mdSplit = mdString.split("\\.");
     	target.getItemService().clearMetadata(ctx, target, mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, Item.ANY);
     	boolean added = false;
 		if (meta != null) {
-			for (MetadataValue md : meta) {
+			for (IMetadataValue md : meta) {
 				if (StringUtils.equals(md.getAuthority(), handle)) {
 					if (!StringUtils.equals(md.getValue(), name)) {
 						md.setValue(name);

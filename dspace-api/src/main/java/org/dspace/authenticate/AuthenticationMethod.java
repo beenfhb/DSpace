@@ -7,10 +7,11 @@
  */
 package org.dspace.authenticate;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;

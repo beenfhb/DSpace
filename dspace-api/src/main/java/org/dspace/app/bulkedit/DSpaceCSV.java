@@ -7,28 +7,43 @@
  */
 package org.dspace.app.bulkedit;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
-import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
-import org.dspace.content.authority.Choices;
 import org.dspace.core.Context;
 import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.io.*;
 
 /**
  * Utility class to read and write CSV files
@@ -432,8 +447,8 @@ public class DSpaceCSV implements Serializable
         }
 
         // Populate it
-        List<MetadataValue> md = itemService.getMetadata(i, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue value : md)
+        List<IMetadataValue> md = itemService.getMetadata(i, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue value : md)
         {
             MetadataField metadataField = value.getMetadataField();
             MetadataSchema metadataSchema = metadataField.getMetadataSchema();
@@ -664,7 +679,7 @@ public class DSpaceCSV implements Serializable
      *
      * The list can be configured via the key ignore-on-export in bulkedit.cfg
      *
-     * @param md The MetadataValue to examine
+     * @param md The IMetadataValue to examine
      * @return Whether or not it is OK to export this element
      */
     protected boolean okToExport(MetadataField md)

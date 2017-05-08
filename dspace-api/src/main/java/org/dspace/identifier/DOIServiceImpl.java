@@ -7,17 +7,17 @@
  */
 package org.dspace.identifier;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.identifier.dao.DOIDAO;
 import org.dspace.identifier.doi.DOIIdentifierException;
 import org.dspace.identifier.service.DOIService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Service implementation for the DOI object.

@@ -7,12 +7,23 @@
  */
 package org.dspace.content;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.hibernate.annotations.Type;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
 
 /**
  * Database access class representing a Dublin Core metadata value.
@@ -27,7 +38,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name="metadatavalue")
-public class MetadataValue implements ReloadableEntity<Integer>
+public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
 {
     /** The reference to the metadata field */
     @Id
@@ -67,26 +78,15 @@ public class MetadataValue implements ReloadableEntity<Integer>
     @JoinColumn(name="dspace_object_id")
     protected DSpaceObject dSpaceObject;
 
-    @Transient
-    public String schema;
-    @Transient
-    public String element;
-    @Transient
-    public String qualifier;
-    
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.MetadataValueService#create(Context, DSpaceObject, MetadataField)}
      *
      */
-    public MetadataValue()
+    protected MetadataValue()
     {
         id = 0;
     }
-
-    public MetadataValue(String string, String string2, String string3, String authkey, String string4) {
-		// TODO Auto-generated constructor stub
-	}
 
 	/**
      * Get the field ID the metadata value represents.
@@ -228,14 +228,14 @@ public class MetadataValue implements ReloadableEntity<Integer>
 
 
     /**
-     * Return <code>true</code> if <code>other</code> is the same MetadataValue
+     * Return <code>true</code> if <code>other</code> is the same IMetadataValue
      * as this object, <code>false</code> otherwise
      *
      * @param obj
      *            object to compare to
      *
      * @return <code>true</code> if object passed in represents the same
-     *         MetadataValue as this object
+     *         IMetadataValue as this object
      */
     @Override
     public boolean equals(Object obj)
@@ -274,6 +274,21 @@ public class MetadataValue implements ReloadableEntity<Integer>
         hash = 47 * hash + this.getDSpaceObject().getID().hashCode();
         return hash;
     }
+
+	@Override
+	public String getSchema() {
+		return getMetadataField().getMetadataSchema().getName();
+	}
+
+	@Override
+	public String getElement() {
+		return getMetadataField().getElement();
+	}
+
+	@Override
+	public String getQualifier() {
+		return getMetadataField().getQualifier();
+	}
 
 
 }

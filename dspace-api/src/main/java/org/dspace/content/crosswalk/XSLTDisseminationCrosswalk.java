@@ -425,10 +425,10 @@ public class XSLTDisseminationCrosswalk
 
     protected static List<MockMetadataValue> item2Metadata(Item item)
     {
-        List<MetadataValue> dcvs = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY,
+        List<IMetadataValue> dcvs = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY,
                 Item.ANY);
         List<MockMetadataValue> result = new ArrayList<>();
-        for (MetadataValue metadataValue : dcvs) {
+        for (IMetadataValue metadataValue : dcvs) {
             result.add(new MockMetadataValue(metadataValue));
         }
 

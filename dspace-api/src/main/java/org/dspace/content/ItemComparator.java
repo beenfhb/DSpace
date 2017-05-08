@@ -8,7 +8,12 @@
 package org.dspace.content;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -20,7 +25,7 @@ import org.dspace.sort.OrderFormat;
  *
  * The DCValues to be compared are specified by the element, qualifier and
  language parameters to the constructor. If the Item has more than one
- matching MetadataValue, then the max parameter to the constructor specifies whether
+ matching IMetadataValue, then the max parameter to the constructor specifies whether
  the maximum or minimum lexicographic value will be used.
  *
  * @author Peter Breton
@@ -53,7 +58,7 @@ public class ItemComparator implements Comparator, Serializable
      * @param language
      *            The language for the DCValues
      * @param max
-     *            If true, and there is more than one MetadataValue for element,
+     *            If true, and there is more than one IMetadataValue for element,
             qualifier and language, then use the maximum value
             lexicographically; otherwise use the minimum value.
      */
@@ -182,7 +187,7 @@ public class ItemComparator implements Comparator, Serializable
     protected String getValue(Item item)
     {
         // The overall array and each element are guaranteed non-null
-        List<MetadataValue> dcvalues = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, element, qualifier, language);
+        List<IMetadataValue> dcvalues = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, element, qualifier, language);
 
         if (dcvalues.isEmpty())
         {
@@ -195,7 +200,7 @@ public class ItemComparator implements Comparator, Serializable
         }
 
         // We want to sort using Strings, but also keep track of
-        // which MetadataValue the value came from.
+        // which IMetadataValue the value came from.
         Map<String, Integer> values = new HashMap<>();
 
         for (int i = 0; i < dcvalues.size(); i++)
@@ -223,11 +228,11 @@ public class ItemComparator implements Comparator, Serializable
     }
 
     /**
-     * Normalize the title of a MetadataValue.
+     * Normalize the title of a IMetadataValue.
      * @param value
      * @return normalized title
      */
-    protected String normalizeTitle(MetadataValue value)
+    protected String normalizeTitle(IMetadataValue value)
     {
         if (!"title".equals(element))
         {

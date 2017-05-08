@@ -7,13 +7,19 @@
  */
 package org.dspace.sword2;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.abdera.Abdera;
 import org.apache.abdera.i18n.iri.IRI;
 import org.apache.abdera.model.Entry;
 import org.apache.abdera.model.Feed;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.WorkspaceItemService;
@@ -23,12 +29,12 @@ import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-import org.swordapp.server.*;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import org.swordapp.server.AuthCredentials;
+import org.swordapp.server.CollectionListManager;
+import org.swordapp.server.SwordAuthException;
+import org.swordapp.server.SwordConfiguration;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.SwordServerException;
 
 public class CollectionListManagerDSpace extends DSpaceSwordAPI
         implements CollectionListManager
@@ -200,7 +206,7 @@ public class CollectionListManagerDSpace extends DSpaceSwordAPI
             return null;
         }
 
-        List<MetadataValue> dcvs = itemService
+        List<IMetadataValue> dcvs = itemService
                 .getMetadataByMetadataString(item, field);
         if (dcvs == null)
         {
@@ -208,7 +214,7 @@ public class CollectionListManagerDSpace extends DSpaceSwordAPI
         }
 
         StringBuilder md = new StringBuilder();
-        for (MetadataValue dcv : dcvs)
+        for (IMetadataValue dcv : dcvs)
         {
             if (md.length() > 0)
             {

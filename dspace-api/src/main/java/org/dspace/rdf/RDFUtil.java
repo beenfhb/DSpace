@@ -8,7 +8,6 @@
 
 package org.dspace.rdf;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +25,8 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.rdf.factory.RDFFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
+
+import com.hp.hpl.jena.rdf.model.Model;
 
 /**
  *

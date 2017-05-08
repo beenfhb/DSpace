@@ -22,8 +22,8 @@ import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
@@ -34,7 +34,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
     @Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<MetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks,
+			int colIdx, String field, List<IMetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks,
 			boolean emph) {
 		ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item).getBrowsableDSpaceObject();
 		String metadata = "-";
@@ -49,7 +49,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
+			int colIdx, String field, List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
 		String metadata;
 		// limit the number of records if this is the author field (if
 		// -1, then the limit is the full list)
@@ -97,7 +97,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 		return metadata;
 	}
 
-	private void buildBrowseLink(HttpServletRequest hrq, boolean viewFull, String browseType, List<MetadataValue> metadataArray,
+	private void buildBrowseLink(HttpServletRequest hrq, boolean viewFull, String browseType, List<IMetadataValue> metadataArray,
 			boolean disableCrossLinks, StringBuffer sb, int j) {
 		String startLink = "";
 		String endLink = "";
@@ -146,7 +146,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 	}
 
 	private void buildAuthority(HttpServletRequest hrq,
-			List<MetadataValue> metadataArray, StringBuffer sb, int j)
+			List<IMetadataValue> metadataArray, StringBuffer sb, int j)
     {
         String startLink = "";
         String endLink = "";
@@ -184,13 +184,13 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
 	@Override
 	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
 		return null;
 	}
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			int colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException {
 		ACrisObject crisObject = (ACrisObject) item;
 		String metadata = "-";
@@ -206,7 +206,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;

@@ -7,6 +7,11 @@
  */
 package org.dspace.content;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -22,11 +27,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Service implementation for the WorkspaceItem object.
@@ -115,9 +115,9 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
         if (template && (templateItem != null))
         {
-            List<MetadataValue> md = itemService.getMetadata(templateItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            List<IMetadataValue> md = itemService.getMetadata(templateItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
-            for (MetadataValue aMd : md) {
+            for (IMetadataValue aMd : md) {
                 MetadataField metadataField = aMd.getMetadataField();
                 MetadataSchema metadataSchema = metadataField.getMetadataSchema();
                 itemService.addMetadata(context, item, metadataSchema.getName(), metadataField.getElement(), metadataField.getQualifier(), aMd.getLanguage(),

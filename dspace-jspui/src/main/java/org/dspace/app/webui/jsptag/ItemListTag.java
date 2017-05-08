@@ -33,8 +33,9 @@ import org.dspace.app.webui.util.TitleDisplayStrategy;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.CrossLinks;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.factory.CoreServiceFactory;
@@ -477,7 +478,7 @@ public class ItemListTag extends TagSupport {
                     String qualifier = tokens[2];
                     
                     // first get hold of the relevant metadata for this column
-                    List<MetadataValue> metadataArray = null;
+                    List<IMetadataValue> metadataArray = null;
                     
                     if (schema.equalsIgnoreCase("extra")) {
                     	
@@ -488,7 +489,7 @@ public class ItemListTag extends TagSupport {
 						}
                     	if (StringUtils.isNotBlank(val)) {
                     		metadataArray = new ArrayList<>();
-                    		MetadataValue metadataValue = new MetadataValue();
+                    		MetadataValueVolatile metadataValue = new MetadataValueVolatile();
                     		metadataValue.setValue(val);
                     		metadataValue.schema = "extra";
                     		metadataValue.element = element;
@@ -766,7 +767,7 @@ public class ItemListTag extends TagSupport {
 
     private String getMetadataDisplayByStrategy(HttpServletRequest hrq,
             boolean[] emph, boolean[] viewFull, String[] browseType, int i,
-            int colIdx, String field, List<MetadataValue> metadataArray, int limit,
+            int colIdx, String field, List<IMetadataValue> metadataArray, int limit,
             IDisplayMetadataValueStrategy strategy)
     {
         String metadata = "";

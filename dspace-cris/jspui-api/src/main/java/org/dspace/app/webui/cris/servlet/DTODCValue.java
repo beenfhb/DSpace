@@ -11,7 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Metadata wrapper   
@@ -24,7 +25,7 @@ public class DTODCValue {
 	/**
 	 * DC value
 	 */
-	private MetadataValue dcValue;
+	private IMetadataValue dcValue;
 
 	/**
 	 * if true then don't show on view
@@ -60,11 +61,11 @@ public class DTODCValue {
 	
 	private List<UUID> duplicates;
 	
-	public MetadataValue getDcValue() {
+	public IMetadataValue getDcValue() {
 		return dcValue;
 	}
 
-	public void setDcValue(MetadataValue dcValue) {
+	public void setDcValue(IMetadataValue dcValue) {
 		this.dcValue = dcValue;
 	}
 
@@ -85,11 +86,11 @@ public class DTODCValue {
 	}
 
 	public String getElement() {
-		return dcValue.element;
+		return dcValue.getElement();
 	}
 
 	public String getQualifier() {
-		return dcValue.qualifier;
+		return dcValue.getQualifier();
 	}
 
 	public String getValue() {
@@ -104,7 +105,7 @@ public class DTODCValue {
 	}
 
 	public String getSchema() {
-		return dcValue.schema;
+		return dcValue.getSchema();
 	}
 
 	public void setMetadataFieldId(Integer metadataFieldId) {

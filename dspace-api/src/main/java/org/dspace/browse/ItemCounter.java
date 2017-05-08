@@ -7,15 +7,15 @@
  */
 package org.dspace.browse;
 
+import java.sql.SQLException;
+
 import org.apache.log4j.Logger;
-import org.dspace.content.Community;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.content.DSpaceObject;
-
-import java.sql.SQLException;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 

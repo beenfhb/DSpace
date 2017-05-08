@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.I18nUtil;
 
 public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
@@ -25,7 +25,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
     
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata;
         // limit the number of records if this is the author field (if

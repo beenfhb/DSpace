@@ -7,15 +7,21 @@
  */
 package org.dspace.eperson;
 
-import org.apache.commons.cli.*;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Locale;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Locale;
 
 public class EPersonCLITool {
 

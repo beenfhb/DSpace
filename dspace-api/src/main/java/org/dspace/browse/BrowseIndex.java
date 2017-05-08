@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.sort.SortOption;
 import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
 
 /**
  * This class holds all the information about a specifically configured 

@@ -11,8 +11,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
-import org.dspace.sort.SortOption;
 import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
 
 /**
  * A class which represents the initial request to the browse system.

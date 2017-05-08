@@ -16,7 +16,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;

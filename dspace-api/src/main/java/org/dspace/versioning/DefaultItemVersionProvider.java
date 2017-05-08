@@ -7,7 +7,13 @@
  */
 package org.dspace.versioning;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
@@ -15,15 +21,9 @@ import org.dspace.core.Context;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.versioning.service.VersionHistoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import org.apache.log4j.Logger;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItemService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *

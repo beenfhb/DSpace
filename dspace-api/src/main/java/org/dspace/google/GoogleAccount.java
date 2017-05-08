@@ -8,6 +8,13 @@
 
 package org.dspace.google;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.dspace.services.factory.DSpaceServicesFactory;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -16,12 +23,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.analytics.Analytics;
 import com.google.api.services.analytics.AnalyticsScopes;
-import org.apache.log4j.Logger;
-import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * User: Robin Taylor

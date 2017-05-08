@@ -7,10 +7,10 @@
  */
 package org.dspace.checker;
 
-import org.dspace.content.Bitstream;
-
 import java.sql.SQLException;
 import java.util.Date;
+
+import org.dspace.content.Bitstream;
 
 /**
  * <p>

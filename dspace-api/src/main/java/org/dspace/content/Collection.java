@@ -384,7 +384,7 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
 	}
 
 	@Override
-	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
 		return getCollectionService().getMetadata(this, schema, element, qualifier, lang);
 	}
 

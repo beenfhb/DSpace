@@ -136,8 +136,8 @@ public class MetadataConverterPlugin implements ConverterPlugin
             return null;
         }
         
-        List<MetadataValue> metadata_values = dsoService.getMetadata(dso, MetadataSchema.DC_SCHEMA, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue value : metadata_values)
+        List<IMetadataValue> metadata_values = dsoService.getMetadata(dso, MetadataSchema.DC_SCHEMA, Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue value : metadata_values)
         {
             MetadataField metadataField = value.getMetadataField();
             MetadataSchema metadataSchema = metadataField.getMetadataSchema();

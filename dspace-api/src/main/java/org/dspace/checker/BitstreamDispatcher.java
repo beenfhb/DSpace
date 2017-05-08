@@ -8,9 +8,9 @@
 package org.dspace.checker;
 
 
-import org.dspace.content.Bitstream;
-
 import java.sql.SQLException;
+
+import org.dspace.content.Bitstream;
 
 /**
  * <p>

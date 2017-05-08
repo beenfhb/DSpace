@@ -11,7 +11,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
@@ -55,11 +56,11 @@ public class AddMetadataAction extends UpdateMetadataAction {
 				{
 					// match against metadata for this field/value in repository
 					// qualifier must be strictly matched, possibly null					
-					List<MetadataValue> ardcv = null;
+					List<IMetadataValue> ardcv = null;
 					ardcv = itemService.getMetadata(item, dtom.schema, dtom.element, dtom.qualifier, Item.ANY);
 					
 					boolean found = false;
-					for (MetadataValue dcv : ardcv)
+					for (IMetadataValue dcv : ardcv)
 					{
 						if (dcv.getValue().equals(dtom.value))
 						{
@@ -109,7 +110,7 @@ public class AddMetadataAction extends UpdateMetadataAction {
 								//ItemUpdate.pr("Undo metadata: " + dtom);
 								
 								// add all as a replace record to be preceded by delete
-								for (MetadataValue dcval : ardcv)
+								for (IMetadataValue dcval : ardcv)
 								{
                                     MetadataField metadataField = dcval.getMetadataField();
                                     MetadataSchema metadataSchema = metadataField.getMetadataSchema();

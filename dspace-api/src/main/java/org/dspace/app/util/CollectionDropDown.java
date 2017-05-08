@@ -8,7 +8,9 @@
 package org.dspace.app.util;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import org.dspace.content.Collection;
 import org.dspace.content.Community;

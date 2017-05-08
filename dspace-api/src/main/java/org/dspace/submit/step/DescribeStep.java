@@ -32,7 +32,7 @@ import org.dspace.content.DCDate;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DCSeriesNumber;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
@@ -380,7 +380,7 @@ public class DescribeStep extends AbstractProcessingStep
                 {
                     qualifier = Item.ANY;
                 }
-                List<MetadataValue> values = itemService.getMetadata(item, inputs[i].getSchema(),
+                List<IMetadataValue> values = itemService.getMetadata(item, inputs[i].getSchema(),
                         inputs[i].getElement(), qualifier, Item.ANY);
 
                 if ((inputs[i].isRequired() && values.size() == 0) &&

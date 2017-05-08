@@ -7,21 +7,31 @@
  */
 package org.dspace.sword2;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.swordapp.server.*;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+import org.swordapp.server.Deposit;
+import org.swordapp.server.SwordAuthException;
+import org.swordapp.server.SwordEntry;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.SwordServerException;
 
 
 public class SimpleDCEntryIngester extends AbstractSimpleDC
@@ -154,9 +164,9 @@ public class SimpleDCEntryIngester extends AbstractSimpleDC
         {
             lang = Item.ANY;
         }
-        List<MetadataValue> existing = itemService
+        List<IMetadataValue> existing = itemService
                 .getMetadata(item, info.schema, info.element, qual, lang);
-        for (MetadataValue dcValue : existing)
+        for (IMetadataValue dcValue : existing)
         {
             // FIXME: probably we want to be slightly more careful about qualifiers and languages
             //

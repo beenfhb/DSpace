@@ -37,7 +37,7 @@ import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
@@ -187,11 +187,11 @@ public class ReferCrosswalk extends SelfNamedPlugin
                 }
                 else
                 {
-                    List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(line.mdField);
+                    List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(line.mdField);
                     
                     if (dcvs != null)
                     {
-                        for (MetadataValue dc : dcvs)
+                        for (IMetadataValue dc : dcvs)
                         {
                             
                             String dcValue = null;

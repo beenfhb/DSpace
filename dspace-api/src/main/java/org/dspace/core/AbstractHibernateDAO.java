@@ -7,16 +7,16 @@
  */
 package org.dspace.core;
 
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
-
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Hibernate implementation for generic DAO interface.  Also includes additional

@@ -24,7 +24,7 @@ import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -64,9 +64,9 @@ public class MyRPJSONController extends MultiActionController
             EPerson currentUser = getCurrentUser(request);
 			rp.setEpersonID(currentUser.getID());
             
-            List<MetadataValue> md = EPersonServiceFactory.getInstance().getEPersonService().getMetadata(currentUser, "eperson", "orcid", null, null);
+            List<IMetadataValue> md = EPersonServiceFactory.getInstance().getEPersonService().getMetadata(currentUser, "eperson", "orcid", null, null);
             if (md != null && md.size() > 0) {
-            	List<MetadataValue> mdToken = EPersonServiceFactory.getInstance().getEPersonService().getMetadata(currentUser, "eperson", "orcid", "accesstoken", null);
+            	List<IMetadataValue> mdToken = EPersonServiceFactory.getInstance().getEPersonService().getMetadata(currentUser, "eperson", "orcid", "accesstoken", null);
             	String token = null;
             	if (mdToken != null && mdToken.size() > 0) {
             		token = mdToken.get(0).getValue();

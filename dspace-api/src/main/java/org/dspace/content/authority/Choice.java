@@ -25,7 +25,7 @@ public class Choice
     /**  Label to display for this value (e.g. to present in UI menu) */
     public String label = null;
 
-    /**  The canonical text value to insert into MetadataValue's text field */
+    /**  The canonical text value to insert into IMetadataValue's text field */
     public String value = null;
 
     public Map<String, String> extras = new HashMap<String,String>();

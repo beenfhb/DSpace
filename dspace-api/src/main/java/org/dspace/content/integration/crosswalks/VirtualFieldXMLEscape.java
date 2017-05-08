@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Implementazione del virtual field processing per effettuare l'escape xml dei
@@ -31,11 +31,11 @@ public class VirtualFieldXMLEscape implements VirtualFieldDisseminator,
 			return fieldCache.get(fieldName).split("\\|");
 		
 		String[] virtualFieldName = fieldName.split("\\.", 3);
-		List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(virtualFieldName[2]);
+		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(virtualFieldName[2]);
 		StringBuffer out = null;
 		if (dcvs != null && dcvs.size() > 0) {
 			out = new StringBuffer();
-			for (MetadataValue dc : dcvs)
+			for (IMetadataValue dc : dcvs)
 			{
 				out.append(StringEscapeUtils.escapeXml(dc.getValue())).append("|");
 			}

@@ -19,8 +19,9 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.utils.DSpace;
 
@@ -44,7 +45,7 @@ public class CrisDropdownDisplayStrategy implements
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject item,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
     {
         ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item)
@@ -55,7 +56,7 @@ public class CrisDropdownDisplayStrategy implements
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph)
     {
         if (metadataArray != null && metadataArray.size() > 0)
@@ -75,7 +76,7 @@ public class CrisDropdownDisplayStrategy implements
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;
@@ -84,7 +85,7 @@ public class CrisDropdownDisplayStrategy implements
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
                     throws JspException
     {
@@ -94,7 +95,7 @@ public class CrisDropdownDisplayStrategy implements
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, IGlobalSearchResult item,
+            List<IMetadataValue> metadataArray, IGlobalSearchResult item,
             boolean disableCrossLinks, boolean emph)
                     throws JspException
     {
@@ -105,7 +106,7 @@ public class CrisDropdownDisplayStrategy implements
     }
     
     private String internalDisplay(HttpServletRequest hrq,
-            List<MetadataValue> metadataArray, ACrisObject crisObject, String field)
+            List<IMetadataValue> metadataArray, ACrisObject crisObject, String field)
     {
         String metadata = "";
         if (metadataArray != null && metadataArray.size() > 0)
@@ -113,7 +114,7 @@ public class CrisDropdownDisplayStrategy implements
             try 
             {
                 PropertiesDefinition pd = applicationService.findPropertiesDefinitionByShortName(crisObject.getClassPropertiesDefinition(), field.split("\\.")[1]);
-                for(MetadataValue mm : metadataArray) {
+                for(IMetadataValue mm : metadataArray) {
                     metadata += JDynATagLibraryFunctions.getCheckRadioDisplayValue((((WidgetCheckRadio)pd.getRendering()).getStaticValues()), mm.getValue());
                 }
             }
@@ -121,7 +122,7 @@ public class CrisDropdownDisplayStrategy implements
             {
                 log.error(ex.getMessage(), ex);
                 //failover insert the stored value
-                for(MetadataValue mm : metadataArray) {
+                for(IMetadataValue mm : metadataArray) {
                     metadata += mm.getValue();
                 }                
             }

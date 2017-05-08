@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -27,8 +27,8 @@ public class GroupValueGenerator implements TemplateValueGenerator
     private static Logger log = Logger.getLogger(GroupValueGenerator.class);
 
     @Override
-    public List<MetadataValue> generator(Context context, Item targetItem, Item templateItem,
-            MetadataValue MetadataValue, String extraParams)
+    public List<IMetadataValue> generator(Context context, Item targetItem, Item templateItem,
+            IMetadataValue IMetadataValue, String extraParams)
     {
         String[] params = StringUtils.split(extraParams, "\\.");
         String prefix = params[0];
@@ -71,8 +71,8 @@ public class GroupValueGenerator implements TemplateValueGenerator
             value = value + "-" + suffix;
         }
 
-        List<MetadataValue> m = new ArrayList<>();
-        m.add(MetadataValue);
+        List<IMetadataValue> m = new ArrayList<>();
+        m.add(IMetadataValue);
         Group group = null;
         try
         {
@@ -86,7 +86,7 @@ public class GroupValueGenerator implements TemplateValueGenerator
         if(group!=null) {
             result = "" + group.getID();
         }        
-        MetadataValue.setValue(result);
+        IMetadataValue.setValue(result);
         return m;
     }
 }

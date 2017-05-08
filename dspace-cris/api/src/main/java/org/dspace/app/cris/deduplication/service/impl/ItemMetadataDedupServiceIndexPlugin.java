@@ -15,8 +15,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -56,7 +56,7 @@ public class ItemMetadataDedupServiceIndexPlugin
 
             for (String meta : metadata)
             {
-                for (MetadataValue mm : ContentServiceFactory.getInstance().getItemService().getMetadataByMetadataString(item, meta))
+                for (IMetadataValue mm : ContentServiceFactory.getInstance().getItemService().getMetadataByMetadataString(item, meta))
                 {
                     if (StringUtils.isNotEmpty(field))
                     {

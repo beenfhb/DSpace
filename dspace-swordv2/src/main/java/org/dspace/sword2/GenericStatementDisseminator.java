@@ -7,22 +7,22 @@
  */
 package org.dspace.sword2;
 
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-import org.swordapp.server.OriginalDeposit;
-import org.swordapp.server.ResourcePart;
-import org.swordapp.server.Statement;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang.ArrayUtils;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
+import org.dspace.core.Context;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.swordapp.server.OriginalDeposit;
+import org.swordapp.server.ResourcePart;
+import org.swordapp.server.Statement;
 
 public abstract class GenericStatementDisseminator
         implements SwordStatementDisseminator

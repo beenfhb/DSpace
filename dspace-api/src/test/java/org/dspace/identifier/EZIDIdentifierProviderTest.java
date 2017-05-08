@@ -80,14 +80,14 @@ public class EZIDIdentifierProviderTest
 
     private void dumpMetadata(Item eyetem)
     {
-        List<MetadataValue> metadata = itemService.getMetadata(eyetem, "dc", Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue MetadataValue : metadata)
+        List<IMetadataValue> metadata = itemService.getMetadata(eyetem, "dc", Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue IMetadataValue : metadata)
             System.out.printf("Metadata:  %s.%s.%s(%s) = %s\n",
-                    MetadataValue.getMetadataField().getMetadataSchema().getName(),
-                    MetadataValue.getMetadataField().getElement(),
-                    MetadataValue.getMetadataField().getQualifier(),
-                    MetadataValue.getLanguage(),
-                    MetadataValue.getValue());
+                    IMetadataValue.getMetadataField().getMetadataSchema().getName(),
+                    IMetadataValue.getMetadataField().getElement(),
+                    IMetadataValue.getMetadataField().getQualifier(),
+                    IMetadataValue.getLanguage(),
+                    IMetadataValue.getValue());
     }
 
     /**
@@ -426,7 +426,7 @@ public class EZIDIdentifierProviderTest
 
         // Evaluate
         String target = (String) metadata.get("_target");
-        assertEquals("Generates correct _target MetadataValue",
+        assertEquals("Generates correct _target IMetadataValue",
                 config.getProperty("dspace.url") + "/handle/" + handle,
                 target);
         assertTrue("Has title", metadata.containsKey("datacite.title"));
@@ -436,9 +436,9 @@ public class EZIDIdentifierProviderTest
 
         // Dump out the generated metadata for inspection
         System.out.println("Results:");
-        for (Entry MetadataValue : metadata.entrySet())
+        for (Entry IMetadataValue : metadata.entrySet())
         {
-            System.out.printf("  %s : %s\n", MetadataValue.getKey(), MetadataValue.getValue());
+            System.out.printf("  %s : %s\n", IMetadataValue.getKey(), IMetadataValue.getValue());
         }
     }
 }

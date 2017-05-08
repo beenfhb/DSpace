@@ -24,7 +24,7 @@ import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.app.xmlui.wing.element.Row;
 import org.dspace.app.xmlui.wing.element.Table;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -83,7 +83,7 @@ public class ConfirmItemForm extends AbstractDSpaceTransformer {
 		// Get our parameters and state
 		UUID itemID = UUID.fromString(parameters.getParameter("itemID", null));
 		Item item = itemService.find(context, itemID);
-		final java.util.List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+		final java.util.List<IMetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 		Collections.sort(values, new DCValueComparator());
 
 		String confirm = parameters.getParameter("confirm",null);
@@ -114,7 +114,7 @@ public class ConfirmItemForm extends AbstractDSpaceTransformer {
 		header.addCell().addContent(T_column1);
 		header.addCell().addContent(T_column2);
 		header.addCell().addContent(T_column3);
-		for(final MetadataValue value:values){
+		for(final IMetadataValue value:values){
 			MetadataField metadataField = value.getMetadataField();
 			final String dcValue = metadataField.getMetadataSchema().getName() + ". " + metadataField.getElement() + (metadataField.getQualifier()==null?"":(". " + metadataField.getQualifier()));
 			final Row row = table.addRow();
@@ -159,8 +159,8 @@ public class ConfirmItemForm extends AbstractDSpaceTransformer {
 	 */
 	static class DCValueComparator implements Comparator, Serializable {
 		public int compare(Object arg0, Object arg1) {
-			final MetadataValue o1 = (MetadataValue)arg0;
-			final MetadataValue o2 = (MetadataValue)arg1;
+			final IMetadataValue o1 = (IMetadataValue)arg0;
+			final IMetadataValue o2 = (IMetadataValue)arg1;
 			MetadataField o1Field = o1.getMetadataField();
 			MetadataField o2Field = o2.getMetadataField();
 			final String s1 = o1Field.getMetadataSchema().getName() + o1Field.getElement() + (o1Field.getQualifier()==null?"":("." + o1Field.getQualifier()));

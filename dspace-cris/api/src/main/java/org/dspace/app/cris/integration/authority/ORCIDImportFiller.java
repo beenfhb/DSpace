@@ -13,13 +13,13 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 public class ORCIDImportFiller extends ItemMetadataImportFiller {
 
 	@Override
-	public void fillRecord(Context context, Item item, List<MetadataValue> metadata, String ORCID, ACrisObject crisObject) {
+	public void fillRecord(Context context, Item item, List<IMetadataValue> metadata, String ORCID, ACrisObject crisObject) {
 		OrcidPreferencesUtils.populateRP((ResearcherPage) crisObject, ORCID);
 		super.fillRecord(context, item, metadata, ORCID, crisObject);
 	}

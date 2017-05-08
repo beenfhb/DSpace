@@ -7,12 +7,17 @@
  */
 package org.dspace.identifier;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.identifier.doi.DOIConnector;
 import org.dspace.identifier.doi.DOIIdentifierException;
@@ -23,10 +28,6 @@ import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -307,7 +308,7 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider
         String bareDoi = getBareDOI(doiService.formatIdentifier(oldDoi));
         String bareDoiRef = doiService.DOIToExternalForm(bareDoi);        
         
-        List<MetadataValue> identifiers = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
+        List<IMetadataValue> identifiers = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
         // We have to remove all DOIs referencing previous versions. To do that,
         // we store all identifiers we do not know in an array list, clear 
         // dc.identifier.uri and add the safed identifiers.
@@ -315,7 +316,7 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider
         // existing identifiers.
         ArrayList<String> newIdentifiers = new ArrayList<String>(identifiers.size());
         boolean changed = false;
-        for (MetadataValue identifier : identifiers)
+        for (IMetadataValue identifier : identifiers)
         {
             if (!StringUtils.startsWithIgnoreCase(identifier.getValue(), bareDoiRef))
             {

@@ -7,9 +7,21 @@
  */
 package org.dspace.identifier;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -17,20 +29,12 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.versioning.*;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -447,11 +451,11 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
         // we want to remove the old handle and insert the new. To do so, we 
         // load all identifiers, clear the metadata field, re add all 
         // identifiers which are not from type handle and add the new handle.
-        List<MetadataValue> identifiers = itemService.getMetadata(item, 
+        List<IMetadataValue> identifiers = itemService.getMetadata(item, 
                 MetadataSchema.DC_SCHEMA, "identifier", "uri", Item.ANY);
         itemService.clearMetadata(context, item, MetadataSchema.DC_SCHEMA, 
                 "identifier", "uri", Item.ANY);
-        for (MetadataValue identifier : identifiers)
+        for (IMetadataValue identifier : identifiers)
         {
             if (this.supports(identifier.getValue()))
             {

@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDSODAO;
@@ -166,7 +166,7 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
         		}
         	}
         	
-        	DetachedCriteria subcriteria = DetachedCriteria.forClass(MetadataValue.class,"mv");
+        	DetachedCriteria subcriteria = DetachedCriteria.forClass(IMetadataValue.class,"mv");
         	subcriteria.add(Property.forName("mv.dSpaceObject").eqProperty("item.id"));
         	subcriteria.setProjection(Projections.property("mv.dSpaceObject"));
         	

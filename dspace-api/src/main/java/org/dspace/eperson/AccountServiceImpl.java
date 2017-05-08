@@ -7,18 +7,23 @@
  */
 package org.dspace.eperson;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Locale;
+
+import javax.mail.MessagingException;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.core.*;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.core.Email;
+import org.dspace.core.I18nUtil;
+import org.dspace.core.Utils;
 import org.dspace.eperson.service.AccountService;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.RegistrationDataService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.mail.MessagingException;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Locale;
 
 /**
  *

@@ -292,8 +292,8 @@ public class ItemAdapter extends AbstractAdapter
             }
             startElement(DIM,"dim",attributes);
 
-                List<MetadataValue> dcvs = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-                for (MetadataValue dcv : dcvs)
+                List<IMetadataValue> dcvs = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+                for (IMetadataValue dcv : dcvs)
                 {
                     MetadataField metadataField = dcv.getMetadataField();
                     if (!metadataExposureService.isHidden(context, dcv.getMetadataField().getMetadataSchema().getName(), metadataField.getElement(), metadataField.getQualifier())) {

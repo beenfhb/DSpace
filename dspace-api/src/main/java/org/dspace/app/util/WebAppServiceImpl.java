@@ -7,6 +7,12 @@
  */
 package org.dspace.app.util;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -17,12 +23,6 @@ import org.dspace.app.util.dao.WebAppDAO;
 import org.dspace.app.util.service.WebAppService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Service implementation for the WebApp object.

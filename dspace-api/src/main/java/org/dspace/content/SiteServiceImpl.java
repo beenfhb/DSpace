@@ -7,6 +7,11 @@
  */
 package org.dspace.content;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.SiteDAO;
@@ -17,11 +22,6 @@ import org.dspace.core.Context;
 import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Service implementation for the Site object.

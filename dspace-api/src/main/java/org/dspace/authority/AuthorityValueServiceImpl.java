@@ -7,6 +7,12 @@
  */
 package org.dspace.authority;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -17,8 +23,6 @@ import org.dspace.content.authority.SolrAuthority;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
 
 /**
  * This service contains all methods for using authority values

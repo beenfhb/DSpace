@@ -13,8 +13,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
@@ -46,7 +46,7 @@ public class MetadataStyleSelection extends AKeyBasedStyleSelection
     public String getStyleForItem(Context context, Item item, HttpServletRequest req) throws SQLException
     {
         String metadata = ConfigurationManager.getProperty("webui.itemdisplay.metadata-style");
-        List<MetadataValue> value = itemService.getMetadataByMetadataString(item, metadata);
+        List<IMetadataValue> value = itemService.getMetadataByMetadataString(item, metadata);
         String styleName = "default";
         if (value.size() > 0)
         {

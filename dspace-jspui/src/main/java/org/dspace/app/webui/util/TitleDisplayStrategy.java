@@ -12,10 +12,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Utils;
 import org.dspace.discovery.IGlobalSearchResult;
 
@@ -24,20 +23,20 @@ public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks, boolean emph)
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks, boolean emph)
     {
         return getDisplay(hrq, metadataArray, item.isWithdrawn(), item.getHandle(), emph);
     }
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
     {
         return getDisplay(hrq, metadataArray, item.isWithdrawn(), item.getHandle(), emph);
     }
     
 
-    private String getDisplay(HttpServletRequest hrq, List<MetadataValue> metadataArray,
+    private String getDisplay(HttpServletRequest hrq, List<IMetadataValue> metadataArray,
             boolean isWithdrawn, String handle, boolean emph)
     {
         String metadata = "-";
@@ -61,7 +60,7 @@ public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            List<MetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
     {
         return null;
@@ -69,7 +68,7 @@ public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<MetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;
@@ -77,7 +76,7 @@ public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
     
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<MetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			int colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException {
         String metadata = "-";
         if (metadataArray.size()>0)

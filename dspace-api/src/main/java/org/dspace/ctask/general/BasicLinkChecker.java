@@ -7,18 +7,18 @@
  */
 package org.dspace.ctask.general;
 
-import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.curate.AbstractCurationTask;
-import org.dspace.curate.Curator;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.curate.AbstractCurationTask;
+import org.dspace.curate.Curator;
 
 /**
  * A basic link checker that is designed to be extended. By default this link checker
@@ -101,9 +101,9 @@ public class BasicLinkChecker extends AbstractCurationTask
     protected List<String> getURLs(Item item)
     {
         // Get URIs from anyschema.anyelement.uri.*
-        List<MetadataValue> urls = itemService.getMetadata(item, Item.ANY, Item.ANY, "uri", Item.ANY);
+        List<IMetadataValue> urls = itemService.getMetadata(item, Item.ANY, Item.ANY, "uri", Item.ANY);
         ArrayList<String> theURLs = new ArrayList<String>();
-        for (MetadataValue url : urls)
+        for (IMetadataValue url : urls)
         {
             theURLs.add(url.getValue());
         }

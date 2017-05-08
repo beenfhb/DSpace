@@ -7,19 +7,18 @@
  */
 package org.dspace.discovery;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bundle;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.UsageEventEntity;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Class for updating search indices in discovery from content events.

@@ -27,9 +27,9 @@ import org.dspace.app.xmlui.wing.element.Table;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
@@ -117,14 +117,14 @@ public class BrowseItemForm extends AbstractDSpaceTransformer {
 			Collection owningCollection = item.getOwningCollection();
 			String owning = owningCollection.getName();
 			String author = "unknown";
-			List<MetadataValue> dcAuthors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
+			List<IMetadataValue> dcAuthors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
 			if (dcAuthors != null && dcAuthors.size() >= 1)
             {
                 author = dcAuthors.get(0).getValue();
             }
 			
 			String title = "untitled";
-			List<MetadataValue> dcTitles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+			List<IMetadataValue> dcTitles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
 			if (dcTitles != null && dcTitles.size() >= 1)
             {
                 title = dcTitles.get(0).getValue();

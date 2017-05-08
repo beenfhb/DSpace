@@ -7,12 +7,12 @@
  */
 package org.dspace.sword2;
 
+import java.io.InputStream;
+
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
-
-import java.io.InputStream;
 
 public interface SwordContentDisseminator
 {

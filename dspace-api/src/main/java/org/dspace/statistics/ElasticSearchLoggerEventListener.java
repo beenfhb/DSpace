@@ -8,7 +8,6 @@
 package org.dspace.statistics;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.model.Event;

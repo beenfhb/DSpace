@@ -7,16 +7,6 @@
  */
 package org.dspace.sword2;
 
-import org.apache.abdera.Abdera;
-import org.apache.abdera.i18n.iri.IRI;
-import org.apache.abdera.model.Entry;
-import org.apache.abdera.model.Feed;
-import org.apache.abdera.model.Link;
-import org.dspace.content.*;
-import org.dspace.core.*;
-import org.swordapp.server.SwordError;
-import org.swordapp.server.SwordServerException;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,6 +15,21 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.abdera.Abdera;
+import org.apache.abdera.i18n.iri.IRI;
+import org.apache.abdera.model.Entry;
+import org.apache.abdera.model.Feed;
+import org.apache.abdera.model.Link;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.SwordServerException;
 
 public class FeedContentDisseminator extends AbstractSimpleDC
         implements SwordContentDisseminator

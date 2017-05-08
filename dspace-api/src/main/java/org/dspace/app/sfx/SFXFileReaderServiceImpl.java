@@ -15,7 +15,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.sfx.service.SFXFileReaderService;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
@@ -178,7 +178,7 @@ public class SFXFileReaderServiceImpl implements SFXFileReaderService {
                         }
                     }
                     if (finish == 4) {
-                        List<MetadataValue> dcvalue = itemService.getMetadata(item, schema, element, qualifier, Item.ANY);
+                        List<IMetadataValue> dcvalue = itemService.getMetadata(item, schema, element, qualifier, Item.ANY);
                         if (dcvalue.size() > 0) {
                             // Issued Date
                             if (element.equals("date") && qualifier.equals("issued")) {

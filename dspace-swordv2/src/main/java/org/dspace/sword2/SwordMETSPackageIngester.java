@@ -7,6 +7,9 @@
  */
 package org.dspace.sword2;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -15,9 +18,6 @@ import org.dspace.content.packager.PackageParameters;
 import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.packager.PackageValidationException;
 import org.dspace.core.Context;
-
-import java.io.IOException;
-import java.sql.SQLException;
 
 public class SwordMETSPackageIngester extends DSpaceMETSIngester
 {

@@ -7,7 +7,17 @@
  */
 package org.dspace.app.itemexport;
 
-import org.apache.commons.cli.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 import org.dspace.app.itemexport.factory.ItemExportServiceFactory;
 import org.dspace.app.itemexport.service.ItemExportService;
 import org.dspace.content.Collection;
@@ -19,8 +29,6 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
-
-import java.util.*;
 
 /**
  * Item exporter to create simple AIPs for DSpace content. Currently exports

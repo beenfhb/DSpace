@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -26,8 +26,8 @@ public class EPersonValueGenerator implements TemplateValueGenerator {
 	private static Logger log = Logger.getLogger(EPersonValueGenerator.class);
 
 	@Override
-	public List<MetadataValue> generator(Context context, Item targetItem, Item templateItem,
-			MetadataValue MetadataValue, String extraParams) {
+	public List<IMetadataValue> generator(Context context, Item targetItem, Item templateItem,
+			IMetadataValue IMetadataValue, String extraParams) {
 		String[] params = StringUtils.split(extraParams, "\\.");
 		String prefix = params[0];
 		String suffix = "";
@@ -49,8 +49,8 @@ public class EPersonValueGenerator implements TemplateValueGenerator {
 			value = value + "-" + suffix;
 		}
 
-		List<MetadataValue> m = new ArrayList<>();
-		m.add(MetadataValue);
+		List<IMetadataValue> m = new ArrayList<>();
+		m.add(IMetadataValue);
 		EPerson ePerson = null;
 		try {
 			ePerson = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, value);
@@ -61,7 +61,7 @@ public class EPersonValueGenerator implements TemplateValueGenerator {
 		if (ePerson != null) {
 			result = "" + ePerson.getID();
 		}
-		MetadataValue.setValue(result);
+		IMetadataValue.setValue(result);
 		return m;
 	}
 

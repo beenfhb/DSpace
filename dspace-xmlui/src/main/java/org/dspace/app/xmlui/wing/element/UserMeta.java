@@ -42,7 +42,7 @@ public class UserMeta extends AbstractWingElement implements
     private boolean authenticated = false;
 
     /** The metadata contents of this UserMeta element */
-    private List<Metadata> MetadataValue = new ArrayList<Metadata>();
+    private List<Metadata> IMetadataValue = new ArrayList<Metadata>();
 
     /**
      * Construct a new userMeta
@@ -87,7 +87,7 @@ public class UserMeta extends AbstractWingElement implements
             String language, boolean allowMultiple) throws WingException
     {
         Metadata metadata = new Metadata(context, element, qualifier, language, allowMultiple);
-        MetadataValue.add(metadata);
+        IMetadataValue.add(metadata);
         return metadata;
     }
 
@@ -198,7 +198,7 @@ public class UserMeta extends AbstractWingElement implements
     		String language = attributes.getValue(Metadata.A_LANGUAGE);
     		
     		List<Metadata> remove = new ArrayList<Metadata>();
-    		for (Metadata metadata : MetadataValue)
+    		for (Metadata metadata : IMetadataValue)
     		{
     			if (metadata.equals(element,qualifier,language) && !metadata.allowMultiple())
     			{
@@ -210,7 +210,7 @@ public class UserMeta extends AbstractWingElement implements
     		for (Metadata metadata : remove)
     		{
     			metadata.dispose();
-    			MetadataValue.remove(metadata);
+    			IMetadataValue.remove(metadata);
     		}
     	}
     	
@@ -298,7 +298,7 @@ public class UserMeta extends AbstractWingElement implements
             startElement(contentHandler, namespaces, E_USER_META, attributes);
         }
 
-        for (Metadata metadata : MetadataValue)
+        for (Metadata metadata : IMetadataValue)
         {
             metadata.toSAX(contentHandler, lexicalHandler, namespaces);
         }
@@ -315,12 +315,12 @@ public class UserMeta extends AbstractWingElement implements
     @Override
     public void dispose()
     {
-        for (AbstractWingElement content : MetadataValue)
+        for (AbstractWingElement content : IMetadataValue)
         {
             content.dispose();
         }
-        MetadataValue.clear();
-        MetadataValue = null;
+        IMetadataValue.clear();
+        IMetadataValue = null;
         super.dispose();
     }
 }

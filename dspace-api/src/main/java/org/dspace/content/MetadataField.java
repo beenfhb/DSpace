@@ -7,13 +7,23 @@
  */
 package org.dspace.content;
 
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
-
-import javax.persistence.*;
 
 
 /**
@@ -23,7 +33,7 @@ import javax.persistence.*;
  *
  * @author Martin Hald
  * @version $Revision$
- * @see org.dspace.content.MetadataValue
+ * @see org.dspace.content.IMetadataValue
  * @see org.dspace.content.MetadataSchema
  */
 @Entity

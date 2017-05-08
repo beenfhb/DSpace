@@ -7,11 +7,11 @@
  */
 package org.dspace.curate;
 
-import java.io.File;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -22,7 +22,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 

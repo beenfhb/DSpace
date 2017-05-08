@@ -41,9 +41,10 @@ import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -499,11 +500,11 @@ public abstract class AbstractSearch extends AbstractDSpaceTransformer implement
                 itemName.append(item.getHandle()).append(":").append(metadataKey.toString());
 
 
-                List<MetadataValue> itemMetadata = itemService.getMetadata(item, schema, metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
+                List<IMetadataValue> itemMetadata = itemService.getMetadata(item, schema, metadataField.getElement(), metadataField.getQualifier(), Item.ANY);
                 if(!CollectionUtils.isEmpty(itemMetadata))
                 {
                     org.dspace.app.xmlui.wing.element.List metadataFieldList = itemList.addList(itemName.toString());
-                    for (MetadataValue metadataValue : itemMetadata)
+                    for (IMetadataValue metadataValue : itemMetadata)
                     {
                         String value = metadataValue.getValue();
                         addMetadataField(highlightedResults, metadataKey.toString(), metadataFieldList, value);

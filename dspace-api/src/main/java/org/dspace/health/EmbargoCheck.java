@@ -8,14 +8,14 @@
 package org.dspace.health;
 
 
+import java.sql.SQLException;
+import java.util.Iterator;
+
 import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.embargo.factory.EmbargoServiceFactory;
 import org.dspace.embargo.service.EmbargoService;
-
-import java.sql.SQLException;
-import java.util.Iterator;
 
 /**
  * @author LINDAT/CLARIN dev team

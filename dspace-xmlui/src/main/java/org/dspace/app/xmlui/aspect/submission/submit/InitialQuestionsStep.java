@@ -21,7 +21,7 @@ import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -98,11 +98,11 @@ public class InitialQuestionsStep extends AbstractSubmissionStep
 		Collection collection = submission.getCollection();
 		String actionURL = contextPath + "/handle/"+collection.getHandle() + "/submit/" + knot.getId() + ".continue";
 
-		java.util.List<MetadataValue> titles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", "alternative", Item.ANY);
+		java.util.List<IMetadataValue> titles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", "alternative", Item.ANY);
 		
-        java.util.List<MetadataValue> dateIssued = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
-        java.util.List<MetadataValue> citation = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "identifier", "citation", Item.ANY);
-        java.util.List<MetadataValue> publisher = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "publisher", null, Item.ANY);
+        java.util.List<IMetadataValue> dateIssued = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
+        java.util.List<IMetadataValue> citation = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "identifier", "citation", Item.ANY);
+        java.util.List<IMetadataValue> publisher = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "publisher", null, Item.ANY);
     	
     	
         // Generate a from asking the user two questions: multiple 

@@ -12,8 +12,9 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 public class ItemMetadataImportFillerConfiguration {
 	private Map<String, MappingDetails> mapping;
@@ -133,9 +134,9 @@ public class ItemMetadataImportFillerConfiguration {
             this.rangeByYear = rangeByYear;
         }
 
-        public void computeMetricCount(int idx, List<MetadataValue> mm, Item item, CrisMetrics metric)
+        public void computeMetricCount(int idx, List<IMetadataValue> mm, Item item, CrisMetrics metric)
         {
-            MetadataValue metricValue = null;
+            IMetadataValue metricValue = null;
             if (mm.size() > 0)
             {
                 try
@@ -148,7 +149,7 @@ public class ItemMetadataImportFillerConfiguration {
                 }
             }
 
-            metric.setMetricType(metricValue.qualifier);
+            metric.setMetricType(metricValue.getQualifier());
             
             try
             {
@@ -160,7 +161,7 @@ public class ItemMetadataImportFillerConfiguration {
             }            
         }
 
-        public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
+        public void setupMetricCount(IMetadataValue metricValue, List<IMetadataValue> mm, Item item, CrisMetrics metric)
         {
             metric.setMetricCount(
                     Double.parseDouble(metricValue.getValue()));
@@ -170,7 +171,7 @@ public class ItemMetadataImportFillerConfiguration {
     
     public static class MetricsMappingCountDetails extends MetricsMappingDetails {
         
-        public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
+        public void setupMetricCount(IMetadataValue metricValue, List<IMetadataValue> mm, Item item, CrisMetrics metric)
         {
             metric.setMetricCount(mm.size());
         }
@@ -180,7 +181,7 @@ public class ItemMetadataImportFillerConfiguration {
         
         private List<String> mdFields;
         
-        public void setupMetricCount(MetadataValue metricValue, List<MetadataValue> mm, Item item, CrisMetrics metric)
+        public void setupMetricCount(IMetadataValue metricValue, List<IMetadataValue> mm, Item item, CrisMetrics metric)
         {
             double metriccount = 0;
             for(String mdField : mdFields) {

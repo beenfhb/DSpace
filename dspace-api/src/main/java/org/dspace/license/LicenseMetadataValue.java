@@ -7,17 +7,18 @@
  */
 package org.dspace.license;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.core.Context;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
 
 /**
  * Helper class for using CC-related Metadata fields
@@ -56,8 +57,8 @@ public class LicenseMetadataValue {
      */
     public String ccItemValue(Item item)
     {
-        List<MetadataValue> dcvalues = itemService.getMetadata(item, params[0], params[1], params[2], params[3]);
-        for (MetadataValue dcvalue : dcvalues)
+        List<IMetadataValue> dcvalues = itemService.getMetadata(item, params[0], params[1], params[2], params[3]);
+        for (IMetadataValue dcvalue : dcvalues)
         {
             if ((dcvalue.getValue()).indexOf(ccShib) != -1)
             {
@@ -82,8 +83,8 @@ public class LicenseMetadataValue {
          CCLookup ccLookup = new CCLookup();
          ccLookup.issue(key);
          String matchValue = ccLookup.getLicenseName();
-        List<MetadataValue> dcvalues = itemService.getMetadata(item, params[0], params[1], params[2], params[3]);
-         for (MetadataValue dcvalue : dcvalues)
+        List<IMetadataValue> dcvalues = itemService.getMetadata(item, params[0], params[1], params[2], params[3]);
+         for (IMetadataValue dcvalue : dcvalues)
          {
              if (dcvalue.getValue().equals(matchValue))
              {
@@ -104,9 +105,9 @@ public class LicenseMetadataValue {
     {
         if (value != null)
         {
-            List<MetadataValue> dcvalues = itemService.getMetadata(item, params[0], params[1], params[2], params[3]);
+            List<IMetadataValue> dcvalues = itemService.getMetadata(item, params[0], params[1], params[2], params[3]);
             ArrayList<String> arrayList = new ArrayList<String>();
-            for (MetadataValue dcvalue : dcvalues)
+            for (IMetadataValue dcvalue : dcvalues)
             {
                 if (!dcvalue.getValue().equals(value))
                 {

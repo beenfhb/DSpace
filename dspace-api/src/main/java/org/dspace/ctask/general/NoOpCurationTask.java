@@ -7,12 +7,12 @@
  */
 package org.dspace.ctask.general;
 
+import java.io.IOException;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.curate.AbstractCurationTask;
 import org.dspace.curate.Curator;
-
-import java.io.IOException;
 
 public class NoOpCurationTask extends AbstractCurationTask
 {

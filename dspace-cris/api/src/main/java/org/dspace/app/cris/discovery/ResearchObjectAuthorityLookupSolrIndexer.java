@@ -7,17 +7,17 @@
  */
 package org.dspace.app.cris.discovery;
 
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
+
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
 
 public class ResearchObjectAuthorityLookupSolrIndexer implements CrisServiceIndexPlugin
 {

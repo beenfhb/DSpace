@@ -7,6 +7,11 @@
  */
 package org.dspace.checker;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.dspace.checker.dao.ChecksumHistoryDAO;
 import org.dspace.checker.service.ChecksumHistoryService;
 import org.dspace.checker.service.ChecksumResultService;
@@ -14,11 +19,6 @@ import org.dspace.checker.service.MostRecentChecksumService;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Service implementation for the ChecksumHistory object.

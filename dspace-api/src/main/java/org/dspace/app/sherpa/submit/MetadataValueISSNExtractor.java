@@ -10,7 +10,7 @@ package org.dspace.app.sherpa.submit;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -34,8 +34,8 @@ public class MetadataValueISSNExtractor implements ISSNItemExtractor
         List<String> values = new ArrayList<String>();
         for (String metadata : metadataList)
         {
-            List<MetadataValue> dcvalues = itemService.getMetadataByMetadataString(item, metadata);
-            for (MetadataValue dcvalue : dcvalues)
+            List<IMetadataValue> dcvalues = itemService.getMetadataByMetadataString(item, metadata);
+            for (IMetadataValue dcvalue : dcvalues)
             {
                 values.add(dcvalue.getValue());
             }

@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.util.DateMathParser;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 public class DateValueGenerator implements TemplateValueGenerator
@@ -27,15 +27,15 @@ public class DateValueGenerator implements TemplateValueGenerator
     private static Logger log = Logger.getLogger(DateValueGenerator.class);
 
     @Override
-    public List<MetadataValue> generator(Context context, Item targetItem, Item templateItem,
-            MetadataValue MetadataValue, String extraParams)
+    public List<IMetadataValue> generator(Context context, Item targetItem, Item templateItem,
+            IMetadataValue IMetadataValue, String extraParams)
     {
 
-        List<MetadataValue> m = new ArrayList<>();
-        m.add(MetadataValue);
+        List<IMetadataValue> m = new ArrayList<>();
+        m.add(IMetadataValue);
         String value = buildValue(extraParams);
 
-        MetadataValue.setValue(value);
+        IMetadataValue.setValue(value);
         return m;
     }
 

@@ -9,7 +9,7 @@ package org.dspace.content.crosswalk;
 
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 /**
  * Metadata Value is bound to a database, the dissemination crosswalk require mock metadata just need for desimanation
@@ -28,7 +28,7 @@ public class MockMetadataValue {
     private String authority;
     private int confidence;
 
-    public MockMetadataValue(MetadataValue metadataValue)
+    public MockMetadataValue(IMetadataValue metadataValue)
     {
         MetadataField metadataField = metadataValue.getMetadataField();
         MetadataSchema metadataSchema = metadataField.getMetadataSchema();

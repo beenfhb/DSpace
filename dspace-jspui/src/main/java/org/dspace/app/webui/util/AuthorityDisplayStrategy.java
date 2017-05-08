@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 public class AuthorityDisplayStrategy extends ASimpleDisplayStrategy
 {
@@ -25,7 +25,7 @@ public class AuthorityDisplayStrategy extends ASimpleDisplayStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
     {
         String metadata;
         // limit the number of records if this is the author field (if

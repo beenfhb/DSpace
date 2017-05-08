@@ -14,14 +14,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.handle.hdllib.Encoder;
-import net.handle.hdllib.HandleException;
-import net.handle.hdllib.HandleStorage;
-import net.handle.hdllib.HandleValue;
-import net.handle.hdllib.ScanCallback;
-import net.handle.hdllib.Util;
-import net.handle.util.StreamTable;
-
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
@@ -30,6 +22,14 @@ import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+
+import net.handle.hdllib.Encoder;
+import net.handle.hdllib.HandleException;
+import net.handle.hdllib.HandleStorage;
+import net.handle.hdllib.HandleValue;
+import net.handle.hdllib.ScanCallback;
+import net.handle.hdllib.Util;
+import net.handle.util.StreamTable;
 
 /**
  * Extension to the CNRI Handle Server that translates requests to resolve

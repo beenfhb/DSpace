@@ -7,9 +7,9 @@
  */
 package org.dspace.checker;
 
-import org.dspace.content.Bitstream;
+import java.util.Iterator;
 
-import java.util.*;
+import org.dspace.content.Bitstream;
 
 /**
  * Really simple dispatcher that just iterates over a pre-defined list of ids.

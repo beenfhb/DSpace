@@ -13,7 +13,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 
 public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
 {
@@ -23,7 +23,7 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
-            List<MetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
+            List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata;
         // limit the number of records if this is the author field (if

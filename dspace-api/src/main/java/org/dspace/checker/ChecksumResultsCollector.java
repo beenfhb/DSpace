@@ -7,9 +7,9 @@
  */
 package org.dspace.checker;
 
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
+
+import org.dspace.core.Context;
 
 /**
  * Component that receives BitstreamInfo results from a checker.

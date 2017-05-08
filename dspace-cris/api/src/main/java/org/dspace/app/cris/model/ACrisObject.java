@@ -28,10 +28,13 @@ import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.UsageEventEntity;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.EPerson;
@@ -158,7 +161,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	}
 
 	@Override
-	public List<MetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
 		Map<Integer, Object> mapResultsVal = new HashMap<Integer, Object>();
 		Map<Integer, String> mapResultsAuth = new HashMap<Integer, String>();
 	    String authority = null;
@@ -245,7 +248,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	            }
 			}
 			if(!buildMetadata) {
-				return new ArrayList<MetadataValue>();
+				return new ArrayList<IMetadataValue>();
 			}
 		} else {
 			element = getCompatibleJDynAShortName(this, element);
@@ -279,10 +282,10 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 				}
 			}
 		}
-		List<MetadataValue> result = new ArrayList<>();
+		List<IMetadataValue> result = new ArrayList<>();
 		int idx = 0;
 		for (Integer key : mapResultsVal.keySet()) {
-			MetadataValue mresult = new MetadataValue();
+			MetadataValueVolatile mresult = new MetadataValueVolatile();
 			mresult.schema = schema;
 			mresult.element = element;
 			mresult.qualifier = qualifier;
@@ -296,6 +299,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 			else {
 			    mresult.setValue("");
 			}
+			result.add(mresult);
 			idx++;
 		}
 		return result;
@@ -398,7 +402,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	}
 
 	@Override
-	public List<MetadataValue> getMetadataValueInDCFormat(String mdString) {
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
 		StringTokenizer dcf = new StringTokenizer(mdString, ".");
 
 		String[] tokens = { "", "", "" };
@@ -411,7 +415,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 		String element = tokens[1];
 		String qualifier = tokens[2];
 
-		List<MetadataValue> values;
+		List<IMetadataValue> values;
 		if ("*".equals(qualifier)) {
 			values = getMetadata(schema, element, Item.ANY, Item.ANY);
 		} else if ("".equals(qualifier)) {

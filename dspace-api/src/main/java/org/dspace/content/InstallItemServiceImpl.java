@@ -110,7 +110,7 @@ public class InstallItemServiceImpl implements InstallItemService
         DCDate now = DCDate.getCurrent();
         
         // If the item doesn't have a date.accessioned, set it to today
-        List<MetadataValue> dateAccessioned = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "accessioned", Item.ANY);
+        List<IMetadataValue> dateAccessioned = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "accessioned", Item.ANY);
         if (dateAccessioned.isEmpty())
         {
 	        itemService.addMetadata(c, item, MetadataSchema.DC_SCHEMA, "date", "accessioned", null, now.toString());
@@ -120,9 +120,9 @@ public class InstallItemServiceImpl implements InstallItemService
         // In the below loop, we temporarily clear all issued dates and re-add, one-by-one,
         // replacing "today" with today's date.
         // NOTE: As of DSpace 4.0, DSpace no longer sets an issue date by default
-        List<MetadataValue> currentDateIssued = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
+        List<IMetadataValue> currentDateIssued = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
         itemService.clearMetadata(c, item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
-        for (MetadataValue dcv : currentDateIssued)
+        for (IMetadataValue dcv : currentDateIssued)
         {
             if(dcv.getValue()!=null && dcv.getValue().equalsIgnoreCase("today"))
             {
@@ -163,9 +163,9 @@ public class InstallItemServiceImpl implements InstallItemService
         // In the below loop, we temporarily clear all issued dates and re-add, one-by-one,
         // replacing "today" with today's date.
         // NOTE: As of DSpace 4.0, DSpace no longer sets an issue date by default
-        List<MetadataValue> currentDateIssued = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
+        List<IMetadataValue> currentDateIssued = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
         itemService.clearMetadata(c, item, MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
-        for (MetadataValue dcv : currentDateIssued)
+        for (IMetadataValue dcv : currentDateIssued)
         {
             if(dcv.getValue()!=null && dcv.getValue().equalsIgnoreCase("today"))
             {

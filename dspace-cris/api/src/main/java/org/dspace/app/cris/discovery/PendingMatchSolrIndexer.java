@@ -12,8 +12,9 @@ import java.util.List;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.core.Context;
@@ -37,8 +38,8 @@ public class PendingMatchSolrIndexer implements SolrServiceIndexPlugin
 
             for (String metadata : listMetadata)
             {
-                List<MetadataValue> values = item.getItemService().getMetadataByMetadataString(item, metadata);
-                for (MetadataValue val : values)
+                List<IMetadataValue> values = item.getItemService().getMetadataByMetadataString(item, metadata);
+                for (IMetadataValue val : values)
                 {
                     if (val != null)
                     {

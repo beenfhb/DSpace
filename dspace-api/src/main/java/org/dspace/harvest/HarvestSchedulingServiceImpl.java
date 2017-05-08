@@ -7,15 +7,15 @@
  */
 package org.dspace.harvest;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.harvest.service.HarvestSchedulingService;
 import org.dspace.harvest.service.HarvestedCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service implementation for the scheduling of harvesting tasks.

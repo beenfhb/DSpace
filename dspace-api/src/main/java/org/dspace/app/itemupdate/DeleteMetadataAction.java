@@ -15,7 +15,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 /**
@@ -43,10 +43,10 @@ public class DeleteMetadataAction extends UpdateMetadataAction {
 		for (String f : targetFields)
 		{
 			DtoMetadata dummy = DtoMetadata.create(f, Item.ANY, "");
-			List<MetadataValue> ardcv = itemService.getMetadataByMetadataString(item, f);
+			List<IMetadataValue> ardcv = itemService.getMetadataByMetadataString(item, f);
 
 			ItemUpdate.pr("Metadata to be deleted: ");
-			for (MetadataValue dcv : ardcv)
+			for (IMetadataValue dcv : ardcv)
 			{
 				ItemUpdate.pr("  " + MetadataUtilities.getDCValueString(dcv));
 			}
@@ -55,7 +55,7 @@ public class DeleteMetadataAction extends UpdateMetadataAction {
 			{
 				if (!suppressUndo)
 				{
-					for (MetadataValue dcv : ardcv)
+					for (IMetadataValue dcv : ardcv)
 					{
                         MetadataField metadataField = dcv.getMetadataField();
                         MetadataSchema metadataSchema = metadataField.getMetadataSchema();

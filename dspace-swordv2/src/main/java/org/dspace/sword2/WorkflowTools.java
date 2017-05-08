@@ -7,6 +7,9 @@
  */
 package org.dspace.sword2;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
@@ -19,9 +22,6 @@ import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-
-import java.io.IOException;
-import java.sql.SQLException;
 
 public class WorkflowTools
 {

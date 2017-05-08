@@ -28,7 +28,7 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.ASimpleDisplayStrategy;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authority.service.AuthorityValueService;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -53,15 +53,15 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit,
 			boolean viewFull, String browseType, int colIdx, UUID itemId,
-			String field, List<MetadataValue> metadataArray, boolean disableCrossLinks,
+			String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks,
 			boolean emph) throws JspException {
     	String publicPath = null;
     	int minConfidence = -1;
 		if (metadataArray.size() > 0) {
 			ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
-			ChoiceAuthority ca = cam.getChoiceAuthority(metadataArray.get(0).schema, metadataArray.get(0).element, metadataArray.get(0).qualifier);
+			ChoiceAuthority ca = cam.getChoiceAuthority(metadataArray.get(0).getSchema(), metadataArray.get(0).getElement(), metadataArray.get(0).getQualifier());
 			try {
-				minConfidence = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService().getMinConfidence(UIUtil.obtainContext(hrq), metadataArray.get(0).schema, metadataArray.get(0).element, metadataArray.get(0).qualifier);
+				minConfidence = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService().getMinConfidence(UIUtil.obtainContext(hrq), metadataArray.get(0).getSchema(), metadataArray.get(0).getElement(), metadataArray.get(0).getQualifier());
 			} catch (SQLException e) {
 				throw new JspException(e);
 			}
@@ -71,7 +71,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
 				if (publicPath == null) {
 					publicPath = ConfigurationManager.getProperty("ItemCrisRefDisplayStrategy.publicpath."+field);
 					if (publicPath == null) {
-						publicPath = metadataArray.get(0).qualifier;
+						publicPath = metadataArray.get(0).getQualifier();
 					}
 				}
 			}
@@ -139,7 +139,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
     }
 
     private void buildBrowseLink(HttpServletRequest hrq, boolean viewFull,
-            String browseType, List<MetadataValue> metadataArray, int minConfidence,
+            String browseType, List<IMetadataValue> metadataArray, int minConfidence,
             boolean disableCrossLinks, StringBuffer sb, int j)
     {
         String startLink = "";
@@ -204,7 +204,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
     }
 
     private void buildAuthority(HttpServletRequest hrq,
-            List<MetadataValue> metadataArray, String publicPath, StringBuffer sb, int j)
+            List<IMetadataValue> metadataArray, String publicPath, StringBuffer sb, int j)
     {
         String startLink = "";
         String endLink = "";

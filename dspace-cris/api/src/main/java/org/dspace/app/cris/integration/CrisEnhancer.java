@@ -7,11 +7,6 @@
  */
 package org.dspace.app.cris.integration;
 
-import it.cilea.osd.jdyna.model.AnagraficaObject;
-import it.cilea.osd.jdyna.model.AnagraficaSupport;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +14,11 @@ import java.util.Set;
 
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.ICrisObject;
+
+import it.cilea.osd.jdyna.model.AnagraficaObject;
+import it.cilea.osd.jdyna.model.AnagraficaSupport;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
 
 public class CrisEnhancer
 {

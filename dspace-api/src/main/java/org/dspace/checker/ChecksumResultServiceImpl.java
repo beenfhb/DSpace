@@ -7,13 +7,13 @@
  */
 package org.dspace.checker;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.checker.dao.ChecksumResultDAO;
 import org.dspace.checker.service.ChecksumResultService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service implementation for the ChecksumResult object.

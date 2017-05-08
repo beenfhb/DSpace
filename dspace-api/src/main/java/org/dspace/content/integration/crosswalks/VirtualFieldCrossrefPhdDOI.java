@@ -11,8 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -48,9 +49,9 @@ public class VirtualFieldCrossrefPhdDOI implements VirtualFieldDisseminator,
             }
             
             String result = ConfigurationManager.getProperty("doi.prefix");
-			List<MetadataValue> authors = item.getMetadata("dc", "contributor", "author", Item.ANY);
+			List<IMetadataValue> authors = item.getMetadata("dc", "contributor", "author", Item.ANY);
 			if (authors.size() > 0) {
-				MetadataValue md = authors.get(0);
+				IMetadataValue md = authors.get(0);
 				String mdValue = md.getValue().toLowerCase();
 				mdValue = mdValue.replaceAll("[^a-z]+", "-");
 				result += mdValue;
@@ -58,7 +59,7 @@ public class VirtualFieldCrossrefPhdDOI implements VirtualFieldDisseminator,
            
             result += "_"+PREFIX;
             
-            MetadataValue mddate = item.getItemService().getMetadata(item, "dc", "date", "issued", Item.ANY).get(0);
+            IMetadataValue mddate = item.getItemService().getMetadata(item, "dc", "date", "issued", Item.ANY).get(0);
             result += mddate.getValue();
             
             Object count = getHibernateSession(context).createSQLQuery("select count(*) as cc from "

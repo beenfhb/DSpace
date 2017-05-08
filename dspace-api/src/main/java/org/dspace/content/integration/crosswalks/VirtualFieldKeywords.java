@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.ConfigurationManager;
 
 /**
@@ -29,7 +29,7 @@ public class VirtualFieldKeywords implements VirtualFieldDisseminator, VirtualFi
         if(ConfigurationManager.getProperty("crosswalk.virtualkeywords.value") != null) 
         	keywordsDC = ConfigurationManager.getProperty("crosswalk.virtualkeywords.value");
         
-        List<MetadataValue> dcvs = item.getMetadataValueInDCFormat(keywordsDC);
+        List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(keywordsDC);
         
 		String[] virtualFieldName = fieldName.split("\\.");
 

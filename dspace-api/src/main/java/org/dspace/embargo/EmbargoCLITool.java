@@ -7,21 +7,25 @@
  */
 package org.dspace.embargo;
 
-import org.apache.commons.cli.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.dspace.content.DCDate;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.embargo.factory.EmbargoServiceFactory;
 import org.dspace.embargo.service.EmbargoService;
 import org.dspace.handle.factory.HandleServiceFactory;
-
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * CLI class for the embargo service
@@ -186,7 +190,7 @@ public class EmbargoCLITool {
         throws Exception
     {
         boolean status = false;
-        List<MetadataValue> lift = embargoService.getLiftMetadata(context, item);
+        List<IMetadataValue> lift = embargoService.getLiftMetadata(context, item);
 
         if (lift.size() > 0)
         {
