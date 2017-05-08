@@ -218,7 +218,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 }
                 catch (Exception e)
                 {
-                    log.error(e.getMessage(), e);
+                    log.warn(e.getMessage(), e);
                 }
             }
             solr = server;

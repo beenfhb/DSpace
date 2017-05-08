@@ -540,13 +540,18 @@ Common usage:
                 <!-- exclude all "data" directories from being overwritten -->
                 <exclude name="**/data/**"/>
             </fileset>
+            <fileset dir="solr">
+            	<include name="search/conf/database.properties"/>
+            </fileset>   
+            <filterchain>
+                <expandproperties />
+            </filterchain>
         </copy>
 
         <copy todir="solr-config-temp" preservelastmodified="true" overwrite="false" failonerror="false">
             <fileset dir="solr">
                 <!-- exclude all "data" directories from being overwritten -->
                 <exclude name="**/data/**"/>
-               	<include name="search/conf/database.properties"/>
             </fileset>
             <filterchain>
                 <expandproperties />
@@ -863,6 +868,10 @@ Common usage:
         </copy>
 
     	<copy todir="${dspace.dir}/solr" preservelastmodified="true">
+    	    <fileset dir="solr">
+    	        <include name="solr.xml"/>
+            	<include name="**/conf/**"/>
+            </fileset> 
             <fileset dir="solr">
             	<include name="search/conf/database.properties"/>
             </fileset>   
