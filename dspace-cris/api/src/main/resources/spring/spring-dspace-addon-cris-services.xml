@@ -340,7 +340,7 @@
 	
 	<bean id="statSubscribeService" class="org.dspace.app.cris.statistics.service.StatSubscribeService">			
 		<constructor-arg ref="applicationService" />
-		<property name="statsLogger" ref="org.dspace.statistics.SolrLogger"/>
+		<property name="statsLogger" ref="org.dspace.statistics.service.SolrLoggerService"/>
 	</bean>	
 
 	<bean id="CrisSubscribeService" class="org.dspace.app.cris.service.CrisSubscribeService">			

@@ -102,6 +102,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBean
 {
     private static final Logger log = Logger.getLogger(SolrLoggerServiceImpl.class);
+    
 	public static final String CFG_STAT_MODULE = "solr-statistics";
     
 	public static final String CFG_USAGE_MODULE = "usage-statistics";
@@ -179,8 +180,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         
         if (configurationService.getProperty("solr-statistics.server") != null)
         {
-            String pcore = ConfigurationManager.getProperty(CFG_STAT_MODULE,
-                    "server");
+            String pcore = configurationService.getProperty(CFG_STAT_MODULE +
+                    ".server");
             log.info("solr-statistics.server:" + pcore);
             HttpSolrServer server = null;
             
