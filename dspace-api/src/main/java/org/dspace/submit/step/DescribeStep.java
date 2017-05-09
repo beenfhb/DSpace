@@ -413,16 +413,6 @@ public class DescribeStep extends AbstractProcessingStep
         // if one or more fields errored out, return
         else if (getErrorFields(request) != null && getErrorFields(request).size() > 0)
         {
-            if (!subInfo.isEditing() && !subInfo.isInWorkflow()
-                    && subInfo.getSubmissionItem() != null)
-            {
-                WorkspaceItem wi = (WorkspaceItem) subInfo.getSubmissionItem();
-                wi.setStageReached(AbstractProcessingStep.getCurrentStepConfig(
-                        request, subInfo).getStepNumber());
-                wi.setPageReached(currentPage);
-                wi.update();
-                context.commit();
-            }
             return STATUS_MISSING_REQUIRED_FIELDS;
         }
 

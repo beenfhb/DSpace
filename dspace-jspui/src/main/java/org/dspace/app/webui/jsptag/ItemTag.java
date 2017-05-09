@@ -998,13 +998,15 @@ public class ItemTag extends TagSupport
 		List<ViewOption> results = new ArrayList<ViewOption>();
 
 		List<String> externalProviders = bit.getMetadataValue(IViewer.METADATA_STRING_PROVIDER);
-		for (String externalProvider : externalProviders) {
-			ViewOption opt = new ViewOption();
-			opt.link = request.getContextPath() + "/explore?bitstream_id=" + bit.getID() + "&handle=" + handle
-					+ "&provider=" + externalProvider;
-			opt.label = LocaleSupport.getLocalizedMessage(pageContext,
-					"org.dspace.app.webui.jsptag.ItemTag.explore." + externalProvider);
-			results.add(opt);
+		if(externalProviders!=null) {
+			for (String externalProvider : externalProviders) {
+				ViewOption opt = new ViewOption();
+				opt.link = request.getContextPath() + "/explore?bitstream_id=" + bit.getID() + "&handle=" + handle
+						+ "&provider=" + externalProvider;
+				opt.label = LocaleSupport.getLocalizedMessage(pageContext,
+						"org.dspace.app.webui.jsptag.ItemTag.explore." + externalProvider);
+				results.add(opt);
+			}
 		}
 
 		ViewOption opt = new ViewOption();
