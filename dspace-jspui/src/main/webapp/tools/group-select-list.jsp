@@ -69,16 +69,8 @@
 	// What's the link?
 	String sortByParam = "name";
 
-
-    if (sortBy == Group.ID)
-        sortByParam = "id";
-
-    String jumpLink = request.getContextPath()
-            + "/tools/group-select-list?search=" + search + "&multiple="
-            + multiple + "&sortby=" + sortByParam + "&first=";
-    String sortLink = request.getContextPath()
-            + "/tools/group-select-list?search=" + search + "&multiple="
-            + multiple + "&first=" + first + "&sortby=";
+	String jumpLink = request.getContextPath() + "/tools/group-select-list?multiple=" + multiple + "&sortby=" + sortByParam + "&first=";
+	String sortLink = request.getContextPath() + "/tools/group-select-list?multiple=" + multiple + "&first=" + first + "&sortby=";
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

@@ -35,17 +35,18 @@
 <%@ page import="org.dspace.content.authority.Choices" %>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
 <%@ page import="org.dspace.core.Utils" %>
-<%@ page import="org.dspace.workflow.WorkflowManager" %>
+<%@ page import="org.dspace.workflow.WorkflowItemService"%>
 <%@ page import="org.dspace.workflow.WorkflowItem" %>
 <%@ page import="java.util.Calendar"%>
 <%@ page import="java.util.Locale"%>
-<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@ page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page import="org.dspace.content.authority.factory.ContentAuthorityServiceFactory" %>
 <%@ page import="org.dspace.content.authority.service.ChoiceAuthorityService" %>
 <%@ page import="org.dspace.content.authority.service.MetadataAuthorityService" %>
 <%@ page import="org.dspace.content.*" %>
 <%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
 <%@ page import="java.io.IOException" %>
+<%@ page import="org.dspace.workflowbasic.service.BasicWorkflowService" %>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -131,7 +132,7 @@
     StringBuffer doAuthority(PageContext pageContext, String fieldName,
             int idx, int fieldCount, String fieldInput, String authorityValue,
             int confidenceValue, boolean isName, boolean repeatable,
-            List<MetadataValue> dcvs, StringBuffer inputBlock, Collection collection)
+            List<IMetadataValue> dcvs, StringBuffer inputBlock, Collection collection)
     {
         MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
         ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
@@ -196,8 +197,8 @@
                   .append("contextPath: '").append(contextPath)
                   .append("', confidenceName: '").append(confidenceName)
                   .append("', confidenceIndicatorID: '").append(confIndID)
-                  .append("', collection: ").append(String.valueOf(collection.getID()))
-                        .append(" }); </script>");
+                  .append("', collection: '").append(String.valueOf(collection.getID()))
+                        .append("' }); </script>");
             }
 
             // put up a SELECT element containing all choices
@@ -207,17 +208,17 @@
                    .append("_id\" name=\"").append(fieldInput)
                    .append("\" size=\"").append(String.valueOf(repeatable ? 6 : 1))
                    .append(repeatable ? "\" multiple>\n" :"\">\n");
-                Choices cs = cam.getMatches(fieldName, null, collectionID, 0, 0, null);
+                Choices cs = cam.getMatches(fieldName, "", collection, 0, 0, null);
                 // prepend unselected empty value when nothing can be selected.
                 if (!repeatable && cs.defaultSelected < 0 && dcvs.size() == 0)
                     sb.append("<option value=\"\"><!-- empty --></option>\n");
                 for (int i = 0; i < cs.values.length; ++i)
                 {
                     boolean selected = false;
-                    for (MetadataValue dcv : dcvs)
+                    for (IMetadataValue dcv : dcvs)
                     {
-                        if ((dcv.authority == null && dcv.value.equals(StringUtils.trim(cs.values[i].value))) ||
-                        		(dcv.authority != null && dcv.authority.equals(StringUtils.trim(cs.values[i].authority))))
+                        if ((dcv.getAuthority() == null && dcv.getValue().equals(StringUtils.trim(cs.values[i].value))) ||
+                        		(dcv.getAuthority() != null && dcv.getAuthority().equals(StringUtils.trim(cs.values[i].authority))))
                             selected = true;
                     }
                     sb.append("<option value=\"")
@@ -240,7 +241,7 @@
                   .append(fieldName).append("','edit_metadata','")
                   .append(fieldInput).append("','").append(authorityName).append("','")
                   .append(confIndID).append("',")
-                  .append(String.valueOf(collection.getID())).append(",")
+                  .append("'"+String.valueOf(collection.getID())+"'").append(",")
                   .append(String.valueOf(isName)).append(",false);\"")
                         .append(" title=\"")
                   .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.lookup"))
@@ -260,7 +261,7 @@
     {
    	  String authorityType = getAuthorityType(pageContext, fieldName, collection);
     	
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       int fieldCount = defaults.size() + fieldCountIncr;
       StringBuffer headers = new StringBuffer();
       StringBuffer sb = new StringBuffer();
@@ -410,7 +411,7 @@
       throws java.io.IOException
     {
 
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       int fieldCount = defaults.size() + fieldCountIncr;
       StringBuffer sb = new StringBuffer();
       org.dspace.content.DCDate dateIssued;
@@ -524,7 +525,7 @@
       throws java.io.IOException
     {
 
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       int fieldCount = defaults.size() + fieldCountIncr;
       StringBuffer sb = new StringBuffer();
       org.dspace.content.DCSeriesNumber sn;
@@ -608,7 +609,7 @@
       throws java.io.IOException
     {
       String authorityType = getAuthorityType(pageContext, fieldName, collection);
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       int fieldCount = defaults.size() + fieldCountIncr;
       StringBuffer sb = new StringBuffer();
       String val, auth;
@@ -714,13 +715,13 @@
 
     void doNumber(javax.servlet.jsp.JspWriter out, Item item,
             String fieldName, String schema, String element, String qualifier, boolean repeatable, boolean required, boolean readonly,
-            int fieldCountIncr, String label, PageContext pageContext, int collectionID)
+            int fieldCountIncr, String label, PageContext pageContext, Collection collection)
             throws java.io.IOException
     {
             
-        String authorityType = getAuthorityType(pageContext, fieldName, collectionID);
-        Metadatum[] defaults = item.getMetadata(schema, element, qualifier, Item.ANY);
-        int fieldCount = defaults.length + fieldCountIncr;
+        String authorityType = getAuthorityType(pageContext, fieldName, collection);
+        List<IMetadataValue> defaults = item.getMetadata(schema, element, qualifier, Item.ANY);
+        int fieldCount = defaults.size() + fieldCountIncr;
         StringBuffer sb = new StringBuffer();
         String val, auth;
         int conf= 0;
@@ -734,11 +735,11 @@
         sb.append("<div class=\"col-md-10\">");  
         for (int i = 0; i < fieldCount; i++)
         {
-             if (i < defaults.length)
+             if (i < defaults.size())
              {
-               val = defaults[i].value.replaceAll("\"", "&quot;");
-               auth = defaults[i].authority;
-               conf = defaults[i].confidence;
+               val = defaults.get(i).getValue().replaceAll("\"", "&quot;");
+               auth = defaults.get(i).getAuthority();
+               conf = defaults.get(i).getConfidence();
              }
              else
              {
@@ -771,11 +772,11 @@
           	   sb.append("<div class=\"col-md-2\">");
   	           sb.append(doAuthority(pageContext, fieldName, i,  fieldCount,
                                 fieldName, auth, conf, false, repeatable,
-                                defaults, null, collectionID));
+                                defaults, null, collection));
              	   sb.append("</div></div>");
              }             
 
-            if (repeatable && !readonly && i < defaults.length)
+            if (repeatable && !readonly && i < defaults.size())
             {
                // put a remove button next to filled in values
                sb.append("<button class=\"btn btn-danger col-md-2\" name=\"submit_")
@@ -811,7 +812,7 @@
       throws java.io.IOException
     {
       String authorityType = getAuthorityType(pageContext, fieldName, collection);
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       int fieldCount = defaults.size() + fieldCountIncr;
       StringBuffer sb = new StringBuffer();
       String val, auth;
@@ -883,7 +884,7 @@
            {
         	   sb.append("<div class=\"col-md-2\">");
 	           sb.append(doAuthority(pageContext, fieldName, i,  fieldCount,
-                              fieldName, auth, conf, false, repeatable,
+	        		   fieldNameIdx, auth, conf, false, repeatable,
                               defaults, null, collection));
            	   sb.append("</div></div>");
            }             
@@ -956,7 +957,7 @@
     </div>
         */
 
-        List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+        List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
         int fieldCount = defaults.size() + fieldCountIncr;
         StringBuffer sb = new StringBuffer();
         StringBuffer headers = new StringBuffer();
@@ -1158,9 +1159,9 @@
       boolean readonly, int fieldCountIncr, List qualMap, String label, PageContext pageContext)
       throws IOException
     {
-      List<MetadataValue> unfiltered = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, Item.ANY, Item.ANY);
+      List<IMetadataValue> unfiltered = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, Item.ANY, Item.ANY);
       // filter out both unqualified and qualified values occurring elsewhere in inputs
-      List<MetadataValue> filtered = new ArrayList<MetadataValue>();
+      List<IMetadataValue> filtered = new ArrayList<>();
       for (int i = 0; i < unfiltered.size(); i++)
       {
           String unfilteredFieldName = unfiltered.get(i).getMetadataField().getElement();
@@ -1172,7 +1173,7 @@
                       filtered.add(unfiltered.get(i));
               }
       }
-      List<MetadataValue> defaults = filtered;
+      List<IMetadataValue> defaults = filtered;
 
       int fieldCount = defaults.size() + fieldCountIncr;
       StringBuffer sb = new StringBuffer();
@@ -1272,7 +1273,7 @@
       boolean required, boolean readonly, List valueList, String label)
       throws java.io.IOException
     {
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       StringBuffer sb = new StringBuffer();
       Iterator vals;
       String display, value;
@@ -1321,7 +1322,7 @@
       boolean readonly, List valueList, String label, Collection collection)
       throws java.io.IOException
     {
-      List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+      List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
       StringBuffer sb = new StringBuffer();
 
       sb.append("<div class=\"row\"><label class=\"col-md-2"+ (required?" label-required":"") +"\">")
@@ -1345,7 +1346,7 @@
             boolean required,boolean readonly, List valueList, String label)
             throws java.io.IOException
           {
-                List<MetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
+                List<IMetadataValue> defaults = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema, element, qualifier, Item.ANY);
                 int valueCount = valueList.size();
                 
             StringBuffer sb = new StringBuffer();
@@ -1499,11 +1500,11 @@
     if(si.isInWorkflow()){
        	WorkflowItem wfi = (WorkflowItem) si.getSubmissionItem();
     	wfState = wfi.getState();   
-        if(wfState== WorkflowManager.WFSTATE_STEP1){
+        if(wfState== BasicWorkflowService.WFSTATE_STEP1){
         	scope = DCInput.WORKFLOW_STEP1_SCOPE;
-        }else if(wfState== WorkflowManager.WFSTATE_STEP2){
+        }else if(wfState== BasicWorkflowService.WFSTATE_STEP2){
         	scope = DCInput.WORKFLOW_STEP2_SCOPE;
-        }else if(wfState== WorkflowManager.WFSTATE_STEP3){
+        }else if(wfState== BasicWorkflowService.WFSTATE_STEP3){
         	scope = DCInput.WORKFLOW_STEP3_SCOPE;
         }else{
         	scope = "workflow";
@@ -1679,12 +1680,14 @@
        
        repeatable = inputs[z].getRepeatable();
        fieldCountIncr = 0;
-      
-       if (si.getMoreBoxesFor() != null && si.getMoreBoxesFor().equals(fieldName)) 
+       if (repeatable && !readonly)
        {
-           fieldCountIncr = 1;
+         fieldCountIncr = 1;
+         if (si.getMoreBoxesFor() != null && si.getMoreBoxesFor().equals(fieldName))
+             {
+           fieldCountIncr = 2;
+         }
        }
-
        String inputType = inputs[z].getInputType();
        String label = inputs[z].getLabel();
        boolean closedVocabulary = inputs[z].isClosedVocabulary();
@@ -1717,7 +1720,7 @@
        else if (inputType.equals("number")) 
        {
     	   doNumber(out, item, fieldName, dcSchema, dcElement, dcQualifier,
-                   repeatable, required, readonly, fieldCountIncr, label, pageContext, collectionID);
+                   repeatable, required, readonly, fieldCountIncr, label, pageContext, collection);
        }
        else if (inputType.equals("series"))
        {

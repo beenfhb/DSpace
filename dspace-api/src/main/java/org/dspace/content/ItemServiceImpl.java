@@ -329,7 +329,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // Create a bundle
         Bundle bnd = bundleService.create(context, item, name);
         Bitstream bitstream = bitstreamService.create(context, bnd, is);
-        addBundle(context, item, bnd);
 
         // FIXME: Create permissions for new bundle + bitstream
         return bitstream;

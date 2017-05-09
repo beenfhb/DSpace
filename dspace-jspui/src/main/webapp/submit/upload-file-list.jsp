@@ -144,6 +144,7 @@
     List<Bitstream> bitstreams = ContentServiceFactory.getInstance().getItemService().getNonInternalBitstreams(context, subInfo.getSubmissionItem().getItem());
     List<Bundle> bundles = null;
 
+    if(bitstreams!=null) {
     if (bitstreams.get(0) != null) {
         bundles = bitstreams.get(0).getBundles();
     }
@@ -230,6 +231,8 @@
             </tr>
 <%
         row = (row.equals("even") ? "odd" : "even");
+		
+    	}
     }
 %>
         </table>

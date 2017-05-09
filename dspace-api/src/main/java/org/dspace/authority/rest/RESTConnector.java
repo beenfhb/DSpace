@@ -49,11 +49,14 @@ public class RESTConnector {
 	public ClientConfig getClientConfig() {
 		if(this.clientConfig == null) {
 	        ConfigurationService configurationService = new DSpace().getConfigurationService();
+	        
 	        String proxyHost =  configurationService.getProperty("http.proxy.host");
-	        int proxyPort = configurationService.getPropertyAsType("http.proxy.port", 80);
+	        String proxyPortTmp = configurationService.getProperty("http.proxy.port");
 	        
 	        this.clientConfig = new ClientConfig();
 	        if(StringUtils.isNotBlank(proxyHost)){
+	        	
+		        int proxyPort = (StringUtils.isNotBlank(proxyPortTmp))?Integer.parseInt(proxyPortTmp):80;
 	        	this.clientConfig.connectorProvider(new ApacheConnectorProvider());
 	            this.clientConfig.property(ClientProperties.PROXY_URI, proxyHost + ":" + proxyPort);
 	        }

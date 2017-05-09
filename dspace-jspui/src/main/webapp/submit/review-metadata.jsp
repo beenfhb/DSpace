@@ -29,6 +29,7 @@
 <%@ page import="org.dspace.app.util.DCInput" %>
 <%@ page import="org.dspace.core.Context" %>
 <%@ page import="org.dspace.core.Utils" %>
+<%@ page import="org.dspace.content.IMetadataValue" %>
 
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="javax.servlet.jsp.PageContext" %>
@@ -122,7 +123,7 @@
             String inputType = inputs[z].getInputType();
             String pairsName = inputs[z].getPairsType();
             String value;
-            List<MetadataValue> values;
+            List<IMetadataValue> values;
             StringBuffer row = new StringBuffer();
             
             row.append("<div class=\"row\">");

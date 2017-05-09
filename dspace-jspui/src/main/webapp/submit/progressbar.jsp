@@ -33,6 +33,7 @@
 <%@ page import="org.dspace.app.util.SubmissionStepConfig" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="org.apache.log4j.Logger" %>
+<%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -67,7 +68,7 @@
         workflowMode = true;
     }
     
-    Collection collection = subInfo.getSubmissionItem().getCollection();
+    Collection collection = ContentServiceFactory.getInstance().getCollectionService().find(context, subInfo.getSubmissionItem().getCollection().getID());
 %>
 
 <div class="container">

@@ -45,23 +45,23 @@ public class MD5ValueSignature implements Signature
         {            
             MessageDigest digester = MessageDigest.getInstance("MD5");
             List<String> values = getMultiValue(item, metadata);
-            for(String value : values) {
-            if (StringUtils.isNotEmpty(value))
-            {
-                String valueNorm = normalize(item, context, value);
-                digester.update(valueNorm.getBytes("UTF-8"));
-                byte[] signature = digester.digest();
-                char[] arr = new char[signature.length << 1];
-                for (int i = 0; i < signature.length; i++)
-                {
-                    int b = signature[i];
-                    int idx = i << 1;
-                    arr[idx] = HEX_DIGITS[(b >> 4) & 0xf];
-                    arr[idx + 1] = HEX_DIGITS[b & 0xf];
-                }
-                String sigString = new String(arr);
-                result.add(sigString);
-                }
+            if(values!=null) {
+				for (String value : values) {
+					if (StringUtils.isNotEmpty(value)) {
+						String valueNorm = normalize(item, context, value);
+						digester.update(valueNorm.getBytes("UTF-8"));
+						byte[] signature = digester.digest();
+						char[] arr = new char[signature.length << 1];
+						for (int i = 0; i < signature.length; i++) {
+							int b = signature[i];
+							int idx = i << 1;
+							arr[idx] = HEX_DIGITS[(b >> 4) & 0xf];
+							arr[idx + 1] = HEX_DIGITS[b & 0xf];
+						}
+						String sigString = new String(arr);
+						result.add(sigString);
+					}
+				}
             }
             return result;
         }

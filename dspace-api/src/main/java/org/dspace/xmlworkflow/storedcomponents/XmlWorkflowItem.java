@@ -152,4 +152,10 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer> 
 			}
 		}
 	}
+
+	@Override
+	public int getState() {
+		// FIXME
+		return 0;
+	}
 }

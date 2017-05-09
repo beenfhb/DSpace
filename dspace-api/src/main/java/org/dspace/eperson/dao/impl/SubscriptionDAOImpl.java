@@ -133,7 +133,7 @@ public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> impl
         return query.list();
     }
     public List<Community> findByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException {
-        String hqlQuery = "from Subscription where ePerson=:ePerson where community is not null";
+        String hqlQuery = "from Subscription where ePerson=:ePerson and community is not null";
         Query query = createQuery(context, hqlQuery);
         query.setParameter("ePerson", eperson);        
         return query.list();

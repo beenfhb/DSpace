@@ -101,11 +101,6 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         Bundle bundle = bundleDAO.create(context, new Bundle());
         bundle.setName(context, name);
         itemService.addBundle(context, item, bundle);
-        if(!bundle.getItems().contains(item))
-        {
-            bundle.addItem(item);
-        }
-
 
         log.info(LogManager.getHeader(context, "create_bundle", "bundle_id="
                 + bundle.getID()));

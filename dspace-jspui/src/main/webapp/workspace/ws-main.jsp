@@ -26,7 +26,7 @@
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="org.dspace.core.Utils" %>
-<%@ page import="org.dspace.content.MetadataValue" %>
+<%@ page import="org.dspace.content.IMetadataValue" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
 
@@ -36,7 +36,7 @@
         (WorkspaceItem) request.getAttribute("wsItem");
 
     // get the title and submitter of the item
-    List<MetadataValue> titleArray =
+    List<IMetadataValue> titleArray =
          ContentServiceFactory.getInstance().getItemService().getMetadata(workspaceItem.getItem(), "dc", "title", null, Item.ANY);
 //    String title = (titleArray.length > 0 ? titleArray[0].value : "Untitled");
     EPerson submitter = workspaceItem.getItem().getSubmitter();

@@ -25,6 +25,7 @@ import org.dspace.app.util.CollectionsTree;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
+import org.dspace.core.I18nUtil;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -67,8 +68,6 @@ public class SelectCollectionTag extends TagSupport
             Context context = UIUtil.obtainContext(hrq);
             List<Collection> collections = (List<Collection>) hrq.getAttribute("collections");
             
-            CollectionsTree tree = CollectionUtils.getCollectionsTree(context, collections, false);
-
             sb.append("<select");
             if (name != null)
             {
@@ -84,19 +83,18 @@ public class SelectCollectionTag extends TagSupport
             }
             sb.append(">\n");
 
-            ResourceBundle msgs = ResourceBundle.getBundle("Messages", context.getCurrentLocale());
-            String firstOption = msgs.getString("jsp.submit.start-lookup-submission.select.collection.defaultoption");
+            String firstOption  = I18nUtil.getMessage("jsp.submit.start-lookup-submission.select.collection.defaultoption", context.getCurrentLocale());
          
-            
-            sb.append("<option value=\"-1\"");
-            if (collection == null) sb.append(" selected=\"selected\"");
+            if (collection == null) sb.append(" selected=\"selected\"");            
+            sb.append("<option value=\"-1\"");           
             sb.append(">").append(firstOption).append("</option>\n");
 
-            out.print(sb.toString());
+            
             if (!configurationService
                     .getBooleanProperty("webui.collection.dropdown.default"))
             {
-                collectionSelect(out, tree);
+            	CollectionsTree tree = CollectionUtils.getCollectionsTree(context, collections, false);            	
+                collectionSelect(sb, tree);                
             }
             else
             {
@@ -113,8 +111,10 @@ public class SelectCollectionTag extends TagSupport
                             .append("</option>\n");
                 }
             }
+            
             sb.append("</select>\n");
-
+            out.print(sb.toString());
+            
         }
         catch (IOException e)
         {
@@ -129,7 +129,7 @@ public class SelectCollectionTag extends TagSupport
     }
     
     
-	private void collectionSelect(JspWriter out, CollectionsTree tree ) throws IOException 
+	private void collectionSelect(StringBuffer out, CollectionsTree tree ) throws IOException 
 	{
 		
 		if(tree==null){
@@ -137,13 +137,29 @@ public class SelectCollectionTag extends TagSupport
 		}
 		if (tree.getCurrent() != null)
 		{
-			out.print("<optgroup label=\""+tree.getCurrent().getName()+"\">");
+			out.append("<optgroup label=\""+tree.getCurrent().getName()+"\">");
 		}
 		if (tree.getCollections() != null){
 			for (Collection col : tree.getCollections())
-			{
-				String selected= col.getID()==UUID.fromString(collection) ? "selected":"";
-				out.print("<option value=\""+col.getID()+"\" "+ selected + ">"+col.getName()+"</option>");	
+			{				
+				UUID fromString = null;
+				
+				try {
+					fromString = UUID.fromString(collection);
+				}
+				catch (Exception ex) {
+					//nothing
+				}
+				String selected= "";
+				if(fromString==null) {
+					selected = "";
+				}
+				else {
+					if(col.getID()==fromString) {
+						selected = "selected";
+					}
+				}
+				out.append("<option value=\""+col.getID()+"\" "+ selected + ">"+col.getName()+"</option>");	
 			}
 		}
 		if (tree.getSubTree() != null)
@@ -155,7 +171,7 @@ public class SelectCollectionTag extends TagSupport
 		}
 		if (tree.getCurrent() != null)
 		{
-			out.print("</optgroup>");
+			out.append("</optgroup>");
 		}
 		
 	}    
