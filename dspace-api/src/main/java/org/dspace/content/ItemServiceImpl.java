@@ -283,6 +283,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
+    public List<Bundle> getBundles(Context context, Item item, String name) throws SQLException {
+        return itemDAO.findBundlesByName(context, item, name);
+    }
+    
+    @Override
     public void addBundle(Context context, Item item, Bundle bundle) throws SQLException, AuthorizeException {
         // Check authorisation
         authorizeService.authorizeAction(context, item, Constants.ADD);

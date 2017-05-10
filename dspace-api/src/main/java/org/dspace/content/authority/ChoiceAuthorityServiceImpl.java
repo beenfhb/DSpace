@@ -249,19 +249,17 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
             {
                 context = new Context();
                 String defaultKey =  makeFieldKey(MetadataSchema.DC_SCHEMA, "authority", "default");
-                String defaultfKey = ConfigurationManager.getProperty(CHOICES_PLUGIN_PREFIX+MetadataSchema.DC_SCHEMA+".authority.default");
+                String defaultfKey = configurationService.getProperty(CHOICES_PLUGIN_PREFIX+MetadataSchema.DC_SCHEMA+".authority.default");
                 ChoiceAuthority maDefault = (ChoiceAuthority) pluginService
                         .getNamedPlugin(ChoiceAuthority.class,
-                                ConfigurationManager
-                                        .getProperty(defaultKey));
+                        		configurationService.getProperty(defaultKey));
                 List<MetadataField> tmp = metadataFieldService.findFieldsByElementNameUnqualified(context, MetadataSchema.DC_SCHEMA, "authority");
                 for(MetadataField mf : tmp) {
                     String tmpKey = makeFieldKey(MetadataSchema.DC_SCHEMA, mf.getElement(), mf.getQualifier());
-                    String tmpfKey = ConfigurationManager.getProperty(CHOICES_PLUGIN_PREFIX+MetadataSchema.DC_SCHEMA+"."+mf.getElement()+"."+mf.getQualifier());
+                    String tmpfKey = configurationService.getProperty(CHOICES_PLUGIN_PREFIX+MetadataSchema.DC_SCHEMA+"."+mf.getElement()+"."+mf.getQualifier());
                     ChoiceAuthority ma = (ChoiceAuthority) pluginService
                             .getNamedPlugin(ChoiceAuthority.class,
-                                    ConfigurationManager
-                                            .getProperty(tmpKey));
+                            		configurationService.getProperty(tmpKey));
                     if (ma == null)
                     {
                         ma = maDefault;
@@ -269,19 +267,12 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
                     }
 
                     md2authorityname.put(tmpKey,
-                                ConfigurationManager.getProperty(tmpfKey));
+                    		configurationService.getProperty(tmpfKey));
                     controller.put(tmpKey, ma);
                 }
             }
             catch (Exception e) {
                 log.error(e.getMessage(), e);
-            }
-            finally
-            {
-                if (context != null && context.isValid())
-                {
-                    context.abort();
-                }
             }
             
             // Get all configuration keys starting with a given prefix
@@ -308,6 +299,8 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
                 }
                 controller.put(fkey, ma);
 
+                md2authorityname.put(fkey,
+                        configurationService.getProperty(key));
                 log.debug("Choice Control: For field="+fkey+", Plugin="+ma);
             }
         }
@@ -383,7 +376,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     {
         String makeFieldKey = makeFieldKey(schema, element,
                 qualifier);
-        ChoiceAuthority ma = controller.get(makeFieldKey);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(makeFieldKey);
         if(ma == null) {
             reloadCache(makeFieldKey);
         }
@@ -403,7 +396,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     {
         String makeFieldKey = makeFieldKey(schema, element,
                 qualifier);
-        ChoiceAuthority ma = controller.get(makeFieldKey);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(makeFieldKey);
         if(ma == null) {
             reloadCache(makeFieldKey);
         }
@@ -423,7 +416,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     {
         String makeFieldKey = makeFieldKey(schema, element,
                 qualifier);
-        ChoiceAuthority ma = controller.get(makeFieldKey);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(makeFieldKey);
         if(ma == null) {
             reloadCache(makeFieldKey);
         }
@@ -436,7 +429,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
 
     public Object getDetailsInfo(String field, String key, String locale)
     {
-        ChoiceAuthority ma = controller.get(field);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(field);
         if(ma == null) {
             reloadCache(field);
         }
@@ -451,6 +444,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     
     public Set<String> getAuthorities()
     {
+    	getChoiceAuthorityMap();
         Set<String> set = new HashSet<String>();
         for (String alias : md2authorityname.values())
         {
@@ -461,6 +455,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     
     public List<String> getAuthorityMetadataForAuthority(String authorityName)
     {
+    	getChoiceAuthorityMap();
         List<String> result = new LinkedList<String>();
         for (String md : md2authorityname.keySet())
         {
@@ -477,7 +472,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
         ChoiceAuthority ma = null;
         if(fieldKey.contains("_authority_")) {
             reloadCache();
-            ma = controller.get(fieldKey);
+            ma = getChoiceAuthorityMap().get(fieldKey);
         }
         return ma;
     }
@@ -502,7 +497,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     }
     
     private ChoiceAuthority getChoose(String fieldKey) {
-        ChoiceAuthority ma = controller.get(fieldKey);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(fieldKey);
         if (ma == null)
         {
             ma = reloadCache(fieldKey);

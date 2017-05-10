@@ -20,18 +20,14 @@
   -    workflow.pooled   List<WorkflowItem> array of pooled tasks
   --%>
 
-<%@page import="org.apache.commons.lang3.StringUtils"%>
-<%@page import="org.dspace.content.MetadataValue"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
-    prefix="fmt" %>
-
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
 <%@ page  import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
-
-<%@page import="org.dspace.core.ConfigurationManager"%>
+<%@ page import="org.apache.commons.lang3.StringUtils"%>
+<%@ page import="org.dspace.core.ConfigurationManager"%>
 <%@ page import="org.dspace.app.webui.servlet.MyDSpaceServlet" %>
 <%@ page import="org.dspace.content.WorkspaceItem" %>
 <%@ page import="org.dspace.core.Utils" %>

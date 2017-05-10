@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
 /**
  * Generic Database Access Object interface class that should be implemented by all DAOs.
  * It offers up a lot of general methods so these don't need to be declared again in each DAO.
@@ -21,6 +23,9 @@ import java.util.UUID;
  */
 public interface GenericDAO<T>
 {
+	
+	public static final Logger log = Logger.getLogger(GenericDAO.class);
+	
     public T create(Context context, T t) throws SQLException;
 
     public void save(Context context, T t) throws SQLException;

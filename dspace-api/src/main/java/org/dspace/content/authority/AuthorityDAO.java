@@ -18,6 +18,7 @@ import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.hibernate.Session;
+import org.hibernate.type.IntegerType;
 
 /**
  * Interface for any class wishing to investigate the current use of authority
@@ -183,7 +184,7 @@ public abstract class AuthorityDAO {
 	}
 
 	private long countIssuedItemsByAuthorityValueAndFieldId(String key, int[] fieldId) throws SQLException {
-		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumItemsissuedBykey(), fieldId)).addScalar("num").setParameter(0,key);
+		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumItemsissuedBykey(), fieldId)).addScalar("num", IntegerType.INSTANCE).setParameter("authority",key).uniqueResult();
 		long numAuthorityIssued = (Integer)row;
 		return numAuthorityIssued;
 	}

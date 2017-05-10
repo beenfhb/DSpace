@@ -30,48 +30,48 @@ public class AuthorityDAOOracle extends AuthorityDAO {
 
 	// private static final String SQL_NUM_METADATA_GROUP_BY_AUTHKEY_CONFIDENCE
 	// = "select authority, confidence, count(*) as num from item left join
-	// metadatavalue on (item.item_id = metadatavalue.resource_id and
+	// metadatavalue on (item.uuid = metadatavalue.resource_id and
 	// metadatavalue.resource_type_id=2) where in_archive = 1 and
 	// metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) group by authority,
 	// confidence";
-	private static final String SQL_NUM_METADATA_AUTH_GROUP_BY_CONFIDENCE = "select confidence, count(*) as num from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null group by confidence";
+	private static final String SQL_NUM_METADATA_AUTH_GROUP_BY_CONFIDENCE = "select confidence, count(*) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null group by confidence";
 
-	private static final String SQL_NUM_AUTHORED_ITEMS = "select count(distinct item.item_id) as num from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
+	private static final String SQL_NUM_AUTHORED_ITEMS = "select count(distinct item.uuid) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
 
-	private static final String SQL_NUM_ISSUED_ITEMS = "select count(distinct item.item_id) as num from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and confidence <> "
+	private static final String SQL_NUM_ISSUED_ITEMS = "select count(distinct item.uuid) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and confidence <> "
 			+ Choices.CF_ACCEPTED;
 
 	// private static final String SQL_NUM_METADATA_GROUP_BY_AUTH_ISSUED =
 	// "select authority is not null as hasauthority, confidence <> "+
 	// Choices.CF_ACCEPTED +" as bissued, count(*) as num from tem ileft join
-	// metadatavalue on (item.item_id = metadatavalue.resource_id and
+	// metadatavalue on (item.uuid = metadatavalue.resource_id and
 	// metadatavalue.resource_type_id=2) where in_archive = 1 and
 	// metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) group by hasauthority,
 	// bissued";
 
 	private static final String SQL_NUM_METADATA = "select count(*) as num from metadatavalue where metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER)";
 
-	private static final String SQL_NUM_AUTHKEY = "select count (distinct authority) as num from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
+	private static final String SQL_NUM_AUTHKEY = "select count (distinct authority) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
 
-	private static final String SQL_NUM_AUTHKEY_ISSUED = "select count (distinct authority) as num from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
+	private static final String SQL_NUM_AUTHKEY_ISSUED = "select count (distinct authority) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
 			+ Choices.CF_ACCEPTED + " and authority is not null";
 
-	private static final String SQL_AUTHKEY_ISSUED = "SELECT * FROM (SELECT rownum rnum, a.* FROM ( SELECT DISTINCT authority FROM item LEFT JOIN metadatavalue ON (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) WHERE in_archive = 1 AND metadata_field_id IN (QUESTION_ARRAY_PLACE_HOLDER) AND authority IS NOT NULL AND confidence <> "
+	private static final String SQL_AUTHKEY_ISSUED = "SELECT * FROM (SELECT rownum rnum, a.* FROM ( SELECT DISTINCT authority FROM item LEFT JOIN metadatavalue ON (item.uuid = metadatavalue.dspace_object_id) WHERE in_archive = 1 AND metadata_field_id IN (QUESTION_ARRAY_PLACE_HOLDER) AND authority IS NOT NULL AND confidence <> "
 			+ Choices.CF_ACCEPTED + " ORDER BY authority) a WHERE rownum <=:par0) WHERE rnum >=:par1";
 
-	private static final String SQL_NUM_ITEMSISSUED_BYKEY = "select count (distinct item.item_id) as num from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
-			+ Choices.CF_ACCEPTED + " and authority = :par0";
+	private static final String SQL_NUM_ITEMSISSUED_BYKEY = "select count (distinct item.uuid) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
+			+ Choices.CF_ACCEPTED + " and authority = :authority";
 
-	private static final String SQL_NEXT_ISSUED_AUTHKEY = "select min(authority) as key from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority > :par0 and confidence <> "
+	private static final String SQL_NEXT_ISSUED_AUTHKEY = "select min(authority) as key from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority > :par0 and confidence <> "
 			+ Choices.CF_ACCEPTED;
 
-	private static final String SQL_PREV_ISSUED_AUTHKEY = "select max(authority) as key from item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) where in_archive = 1 and  metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority < :par0 and confidence <> "
+	private static final String SQL_PREV_ISSUED_AUTHKEY = "select max(authority) as key from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = 1 and  metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority < :par0 and confidence <> "
 			+ Choices.CF_ACCEPTED;
 
-	private static final String SQL_ITEMSISSUED_BYKEY_AND_CONFIDENCE = "SELECT item.* FROM item left join metadatavalue on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) WHERE in_archive=1 AND metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND confidence = :par1";
+	private static final String SQL_ITEMSISSUED_BYKEY_AND_CONFIDENCE = "SELECT item.* FROM item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) WHERE in_archive=1 AND metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND confidence = :par1";
 
 	private static final String SQL_FINDISSUEDBYAUTHORITYVALUEANDFIELDID = "SELECT item.* FROM item left join metadatavalue " +
-            "on (item.item_id = metadatavalue.resource_id and metadatavalue.resource_type_id=2) " +
+            "on (item.uuid = metadatavalue.dspace_object_id) " +
             "WHERE in_archive=1 AND metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND confidence <> "+ Choices.CF_ACCEPTED;
 
 	public AuthorityDAOOracle(Context context) {
