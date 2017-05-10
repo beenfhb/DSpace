@@ -36,6 +36,8 @@ import org.dspace.core.ReloadableEntity;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.handle.Handle;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 
 /**
  * Abstract base class for DSpace objects
@@ -239,5 +241,21 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
 
 	public DSpaceObjectService<DSpaceObject> getDSpaceObjectService() {
 		return ContentServiceFactory.getInstance().getDSpaceObjectService(this);
+	}
+	
+	public static final Object unwrapProxy(Object bean) throws Exception {
+		
+		/*
+		 * If the given object is a proxy, set the return value as the object
+		 * being proxied, otherwise return the given object.
+		 */
+		if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {
+			
+			Advised advised = (Advised) bean;
+			
+			bean = advised.getTargetSource().getTarget();
+		}
+		
+		return bean;
 	}
 }

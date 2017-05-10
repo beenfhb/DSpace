@@ -10,9 +10,11 @@ package org.dspace.authorize.dao.impl;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.dao.ResourcePolicyDAO;
+import org.dspace.content.DSpaceObject;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -67,10 +69,14 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     public List<ResourcePolicy> findByDSoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException
     {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
-        criteria.add(Restrictions.and(
-                Restrictions.eq("dSpaceObject", dso),
-                Restrictions.eq("actionId", actionId)
-        ));
+        try {
+			criteria.add(Restrictions.and(
+			        Restrictions.eq("dSpaceObject", DSpaceObject.unwrapProxy(dso)),
+			        Restrictions.eq("actionId", actionId)
+			));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
         return list(criteria);
     }
 
