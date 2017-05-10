@@ -119,7 +119,7 @@
      StringBuffer doAuthority(MetadataAuthorityService mam, ChoiceAuthorityService cam,
             PageContext pageContext,
             String contextPath, String fieldName, String idx,
-            MetadataValue dcv, Collection collection)
+            IMetadataValue dcv, Collection collection)
     {
         StringBuffer sb = new StringBuffer();
         if (cam.isChoicesConfigured(fieldName))
@@ -194,7 +194,7 @@
                  .append(fieldName).append("','edit_metadata','")
                  .append(fieldNameIdx).append("','").append(authorityName).append("','")
                  .append(confidenceIndicator).append("',")
-                 .append(String.valueOf(collection.getID())).append(",")
+                 .append("'"+String.valueOf(collection.getID())).append("',")
                  .append("false").append(",false);\"")
                  .append(" title=\"")
                  .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.lookup"))
@@ -441,7 +441,7 @@
 <%
     MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
     ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
-    List<MetadataValue> dcv = ContentServiceFactory.getInstance().getItemService().getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+    List<IMetadataValue> dcv = ContentServiceFactory.getInstance().getItemService().getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
     String row = "even";
     
     // Keep a count of the number of values of each element+qualifier
@@ -547,18 +547,19 @@
 	<div class="table-responsive">
     
 <%
-    Bundle[] bundles = item.getBundles();
+    List<Bundle> bundles = item.getBundles();
     row = "even";
 
-    for (int i = 0; i < bundles.length; i++)
+    for (int i = 0; i < bundles.size(); i++)
     {
+    	Bundle bundle = ContentServiceFactory.getInstance().getBundleService().find(UIUtil.obtainContext(request), bundles.get(i).getID());
     	%>
-    <h3><%= bundles[i].getName() %> 
+    <h3><%= bundle.getName() %> 
     	<a class="btn btn-warning" target="_blank" 
-    		href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=1&resource_id=<%= bundles[i].getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
+    		href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=1&resource_id=<%= bundle.getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
     		
     		<% if (bRemoveBits) { %>
-            <button class="btn btn-danger" name="submit_delete_bundle_<%= bundles[i].getID() %>" value="<fmt:message key="jsp.tools.general.remove"/>">
+            <button class="btn btn-danger" name="submit_delete_bundle_<%= bundle.getID() %>" value="<fmt:message key="jsp.tools.general.remove"/>">
             	<span class="glyphicon glyphicon-trash"></span>
             </button>
             <% } %>		
@@ -582,12 +583,8 @@
                 <th id="t18" class="oddRowEvenCol">&nbsp;</th>
             </tr>
 <%
-    List<Bundle> bundles = item.getBundles();
-    row = "even";
 
-    for (int i = 0; i < bundles.size(); i++)
-    {
-        List<Bitstream> bitstreams = bundles.get(i).getBitstreams();
+        List<Bitstream> bitstreams = bundle.getBitstreams();
         for (int j = 0; j < bitstreams.size(); j++)
         {
             ArrayList<UUID> bitstreamIdOrder = new ArrayList<UUID>();
@@ -598,21 +595,21 @@
             // Parameter names will include the bundle and bitstream ID
             // e.g. "bitstream_14_18_desc" is the description of bitstream 18 in bundle 14
             Bitstream bitstream = bitstreams.get(j);
-            String key = bundles.get(i).getID() + "_" + (bitstream).getID();
+            String key = bundle.getID() + "_" + (bitstream).getID();
             BitstreamFormat bf = (bitstream).getFormat(UIUtil.obtainContext(request));
 %>
-            <tr id="<%="row_" + bundles.get(i).getName() + "_" + bitstream.getID()%>">
+            <tr id="<%="row_" + bundle.getName() + "_" + bitstream.getID()%>">
             	<td headers="t10" class="<%= row %>RowEvenCol" align="center">
                 	<%-- <a target="_blank" href="<%= request.getContextPath() %>/retrieve/<%= bitstream.getID() %>">View</a>&nbsp;<input type="submit" name="submit_delete_bitstream_<%= key %>" value="Remove"> --%>
 					<a class="btn btn-info" target="_blank" href="<%= request.getContextPath() %>/retrieve/<%= bitstream.getID() %>"><fmt:message key="jsp.tools.general.view"/></a>&nbsp;
-					<a class="btn btn-warning" target="_blank" href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=0&resource_id=<%= bitstreams[j].getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
+					<a class="btn btn-warning" target="_blank" href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=0&resource_id=<%= bitstreams.get(j).getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
 				</td>
-                <% if (bundles.get(i).getName().equals("ORIGINAL"))
+                <% if (bundle.getName().equals("ORIGINAL"))
                    { %>
                      <td headers="t11" class="<%= row %>RowEvenCol" align="center">
                        <span class="form-control">
-                       <input type="radio" name="<%= bundles.get(i).getID() %>_primary_bitstream_id" value="<%= bitstream.getID() %>"
-                           <% if (bitstream.equals(bundles.get(i).getPrimaryBitstream())) { %>
+                       <input type="radio" name="<%= bundle.getID() %>_primary_bitstream_id" value="<%= bitstream.getID() %>"
+                           <% if (bitstream.equals(bundle.getPrimaryBitstream())) { %>
                                   checked="<%="checked" %>"
                            <% } %> /></span>
                    </td>
@@ -635,7 +632,7 @@
                     <input class="form-control" type="text" name="bitstream_user_format_description_<%= key %>" value="<%= ((bitstream).getUserFormatDescription() == null ? "" : Utils.addEntities(bitstream.getUserFormatDescription())) %>"/>
                 </td>
 <%
-                   if (bundles.get(i).getName().equals("ORIGINAL") && breOrderBitstreams)
+                   if (bundle.getName().equals("ORIGINAL") && breOrderBitstreams)
                    {
                        //This strings are only used in case the user has javascript disabled
                        String upButtonValue = null;
@@ -662,8 +659,8 @@
 %>
                 <td headers="t17" class="<%= row %>RowEvenCol">
                     <input type="hidden" value="<%=j+1%>" name="order_<%=bitstream.getID()%>">
-                    <input type="hidden" value="<%=upButtonValue%>" name="<%=bundles.get(i).getID()%>_<%=bitstream.getID()%>_up_value">
-                    <input type="hidden" value="<%=downButtonValue%>" name="<%=bundles.get(i).getID()%>_<%=bitstream.getID()%>_down_value">
+                    <input type="hidden" value="<%=upButtonValue%>" name="<%=bundle.getID()%>_<%=bitstream.getID()%>_up_value">
+                    <input type="hidden" value="<%=downButtonValue%>" name="<%=bundle.getID()%>_<%=bitstream.getID()%>_down_value">
                     <div>
                         <button class="btn btn-default" name="submit_order_<%=key%>_up" value="<fmt:message key="jsp.tools.edit-item-form.move-up"/> " <%=j==0 ? "disabled=\"disabled\"" : ""%>>
                         	<span class="glyphicon glyphicon-arrow-up"></span>
