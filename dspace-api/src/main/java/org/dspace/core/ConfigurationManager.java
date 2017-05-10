@@ -114,6 +114,11 @@ public class ConfigurationManager
         // Assume "module" properties are always prefixed with the module name
         return getProperty(module + "." + property);
     }
+    
+    public static String[] getArrayProperty(String module, String property)
+    {
+    	return DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(module + "." + property);
+    }    
 
     /**
      * Get a configuration property as an integer

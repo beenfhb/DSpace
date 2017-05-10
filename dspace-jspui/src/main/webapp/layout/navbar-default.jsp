@@ -86,11 +86,7 @@
     Locale sessionLocale = UIUtil.getSessionLocale(request);
     boolean isRtl = StringUtils.isNotBlank(LocaleUIHelper.ifLtr(request, "","rtl"));    
 
-    String[] mlinks = new String[0];
-    String mlinksConf = ConfigurationManager.getProperty("cris", "navbar.cris-entities");
-    if (StringUtils.isNotBlank(mlinksConf)) {
-    	mlinks = StringUtils.split(mlinksConf, ",");
-    }
+    String[] mlinks = ConfigurationManager.getArrayProperty("cris","navbar.cris-entities");
     
     boolean showCommList = ConfigurationManager.getBooleanProperty("community-list.show.all",true);
 %>
