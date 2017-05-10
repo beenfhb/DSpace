@@ -35,6 +35,7 @@
     <bean id="doComponents" factory-bean="researcher" factory-method="getDOComponents" />
 	
 	<bean id="sessionFactory" factory-bean="researcher" factory-method="getSessionFactory"/>
+	<bean id="sessionFactoryDSpace" factory-bean="researcher" factory-method="getSessionFactoryDSpace"/>
 	
 	<bean id="researcherTagLibraryService" class="org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions">
 		<property name="applicationService" ref="applicationService"/>

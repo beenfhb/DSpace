@@ -50,10 +50,6 @@
 
 
 	<!-- Filters -->
-
-	<!-- session/request filter (from util), handles setting up requests and 
-		sessions correctly -->
-		
 	<filter>
 		<filter-name>CharacterEncodingFilter</filter-name>
 		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -66,7 +62,9 @@
 			<param-value>true</param-value>
 		</init-param>
 	</filter>
-	
+
+	<!-- session/request filter (from util), handles setting up requests and 
+		sessions correctly -->
 	<filter>
 		<filter-name>dspace.request</filter-name>
 		<filter-class>org.dspace.utils.servlet.DSpaceWebappServletFilter</filter-class>
@@ -95,7 +93,16 @@
 		<filter-name>ExploreLocationFilter</filter-name>
 		<filter-class>org.dspace.app.webui.cris.filter.ExploreLocationFilter</filter-class>
 	</filter>
-	
+
+	  <filter>
+		  <filter-name>OpenSessionInViewFilter</filter-name>
+		  <filter-class>org.springframework.orm.hibernate4.support.OpenSessionInViewFilter</filter-class>
+		  <init-param>
+			<param-name>sessionFactoryBeanName</param-name>
+			<param-value>sessionFactoryDSpace</param-value>
+		  </init-param>
+	  </filter>
+  	
 	<!-- Filter mappings -->
 	<filter-mapping>
 		<filter-name>dspace.request</filter-name>
@@ -185,15 +192,25 @@
 	    <url-pattern>/cris/*</url-pattern>
 	</filter-mapping>
 
-	<!-- kernel start listener (from impl), starts up the kernel for standalone 
-		webapps -->
+	<filter-mapping>
+		<filter-name>OpenSessionInViewFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+  
+	<!-- kernel start listener (from impl), starts up the kernel for standalong webapps -->
 	<listener>
 		<listener-class>org.dspace.servicemanager.servlet.DSpaceKernelServletContextListener</listener-class>
 	</listener>
 
+    <listener>
+   		<listener-class>org.dspace.app.util.DSpaceWebappListener</listener-class>
+   	</listener>
+   	
 	<!-- Listener to clean up Commons-FileUpload -->
 	<listener>
-		<listener-class>org.apache.commons.fileupload.servlet.FileCleanerCleanup</listener-class>
+     <listener-class>
+        org.apache.commons.fileupload.servlet.FileCleanerCleanup
+     </listener-class>
 	</listener>
 
 	<!-- Listener to initialise / clean up the application -->
@@ -695,6 +712,11 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
+    <servlet-name>browsewithdrawn</servlet-name>
+    <url-pattern>/tools/withdrawn</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
 		<servlet-name>community-list</servlet-name>
 		<url-pattern>/community-list</url-pattern>
 	</servlet-mapping>
@@ -991,6 +1013,11 @@
   </servlet-mapping>
 
   <servlet-mapping>
+    <servlet-name>privateitems</servlet-name>
+    <url-pattern>/tools/privateitems</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
     <servlet-name>version-item</servlet-name>
     <url-pattern>/tools/version</url-pattern>
   </servlet-mapping>
@@ -1034,7 +1061,6 @@
 			<taglib-uri>http://www.dspace.org/dspace-tags.tld</taglib-uri>
 			<taglib-location>/WEB-INF/dspace-tags.tld</taglib-location>
 		</taglib>
-
 	</jsp-config>
 
 	<!--Custom viewers  -->

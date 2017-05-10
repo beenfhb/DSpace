@@ -101,6 +101,11 @@ public class Researcher implements EPersonCRISIntegration
     {
         return (SessionFactory) dspace.getServiceManager().getServiceByName("&sessionFactory", LocalSessionFactoryBean.class).getObject();
     }
+
+    public SessionFactory getSessionFactoryDSpace()
+    {
+        return (SessionFactory) dspace.getServiceManager().getServiceByName("&sessionFactoryDSpace", LocalSessionFactoryBean.class).getObject();
+    }
     
     public RelationPreferenceService getRelationPreferenceService() {
         return dspace.getServiceManager().getServiceByName(
