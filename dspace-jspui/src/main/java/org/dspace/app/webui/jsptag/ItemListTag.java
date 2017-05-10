@@ -311,6 +311,16 @@ public class ItemListTag extends TagSupport {
 
             // Output the table headers
             out.println("<tr>");
+            
+			if (inputName != null) { // cilea, add the checkbox column
+				out.println("<th>");
+				if (!radioButton) { // add a "checkall" button
+					out.print("<input data-checkboxname=\""+inputName+"\" name=\""+inputName+"checker\" id=\""+inputName+"checker\" type=\"checkbox\" onclick=\"itemListCheckAll('"+inputName+"')\"/>");
+				}
+				out.print("</th>");
+			}
+			
+			out.print("<th />");
 
             for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
             {
@@ -453,6 +463,7 @@ public class ItemListTag extends TagSupport {
                 }
 				out.print("<td align=\"right\" class=\"oddRowOddCol\">"
 						+ (itemStart + i) + "</td>");
+
 
                 for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
                 {

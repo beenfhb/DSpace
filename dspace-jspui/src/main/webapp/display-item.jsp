@@ -49,6 +49,7 @@
 <%@page import="org.dspace.plugin.PluginException"%>
 <%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 <%@page import="org.dspace.content.factory.ContentServiceFactory" %>
+<%@page import="org.dspace.content.IMetadataValue" %>
 <%@page import="org.dspace.content.MetadataValue" %>
 <%@page import="org.dspace.license.factory.LicenseServiceFactory" %>
 <%@page import="org.dspace.license.service.CreativeCommonsService" %>
@@ -95,7 +96,7 @@
 	}
 	else 
 	{
-		List<MetadataValue> titleValue = ContentServiceFactory.getInstance().getItemService().getMetadata(item, "dc", "title", null, Item.ANY);
+		List<IMetadataValue> titleValue = ContentServiceFactory.getInstance().getItemService().getMetadata(item, "dc", "title", null, Item.ANY);
 		if (titleValue.size() != 0)
 		{
 			title = titleValue.get(0).getValue();

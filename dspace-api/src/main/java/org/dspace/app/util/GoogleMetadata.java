@@ -38,17 +38,6 @@ public class GoogleMetadata extends MappingMetadata
 
     protected static final String GOOGLE_PREFIX = "google.";
 
-    protected Item item;
-
-    protected String itemURL;
-
-    // Configuration keys and fields
-    protected static Map<String, String> configuredFields = new HashMap<String, String>();
-
-    // Google field names (e.g. citation_fieldname) and formatted metadata
-    // values
-    protected ListMultimap<String, String> metadataMappings = ArrayListMultimap.create();
-
     public static final String TITLE = "citation_title";
     
 
