@@ -7,7 +7,9 @@
  */
 package org.dspace.content.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -17,6 +19,7 @@ import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDSODAO;
 import org.dspace.eperson.EPerson;
 import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
@@ -279,4 +282,20 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
         query.setParameter("withdrawn", includeWithdrawn);
         return count(query); 
     }
+
+	@Override
+	public List<Bundle> findBundlesByName(Context context, Item item, String name) throws SQLException {
+		String hqlQueryString = "SELECT bundles FROM Item as item join item.bundles bundles join bundles.metadata metadatavalue WHERE item = :item";
+		if(StringUtils.isNotBlank(name)) {		
+			hqlQueryString += " AND STR(metadatavalue.value) = :text_value ";
+		}
+		Query query = createQuery(context, hqlQueryString);
+
+        query.setParameter("item", item);
+        if(StringUtils.isNotBlank(name))
+        {
+            query.setParameter("text_value", name);
+        }
+        return query.list();
+	}
 }

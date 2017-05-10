@@ -7,6 +7,7 @@
  */
 package org.dspace.content.dao;
 
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -114,5 +115,7 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item>
      * @throws SQLException if database error
      */
     int countItems(Context context, boolean includeArchived, boolean includeWithdrawn) throws SQLException;
+
+	public List<Bundle> findBundlesByName(Context context, Item item, String name) throws SQLException;
     
 }

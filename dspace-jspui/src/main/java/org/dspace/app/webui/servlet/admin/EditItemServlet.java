@@ -586,8 +586,9 @@ public class EditItemServlet extends DSpaceServlet
         
         try
         {
-            if( 0 < itemService.getBundles(item, "ORIGINAL").size()){
-                AuthorizeUtil.authorizeManageBundlePolicy(context, itemService.getBundles(item, "ORIGINAL").get(0));
+            List<Bundle> bundles = itemService.getBundles(context, item, "ORIGINAL");
+			if( 0 < bundles.size()){
+                AuthorizeUtil.authorizeManageBundlePolicy(context, bundles.get(0));
                 request.setAttribute("reorder_bitstreams_button", Boolean.TRUE);
             }
         }
@@ -638,9 +639,6 @@ public class EditItemServlet extends DSpaceServlet
         request.setAttribute("dc.types", types);
         request.setAttribute("metadataFields", metadataFields);
         
-        if(response.isCommitted()) {
-        	return;
-        }
         if(response.isCommitted()) {
         	return;
         }
@@ -955,15 +953,11 @@ public class EditItemServlet extends DSpaceServlet
                 }
             }
 
-        	// commit now to make available in the edit form changes made by optional consumers
-            context.commit();
             // Show edit page again
             showEditForm(context, request, response, item);
         }
         else
         {
-        	// commit now to make available in the edit form changes made by optional consumers
-        	context.commit();
             // Show edit page again
             showEditForm(context, request, response, item);
         }

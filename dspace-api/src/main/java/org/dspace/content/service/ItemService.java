@@ -573,4 +573,7 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
 	 * @return <code>true</code> if the item is linked to a workspaceitem or workflowitem
 	 */
     boolean isInProgressSubmission(Context context, Item item) throws SQLException;
+    
+    List<Bundle> getBundles(Context context, Item item, String name) throws SQLException;
+    
 }
