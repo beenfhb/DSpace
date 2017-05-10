@@ -8,6 +8,7 @@
 package org.dspace.app.webui.jsptag;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
@@ -23,9 +25,13 @@ import javax.servlet.jsp.tagext.BodyTagSupport;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.servlet.FeedServlet;
+import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.factory.ContentServiceFactoryImpl;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactoryImpl;
 
 /**
  * Tag for HTML page layout ("skin").
@@ -225,20 +231,25 @@ public class LayoutTag extends BodyTagSupport
                 List<Community> comms = (List<Community>) request
                         .getAttribute("dspace.communities");
 
-                if (comms != null)
-                {
-                    for (Community c : comms)
-                    {
-                        parents.add(c.getName());
-                        parentLinks.add("/handle/" + c.getHandle());
-                    }
+				if (comms != null) {
+					Context context;
+					try {
+						context = UIUtil.obtainContext((HttpServletRequest) request);
+						for (Community c : comms) {
+							c = ContentServiceFactoryImpl.getInstance().getCommunityService().find(context, c.getID());
+							parents.add(c.getName());
+							parentLinks.add("/handle/" + c.getHandle());
+						}
 
-                    if (col != null)
-                    {
-                        parents.add(col.getName());
-                        parentLinks.add("/handle/" + col.getHandle());
-                    }
-                }
+						if (col != null) {
+							col = ContentServiceFactoryImpl.getInstance().getCollectionService().find(context, col.getID());
+							parents.add(col.getName());
+							parentLinks.add("/handle/" + col.getHandle());
+						}
+					} catch (SQLException e) {
+						log.error(e.getMessage(), e);
+					}
+				}
             }
 
             request.setAttribute("dspace.layout.locbar", Boolean.TRUE);
