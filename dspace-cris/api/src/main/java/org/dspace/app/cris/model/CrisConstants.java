@@ -10,6 +10,7 @@ package org.dspace.app.cris.model;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -40,11 +41,11 @@ public class CrisConstants {
 
     public static final String[] typeText = { "CRISRP", "CRISPJ", "CRISOU"};
 	
-	public static <T extends DSpaceObject> Integer getEntityType(T crisObject) {
+	public static <T extends BrowsableDSpaceObject> Integer getEntityType(T crisObject) {
 	    return crisObject.getType();
 	}
 	
-	public static <T extends DSpaceObject> Integer getEntityType(Class<T> clazz) throws InstantiationException, IllegalAccessException {
+	public static <T extends BrowsableDSpaceObject> Integer getEntityType(Class<T> clazz) throws InstantiationException, IllegalAccessException {
 	    if(Item.class.isAssignableFrom(clazz)) {
             return Constants.ITEM;
         }

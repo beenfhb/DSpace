@@ -29,7 +29,7 @@ import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
 import org.dspace.statistics.service.SolrLoggerService;
 
-public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComponent<T> {
+public class StatUploadObjectComponent<T extends BrowsableDSpaceObject> extends StatsComponent<T> {
 
 	SearchService searchService;
 	

@@ -295,7 +295,7 @@ public abstract class ASolrConfigurerComponent<T extends BrowseDSpaceObject, IBC
         return componentInfo;
     }
 
-    protected abstract T[] getObjectFromSolrResult(DiscoverResult docs,
+    protected abstract List<T> getObjectFromSolrResult(DiscoverResult docs,
             Context context) throws Exception;
 
     public DiscoverResult search(Context context, HttpServletRequest request, String type,

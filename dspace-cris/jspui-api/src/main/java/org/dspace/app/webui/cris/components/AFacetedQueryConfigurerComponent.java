@@ -240,13 +240,6 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowseDSpaceObj
         {
             log.error(ex.getMessage(), ex);
         }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
         return -1;
     }
 

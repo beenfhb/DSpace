@@ -7,6 +7,9 @@
  */
 package org.dspace.app.webui.cris.components;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.statistics.IStatsComponent;
@@ -28,14 +31,14 @@ public class BrowseItemConfigurerComponent extends
             .getLogger(BrowseItemConfigurerComponent.class);
 
     @Override
-    public BrowseDSpaceObject[] getObjectFromSolrResult(DiscoverResult docs,
+    public List<BrowseDSpaceObject> getObjectFromSolrResult(DiscoverResult docs,
             Context context) throws Exception
     {
-    	BrowseDSpaceObject[] result = new BrowseDSpaceObject[docs.getDspaceObjects().size()];
+    	List<BrowseDSpaceObject> result = new ArrayList<>();
         int i = 0;
         for (BrowsableDSpaceObject obj : docs.getDspaceObjects())
         {
-            result[i] = new BrowseDSpaceObject(context, obj);
+            result.add(new BrowseDSpaceObject(context, obj));
             i++;
         }
         return result;
@@ -104,7 +107,7 @@ public class BrowseItemConfigurerComponent extends
     }
 
     @Override
-    public Class<? extends DSpaceObject> getRelationObjectClass()
+    public Class<? extends BrowsableDSpaceObject> getRelationObjectClass()
     {
         return getRelationConfiguration().getRelationClass();
     }

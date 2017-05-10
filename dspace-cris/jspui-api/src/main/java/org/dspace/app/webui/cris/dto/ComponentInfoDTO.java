@@ -7,6 +7,8 @@
  */
 package org.dspace.app.webui.cris.dto;
 
+import java.util.List;
+
 import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.sort.SortOption;
 
@@ -22,7 +24,7 @@ public class ComponentInfoDTO<T extends BrowseDSpaceObject>
 
     private SortOption so;
 
-    private T[] items;
+    private List<T> items;
 
     private int pagecurrent;
 
@@ -112,12 +114,12 @@ public class ComponentInfoDTO<T extends BrowseDSpaceObject>
         this.so = so;
     }
 
-    public T[] getItems()
+    public List<T> getItems()
     {
         return items;
     }
 
-    public void setItems(T[] items)
+    public void setItems(List<T> items)
     {
         this.items = items;
     }

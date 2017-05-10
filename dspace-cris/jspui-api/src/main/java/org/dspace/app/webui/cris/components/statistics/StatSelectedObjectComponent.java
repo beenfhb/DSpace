@@ -27,7 +27,7 @@ import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.service.SolrLoggerService;
 
-public class StatSelectedObjectComponent<T extends DSpaceObject> extends
+public class StatSelectedObjectComponent<T extends BrowsableDSpaceObject> extends
         StatsComponent<T>
 {
 

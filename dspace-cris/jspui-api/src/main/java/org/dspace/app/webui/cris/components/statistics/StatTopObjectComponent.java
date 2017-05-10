@@ -33,7 +33,7 @@ import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.service.SolrLoggerService;
 
-public class StatTopObjectComponent<T extends DSpaceObject> extends
+public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
         StatsComponent<T>
 {
 

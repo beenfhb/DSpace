@@ -7,7 +7,7 @@
  */
 package org.dspace.app.cris.configuration;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.springframework.beans.factory.annotation.Required;
 
 public class RelationConfiguration
@@ -18,16 +18,16 @@ public class RelationConfiguration
 
     private String query;
 
-    private Class<? extends DSpaceObject> relationClass;
+    private Class<? extends BrowsableDSpaceObject> relationClass;
     
-    public Class<? extends DSpaceObject> getRelationClass()
+    public Class<? extends BrowsableDSpaceObject> getRelationClass()
     {
         return relationClass;
     }
 
     @Required
     public void setRelationClass(
-            Class<? extends DSpaceObject> targetObjectClass)
+            Class<? extends BrowsableDSpaceObject> targetObjectClass)
     {
         this.relationClass = targetObjectClass;
     }

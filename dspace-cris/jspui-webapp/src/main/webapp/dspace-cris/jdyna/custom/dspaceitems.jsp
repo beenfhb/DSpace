@@ -76,7 +76,7 @@
 	}
 	
 	boolean globalShowFacets = false;
-	if (info!=null && info.getItems()!=null && info.getItems().length > 0) {
+	if (info!=null && info.getItems()!=null && info.getItems().size() > 0) {
 	    
 %>
 
@@ -188,7 +188,7 @@ sb.append("</ul></div>");
 
 	<p align="center"><fmt:message key="jsp.search.results.results">
         <fmt:param><%=info.getStart()+1%></fmt:param>
-        <fmt:param><%=info.getStart()+info.getItems().length%></fmt:param>
+        <fmt:param><%=info.getStart()+info.getItems().size()%></fmt:param>
         <fmt:param><%=info.getTotal()%></fmt:param>
         <fmt:param><%=(float)info.getSearchTime() / 1000%></fmt:param>
     </fmt:message></p>
@@ -252,10 +252,10 @@ if (info.getPagetotal() > 1)
 		</label>
 			<input id="<%= info.getType() %>submit_export" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>"/>
 		</form>
 <% } else { %>
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}"/>
 <% } %>
 </div>
 </div>
