@@ -639,4 +639,9 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                 return new String[]{null, null, null};
         }
     }
+    
+	@Override
+	public boolean isSupportsTypeConstant(int type) {
+		return getSupportsTypeConstant() == type;
+	}
 }

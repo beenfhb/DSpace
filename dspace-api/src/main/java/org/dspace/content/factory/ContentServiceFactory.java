@@ -9,6 +9,7 @@ package org.dspace.content.factory;
 
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
+import org.dspace.content.RootObject;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.*;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -24,6 +25,8 @@ import java.util.List;
 public abstract class ContentServiceFactory {
 
     public abstract List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices();
+    
+    public abstract List<RootEntityService<? extends RootObject>> getRootObjectServices();
 
     public abstract List<DSpaceObjectLegacySupportService<? extends DSpaceObject>> getDSpaceObjectLegacySupportServices();
 
@@ -64,7 +67,29 @@ public abstract class ContentServiceFactory {
             return WorkflowServiceFactory.getInstance().getWorkflowItemService();
         }
     }
-    public<T extends DSpaceObject> DSpaceObjectService<T> getDSpaceObjectService(T dso)
+    
+    public <T extends RootObject> RootEntityService<T> getRootObjectService(T dso)
+    {
+        // No need to worry when supressing, as long as our "getDSpaceObjectManager" method is properly implemented
+        // no casting issues should occur
+        @SuppressWarnings("unchecked")
+        RootEntityService<T> manager = getRootObjectService(dso.getType());
+        return manager;
+    }
+
+    public RootEntityService getRootObjectService(int type)
+    {
+        for (int i = 0; i < getRootObjectServices().size(); i++) {
+        	RootEntityService objectService = getRootObjectServices().get(i);
+            if(objectService.isSupportsTypeConstant(type))
+            {
+                return objectService;
+            }
+        }
+        throw new UnsupportedOperationException("Unknown DSpace type: " + type);
+    }    
+    
+    public <T extends DSpaceObject> DSpaceObjectService<T> getDSpaceObjectService(T dso)
     {
         // No need to worry when supressing, as long as our "getDSpaceObjectManager" method is properly implemented
         // no casting issues should occur
@@ -77,12 +102,6 @@ public abstract class ContentServiceFactory {
     {
         for (int i = 0; i < getDSpaceObjectServices().size(); i++) {
             DSpaceObjectService objectService = getDSpaceObjectServices().get(i);
-            if(type>=9) {
-                if(objectService.getSupportsTypeConstant()==9) {
-                    //TODO implements for each DSpace-CRIS object a service
-                    return objectService;    
-                }
-            }
             if(objectService.getSupportsTypeConstant() == type)
             {
                 return objectService;

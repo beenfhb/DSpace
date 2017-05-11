@@ -28,7 +28,7 @@ import org.dspace.core.Context;
  * @author kevinvandevelde at atmire.com
  * @param <T> class type
  */
-public interface DSpaceObjectService<T extends DSpaceObject> {
+public interface DSpaceObjectService<T extends DSpaceObject> extends RootEntityService<T> {
 
 
 
