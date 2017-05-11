@@ -45,7 +45,6 @@
 <%@ page import="org.dspace.content.Community"   %>
 <%@ page import="org.dspace.content.Collection"  %>
 <%@ page import="org.dspace.content.Item"        %>
-<%@ page import="org.dspace.search.QueryResults" %>
 <%@ page import="org.dspace.sort.SortOption" %>
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="java.util.Set" %>
@@ -53,6 +52,7 @@
 <%@page import="java.util.StringTokenizer"%>
 <%@page import="org.dspace.browse.BrowseInfo"%>
 <%@page import="org.dspace.browse.BrowseDSpaceObject"%>
+<%@page import="org.dspace.browse.BrowsableDSpaceObject"%>
 <%@page import="org.dspace.core.Utils"%>
 <%@page import="org.dspace.discovery.configuration.*"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
@@ -330,7 +330,7 @@ else if( qResults != null && collapsedResults != null)
 					for (IGlobalSearchResult obj : collapsedResults.get(otypeSensitive)) {
 				%>
 				
-				<dspace:discovery-artifact style="global" hlt="<%= qResults.getHighlightedResults((DSpaceObject) obj) %>" artifact="<%= obj %>" view="<%= mapViewMetadata.get(otypelower) %>" selectorCssView="<%=selectorViewMetadata %>"/>
+				<dspace:discovery-artifact style="global" hlt="<%= qResults.getHighlightedResults((BrowsableDSpaceObject) obj) %>" artifact="<%= obj %>" view="<%= mapViewMetadata.get(otypelower) %>" selectorCssView="<%=selectorViewMetadata %>"/>
 				
 				<%	
 				}

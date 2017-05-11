@@ -25,7 +25,7 @@ if (download != null && download.count() > 0)
 		
 				<dspace:discovery-artifact style="global" artifact="<%= obj %>" view="<%= download.getConfiguration() %>">
 				<span class="badge" data-toggle="tooltip" data-placement="right" title="<fmt:message key="jsp.components.most-download.badge-tooltip"/>">
-					<fmt:formatNumber value="<%= (obj==null || ((DSpaceObject) obj).getExtraInfo().get(\"crismetrics_download\")==null)?0.0:((DSpaceObject) obj).getExtraInfo().get(\"crismetrics_download\") %>" type="NUMBER" maxFractionDigits="0" />
+					<fmt:formatNumber value="<%= (obj==null || ((BrowsableDSpaceObject) obj).getExtraInfo().get(\"crismetrics_download\")==null)?0.0:((BrowsableDSpaceObject) obj).getExtraInfo().get(\"crismetrics_download\") %>" type="NUMBER" maxFractionDigits="0" />
 					</span> ##artifact-item##
 				</dspace:discovery-artifact>
 		

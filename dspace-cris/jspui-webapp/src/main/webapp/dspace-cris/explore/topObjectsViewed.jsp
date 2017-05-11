@@ -24,7 +24,7 @@ if (viewed != null && viewed.count() > 0)
 		%>
 				<dspace:discovery-artifact style="global" artifact="<%= obj %>" view="<%= viewed.getConfiguration() %>">
 				<span class="badge" data-toggle="tooltip" data-placement="right" title="<fmt:message key="jsp.components.most-viewed.badge-tooltip"/>">
-					<fmt:formatNumber value="<%= (obj==null || ((DSpaceObject) obj).getExtraInfo().get(\"crismetrics_view\")==null)?0.0:((DSpaceObject) obj).getExtraInfo().get(\"crismetrics_view\") %>" type="NUMBER" maxFractionDigits="0" />
+					<fmt:formatNumber value="<%= (obj==null || ((BrowsableDSpaceObject) obj).getExtraInfo().get(\"crismetrics_view\")==null)?0.0:((BrowsableDSpaceObject) obj).getExtraInfo().get(\"crismetrics_view\") %>" type="NUMBER" maxFractionDigits="0" />
 					</span> ##artifact-item##
 				</dspace:discovery-artifact>
 		<%

@@ -15,7 +15,6 @@
   -    recent.submissions - RecetSubmissions
   --%>
 
-<%@ page import="org.dspace.content.DSpaceObject" %>
 <%@page import="java.util.List"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
@@ -34,15 +33,15 @@
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
 <%@ page import="org.dspace.content.Community" %>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
-<%@ page import="org.dspace.core.NewsManager" %>
+<%@ page import="org.dspace.core.NewsServiceImpl" %>
 <%@ page import="org.dspace.browse.ItemCounter" %>
-<%@ page import="org.dspace.content.Metadatum" %>
 <%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.discovery.configuration.DiscoveryViewConfiguration" %>
 <%@page import="org.dspace.app.webui.components.MostViewedBean"%>
 <%@page import="org.dspace.app.webui.components.MostViewedItem"%>
 <%@page import="org.dspace.discovery.SearchUtils"%>
 <%@page import="org.dspace.discovery.IGlobalSearchResult"%>
+<%@page import="org.dspace.browse.BrowsableDSpaceObject"%>
 <%@page import="org.dspace.core.Utils"%>
 <%@page import="org.dspace.content.Bitstream"%>
 <%@page import="org.dspace.discovery.configuration.DiscoverySearchFilter" %>
