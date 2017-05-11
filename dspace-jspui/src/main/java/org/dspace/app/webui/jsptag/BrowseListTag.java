@@ -31,13 +31,12 @@ import org.dspace.app.webui.util.ThumbDisplayStrategy;
 import org.dspace.app.webui.util.TitleDisplayStrategy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.CrossLinks;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -63,7 +62,7 @@ public class BrowseListTag extends TagSupport
     private static final Logger log = Logger.getLogger(BrowseListTag.class);
 
     /** Items to display */
-    private List<BrowseDSpaceObject> items;
+    private List<BrowsableDSpaceObject> items;
 
     /** Row to highlight, -1 for no row */
     private int highlightRow = -1;
@@ -610,7 +609,7 @@ public class BrowseListTag extends TagSupport
             out.print("</tr>");
             int i = 0;
             // now output each item row
-            for (BrowseDSpaceObject item : items)
+            for (BrowsableDSpaceObject item : items)
             {
                 out.print("<tr>");
                 // now prepare the XHTML frag for this division
@@ -663,7 +662,7 @@ public class BrowseListTag extends TagSupport
                     if (schema.equalsIgnoreCase("extra")) {
                     	
                     	String val = null;
-                    	Object obj = item.extraInfo.get(element);
+                    	Object obj = item.getExtraInfo().get(element);
 						if (obj != null) {
 							val = String.valueOf(obj);
 						}
@@ -843,7 +842,7 @@ public class BrowseListTag extends TagSupport
      * 
      * @return the items
      */
-    public List<BrowseDSpaceObject> getItems()
+    public List<BrowsableDSpaceObject> getItems()
     {
         return items;
     }
@@ -854,7 +853,7 @@ public class BrowseListTag extends TagSupport
      * @param itemsIn
      *            the items
      */
-    public void setItems(List<BrowseDSpaceObject> itemsIn)
+    public void setItems(List<BrowsableDSpaceObject> itemsIn)
     {
         items = itemsIn;
     }

@@ -124,7 +124,7 @@ public class DSpaceFeedGenerator extends AbstractGenerator
     private DSpaceValidity validity = null;
     
     /** The cache of recently submitted items */
-    private List<BrowseDSpaceObject> recentSubmissionItems;
+    private List<BrowsableDSpaceObject> recentSubmissionItems;
 
     protected AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
     protected HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
@@ -267,11 +267,7 @@ public class DSpaceFeedGenerator extends AbstractGenerator
     {
         if (recentSubmissionItems != null)
         {
-        	List<BrowsableDSpaceObject> bb = new ArrayList<>();
-        	for(BrowseDSpaceObject bbb : recentSubmissionItems) {
-        		bb.add(bbb.getBrowsableDSpaceObject());
-        	}
-            return bb;
+            return recentSubmissionItems;
         }
 
         String source = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("recent.submissions.sort-option");
@@ -300,17 +296,17 @@ public class DSpaceFeedGenerator extends AbstractGenerator
             }
 
             BrowseEngine be = new BrowseEngine(context, context.getCurrentLocale().toString());
-            List<BrowseDSpaceObject> browseItemResults = be.browseMini(scope).getBrowseItemResults();
+            List<BrowsableDSpaceObject> browseItemResults = be.browseMini(scope).getBrowseItemResults();
             this.recentSubmissionItems = browseItemResults;
 
             // filter out Items that are not world-readable
             if (!includeRestrictedItems)
             {
                 List<BrowsableDSpaceObject> result = new ArrayList<BrowsableDSpaceObject>();
-                for (BrowseDSpaceObject item : this.recentSubmissionItems)
+                for (BrowsableDSpaceObject item : this.recentSubmissionItems)
                 {
                 checkAccess:
-                    for (Group group : authorizeService.getAuthorizedGroups(context, (AuthorizableEntity)item.getBrowsableDSpaceObject(), Constants.READ))
+                    for (Group group : authorizeService.getAuthorizedGroups(context, (AuthorizableEntity)item, Constants.READ))
                     {
                         if ((group.getName().equals(Group.ANONYMOUS)))
                         {
@@ -320,7 +316,7 @@ public class DSpaceFeedGenerator extends AbstractGenerator
                     }
                 }
             	for(BrowsableDSpaceObject bbb : result) {
-            		 this.recentSubmissionItems.add(new BrowseDSpaceObject(context, bbb));
+            		 this.recentSubmissionItems.add(bbb);
             	}
             }
         }
@@ -332,11 +328,7 @@ public class DSpaceFeedGenerator extends AbstractGenerator
         {
             log.error("Caught sort exception", e);
         }
-    	List<BrowsableDSpaceObject> bb = new ArrayList<>();
-    	for(BrowseDSpaceObject bbb : recentSubmissionItems) {
-    		bb.add(bbb.getBrowsableDSpaceObject());
-    	}
-    	return bb;
+    	return recentSubmissionItems;
     }
     
     /**

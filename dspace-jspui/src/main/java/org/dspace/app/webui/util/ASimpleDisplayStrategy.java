@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
@@ -36,7 +37,7 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String browseType, int colIdx, String field,
-            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
             throws JspException
     {
@@ -55,7 +56,7 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<IMetadataValue> metadataArray, BrowseDSpaceObject item,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
             throws JspException
     {

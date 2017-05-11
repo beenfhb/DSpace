@@ -10,7 +10,7 @@ package org.dspace.app.webui.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -31,7 +31,6 @@ import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
-import org.dspace.content.Item;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -242,10 +241,13 @@ public class BrowserServlet extends AbstractBrowserServlet
             // now start up a browse engine and get it to do the work for us
             BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
                     scope.getUserLocale():null);
-            BrowseInfo binfo = be.browse(scope);
-			Iterator<BrowseDSpaceObject> iterator = binfo.getBrowseItemResults().iterator();
-            
-			MetadataExport exporter = new MetadataExport(context, iterator, false);
+            BrowseInfo binfo = be.browse(scope);			
+            List<BrowseDSpaceObject> iterator = new ArrayList<>();
+            for(BrowsableDSpaceObject browseObject : binfo.getBrowseItemResults()) {
+            	BrowseDSpaceObject bdo = new BrowseDSpaceObject(context, browseObject);
+            	iterator.add(bdo);
+            }
+			MetadataExport exporter = new MetadataExport(context, iterator.iterator(), false);
 
             // Perform the export
             DSpaceCSV csv = exporter.export();

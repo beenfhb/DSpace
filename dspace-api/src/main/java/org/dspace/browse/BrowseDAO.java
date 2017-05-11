@@ -64,7 +64,7 @@ public interface BrowseDAO
      * @return  List of BrowseItem objects
      * @throws BrowseException if browse error
      */
-    public List<BrowseDSpaceObject> doQuery() throws BrowseException;
+    public List<BrowsableDSpaceObject> doQuery() throws BrowseException;
 
     /**
      * This executes a query which returns the value of the "highest" (max) value

@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
@@ -100,7 +101,7 @@ public class CrisRetrievePotentialMatchPlugin implements
                 BrowseInfo binfo = be.browse(scope);
                 log.debug("Find " + binfo.getResultCount()
                         + "item(s) in browsing...");
-                for (BrowseDSpaceObject bitem : binfo.getBrowseItemResults())
+                for (BrowsableDSpaceObject bitem : binfo.getBrowseItemResults())
                 {
                     if (!invalidIds.contains(bitem.getID()))
                     {

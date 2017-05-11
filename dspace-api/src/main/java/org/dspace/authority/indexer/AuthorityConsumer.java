@@ -8,20 +8,20 @@
 
 package org.dspace.authority.indexer;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityService;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Consumer that takes care of the indexing of authority controlled metadata fields for installed/updated items
@@ -59,7 +59,7 @@ public class AuthorityConsumer implements Consumer {
             itemsToReindex = new HashSet<>();
         }
 
-        DSpaceObject dso = event.getSubject(ctx);
+        UsageEventEntity dso = event.getSubject(ctx);
         if(dso instanceof Item){
             Item item = (Item) dso;
             if(item.isArchived()){

@@ -36,7 +36,7 @@ public class BrowseInfo
      * The results of the browse.
      * FIXME: Unable to generify due to mixed usage
      */
-    private List<BrowseDSpaceObject> results;
+    private List<BrowsableDSpaceObject> results;
 
     /**
      * The position of the first element of results within the Browse index.
@@ -514,12 +514,12 @@ public class BrowseInfo
      * @return The results of the Browse as an Item array.
      */
 	public List<Item> getItemResults(Context context) throws BrowseException {
-		List<BrowseDSpaceObject> bis = getBrowseItemResults();
+		List<BrowsableDSpaceObject> bis = getBrowseItemResults();
 		List<Item> itemList = new ArrayList<Item>();
 
-		for (BrowseDSpaceObject bi : bis) {
-			if (!(bi.getBrowsableDSpaceObject() instanceof Item)) {
-				Item item = (Item) bi.getBrowsableDSpaceObject();
+		for (BrowsableDSpaceObject bi : bis) {
+			if (bi instanceof Item) {
+				Item item = (Item) bi;
 				if (item != null) {
 					itemList.add(item);
 				}
@@ -533,7 +533,7 @@ public class BrowseInfo
      *
      * @return		the results of the browse as a BrowseItem array
      */
-    public List<BrowseDSpaceObject> getBrowseItemResults()
+    public List<BrowsableDSpaceObject> getBrowseItemResults()
     {
         return results;
     }

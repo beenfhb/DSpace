@@ -31,6 +31,7 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
@@ -74,7 +75,7 @@ public class CrisConsumer implements Consumer
 
     public void consume(Context ctx, Event event) throws Exception
     {
-        DSpaceObject dso = event.getSubject(ctx);
+        UsageEventEntity dso = event.getSubject(ctx);
         if (dso instanceof Item)
         {
             Item item = (Item) dso;

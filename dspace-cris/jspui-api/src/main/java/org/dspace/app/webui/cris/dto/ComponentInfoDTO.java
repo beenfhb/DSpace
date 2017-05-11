@@ -9,10 +9,10 @@ package org.dspace.app.webui.cris.dto;
 
 import java.util.List;
 
-import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.sort.SortOption;
 
-public class ComponentInfoDTO<T extends BrowseDSpaceObject>
+public class ComponentInfoDTO<T extends BrowsableDSpaceObject>
 {
     private String type;
 

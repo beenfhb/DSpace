@@ -19,6 +19,7 @@ import org.dspace.app.cris.deduplication.service.DedupService;
 import org.dspace.app.cris.deduplication.utils.Signature;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexEventConsumer;
@@ -35,7 +36,7 @@ public class DedupEventConsumer implements Consumer
     private static Logger log = Logger.getLogger(IndexEventConsumer.class);
 
     // collect Items, Collections, Communities that need indexing
-    private Set<DSpaceObject> objectsToUpdate = null;
+    private Set<UsageEventEntity> objectsToUpdate = null;
 
     private Set<UUID> objectsToDelete = null;
 
@@ -66,7 +67,7 @@ public class DedupEventConsumer implements Consumer
     public void consume(Context ctx, Event event) throws Exception {
 
         if (objectsToUpdate == null) {
-            objectsToUpdate = new HashSet<DSpaceObject>();
+            objectsToUpdate = new HashSet<UsageEventEntity>();
             objectsToDelete = new HashSet<UUID>();
         }
 
@@ -78,9 +79,9 @@ public class DedupEventConsumer implements Consumer
             return;
         }
 
-        DSpaceObject subject = event.getSubject(ctx);
+        UsageEventEntity subject = event.getSubject(ctx);
 
-        DSpaceObject object = event.getObject(ctx);
+        UsageEventEntity object = event.getObject(ctx);
 
 
         // If event subject is a Bundle and event was Add or Remove,
@@ -135,7 +136,7 @@ public class DedupEventConsumer implements Consumer
         }
     }
 
-    private void fillObjectToUpdate(DSpaceObject subject)
+    private void fillObjectToUpdate(UsageEventEntity subject)
     {
         if(!cache.containsKey(subject.getID())) {
             objectsToUpdate.add(subject);
@@ -199,7 +200,7 @@ public class DedupEventConsumer implements Consumer
         if (objectsToUpdate != null && objectsToDelete != null) {
 
             // update the changed Items not deleted because they were on create list
-            for (DSpaceObject iu : objectsToUpdate) {
+            for (UsageEventEntity iu : objectsToUpdate) {
                 /* we let all types through here and 
                  * allow the search DSIndexer to make 
                  * decisions on indexing and/or removal

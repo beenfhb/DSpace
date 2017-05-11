@@ -12,8 +12,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,8 +22,6 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
@@ -36,10 +32,9 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.DiscoverResult.FacetResult;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
-import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 
-public abstract class AFacetedQueryConfigurerComponent<T extends BrowseDSpaceObject>
+public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpaceObject>
         extends ASolrConfigurerComponent<T, ICrisBeanComponent> implements
         IFacetedQueryConfigurerComponent
 {

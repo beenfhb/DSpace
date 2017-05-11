@@ -10,6 +10,7 @@ package org.dspace.identifier.doi;
 import org.apache.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -56,7 +57,7 @@ public class DOIConsumer implements Consumer
             return;
         }
         
-        DSpaceObject dso = event.getSubject(ctx);
+        UsageEventEntity dso = event.getSubject(ctx);
         //FIXME
         if (!(dso instanceof Item))
         {
@@ -78,7 +79,7 @@ public class DOIConsumer implements Consumer
         
         String doi = null;
         try {
-            doi = provider.lookup(ctx, dso);
+            doi = provider.lookup(ctx, item);
         }
         catch (IdentifierNotFoundException ex)
         {
@@ -93,7 +94,7 @@ public class DOIConsumer implements Consumer
         }
         try
         {
-            provider.updateMetadata(ctx, dso, doi);
+            provider.updateMetadata(ctx, item, doi);
         }
         catch (IllegalArgumentException ex)
         {

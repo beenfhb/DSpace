@@ -17,10 +17,9 @@ import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
-import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.core.Utils;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.utils.DSpace;
@@ -36,8 +35,8 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
 			.getServiceByName("applicationService", ApplicationService.class);
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
-			String field, List<IMetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks, boolean emph) {
-		ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item).getBrowsableDSpaceObject();
+			String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject item, boolean disableCrossLinks, boolean emph) {
+		ACrisObject crisObject = (ACrisObject)item;
 		String metadata = internalDisplay(hrq, metadataArray, crisObject);
 		return metadata;
 	}
@@ -55,7 +54,7 @@ public class CrisCommunityServiceKeynoteTitleDisplayStrategy implements IDisplay
 
 	@Override
 	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
+			String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
 		return null;
 	}
 

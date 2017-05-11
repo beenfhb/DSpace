@@ -162,7 +162,7 @@ public class BrowseEngine
         dao.setOrderField(orderBy);
 
         // now run the query
-        List<BrowseDSpaceObject> results = dao.doQuery();
+        List<BrowsableDSpaceObject> results = dao.doQuery();
 
         // construct the mostly empty BrowseInfo object to pass back
         BrowseInfo browseInfo = new BrowseInfo(results, 0, scope.getResultsPerPage(), 0);
@@ -295,7 +295,7 @@ public class BrowseEngine
             dao.setLimit(scope.getResultsPerPage());
 
             // Holder for the results
-            List<BrowseDSpaceObject> results = null;
+            List<BrowsableDSpaceObject> results = null;
 
             // Does this browse have any contents?
             if (total > 0)

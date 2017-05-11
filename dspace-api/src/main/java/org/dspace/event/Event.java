@@ -18,7 +18,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
-import org.dspace.content.DSpaceObject;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -382,7 +382,7 @@ public class Event implements Serializable
      * 
      * @return DSpaceObject or null if none can be found or no object was set.
      */
-    public DSpaceObject getObject(Context context) throws SQLException
+    public UsageEventEntity getObject(Context context) throws SQLException
     {
         int type = getObjectType();
         UUID id = getObjectID();
@@ -392,7 +392,7 @@ public class Event implements Serializable
         }
         else
         {
-            return ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, id);
+            return (UsageEventEntity)ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, id);
         }
     }
 
@@ -402,9 +402,9 @@ public class Event implements Serializable
      * 
      * @return DSpaceObject or null if none can be found.
      */
-    public DSpaceObject getSubject(Context context) throws SQLException
+    public UsageEventEntity getSubject(Context context) throws SQLException
     {
-        return ContentServiceFactory.getInstance().getDSpaceObjectService(getSubjectType()).find(context, getSubjectID());
+        return (UsageEventEntity)ContentServiceFactory.getInstance().getDSpaceObjectService(getSubjectType()).find(context, getSubjectID());
     }
 
     /**

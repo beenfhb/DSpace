@@ -7,7 +7,6 @@
  */
 package org.dspace.app.webui.cris.components;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -17,13 +16,11 @@ import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.webui.cris.components.statistics.CrisStatBitstreamTopObjectComponent;
 import org.dspace.app.webui.cris.components.statistics.CrisStatTopObjectComponent;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 
 public class BrowseItemConfigurerComponent extends
-        AFacetedQueryConfigurerComponent<BrowseDSpaceObject>
+        AFacetedQueryConfigurerComponent<BrowsableDSpaceObject>
 {
 
     /** log4j logger */
@@ -31,17 +28,10 @@ public class BrowseItemConfigurerComponent extends
             .getLogger(BrowseItemConfigurerComponent.class);
 
     @Override
-    public List<BrowseDSpaceObject> getObjectFromSolrResult(DiscoverResult docs,
+    public List<BrowsableDSpaceObject> getObjectFromSolrResult(DiscoverResult docs,
             Context context) throws Exception
     {
-    	List<BrowseDSpaceObject> result = new ArrayList<>();
-        int i = 0;
-        for (BrowsableDSpaceObject obj : docs.getDspaceObjects())
-        {
-            result.add(new BrowseDSpaceObject(context, obj));
-            i++;
-        }
-        return result;
+    	return docs.getDspaceObjects();
     }
     
     @Override

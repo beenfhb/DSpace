@@ -12,6 +12,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
@@ -23,7 +24,7 @@ public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<IMetadataValue> metadataArray, BrowseDSpaceObject item, boolean disableCrossLinks, boolean emph)
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject item, boolean disableCrossLinks, boolean emph)
     {
         return getDisplay(hrq, metadataArray, item.isWithdrawn(), item.getHandle(), emph);
     }
@@ -60,7 +61,7 @@ public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
     {
         return null;

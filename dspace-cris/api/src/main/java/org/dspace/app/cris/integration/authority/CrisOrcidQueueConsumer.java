@@ -17,6 +17,7 @@ import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
@@ -36,7 +37,7 @@ public class CrisOrcidQueueConsumer implements Consumer {
 	private OrcidPreferencesUtils orcidPreferencesUtils = new DSpace().getServiceManager().getServiceByName("orcidPreferencesUtils", OrcidPreferencesUtils.class);
 
 	public void consume(Context ctx, Event event) throws Exception {
-		DSpaceObject dso = event.getSubject(ctx);
+		UsageEventEntity dso = event.getSubject(ctx);
 		if (dso instanceof Item) {
 			Item item = (Item) dso;
 			if (item.isArchived()) {

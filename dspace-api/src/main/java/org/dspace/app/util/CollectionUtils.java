@@ -44,7 +44,7 @@ public class CollectionUtils {
 			if (skipCollection && StringUtils.contains(handle, skipHandles)) {
 				continue;
 			} 
-			Community com = (Community) col.getDSpaceObjectService().getParentObject(context, col);
+			Community com = (Community) col.getCollectionService().getParentObject(context, col);
 			if (map.containsKey(com)) {
 				map.get(com).add(col);
 			} else {

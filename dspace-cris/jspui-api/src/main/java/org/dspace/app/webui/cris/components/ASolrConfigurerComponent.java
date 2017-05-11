@@ -32,7 +32,7 @@ import org.dspace.app.webui.cris.dto.ComponentInfoDTO;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
@@ -48,7 +48,7 @@ import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 import org.dspace.utils.DSpace;
 
-public abstract class ASolrConfigurerComponent<T extends BrowseDSpaceObject, IBC extends ICrisBeanComponent>
+public abstract class ASolrConfigurerComponent<T extends BrowsableDSpaceObject, IBC extends ICrisBeanComponent>
         implements ICRISComponent<IBC>
 {
 

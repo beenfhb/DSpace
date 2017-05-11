@@ -21,6 +21,7 @@ import javax.servlet.jsp.JspException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.IMetadataValue;
@@ -101,7 +102,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, int colIdx, String field,
-            List<IMetadataValue> metadataArray, BrowseDSpaceObject item,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
         try
@@ -124,7 +125,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
             boolean b, String string, int colIdx, String field,
-            List<IMetadataValue> metadataArray, BrowseDSpaceObject browseItem,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
         return null;

@@ -23,6 +23,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.Site;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -252,7 +253,7 @@ public class RDFConsumer implements Consumer
         {
             // we have to find the dso as the handle is set as detail only
             // if the event type is delete.
-            DSpaceObject dso = event.getSubject(ctx);
+        	UsageEventEntity dso = event.getSubject(ctx);
             if (dso == null)
             {
                 log.debug("Cannot find " + event.getSubjectTypeAsString() + " " 
@@ -274,8 +275,8 @@ public class RDFConsumer implements Consumer
                     return;
                 }
             }
-
-            DSOIdentifier id = new DSOIdentifier(dso, ctx);
+            
+            DSOIdentifier id = new DSOIdentifier((DSpaceObject)dso, ctx);
             // If an item gets withdrawn, a MODIFIY event is fired. We have to
             // delete the item from the triple store instead of converting it.
             // we don't have to take care for reinstantions of items as they can
@@ -385,7 +386,7 @@ public class RDFConsumer implements Consumer
                 return;
             }
 
-            DSpaceObject dso = ContentServiceFactory.getInstance().getDSpaceObjectService(id.type).find(ctx, id.id);
+            DSpaceObject dso = (DSpaceObject)ContentServiceFactory.getInstance().getDSpaceObjectService(id.type).find(ctx, id.id);
             if (dso == null)
             {
                 log.error("Cannot find " + Constants.typeText[id.type] 
