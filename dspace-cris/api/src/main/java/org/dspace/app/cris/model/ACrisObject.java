@@ -30,11 +30,10 @@ import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataValueVolatile;
+import org.dspace.content.RootObject;
 import org.dspace.content.UsageEventEntity;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.EPerson;
@@ -49,7 +48,7 @@ import it.cilea.osd.jdyna.model.Property;
 @MappedSuperclass
 public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
 		implements AuthorizableEntity, ICrisObject<P, TP>, BrowsableDSpaceObject,
-		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult, UsageEventEntity {
+		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult, UsageEventEntity, RootObject {
 
 	@Embedded
 	private SourceReference sourceReference;
