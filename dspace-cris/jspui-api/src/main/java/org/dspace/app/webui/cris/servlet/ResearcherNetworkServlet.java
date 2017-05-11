@@ -98,7 +98,7 @@ public class ResearcherNetworkServlet extends DSpaceServlet
         else
         {
             showALL = ConfigurationManager
-                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "network.connection.showexternal");
+                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "connection.showexternal");
         }
 
         String showSameDept = request.getParameter("showsamedept");
@@ -110,12 +110,12 @@ public class ResearcherNetworkServlet extends DSpaceServlet
         else
         {
             showALLDept = ConfigurationManager
-                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "network.connection.showsamedept");
+                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "connection.showsamedept");
         }
 
       
         String connection = ConfigurationManager
-                .getProperty(NetworkPlugin.CFG_MODULE, "network.connection");
+                .getProperty(NetworkPlugin.CFG_MODULE, "connection");
 
         String[] connections = connection.split(",");
         List<String> availableConnections = new LinkedList<String>();
@@ -152,7 +152,7 @@ public class ResearcherNetworkServlet extends DSpaceServlet
             max = Collections.max(maxDepths.values());
         }
         request.setAttribute("configMaxDepth",
-                ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.connection.maxdepth"));
+                ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "connection.maxdepth"));
         request.setAttribute("relations", connections);
         request.setAttribute("colorsNodes", colorsNodes);
         request.setAttribute("colorsEdges", colorsEdges);

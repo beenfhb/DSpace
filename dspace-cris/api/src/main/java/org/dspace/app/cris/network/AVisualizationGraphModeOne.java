@@ -28,7 +28,7 @@ public abstract class AVisualizationGraphModeOne extends AVisualizationGraph
     // programmatic change mode to load index (true use no pagination, false
     // paginate each 100)
     private static boolean NOT_PAGINATION = ConfigurationManager
-            .getBooleanProperty(NetworkPlugin.CFG_MODULE, "network.connection.loader.heavyload.modeone",
+            .getBooleanProperty(NetworkPlugin.CFG_MODULE, "connection.loader.heavyload.modeone",
                     true);
 
     

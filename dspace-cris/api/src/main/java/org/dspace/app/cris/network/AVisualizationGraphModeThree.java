@@ -26,7 +26,7 @@ public abstract class AVisualizationGraphModeThree extends AVisualizationGraph
     // paginate each 100)
     private static boolean NOT_PAGINATION = ConfigurationManager
             .getBooleanProperty(NetworkPlugin.CFG_MODULE, 
-                    "network.connection.loader.heavyload.modethree", true);
+                    "connection.loader.heavyload.modethree", true);
 
     @Override
     public List<VisualizationGraphNode> load(List<String[]> discardedNode,

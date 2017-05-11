@@ -75,7 +75,7 @@ public class DeptMetricsNetworkServlet extends DSpaceServlet
         List<DTOMetric> results = new ArrayList<DTOMetric>();
 
         String connection = ConfigurationManager
-                .getProperty(NetworkPlugin.CFG_MODULE, "network.connection");
+                .getProperty(NetworkPlugin.CFG_MODULE, "connection");
 
         String[] connections = connection.split(",");
         List<String> fieldsToRetrieve = new ArrayList<String>();

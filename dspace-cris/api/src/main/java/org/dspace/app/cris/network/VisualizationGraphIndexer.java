@@ -41,7 +41,7 @@ public class VisualizationGraphIndexer {
 	    if (solr != null)
             return;
 
-        String serverProperty = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE,"network.server");
+        String serverProperty = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE,"server");
         log.info("network.server:"
                 + serverProperty);
 

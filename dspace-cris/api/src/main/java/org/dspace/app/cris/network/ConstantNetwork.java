@@ -9,7 +9,7 @@ package org.dspace.app.cris.network;
 
 public class ConstantNetwork {
 	
-	public static final String CONFIG_CONNECTIONS = "network.connection";
+	public static final String CONFIG_CONNECTIONS = "connection";
 	
 	public static Integer ENTITY_PLACEHOLDER_RP = -1;
     public static Integer ENTITY_RP = 0;

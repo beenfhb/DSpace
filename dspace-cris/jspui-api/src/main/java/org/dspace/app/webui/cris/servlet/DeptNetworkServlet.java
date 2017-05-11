@@ -76,12 +76,12 @@ public class DeptNetworkServlet extends DSpaceServlet
         else
         {
             showALL = ConfigurationManager
-                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "network.connection.showexternal");
+                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "connection.showexternal");
         }
 
                                 
         String connection = ConfigurationManager
-                .getProperty(NetworkPlugin.CFG_MODULE, "network.connection");
+                .getProperty(NetworkPlugin.CFG_MODULE, "connection");
         Map<String,String> colorsNodes = new HashMap<String, String>();
         Map<String,String> colorsEdges = new HashMap<String, String>();
         Map<String,Integer> maxDepths = new HashMap<String, Integer>();
@@ -118,7 +118,7 @@ public class DeptNetworkServlet extends DSpaceServlet
         }
         
         request.setAttribute("configMaxDepth",
-                ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.connection.maxdepth"));
+                ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "connection.maxdepth"));
         request.setAttribute("relations", connections);               
         request.setAttribute("dept", dept);        
         request.setAttribute("colorsNodes", colorsNodes);

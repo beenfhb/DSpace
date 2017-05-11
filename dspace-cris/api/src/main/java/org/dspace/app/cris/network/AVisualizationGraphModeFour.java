@@ -191,12 +191,12 @@ public abstract class AVisualizationGraphModeFour extends AVisualizationGraph
     public int getFacetLimit()
     {
         int result = ConfigurationManager
-                .getIntProperty(NetworkPlugin.CFG_MODULE, "network.connection.loader.limitnode."
+                .getIntProperty(NetworkPlugin.CFG_MODULE, "connection.loader.limitnode."
                         + getType());
         if (result == 0)
         {
             result = ConfigurationManager
-                    .getIntProperty(NetworkPlugin.CFG_MODULE, "network.connection.loader.limitnode.default");
+                    .getIntProperty(NetworkPlugin.CFG_MODULE, "connection.loader.limitnode.default");
         }
         return result;
     }
