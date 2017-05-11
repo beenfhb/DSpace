@@ -58,29 +58,29 @@ public class RPResourcePolicyListener implements PostUpdateEventListener,
         log.debug("Call onPostDelete " + RPResourcePolicyListener.class);
 
         ResearcherPage cris = (ResearcherPage) object;
-
-        Context context = null;
-        try
-        {
-            context = new Context();
-            context.turnOffAuthorisationSystem();
-            delete(null, cris.getId(), context);
-            context.complete();
-        }
-        catch (Exception e)
-        {
-            log.error(
-                    "Failed to delete resource policy attached to RP just deleted"
-                            + cris.getPublicPath() + " uuid:" + cris.getUuid());
-            emailException(e);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
+//		  TODO manage with CrisAuthorizeManager
+//        Context context = null;
+//        try
+//        {
+//            context = new Context();
+//            context.turnOffAuthorisationSystem();
+//            delete(null, cris.getId(), context);
+//            context.complete();
+//        }
+//        catch (Exception e)
+//        {
+//            log.error(
+//                    "Failed to delete resource policy attached to RP just deleted"
+//                            + cris.getPublicPath() + " uuid:" + cris.getUuid());
+//            emailException(e);
+//        }
+//        finally
+//        {
+//            if (context != null && context.isValid())
+//            {
+//                context.abort();
+//            }
+//        }
         log.debug("End onPostDelete " + RPResourcePolicyListener.class);
     }
 
@@ -88,16 +88,17 @@ public class RPResourcePolicyListener implements PostUpdateEventListener,
             throws SQLException
     {
 
-        if (epersonID == null)
-        {
-        	getHibernateSession(context).createSQLQuery(
-                    QUERY_DELETE_WITHOUT_EPERSON).setParameter(0, rpID).executeUpdate();
-        }
-        else
-        {
-        	getHibernateSession(context).createSQLQuery(
-                    QUERY_DELETE_WITH_EPERSON).setParameter(0, epersonID).setParameter(1, rpID).executeUpdate();
-        }
+//		  TODO manage with CrisAuthorizeManager
+//        if (epersonID == null)
+//        {
+//        	getHibernateSession(context).createSQLQuery(
+//                    QUERY_DELETE_WITHOUT_EPERSON).setParameter(0, rpID).executeUpdate();
+//        }
+//        else
+//        {
+//        	getHibernateSession(context).createSQLQuery(
+//                    QUERY_DELETE_WITH_EPERSON).setParameter(0, epersonID).setParameter(1, rpID).executeUpdate();
+//        }
     }
 
     @Override
@@ -114,36 +115,37 @@ public class RPResourcePolicyListener implements PostUpdateEventListener,
 
         ResearcherPage cris = (ResearcherPage) object;
 
-        Context context = null;
-        try
-        {
-            context = new Context();
-            context.turnOffAuthorisationSystem();
+//        Context context = null;
+//        try
+//        {
+//            context = new Context();
+//            context.turnOffAuthorisationSystem();
             if (cris.getEpersonID() != null)
             {
-                ResourcePolicy resourcePolicy = AuthorizeServiceFactory.getInstance().getResourcePolicyService().create(context);
-                resourcePolicy.setAction(Constants.ADMIN);
-                resourcePolicy.setEPerson(cris.getDspaceUser());
-                resourcePolicy.setdSpaceObject(cris);
-                AuthorizeServiceFactory.getInstance().getResourcePolicyService().update(context, resourcePolicy);
+//				  TODO manage with CrisAuthorizeManager            	
+//                ResourcePolicy resourcePolicy = AuthorizeServiceFactory.getInstance().getResourcePolicyService().create(context);
+//                resourcePolicy.setAction(Constants.ADMIN);
+//                resourcePolicy.setEPerson(cris.getDspaceUser());
+//                resourcePolicy.setdSpaceObject(cris);
+//                AuthorizeServiceFactory.getInstance().getResourcePolicyService().update(context, resourcePolicy);
             }
-            context.complete();
+//            context.complete();
             cris.setOldEpersonID(cris.getEpersonID());
-        }
-        catch (Exception e)
-        {
-            log.error(
-                    "Failed to delete resource policy attached to RP just deleted"
-                            + cris.getPublicPath() + " uuid:" + cris.getUuid());
-            emailException(e);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
+//        }
+//        catch (Exception e)
+//        {
+//            log.error(
+//                    "Failed to delete resource policy attached to RP just deleted"
+//                            + cris.getPublicPath() + " uuid:" + cris.getUuid());
+//            emailException(e);
+//        }
+//        finally
+//        {
+//            if (context != null && context.isValid())
+//            {
+//                context.abort();
+//            }
+//        }
         log.debug("End onPostInsert " + RPResourcePolicyListener.class);
     }
 
@@ -162,11 +164,11 @@ public class RPResourcePolicyListener implements PostUpdateEventListener,
 
         ResearcherPage cris = (ResearcherPage) object;
 
-        Context context = null;
-        try
-        {
-            context = new Context();
-            context.turnOffAuthorisationSystem();
+//        Context context = null;
+//        try
+//        {
+//            context = new Context();
+//            context.turnOffAuthorisationSystem();
             if ((cris.getOldEpersonID() != null
                     && !cris.getOldEpersonID().equals(cris.getEpersonID()))
                     || (cris.getOldEpersonID() == null
@@ -174,35 +176,36 @@ public class RPResourcePolicyListener implements PostUpdateEventListener,
             {
                 if (cris.getEpersonID() != null)
                 {
-                    ResourcePolicy resourcePolicy = AuthorizeServiceFactory.getInstance().getResourcePolicyService()
-                            .create(context);
-                    resourcePolicy.setAction(Constants.ADMIN);
-                    resourcePolicy.setEPerson(cris.getDspaceUser());
-                    resourcePolicy.setdSpaceObject((AuthorizableEntity)cris);
-                    AuthorizeServiceFactory.getInstance().getResourcePolicyService().update(context, resourcePolicy);
+//  				  TODO manage with CrisAuthorizeManager
+//                    ResourcePolicy resourcePolicy = AuthorizeServiceFactory.getInstance().getResourcePolicyService()
+//                            .create(context);
+//                    resourcePolicy.setAction(Constants.ADMIN);
+//                    resourcePolicy.setEPerson(cris.getDspaceUser());
+//                    resourcePolicy.setdSpaceObject((AuthorizableEntity)cris);
+//                    AuthorizeServiceFactory.getInstance().getResourcePolicyService().update(context, resourcePolicy);
                 }
-                if (cris.getOldEpersonID() != null)
-                {
-                    delete(cris.getOldEpersonID(), cris.getId(), context);
-                }
+//                if (cris.getOldEpersonID() != null)
+//                {
+//                    delete(cris.getOldEpersonID(), cris.getId(), context);
+//                }
                 cris.setOldEpersonID(cris.getEpersonID());
             }
-            context.complete();
-        }
-        catch (Exception e)
-        {
-            log.error(
-                    "Failed to delete resource policy attached to RP just deleted"
-                            + cris.getPublicPath() + " uuid:" + cris.getUuid());
-            emailException(e);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
+//            context.complete();
+//        }
+//        catch (Exception e)
+//        {
+//            log.error(
+//                    "Failed to delete resource policy attached to RP just deleted"
+//                            + cris.getPublicPath() + " uuid:" + cris.getUuid());
+//            emailException(e);
+//        }
+//        finally
+//        {
+//            if (context != null && context.isValid())
+//            {
+//                context.abort();
+//            }
+//        }
         log.debug("End onPostUpdate " + RPResourcePolicyListener.class);
     }
 

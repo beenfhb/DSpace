@@ -195,7 +195,8 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     }
 
     public void setdSpaceObject(AuthorizableEntity dSpaceObject) {
-    	if(dSpaceObject.getType()>9) {
+    	//FIXME BTW maybe is usefull manage a CrisObject to build authorize with CrisAuthorizeManager
+    	if(dSpaceObject.getType()>=9) {
     		this.resourceId = dSpaceObject.getLegacyId();
     	}
     	else {
@@ -359,5 +360,21 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
         // if we made it this far, start < now < end
         return true; // date must be okay
     }
+
+	public int getResourceTypeId() {
+		return resourceTypeId;
+	}
+
+	public void setResourceTypeId(int resourceTypeId) {
+		this.resourceTypeId = resourceTypeId;
+	}
+
+	public int getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(int resourceId) {
+		this.resourceId = resourceId;
+	}
 
 }

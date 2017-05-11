@@ -107,7 +107,8 @@ public class FormRelationManagementController extends BaseFormController
     {
         Context context = UIUtil.obtainContext(request);
         ACrisObject cris = getCRISObject(request);
-        AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(context, cris, Constants.ADMIN, false);
+        //TODO manage with CrisAuthorizeManager
+        //AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(context, cris, Constants.ADMIN, false);
         
         String relationType = getRelationType(request);
         Map<String, Object> data = new HashMap<String, Object>();

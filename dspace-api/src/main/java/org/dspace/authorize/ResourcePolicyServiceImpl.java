@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.dspace.authorize.dao.ResourcePolicyDAO;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.RootObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -313,7 +314,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService
             context.turnOffAuthorisationSystem();
             for (AuthorizableEntity dSpaceObject : relatedDSpaceObjects) {
                 //A policy for a DSpace Object has been modified, fire a modify event on the DSpace object
-            	contentServiceFactory.getDSpaceObjectService(dSpaceObject.getType()).updateLastModified(context, (DSpaceObject)dSpaceObject);
+            	contentServiceFactory.getRootObjectService(dSpaceObject.getType()).updateLastModified(context, (RootObject)dSpaceObject);
             }
             context.restoreAuthSystemState();
         }
