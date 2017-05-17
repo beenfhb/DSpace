@@ -40,7 +40,7 @@ public class CrisSolrServiceResourceRestrictionPlugin implements CrisServiceInde
 		
 		Context context = new Context();
 		try {
-			sorlDoc.addField("read", EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS).getID().toString());
+			sorlDoc.addField("read", "g" + EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS).getID().toString());
 		} catch (SQLException e) {
 			log.error(e.getMessage(),e);
 		}
