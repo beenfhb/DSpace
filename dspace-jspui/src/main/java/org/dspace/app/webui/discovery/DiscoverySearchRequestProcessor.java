@@ -356,7 +356,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 			List<Collection> resultsListColl = new ArrayList<Collection>();
 			List<Item> resultsListItem = new ArrayList<Item>();
 
-			Map<Integer, List<BrowseDSpaceObject>> resultsListOther = new HashMap<Integer, List<BrowseDSpaceObject>>();
+			Map<Integer, List<BrowsableDSpaceObject>> resultsMapOthers = new HashMap<Integer, List<BrowsableDSpaceObject>>();
 
 			for (BrowsableDSpaceObject dso : qResults.getDspaceObjects()) {
 				if (dso instanceof Item) {
@@ -367,23 +367,15 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 				} else if (dso instanceof Community) {
 					resultsListComm.add((Community) dso);
 				} else if (dso instanceof BrowsableDSpaceObject) {
-					List<BrowseDSpaceObject> currList = resultsListOther.get(dso.getType());
+					List<BrowsableDSpaceObject> currList = resultsMapOthers.get(dso.getType());
 					if (currList != null) {
-						currList.add(new BrowseDSpaceObject(context, (BrowsableDSpaceObject) dso));
+						currList.add(dso);
 					} else {
-						List<BrowseDSpaceObject> newlist = new ArrayList<BrowseDSpaceObject>();
-						resultsListOther.put(dso.getType(), newlist);
-						newlist.add(new BrowseDSpaceObject(context, (BrowsableDSpaceObject) dso));
+						List<BrowsableDSpaceObject> newlist = new ArrayList<BrowsableDSpaceObject>();
+						resultsMapOthers.put(dso.getType(), newlist);
+						newlist.add(dso);
 					}
 				}
-			}
-
-			// Make objects from the handles - make arrays, fill them out
-			Map<Integer, BrowseDSpaceObject[]> resultsMapOthers = new HashMap<Integer, BrowseDSpaceObject[]>();
-			for (Integer key : resultsListOther.keySet()) {
-				BrowseDSpaceObject[] resultsOther = new BrowseDSpaceObject[resultsListOther.get(key).size()];
-				resultsOther = resultsListOther.get(key).toArray(resultsOther);
-				resultsMapOthers.put(key, resultsOther);
 			}
 
 			// Log

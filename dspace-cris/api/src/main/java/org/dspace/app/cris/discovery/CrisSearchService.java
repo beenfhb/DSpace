@@ -173,40 +173,15 @@ public class CrisSearchService extends SolrServiceImpl
         Integer type = (Integer) doc.getFirstValue("search.resourcetype");
         if (type != null && type >= CrisConstants.CRIS_TYPE_ID_START)
         {
-            Integer id = (Integer) doc.getFirstValue("search.resourceid");
-            ACrisObject o = null;
-            if (type > CrisConstants.CRIS_DYNAMIC_TYPE_ID_START)
-            {
-                o = getApplicationService()
-                .get(ResearchObject.class, id);
-            }
-            else
-            {
-                switch (type)
-                {
-                case CrisConstants.RP_TYPE_ID:
-                	o = getApplicationService()
-                            .get(ResearcherPage.class, id);
-                	break;
-
-                case CrisConstants.PROJECT_TYPE_ID:
-                	o = getApplicationService().get(Project.class, id);
-                	break;
-
-                case CrisConstants.OU_TYPE_ID:
-                	o = getApplicationService().get(OrganizationUnit.class,
-                            id);
-                	break;
-
-                default:
-                	o = null;
-                }
-            }
+            String uuid = (String) doc.getFirstValue("search.resourceid");
+            ACrisObject o = getApplicationService().getEntityByUUID(uuid);
             
             if (o != null)
             {
             	for (String f : doc.getFieldNames()) {
-            		o.getExtraInfo().put(f, doc.getFirstValue(f));
+            		Map<String, Object> map = o.getExtraInfo();
+            		Object firstValue = doc.getFirstValue(f);
+					map.put(f, firstValue);
                 }
             }
             return o;
@@ -728,7 +703,7 @@ public class CrisSearchService extends SolrServiceImpl
         doc.addField("disabled", disabled);
         doc.addField("discoverable", !disabled);// item.isDiscoverable());
         
-        doc.addField("read", "g0");        
+//        doc.addField("read", "g0");        
         doc.addField("cris-uuid", uuid);
     }
 

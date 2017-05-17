@@ -33,7 +33,6 @@
   -   admin_button     - If the user is an admin
   --%>
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@page import="org.dspace.app.cris.model.ACrisObject" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
     prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core"
@@ -44,13 +43,12 @@
 <%@ page import="org.dspace.content.Community"   %>
 <%@ page import="org.dspace.content.Collection"  %>
 <%@ page import="org.dspace.content.Item"        %>
-<%@ page import="org.dspace.search.QueryResults" %>
 <%@ page import="org.dspace.sort.SortOption" %>
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
 <%@page import="org.dspace.browse.BrowseInfo"%>
-<%@page import="org.dspace.browse.BrowseDSpaceObject"%>
+<%@page import="org.dspace.browse.BrowsableDSpaceObject"%>
 <%@page import="org.dspace.core.Utils"%>
 <%@page import="com.coverity.security.Escape"%>
 <%@page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
@@ -67,6 +65,7 @@
 <%@page import="org.dspace.discovery.DiscoverResult.FacetResult"%>
 <%@page import="org.dspace.discovery.DiscoverResult"%>
 <%@page import="org.dspace.content.DSpaceObject"%>
+<%@page import="org.dspace.app.cris.model.ACrisObject" %>
 <%@page import="java.util.List"%>
 <%
     // Get the attributes
@@ -138,10 +137,10 @@
 	String cfg = ConfigurationManager.getProperty("exportcitation.options");
 
 	DiscoverResult qResults = (DiscoverResult)request.getAttribute("queryresults");
-	Item      [] items       = (Item[]      )request.getAttribute("items");
-	Community [] communities = (Community[] )request.getAttribute("communities");
-	Collection[] collections = (Collection[])request.getAttribute("collections");
-	Map<Integer, BrowseDSpaceObject[]> mapOthers = (Map<Integer, BrowseDSpaceObject[]>) request.getAttribute("resultsMapOthers");
+	List<Item> items       = (List<Item>)request.getAttribute("items");
+	List<Community> communities = (List<Community> )request.getAttribute("communities");
+	List<Collection> collections = (List<Collection>)request.getAttribute("collections");
+	Map<Integer, List<BrowsableDSpaceObject>> mapOthers = (Map<Integer, List<BrowsableDSpaceObject>>) request.getAttribute("resultsMapOthers");
 	
 	boolean brefine = false;
 	
@@ -628,7 +627,7 @@ else if( qResults != null)
            for (Integer otype : otherTypes)
            {
                %>
-               <c:set var="typeName"><%= ((ACrisObject) mapOthers.get(otype)[0].getBrowsableDSpaceObject()).getPublicPath() %></c:set>
+               <c:set var="typeName"><%= ((ACrisObject) mapOthers.get(otype).get(0)).getPublicPath() %></c:set>
                <div class="panel panel-info">
                <div class="panel-heading"><h6><fmt:message key="jsp.search.results.cris.${typeName}"/></h6></div>
                <dspace:browselist config="cris${typeName}" items="<%= mapOthers.get(otype) %>"  order="<%= order %>" sortBy="<%= sortIdx %>" />
@@ -637,7 +636,7 @@ else if( qResults != null)
            }
        }
 %>
-<% if (communities.length > 0 ) { %>
+<% if (communities.size() > 0 ) { %>
     <div class="panel panel-info">
     <div class="panel-heading"><fmt:message key="jsp.search.results.comhits"/></div>
     <dspace:communitylist  communities="<%= communities %>" />

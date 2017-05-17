@@ -166,7 +166,7 @@ public class ScriptPushOrcid {
 					log.info("...it will work on all researcher...");
 					SolrQuery query = new SolrQuery("*:*");
 					query.addFilterQuery("{!field f=search.resourcetype}" + CrisConstants.RP_TYPE_ID);
-					query.setFields("search.resourceid", "search.resourcetype");
+					query.setFields("search.resourceid", "search.resourcetype", "cris-id");
 					query.setRows(Integer.MAX_VALUE);
 					rps = new ArrayList<ResearcherPage>();
 					try {
@@ -175,8 +175,9 @@ public class ScriptPushOrcid {
 						Iterator<SolrDocument> solrDoc = docList.iterator();
 						while (solrDoc.hasNext()) {
 							SolrDocument doc = solrDoc.next();
-							Integer rpId = (Integer) doc.getFirstValue("search.resourceid");
-							rps.add(applicationService.get(ResearcherPage.class, rpId));
+	                        String rpId = (String) doc
+	                                .getFirstValue("cris-id");
+	                        rps.add(applicationService.getEntityByCrisId(rpId, ResearcherPage.class));
 						}
 					} catch (SearchServiceException e) {
 						log.error("Error retrieving documents", e);

@@ -80,12 +80,12 @@ public abstract class AVisualizationGraphModeThree extends AVisualizationGraph
 
                 result = new ArrayList<VisualizationGraphNode>();
 
-                Integer pubId = null;
+                String pubId = null;
                 try
                 {
                     SolrDocument publication = iter.next();
 
-                    pubId = (Integer) publication
+                    pubId = (String) publication
                             .getFieldValue("search.resourceid");
 
                     Object obj = publication

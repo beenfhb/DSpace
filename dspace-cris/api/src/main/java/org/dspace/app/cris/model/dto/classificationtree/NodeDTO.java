@@ -9,7 +9,7 @@ package org.dspace.app.cris.model.dto.classificationtree;
 
 public class NodeDTO {
 
-	private Integer id;
+	private String id;
 	
 	private String parent;
 
@@ -19,11 +19,11 @@ public class NodeDTO {
 	
 	private StateDTO state = new StateDTO();
 	
-	public Integer getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

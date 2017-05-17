@@ -79,7 +79,7 @@ public class CrisClassificationTreeController extends ParameterizableViewControl
 	            {
 	            	String authority = (String)doc.getFirstValue(metadataBuilderSolr);
 	            	String nodeName= (String)doc.getFirstValue(nameField);
-	            	Integer nodeId = (Integer)doc.getFirstValue("search.resourceid");
+	            	String nodeId = (String)doc.getFirstValue("search.resourceid");
 	            	
 	            	SolrQuery queryInternal = new SolrQuery();
 	            	queryInternal.setQuery(fieldInternalSearch+":"+authority);
@@ -89,8 +89,7 @@ public class CrisClassificationTreeController extends ParameterizableViewControl
 		            String parentId = null;
 		            for (SolrDocument docInternal : resultsInternalSolr)
 		            {
-		            	Integer parentIdInteger = (Integer)docInternal.getFirstValue("search.resourceid");
-		            	parentId = ""+parentIdInteger;
+		            	parentId = (String)docInternal.getFirstValue("search.resourceid");
 		            	break;		            	
 		            }
 		            

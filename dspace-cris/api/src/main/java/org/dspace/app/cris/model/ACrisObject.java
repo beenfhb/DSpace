@@ -21,6 +21,7 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.model.export.ExportConstants;
@@ -50,7 +51,10 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 		implements AuthorizableEntity, ICrisObject<P, TP>, BrowsableDSpaceObject,
 		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult, UsageEventEntity, RootObject {
 
-	@Embedded
+	@Transient
+	private Map<String, Object> extraInfo = new HashMap<>();
+	
+ 	@Embedded
 	private SourceReference sourceReference;
 
 	/** Cris public unique identifier, must be null */
@@ -438,8 +442,10 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 
 	@Override
 	public Map<String, Object> getExtraInfo() {
-		// TODO Auto-generated method stub
-		return null;
+		if(extraInfo==null) {
+			extraInfo = new HashMap<>();
+		}
+		return extraInfo;
 	}
 	
 	@Override
