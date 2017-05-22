@@ -37,7 +37,7 @@
    	-->
    	</script>   
 <!-- html deduplication -->
-<% if (ConfigurationManager.getBooleanProperty("deduplication", "deduplication.submission.feature",false)) {%>
+<% if (ConfigurationManager.getBooleanProperty("deduplication", "submission.feature",false)) {%>
 
 <div class="modal fade" id="duplicateboxignoremsg" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">

@@ -9,7 +9,7 @@
 --%>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
 <!-- javascript deduplication -->
-		<% if (ConfigurationManager.getBooleanProperty("deduplication","deduplication.submission.feature",false)) {%>
+		<% if (ConfigurationManager.getBooleanProperty("deduplication","submission.feature",false)) {%>
 			
 			j("#duplicatebox").modal({show: false});
 			
@@ -61,6 +61,6 @@
 				j('#duplicateboxignoremsg .modal-body .alert-danger').addClass("hidden");
 			});
 			
-			checkDuplicates(<%= item.getID() %>, <%= item.getType() %>, <%= si.isInWorkflow() || si.isEditing() %>);
+			checkDuplicates('<%= item.getID() %>', <%= item.getType() %>, <%= si.isInWorkflow() || si.isEditing() %>);
 			 
 		<% } %>

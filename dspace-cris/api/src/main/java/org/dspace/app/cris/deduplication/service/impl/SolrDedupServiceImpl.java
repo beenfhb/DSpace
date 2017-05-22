@@ -830,7 +830,7 @@ public class SolrDedupServiceImpl implements DedupService
 
     private void startMultiThreadIndex(Context context, boolean onlyFake, List<UUID> ids) throws SQLException
     {
-        int numThreads = ConfigurationManager.getIntProperty("dedup",
+        int numThreads = ConfigurationManager.getIntProperty("deduplication",
                 "indexer.items.threads", 5);
         
         if(ids==null) {

@@ -207,11 +207,13 @@ public class DedupEventConsumer implements Consumer
                  */
                 if (!objectsToDelete.contains(iu.getID())) {
                     try {
-                        indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true);
-                        log.debug("Indexed "
-                                + Constants.typeText[iu.getType()]
-                                + ", id=" + String.valueOf(iu.getID())                                
-                                + ", handle (if exist)=" + iu.getHandle());
+                    	if(iu instanceof BrowsableDSpaceObject) {
+	                        indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true);
+	                        log.debug("Indexed "
+	                                + Constants.typeText[iu.getType()]
+	                                + ", id=" + String.valueOf(iu.getID())                                
+	                                + ", handle (if exist)=" + iu.getHandle());
+                    	}
                     }
                     catch (Exception e) {
                         log.error("Failed while indexing object: ", e);
