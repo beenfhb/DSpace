@@ -28,8 +28,8 @@ public class ViewResolver
         
         DSpaceObject dso = DSpaceObject.find(context, typeID, itemID);
         
-        SimpleViewEntityDTO dto = new SimpleViewEntityDTO(context, itemID, typeID);        
-        dto.setEntityID(dso.getID());
+        SimpleViewEntityDTO dto = new SimpleViewEntityDTO(context, itemID.toString(), typeID);        
+        dto.setEntityID(dso.getID().toString());
         dto.setEntityTypeID(dso.getType());
         for(String mm : metadata) {
             dto.getDuplicateItem().put(mm, dso.getMetadataValue(mm));

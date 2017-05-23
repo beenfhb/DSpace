@@ -194,7 +194,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         for(IMetadataValue val : metadataValues) {
         	results.add(val.getValue());
         }
-        return null;
+        return results;
     }
     
     @Override

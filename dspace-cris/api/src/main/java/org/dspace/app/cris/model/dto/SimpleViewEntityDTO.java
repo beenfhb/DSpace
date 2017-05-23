@@ -22,7 +22,7 @@ public class SimpleViewEntityDTO
 
     private String handle;
     
-    private UUID entityID;
+    private String entityID;
 
     private Integer entityTypeID;
 
@@ -43,7 +43,7 @@ public class SimpleViewEntityDTO
      */
     private Locale locale;
 
-    public SimpleViewEntityDTO(Context context, UUID itemID, int typeID)
+    public SimpleViewEntityDTO(Context context, String itemID, int typeID)
     {    
         this.locale = context.getCurrentLocale();
         this.setEntityID(itemID);
@@ -64,12 +64,12 @@ public class SimpleViewEntityDTO
         this.duplicateItem = duplicateItem;
     }
 
-    public UUID getEntityID()
+    public String getEntityID()
     {
         return entityID;
     }
 
-    public void setEntityID(UUID entityID)
+    public void setEntityID(String entityID)
     {
         this.entityID = entityID;
     }

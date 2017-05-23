@@ -636,44 +636,33 @@ public class UIUtil extends Util
     
     public static String[] getUITableColumn(String module, String tab)
     {
-        String configuration = ConfigurationManager.getProperty(module,
+        String[] configuration = ConfigurationManager.getArrayProperty(module,
                 tab + ".columns");
         if (configuration == null)
         {
-            configuration = ConfigurationManager.getProperty("table",
+            configuration = ConfigurationManager.getArrayProperty("table",
                     "default.columns");
             if (configuration == null) {
                 return new String[0];
             }
         }
-        String[] columns = configuration.split(",");
-        
-        List<String> colList = new ArrayList<String>();
-
-        for(String col : columns){
-            colList.add(col);
-        }
-        
-        String[] result = new String[colList.size()];
-        result = colList.toArray(result);
-        return result;
+        return configuration;
     }
     
     public static String[] getUIHiddenColumns(String module, String tab)
     {
-        String configuration = ConfigurationManager.getProperty(module,
+        String[] configuration = ConfigurationManager.getArrayProperty(module,
                 tab + ".hidden.columns");
         if (configuration == null)
         {
-            configuration = ConfigurationManager.getProperty("table",
+            configuration = ConfigurationManager.getArrayProperty("table",
                     "default.hidden.columns");
             if (configuration == null)
             {
                return new String[0];
             }            
         }
-        String[] result = configuration.trim().split(",");
-        return result;
+        return configuration;
     }
 
     public static String getUITableRenderingColumn(String module, String tab,

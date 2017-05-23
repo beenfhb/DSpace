@@ -85,7 +85,7 @@ function checkDuplicates(itemID, typeID, check)
 			"fnDrawCallback": function( oSettings ) {				
 				fnDraCallbackDedup(itemID, typeID, check);
 			 },
-			"sAjaxSource": dspaceContextPath+"/json/duplicate?itemid='"+itemID+"'&check="+check+"&typeid="+typeID,
+			"sAjaxSource": dspaceContextPath+"/json/duplicate?itemid="+itemID+"&check="+check+"&typeid="+typeID,
 			"fnServerData": fnServerObjectToArrayDedup("duplicateboxtable", typeID, check),
 			"aoColumns": DUPLICATION_COL
 		} );

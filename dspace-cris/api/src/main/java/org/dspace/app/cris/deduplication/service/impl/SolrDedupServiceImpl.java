@@ -935,7 +935,7 @@ public class SolrDedupServiceImpl implements DedupService
 
         try
         {
-        	List<CrisDeduplication> tri = getHibernateSession(ctx).createQuery("select * from CrisDeduplication where (first_item_id = :par0 or second_item_id = :par1)").setParameter(0, iu.getID()).setParameter(1, iu.getID()).list();
+        	List<CrisDeduplication> tri = getHibernateSession(ctx).createQuery("from CrisDeduplication where (first_item_id = :par0 or second_item_id = :par1)").setParameter(0, iu.getID()).setParameter(1, iu.getID()).list();
 
             for (CrisDeduplication row : tri) 
             {

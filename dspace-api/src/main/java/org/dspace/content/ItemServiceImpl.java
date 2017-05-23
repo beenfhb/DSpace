@@ -27,6 +27,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.dao.ItemDAO;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -49,6 +50,7 @@ import org.dspace.identifier.service.IdentifierService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItemService;
+import org.dspace.workflow.factory.WorkflowServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -1132,6 +1134,17 @@ prevent the generation of resource policy entry values with null dspace_object a
         }
         else
         {
+            InProgressSubmission inprogress = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context,
+                    item);
+            if (inprogress == null)
+            {
+                inprogress = WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context, item);
+            }
+
+            if (inprogress != null)
+            {
+            	return inprogress.getCollection();
+            }
             // is a template item?
             return item.getTemplateItemOf();
         }
