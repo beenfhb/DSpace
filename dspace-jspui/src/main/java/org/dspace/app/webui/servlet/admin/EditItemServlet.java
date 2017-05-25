@@ -511,6 +511,9 @@ public class EditItemServlet extends DSpaceServlet
 
         // Collections
         List<Collection> collections = item.getCollections();
+        if(collections.isEmpty()) {
+        	collections.add((Collection)item.getParentObject());
+        }
 
         // All DC types in the registry
         List<MetadataField> types = metadataFieldService.findAll(context);

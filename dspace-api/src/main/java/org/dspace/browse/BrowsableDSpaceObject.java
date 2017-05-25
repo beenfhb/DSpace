@@ -8,6 +8,7 @@
 package org.dspace.browse;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -37,4 +38,6 @@ public interface BrowsableDSpaceObject extends IGlobalSearchResult
 	public BrowsableDSpaceObject getParentObject();
 	
 	public String getMetadataFirstValue(String schema, String element, String qualifier, String language);
+	
+	public Date getLastModified();
 }

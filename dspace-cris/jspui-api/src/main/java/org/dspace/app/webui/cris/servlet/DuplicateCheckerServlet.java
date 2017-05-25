@@ -666,7 +666,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                         
                         
                         getHibernateSession(context).createSQLQuery(
-                                "DELETE FROM CrisDedupliaction WHERE first_item_id = :par0 OR second_item_id = :par1").setParameter(0, remove).setParameter(1, remove).executeUpdate();
+                                "DELETE FROM cris_deduplication WHERE first_item_id = :remove OR second_item_id = :remove").setParameter("remove", remove).executeUpdate();
                     }
                 }
             }
@@ -682,8 +682,6 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     throw new ServletException(e.getMessage(), e);
                 }
             }
-            // Complete transaction
-            context.complete();
             dedupUtils.commit();
             
             if(mergeByUser) {
@@ -1419,76 +1417,71 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 
         // logic to discovery bitstream
         List<UUID> bitIDs = UIUtil.getUUIDParameters(request, "bitstream_id");        
+		if (bitIDs != null) {
+			List<Bundle> originals = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+			for (Bundle orig : originals) {
+				List<Bitstream> bits = orig.getBitstreams();
+				for (Bitstream b : bits) {
+					// bitstream in the target item has been unselect
+					if (bitIDs.contains(b.getID())) {
+						Bundle bundle = b.getBundles().get(0);
+						bundle.getBundleService().removeBitstream(context, bundle, b);
+						bundle.getBundleService().update(context, bundle);
+					}
+				}
+			}
 
-        List<Bundle> originals = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
-        for (Bundle orig : originals)
-        {
-            List<Bitstream> bits = orig.getBitstreams();
-            for (Bitstream b : bits)
-            {
-                // bitstream in the target item has been unselect
-                if (bitIDs.contains(b.getID()))
-                {
-                    Bundle bundle = b.getBundles().get(0);
-                    bundle.getBundleService().removeBitstream(context, bundle, b);
-                    bundle.getBundleService().update(context, bundle);
-                }
-            }
-        }
+			Bundle orig = null;
+			if (!bitIDs.isEmpty()) {
+				if (originals.isEmpty()) {
+					orig = ContentServiceFactory.getInstance().getBundleService().create(context, item,
+							Constants.CONTENT_BUNDLE_NAME);
+					ContentServiceFactory.getInstance().getBundleService().update(context, orig);
+					// add read policy to the anonymous group
+					AuthorizeServiceFactory.getInstance().getAuthorizeService().addPolicy(context, orig, Constants.READ,
+							EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS));
+				} else {
+					orig = originals.get(0);
+				}
+				for (UUID bid : bitIDs) {
+					BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+					Bitstream b = bitstreamService.find(context, bid);
+					// we need to add only bitstream that are not yet attached
+					// to
+					// the target item
+					if (b.getBundles().get(0).getItems().get(0).getID() != item.getID()) {
+						InputStream is = bitstreamService.retrieve(context, b);
 
-        Bundle orig = null;
-        if (!bitIDs.isEmpty())
-        {
-            if (originals.isEmpty())
-            {
-                orig = ContentServiceFactory.getInstance().getBundleService().create(context, item, Constants.CONTENT_BUNDLE_NAME);
-                ContentServiceFactory.getInstance().getBundleService().update(context, orig);
-                // add read policy to the anonymous group
-                AuthorizeServiceFactory.getInstance().getAuthorizeService().addPolicy(context, orig, Constants.READ,
-                        EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS));
-            }
-            else
-            {
-                orig = originals.get(0);
-            }
-            for (UUID bid : bitIDs)
-            {
-                BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-				Bitstream b = bitstreamService.find(context, bid);
-                // we need to add only bitstream that are not yet attached to
-                // the target item
-                if (b.getBundles().get(0).getItems().get(0).getID() != item.getID())
-                {
-                    InputStream is = bitstreamService.retrieve(context, b);
-                    
-                    Bitstream newBits = bitstreamService.create(context, orig, is);
+						Bitstream newBits = bitstreamService.create(context, orig, is);
 
-                    // Now set the format and name of the bitstream
-                    newBits.setName(context, b.getName());
-                    newBits.setSource(context, b.getSource()); 
-                    newBits.setDescription(context, b.getDescription());
-                    bitstreamService.setFormat(context, newBits, b.getFormat(context));
-                    bitstreamService.setUserFormatDescription(context, newBits, b.getUserFormatDescription());
-                    bitstreamService.update(context, newBits);
-                    
-                    is.close();
-                    List<ResourcePolicy> rps = AuthorizeServiceFactory.getInstance().getAuthorizeService()
-                            .getPolicies(context, b);
-                    for (ResourcePolicy rp : rps)
-                    {
-                    	ResourcePolicy newrp = AuthorizeServiceFactory.getInstance().getAuthorizeService().createResourcePolicy(context, newBits, rp.getGroup(), rp.getEPerson(), rp.getAction(), rp.getRpType());
-                        newrp.setEndDate(rp.getEndDate());
-                        newrp.setStartDate(rp.getStartDate());
-                        resourcePolicyService.update(context, newrp);
-                    }
-                }
-            }
-        }
+						// Now set the format and name of the bitstream
+						newBits.setName(context, b.getName());
+						newBits.setSource(context, b.getSource());
+						newBits.setDescription(context, b.getDescription());
+						bitstreamService.setFormat(context, newBits, b.getFormat(context));
+						bitstreamService.setUserFormatDescription(context, newBits, b.getUserFormatDescription());
+						bitstreamService.update(context, newBits);
 
-        if (orig != null && orig.getBitstreams().isEmpty())
-        {
-            itemService.removeBundle(context, item, orig);
-        }
+						is.close();
+						List<ResourcePolicy> rps = AuthorizeServiceFactory.getInstance().getAuthorizeService()
+								.getPolicies(context, b);
+						for (ResourcePolicy rp : rps) {
+							ResourcePolicy newrp = AuthorizeServiceFactory.getInstance().getAuthorizeService()
+									.createResourcePolicy(context, newBits, rp.getGroup(), rp.getEPerson(),
+											rp.getAction(), rp.getRpType());
+							newrp.setEndDate(rp.getEndDate());
+							newrp.setStartDate(rp.getStartDate());
+							resourcePolicyService.update(context, newrp);
+						}
+					}
+				}
+			}
+	        if (orig != null && orig.getBitstreams().isEmpty())
+	        {
+	            itemService.removeBundle(context, item, orig);
+	        }
+		}
+
         itemService.update(context, item);
     }
 

@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import it.cilea.osd.common.model.Identifiable;
 
 @Entity
-@Table(name="cris_dedup_reject")
+@Table(name="cris_deduplication")
 public class CrisDeduplication implements Identifiable {
 	/** DB Primary key */
 	@Id

@@ -10,6 +10,7 @@ package org.dspace.app.cris.model;
 import java.beans.PropertyEditor;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -462,4 +463,9 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
     public Integer getLegacyId() {
         return getId();
     }
+    
+	@Override
+	public Date getLastModified() {	
+		return getTimeStampInfo().getLastModificationTime();
+	}
 }

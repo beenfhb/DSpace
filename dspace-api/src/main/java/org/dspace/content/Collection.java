@@ -10,6 +10,7 @@ package org.dspace.content;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -426,5 +427,11 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
 	@Override
 	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
 		return getCollectionService().getMetadataFirstValue(this, schema, element, qualifier, language);
+	}
+	
+	@Override
+	public Date getLastModified() {
+		//FIXME tmp return NOW
+		return new Date();
 	}
 }

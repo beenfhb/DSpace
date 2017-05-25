@@ -15,43 +15,42 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
+<%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
-<%@ page import="org.dspace.app.webui.cris.servlet.DTODCValue"%>
-<%@ page import="org.dspace.app.webui.cris.web.tag.DeduplicationTagLibraryFunctions"%>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="javax.servlet.jsp.PageContext" %>
 
-<%@ page import="org.dspace.content.MetadataField" %>
 <%@ page import="org.dspace.app.webui.servlet.admin.AuthorizeAdminServlet" %>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditItemServlet" %>
 
-<%@ page import="org.dspace.content.Collection" %>
-<%@ page import="org.dspace.content.DCDate" %>
-
-<%@ page import="org.dspace.core.ConfigurationManager" %>
-
+<%@ page import="org.dspace.app.webui.cris.web.tag.DeduplicationTagLibraryFunctions"%>
+<%@ page import="org.dspace.app.webui.cris.servlet.DTODCValue"%>
 <%@ page import="org.dspace.core.Utils" %>
-<%@ page import="org.dspace.content.authority.MetadataAuthorityManager" %>
-<%@ page import="org.dspace.content.authority.ChoiceAuthorityManager" %>
+<%@ page import="org.dspace.core.ConfigurationManager" %>
+<%@ page import="org.dspace.content.authority.factory.ContentAuthorityServiceFactory" %>
+<%@ page import="org.dspace.content.authority.service.ChoiceAuthorityService" %>
+<%@ page import="org.dspace.content.authority.service.MetadataAuthorityService" %>
 <%@ page import="org.dspace.content.authority.Choices" %>
 
-<%@ page import="org.dspace.app.util.DCInput" %>
-
+<%@ page import="java.util.UUID"%>
 <%@ page import="java.util.Map"%>
 <%@ page import="java.util.List"%>
 <%@	page import="java.util.HashMap"%>
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
+
+<%@ page import="org.dspace.app.util.DCInput" %>
 <%@	page import="org.dspace.content.Item"%>
 <%@ page import="org.dspace.content.MetadataField" %>
+<%@ page import="org.dspace.content.MetadataValue" %>
+<%@ page import="org.dspace.content.IMetadataValue" %>
 <%@ page import="org.dspace.content.Bitstream" %>
 <%@ page import="org.dspace.content.BitstreamFormat" %>
 <%@ page import="org.dspace.content.Bundle" %>
-<%@ page import="org.dspace.content.Metadatum" %>
 <%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.eperson.EPerson" %>
-<%@ page import="org.apache.commons.lang3.StringUtils" %>
+<%@ page import="org.dspace.content.Collection" %>
+<%@ page import="org.dspace.content.DCDate" %>
 
-<%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
-<%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport"%>
 <c:set var="dspace.layout.head.last" scope="request">	
     <script type="text/javascript" src="<%= request.getContextPath() %>/js/jquery.tablednd_0_5.js"></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/js/jquery.contextmenu.js"></script>
@@ -192,7 +191,7 @@ pre {
 	List<Item> items = (List<Item>) request.getAttribute("items");    
 	List<Bitstream> bitstreams = (List<Bitstream>) request.getAttribute("bitstreams");
 	Item item = (Item) request.getAttribute("target");		
-    MetadataField[] dcTypes = (MetadataField[])  request.getAttribute("dcTypes");
+    List<MetadataField> dcTypes = (List<MetadataField>)  request.getAttribute("dcTypes");
     List<String> blockedTypes = (List<String>)  request.getAttribute("blockedMetadata");
     Map<Integer, String> metadataFields = (HashMap<Integer, String>) request.getAttribute("metadataFields");    
     Map<Integer, String> legenda = (HashMap<Integer, String>) request.getAttribute("legenda");
@@ -212,10 +211,10 @@ j(document).ready(function() {
 	j("#menu1").modal('hide');
 
     <c:forEach var="type" items="${dcTypes}">
-	j(".modalbox_${type.fieldID}").click(function() {
+	j(".modalbox_${type.ID}").click(function() {
 		j("#menu1").modal('hide');
-        j("#modalbox_metadata_${type.fieldID}").modal( "show" );
-    	j("#modalbox_metadata_${type.fieldID}").prettyTextDiff({
+        j("#modalbox_metadata_${type.ID}").modal( "show" );
+    	j("#modalbox_metadata_${type.ID}").prettyTextDiff({
     		cleanup: true,
     		debug: true,
             originalContainer: '.firstItem',
@@ -227,7 +226,7 @@ j(document).ready(function() {
 
 	</c:forEach>
 	
-	/*	j( "#modalbox_metadata_${type.fieldID}" ).dialog({
+	/*	j( "#modalbox_metadata_${type.ID}" ).dialog({
 	autoOpen: false,
 	height: "auto",
 	width: "auto",
@@ -483,13 +482,13 @@ $(document).ready(function() {
 		         for(MetadataField type : dcTypes) {
 		        	boolean blocked = false;
 		        	for(String block : blockedTypes) {
-		        	    if(block!=null && block.equalsIgnoreCase(metadataFields.get(type.getFieldID()).trim())) {
+		        	    if(block!=null && block.equalsIgnoreCase(metadataFields.get(type.getID()).trim())) {
 		        			blocked = true;
 		        			break;
 		        		}
 		        	}
-		         	if(!blocked && metadataExtraSourceInfo.get(type.getFieldID()).size()>0) { %>
-					<li><a class="modalbox_<%= type.getFieldID()%>" title="Show" href="javascript:void(0);"><%= metadataFields.get(type.getFieldID()) %></a></li>
+		         	if(!blocked && metadataExtraSourceInfo.get(type.getID()).size()>0) { %>
+					<li><a class="modalbox_<%= type.getID()%>" title="Show" href="javascript:void(0);"><%= metadataFields.get(type.getID()) %></a></li>
 		         <% } 
 		  	 
 		         }%>
@@ -502,11 +501,11 @@ $(document).ready(function() {
   </div>
 </div>
 <%!
-     StringBuffer doAuthority(MetadataAuthorityManager mam, ChoiceAuthorityManager cam,
+     StringBuffer doAuthority(MetadataAuthorityService mam, ChoiceAuthorityService cam,
             PageContext pageContext,
             String contextPath, String fieldName, String idx,
             DTODCValue dtodcv){
-		Metadatum dcv = dtodcv.getDcValue();
+		IMetadataValue dcv = dtodcv.getDcValue();
 		//int collectionID = dtodcv.getOwnerCollectionID();
         StringBuffer sb = new StringBuffer();
         if (cam.isChoicesConfigured(fieldName)){
@@ -518,19 +517,19 @@ $(document).ready(function() {
             String authorityName = "choice_" + fieldName + "_authority_" + idx;
             String confidenceName = "choice_" + fieldName + "_confidence_" + idx;
             sb.append("<div style=\"font-size: 1.3em\">")
-              .append(dcv.value)
+              .append(dcv.getValue())
      	      .append("<textarea class=\"hide form-control\" readonly=\"readonly\" id=\"").append(fieldIdIdx).append("\" name=\"").append(fieldNameIdx)
  	          .append("\" rows=\"1\" cols=\"50\">")
- 	          .append(dcv.value).append("</textarea>\n")
+ 	          .append(dcv.getValue()).append("</textarea>\n")
               .append("</div>");
                 if (authority){
-                    String confidenceSymbol = Choices.getConfidenceText(dcv.confidence).toLowerCase();
+                    String confidenceSymbol = Choices.getConfidenceText(dcv.getConfidence()).toLowerCase();
                     sb.append("<div>")
                     .append("Authority key: <input readonly=\"readonly\" class=\"form-control\" type=\"hidden\" value=\"")
-                    .append(dcv.authority != null ? dcv.authority : "")
+                    .append(dcv.getAuthority() != null ? dcv.getAuthority() : "")
                     .append("\" id=\"").append(authorityName)
                     .append("\" name=\"").append(authorityName).append("\" />")
-                    .append(dcv.authority != null ? dcv.authority : "")
+                    .append(dcv.getAuthority() != null ? dcv.getAuthority() : "")
 					.append("</div>")
                     .append("<input type=\"hidden\" value=\"").append(confidenceSymbol).append("\" id=\"").append(confidenceName)
                     .append("\" name=\"").append(confidenceName)
@@ -656,7 +655,7 @@ $(document).ready(function() {
         {
             // Parameter names will include the bundle and bitstream ID
             // e.g. "bitstream_14_18_desc" is the description of bitstream 18 in bundle 14
-            Bundle bnd = bits.getBundles()[0];
+            Bundle bnd = bits.getBundles().get(0);
             String key = bnd.getID() + "_" + bits.getID();
             BitstreamFormat bf = bits.getFormat();
 %>
@@ -709,8 +708,8 @@ $(document).ready(function() {
 <tbody>
 	
 <%	
-	MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-	ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+	MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+	ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
  	Map dcCounter = new HashMap();
  	HashMap traceFieldValue = new HashMap();
  	//String row = "even"; //ONLY used on bitstream table
@@ -718,7 +717,7 @@ $(document).ready(function() {
     for (int i = 0; i < dcv.size(); i++){
         // Find out how many values with this element/qualifier we've found
 
-        String key = ChoiceAuthorityManager.makeFieldKey(dcv.get(i).getSchema(), dcv.get(i).getElement(), dcv.get(i).getQualifier());
+        String key = cam.makeFieldKey(dcv.get(i).getSchema(), dcv.get(i).getElement(), dcv.get(i).getQualifier());
 		if(!key.equals(oldkey)) { 
 			oldkey = key;
 		}
@@ -907,19 +906,19 @@ dcCounter = new HashMap();
 
 String trDiffClass = "";
 String divClass = "";
-for(int i = 0; i<dcTypes.length; i++) {
+for(int i = 0; i<dcTypes.size(); i++) {
 %>
-<div id="modalbox_metadata_<%= dcTypes[i].getFieldID() %>" class="modalbox_metadata modal fade in" role="dialog" tabindex="-1" aria-hidden="false">
+<div id="modalbox_metadata_<%= dcTypes.get(i).getID() %>" class="modalbox_metadata modal fade in" role="dialog" tabindex="-1" aria-hidden="false">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
 				<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
-				<h4 class="modal-title"><%= metadataFields.get(dcTypes[i].getFieldID()) %></h4>
+				<h4 class="modal-title"><%= metadataFields.get(dcTypes.get(i).getID()) %></h4>
 			</div>
 			<div class="modal-body with-padding">
 				<div class="tableDiff">
 	   		<% 			 
-	   			 List<DTODCValue> otherdcv = DeduplicationTagLibraryFunctions.groupDeduplication(metadataExtraSourceInfo.get(dcTypes[i].getFieldID()),item.getID());
+	   			 List<DTODCValue> otherdcv = DeduplicationTagLibraryFunctions.groupDeduplication(metadataExtraSourceInfo.get(dcTypes.get(i).getID()),item.getID());
 	   			 
 				 for(int j = 0; j<otherdcv.size(); j++) {
 				        
@@ -957,7 +956,7 @@ for(int i = 0; i<dcTypes.length; i++) {
 					
 					<div class="alert alert-block <%= divClass %> fade in block-inner">
 						<h6><i class="icon-command"></i><%= otherdcv.get(j).getOwner()%></h6>
-						<% if(!(otherdcv.get(j).getDuplicates().isEmpty())) { %>  <% for(Integer v : otherdcv.get(j).getDuplicates()) { %> <span class="label label-<%= legenda.get(v)%>"><%= v %></span><br/><% }%> <%} %>
+						<% if(!(otherdcv.get(j).getDuplicates().isEmpty())) { %>  <% for(UUID v : otherdcv.get(j).getDuplicates()) { %> <span class="label label-<%= legenda.get(v)%>"><%= v %></span><br/><% }%> <%} %>
 						<hr>
 						<p class="<%= trDiffClass %>"><%= otherdcv.get(j).getValue()%></p>
 					</div>

@@ -261,6 +261,12 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
     {
         return getBitstreamService().getFormat(context, this);
     }
+    
+    public BitstreamFormat getFormat() throws SQLException
+    {
+    	Context context = new Context();
+        return getBitstreamService().getFormat(context, this);
+    }
 
     void setFormat(BitstreamFormat bitstreamFormat) {
         this.bitstreamFormat = bitstreamFormat;

@@ -22,6 +22,8 @@ import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.DSpaceObjectService;
@@ -44,6 +46,9 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name="bundle")
 public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
 {
+    /** log4j logger */
+    private static Logger log = Logger.getLogger(Bundle.class);
+    
     @Column(name="bundle_id", insertable = false, updatable = false)
     private Integer legacyId;
 
@@ -241,4 +246,15 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
 	public boolean haveHierarchy() {
 		return true;
 	}
+	
+	public BrowsableDSpaceObject getParentObject() {
+		Context context = new Context();
+		try {
+			return (BrowsableDSpaceObject)(getBundleService().getParentObject(context, this));
+		} catch (SQLException e) {
+			log.error(e.getMessage(), e);
+		}
+		return null;
+	}
+
 }

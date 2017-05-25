@@ -7,10 +7,6 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.core.SingleTimeStampInfo;
-import it.cilea.osd.common.core.TimeStampInfo;
-import it.cilea.osd.jdyna.value.FileValue;
-
 import java.beans.PropertyEditor;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -44,11 +40,14 @@ import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.value.OUPointer;
 import org.dspace.app.cris.model.listener.RPListener;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+
+import it.cilea.osd.common.core.SingleTimeStampInfo;
+import it.cilea.osd.common.core.TimeStampInfo;
+import it.cilea.osd.jdyna.value.FileValue;
 
 /**
  * This class models the HKU Researcher Page concept. Almost all the field of

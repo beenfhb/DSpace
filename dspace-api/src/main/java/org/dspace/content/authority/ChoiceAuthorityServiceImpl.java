@@ -215,16 +215,9 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     }
     
     
-    protected String makeFieldKey(String schema, String element, String qualifier)
+    public String makeFieldKey(String schema, String element, String qualifier)
     {
-        if (qualifier == null)
-        {
-            return schema + "_" + element;
-        }
-        else
-        {
-            return schema + "_" + element + "_" + qualifier;
-        }
+    	return MetadataField.formKey(schema, element, qualifier);
     }
 
     /**

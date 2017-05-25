@@ -29,6 +29,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.apache.log4j.Logger;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.comparator.NameAscendingComparator;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -59,6 +60,10 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name="item")
 public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
 {
+	
+    /** log4j logger */
+    private static Logger log = Logger.getLogger(Item.class);
+    
     /**
      * Wild card for Dublin Core metadata qualifiers/languages
      */
@@ -447,11 +452,7 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
 		try {
 			return (BrowsableDSpaceObject)(getItemService().getParentObject(context, this));
 		} catch (SQLException e) {
-		}
-		finally {
-			if(context != null && context.isValid()) {
-				context.abort();
-			}
+			log.error(e.getMessage(), e);
 		}
 		return null;
 	}

@@ -39,6 +39,7 @@ import org.dspace.app.itemmarking.ItemMarkingInfo;
 import org.dspace.app.util.Util;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authenticate.service.AuthenticationService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DCDate;
@@ -628,10 +629,14 @@ public class UIUtil extends Util
 		}
 	}
 	
-    public static int getItemStatus(HttpServletRequest request, Item item)
+	//TODO maybe refactoring to getStatus and manage with IOC
+    public static int getItemStatus(HttpServletRequest request, BrowsableDSpaceObject item)
             throws SQLException
     {
-        return ItemUtils.getItemStatus(obtainContext(request), item);
+    	if(item instanceof Item) {
+    		return ItemUtils.getItemStatus(obtainContext(request), (Item)item);
+    	}
+    	return -1;
     }
     
     public static String[] getUITableColumn(String module, String tab)

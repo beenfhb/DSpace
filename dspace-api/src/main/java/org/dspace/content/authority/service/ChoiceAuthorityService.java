@@ -152,8 +152,9 @@ public interface ChoiceAuthorityService
 
     public ChoiceAuthority getChoiceAuthority(String schema, String element,
             String qualifier);
-	
+
     public String getLabel(String schema, String element, String qualifier, String authKey, String locale);
 	public List<String> getVariants(String schema, String element, String qualifier, String authKey, String locale);    
-    
+
+	public String makeFieldKey(String schema, String element, String qualifier);
 }
