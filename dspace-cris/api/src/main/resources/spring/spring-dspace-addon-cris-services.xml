@@ -296,6 +296,9 @@
 				<entry key="org.dspace.app.cris.model.jdyna.DynamicNestedObject">
 					<ref bean="dynamicNestedObjectDao" />
 				</entry>
+				<entry key="org.dspace.app.cris.model.CrisDeduplication">
+					<ref bean="crisDeduplicationDao" />
+				</entry>				
 			</map>
 		</property>		
 	</bean>
@@ -1573,6 +1576,23 @@
 			</bean>
 		</property>
 	</bean>
+
+	<bean id="crisDeduplicationDao" parent="abstractDao">
+		<property name="proxyInterfaces">
+			<value>
+				org.dspace.app.cris.dao.CrisDeduplicationDao
+			</value>
+		</property>
+		<property name="target">
+			<bean parent="abstractDaoTarget">
+				<constructor-arg>
+					<value>
+						org.dspace.app.cris.model.CrisDeduplication
+					</value>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>	
 	
 	<!--  resources  -->
 	<bean id="dspaceDatasource" class="org.dspace.app.cris.util.DSpaceDataSource">

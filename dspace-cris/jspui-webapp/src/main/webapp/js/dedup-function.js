@@ -144,7 +144,7 @@ function renderingDedupSummary(data, type, full) {
 	ref += '<dt>'+tmpl("tmpl-deduplication-label-identifier",{})+'</dt><dd>';	
 	
 	if(full.handle =='undefined' || full.handle =='' || full.handle == null){
-		ref = ref + 'ID:'+itemid;
+		ref = ref + '<a href="#" title="'+itemid+'">ID</a>';
 	}else{
 		ref = ref+ 'hdl:'+renderingDedupHandle(data, type, full);		
 	}

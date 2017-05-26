@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.IMetadataValue;
@@ -62,6 +64,7 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.util.ItemUtils;
@@ -1418,17 +1421,40 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         // logic to discovery bitstream
         List<UUID> bitIDs = UIUtil.getUUIDParameters(request, "bitstream_id");        
 		if (bitIDs != null) {
+			
+			BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+
+			List<DTOBitstream> toAdd = new ArrayList<>();
+			if (!bitIDs.isEmpty()) {
+				for (UUID bid : bitIDs) {
+					Bitstream bb = bitstreamService.find(context, bid);
+					DTOBitstream dtoBit = new DTOBitstream();
+					dtoBit.create(bb.getID(), bb.getName(), bb.getSource(), bb.getDescription(), bb.getFormat(),
+							bb.getUserFormatDescription(),
+							AuthorizeServiceFactory.getInstance().getAuthorizeService().getPolicies(context, bb));
+					dtoBit.setInputStream(bitstreamService.retrieve(context, bb));
+					dtoBit.setBundleID(bb.getBundles().get(0).getID());
+					dtoBit.setItemID(item.getID());
+					toAdd.add(dtoBit);
+				}
+			}
 			List<Bundle> originals = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+			List<Bitstream> toRemove = new ArrayList<>();
+			//PREPARE
 			for (Bundle orig : originals) {
 				List<Bitstream> bits = orig.getBitstreams();
 				for (Bitstream b : bits) {
 					// bitstream in the target item has been unselect
 					if (bitIDs.contains(b.getID())) {
-						Bundle bundle = b.getBundles().get(0);
-						bundle.getBundleService().removeBitstream(context, bundle, b);
-						bundle.getBundleService().update(context, bundle);
+						toRemove.add(b);
 					}
 				}
+			}
+			//REMOVE			
+			for(Bitstream bb : toRemove) {
+				Bundle bundle = bb.getBundles().get(0);
+				bundle.getBundleService().removeBitstream(context, bundle, bb);
+				bundle.getBundleService().update(context, bundle);
 			}
 
 			Bundle orig = null;
@@ -1443,32 +1469,28 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 				} else {
 					orig = originals.get(0);
 				}
-				for (UUID bid : bitIDs) {
-					BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-					Bitstream b = bitstreamService.find(context, bid);
+				for (DTOBitstream b : toAdd) {
+					
 					// we need to add only bitstream that are not yet attached
 					// to
 					// the target item
-					if (b.getBundles().get(0).getItems().get(0).getID() != item.getID()) {
-						InputStream is = bitstreamService.retrieve(context, b);
-
-						Bitstream newBits = bitstreamService.create(context, orig, is);
+					if (b.getItemID() != item.getID()) {
+						Bitstream newBits = bitstreamService.create(context, orig, b.getIs());
 
 						// Now set the format and name of the bitstream
 						newBits.setName(context, b.getName());
 						newBits.setSource(context, b.getSource());
 						newBits.setDescription(context, b.getDescription());
-						bitstreamService.setFormat(context, newBits, b.getFormat(context));
+						bitstreamService.setFormat(context, newBits, b.getFormat());
 						bitstreamService.setUserFormatDescription(context, newBits, b.getUserFormatDescription());
 						bitstreamService.update(context, newBits);
 
-						is.close();
-						List<ResourcePolicy> rps = AuthorizeServiceFactory.getInstance().getAuthorizeService()
-								.getPolicies(context, b);
-						for (ResourcePolicy rp : rps) {
+						b.getIs().close();
+						List<DTOResourcePolicy> rps = b.getRps();
+						for (DTOResourcePolicy rp : rps) {
 							ResourcePolicy newrp = AuthorizeServiceFactory.getInstance().getAuthorizeService()
-									.createResourcePolicy(context, newBits, rp.getGroup(), rp.getEPerson(),
-											rp.getAction(), rp.getRpType());
+									.createResourcePolicy(context, newBits, rp.getGroup(), rp.getEperson(),
+											rp.getAction(), rp.getResourcePolicyType());
 							newrp.setEndDate(rp.getEndDate());
 							newrp.setStartDate(rp.getStartDate());
 							resourcePolicyService.update(context, newrp);
@@ -1487,5 +1509,192 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 
     protected Session getHibernateSession(Context context) throws SQLException {
         return ((Session) context.getDBConnection().getSession());
+    }
+    
+    class DTOBitstream {
+    	
+    	UUID id;
+    	
+    	UUID itemID;
+    	
+    	UUID bundleID;
+    	
+    	String name;
+    	
+    	String source;
+    	
+    	String description;
+    	
+    	BitstreamFormat format;
+    	
+    	String userFormatDescription;
+    	
+    	List<DTOResourcePolicy> rps;
+    	
+    	InputStream is;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setInputStream(InputStream retrieve) {
+			this.is = retrieve;
+		}
+
+		public void create(UUID id, String name2, String source2, String description2, BitstreamFormat format2,
+				String userFormatDescription2, List<ResourcePolicy> policies) {
+			this.id = id;
+			this.name = name2;
+			this.source = source2;
+			this.description = description2;
+			this.format = format2;
+			this.userFormatDescription = userFormatDescription2;
+			if (policies != null) {
+				for (ResourcePolicy rp : policies) {
+					DTOResourcePolicy dtorp = new DTOResourcePolicy();
+					dtorp.create(rp.getGroup(), rp.getEPerson(), rp.getAction(), rp.getRpType(), rp.getStartDate(),
+							rp.getEndDate());
+					getRps().add(dtorp);
+				}
+			}
+			
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getSource() {
+			return source;
+		}
+
+		public void setSource(String source) {
+			this.source = source;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public BitstreamFormat getFormat() {
+			return format;
+		}
+
+		public void setFormat(BitstreamFormat format) {
+			this.format = format;
+		}
+
+		public String getUserFormatDescription() {
+			return userFormatDescription;
+		}
+
+		public void setUserFormatDescription(String userFormatDescription) {
+			this.userFormatDescription = userFormatDescription;
+		}
+
+		public List<DTOResourcePolicy> getRps() {
+			return rps;
+		}
+
+		public void setRps(List<DTOResourcePolicy> rps) {
+			this.rps = rps;
+		}
+
+		public UUID getItemID() {
+			return itemID;
+		}
+
+		public void setItemID(UUID itemID) {
+			this.itemID = itemID;
+		}
+
+		public UUID getBundleID() {
+			return bundleID;
+		}
+
+		public void setBundleID(UUID bundleID) {
+			this.bundleID = bundleID;
+		}
+
+		public UUID getId() {
+			return id;
+		}
+
+		public void setId(UUID id) {
+			this.id = id;
+		}
+
+		public InputStream getIs() {
+			return is;
+		}
+
+		public void setIs(InputStream is) {
+			this.is = is;
+		}
+    }
+    
+    class DTOResourcePolicy {
+    	
+		Group group;
+		
+		EPerson eperson;
+		
+		int action;
+		
+		String resourcePolicyType;
+		
+		Date startDate;
+		
+		Date endDate;
+    	
+		public Group getGroup() {
+			return group;
+		}
+		public void create(Group group2, EPerson ePerson2, int action2, String rpType, Date startDate2, Date endDate2) {
+			this.group = group2;
+			this.eperson = ePerson2;
+			this.action = action2;
+			this.resourcePolicyType = rpType;
+			this.startDate = startDate2;
+			this.endDate = endDate2;			
+		}
+		
+		public void setGroup(Group group) {
+			this.group = group;
+		}
+		public EPerson getEperson() {
+			return eperson;
+		}
+		public void setEperson(EPerson eperson) {
+			this.eperson = eperson;
+		}
+		public int getAction() {
+			return action;
+		}
+		public void setAction(int action) {
+			this.action = action;
+		}
+		public String getResourcePolicyType() {
+			return resourcePolicyType;
+		}
+		public void setResourcePolicyType(String resourcePolicyType) {
+			this.resourcePolicyType = resourcePolicyType;
+		}
+		public Date getStartDate() {
+			return startDate;
+		}
+		public void setStartDate(Date startDate) {
+			this.startDate = startDate;
+		}
+		public Date getEndDate() {
+			return endDate;
+		}
+		public void setEndDate(Date endDate) {
+			this.endDate = endDate;
+		}
     }
 }

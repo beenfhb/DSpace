@@ -50,7 +50,7 @@ public interface DedupService
     
     public QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
 
-    public void buildReject(Context context, UUID firstId, UUID secondId, Integer type,
+    public void buildReject(Context context, String firstId, String secondId, Integer type,
             DeduplicationFlag flag, String note);
 
     public void commit();

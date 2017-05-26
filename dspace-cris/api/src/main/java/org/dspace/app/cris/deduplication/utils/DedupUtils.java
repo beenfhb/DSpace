@@ -251,7 +251,7 @@ public class DedupUtils
         try
         {
 
-            row = (CrisDeduplication)getHibernateSession(context).createQuery("select * from CrisDeduplication where first_item_id = :par0 and second_item_id = :par1").setParameter(0, sortedIds[0]).setParameter(1, sortedIds[1]).uniqueResult();
+            row = applicationService.uniqueCrisDeduplicationByFirstAndSecond(sortedIds[0].toString(), sortedIds[1].toString());
             if (row != null)
             {
                 row.setAdmin_id(context.getCurrentUser().getID());
@@ -262,15 +262,15 @@ public class DedupUtils
             else
             {
                 row = new CrisDeduplication();
-                row.setFirst_item_id(sortedIds[0]);
-                row.setSecond_item_id(sortedIds[1]);
                 row.setAdmin_id(context.getCurrentUser().getID());
+                row.setFirstItemId(sortedIds[0].toString());
+                row.setSecondItemId(sortedIds[1].toString());
                 row.setAdmin_time(new Date());
                 row.setResource_type_id(type);
                 row.setAdmin_decision(DeduplicationFlag.REJECTADMIN.getDescription());
             }
             applicationService.saveOrUpdate(CrisDeduplication.class, row);
-            dedupService.buildReject(context, firstId, secondId, type, DeduplicationFlag.REJECTADMIN, null);
+            dedupService.buildReject(context, firstId.toString(), secondId.toString(), type, DeduplicationFlag.REJECTADMIN, null);
             return true;
         }
         catch (Exception ex)
@@ -354,7 +354,7 @@ public class DedupUtils
                 || AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeActionBoolean(context, secondItem,
                         Constants.WRITE))
         {
-            CrisDeduplication row = (CrisDeduplication)getHibernateSession(context).createQuery("select * from CrisDeduplication where first_item_id = :par0 and second_item_id = :par1").setParameter(0, firstId).setParameter(1, secondId);
+            CrisDeduplication row = applicationService.uniqueCrisDeduplicationByFirstAndSecond(firstId.toString(), secondId.toString()); 
             
             if(row!=null) {               
                 String submitterDecision = row.getSubmitter_decision();                
@@ -366,8 +366,8 @@ public class DedupUtils
                 row = new CrisDeduplication();
             }
             
-            row.setFirst_item_id(firstId);
-            row.setSecond_item_id(secondId);
+            row.setFirstItemId(firstId.toString());
+            row.setSecondItemId(secondId.toString());
             row.setResource_type_id(type);
             row.setTofix(toFix);
             row.setFake(false);
@@ -383,7 +383,7 @@ public class DedupUtils
             }
 
             applicationService.saveOrUpdate(CrisDeduplication.class, row);
-            dedupService.buildReject(context, firstId, secondId, type, check?DeduplicationFlag.VERIFYWF:DeduplicationFlag.VERIFYWS, note);
+            dedupService.buildReject(context, firstId.toString(), secondId.toString(), type, check?DeduplicationFlag.VERIFYWF:DeduplicationFlag.VERIFYWS, note);
         }
         else
         {
@@ -401,7 +401,8 @@ public class DedupUtils
         CrisDeduplication row = null;
         try
         {
-        	row = (CrisDeduplication)getHibernateSession(context).createQuery("select * from dedup_reject where first_item_id = :par0 and second_item_id = :par1").setParameter(0, sortedIds[0]).setParameter(1, sortedIds[1]);
+        	
+        	row = applicationService.uniqueCrisDeduplicationByFirstAndSecond(sortedIds[0].toString(), sortedIds[1].toString());        	
 
             Item firstItem = ContentServiceFactory.getInstance().getItemService().find(context, firstId);
             Item secondItem = ContentServiceFactory.getInstance().getItemService().find(context, secondId);
@@ -421,9 +422,9 @@ public class DedupUtils
                 	 row = new CrisDeduplication();
                 }
                 
-                row.setFirst_item_id(sortedIds[0]);
-                row.setSecond_item_id(sortedIds[1]);
                 row.setEperson_id(context.getCurrentUser().getID());
+                row.setFirstItemId(sortedIds[0].toString());
+                row.setSecondItemId(sortedIds[1].toString());
                 row.setReject_time(new Date());
                 row.setNote(note);
                 row.setFake(notDupl);
@@ -439,7 +440,7 @@ public class DedupUtils
                             DeduplicationFlag.REJECTWS.getDescription());
                 }
                 applicationService.saveOrUpdate(CrisDeduplication.class, row);
-                dedupService.buildReject(context, firstId, secondId, type,
+                dedupService.buildReject(context, firstId.toString(), secondId.toString(), type,
                         check ? DeduplicationFlag.REJECTWF
                                 : DeduplicationFlag.REJECTWS,
                         note);

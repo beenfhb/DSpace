@@ -45,6 +45,7 @@ CREATE INDEX cris_statsubscription_epersonid on cris_statsubscription(epersonid)
 ALTER TABLE dedup_reject RENAME TO cris_deduplication;
 ALTER SEQUENCE dedup_reject_seq RENAME TO cris_deduplication_seq;
 
+ALTER TABLE cris_deduplication RENAME COLUMN dedup_reject_id to id;
 ALTER TABLE cris_deduplication RENAME COLUMN eperson_id to eperson_legacy_id;
 ALTER TABLE cris_deduplication RENAME COLUMN admin_id to admin_legacy_id;
 ALTER TABLE cris_deduplication RENAME COLUMN reader_id to reader_legacy_id;
@@ -54,8 +55,8 @@ ALTER TABLE cris_deduplication RENAME COLUMN second_item_id to second_item_legac
 ALTER TABLE cris_deduplication ADD COLUMN eperson_id UUID;
 ALTER TABLE cris_deduplication ADD COLUMN admin_id UUID;
 ALTER TABLE cris_deduplication ADD COLUMN reader_id UUID;
-ALTER TABLE cris_deduplication ADD COLUMN first_item_id UUID;
-ALTER TABLE cris_deduplication ADD COLUMN second_item_id UUID;
+ALTER TABLE cris_deduplication ADD COLUMN first_item_id varchar(255) not null;
+ALTER TABLE cris_deduplication ADD COLUMN second_item_id varchar(255) not null;
 
 UPDATE cris_deduplication SET eperson_id = (SELECT eperson.uuid FROM eperson WHERE cris_deduplication.eperson_legacy_id = eperson.eperson_id);
 UPDATE cris_deduplication SET admin_id = (SELECT eperson.uuid FROM eperson WHERE cris_deduplication.admin_legacy_id = eperson.eperson_id);

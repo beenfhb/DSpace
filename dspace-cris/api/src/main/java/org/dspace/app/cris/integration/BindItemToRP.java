@@ -514,7 +514,7 @@ public class BindItemToRP
     }
 
 	public static void deletePotentialMatch(Context context, String crisID) throws SQLException {
-    	getHibernateSession(context).createQuery("DELETE FROM CrisPotentialMatches WHERE rp like :par0 AND pending IS NULL").setParameter(0, crisID).executeUpdate();
+    	getHibernateSession(context).createSQLQuery("DELETE FROM cris_deduplication WHERE rp like :crisID AND pending IS NULL").setParameter("crisID", crisID).executeUpdate();
 	}
 	
 	

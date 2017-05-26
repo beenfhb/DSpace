@@ -31,6 +31,7 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.dspace.app.cris.dao.ApplicationDao;
 import org.dspace.app.cris.deduplication.service.DedupService;
 import org.dspace.app.cris.deduplication.service.SearchDeduplication;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
@@ -259,7 +260,7 @@ public class SolrDedupServiceImpl implements DedupService
         removeFake(dedupID, iu.getType());
 
         // build the FAKE document
-        build(ctx, iu.getID(), iu.getID(), DeduplicationFlag.FAKE, iu.getType(),
+        build(ctx, iu.getID().toString(), iu.getID().toString(), DeduplicationFlag.FAKE, iu.getType(),
                 tmpMapFilter, searchSignature, null);
 
         // remove previous potential match
@@ -389,7 +390,7 @@ public class SolrDedupServiceImpl implements DedupService
                 }
             }
 
-            build(ctx, iu.getID(), matchId, DeduplicationFlag.MATCH, iu.getType(), tmp, searchSignature, null);
+            build(ctx, iu.getID().toString(), matchId.toString(), DeduplicationFlag.MATCH, iu.getType(), tmp, searchSignature, null);
             
         }
     }
@@ -416,7 +417,7 @@ public class SolrDedupServiceImpl implements DedupService
         delete(queryDeleteMatch);
     }
 
-    public void build(Context ctx, UUID firstId, UUID secondId,
+    public void build(Context ctx, String firstId, String secondId,
             DeduplicationFlag flag, Integer type,
             Map<String, List<String>> signatures, SearchDeduplication searchSignature, String note)
     {
@@ -425,7 +426,7 @@ public class SolrDedupServiceImpl implements DedupService
         // build upgraded document
         doc.addField(LAST_INDEXED_FIELD, new Date());
         
-        UUID[] sortedIds = new UUID[] { firstId, secondId };
+        String[] sortedIds = new String[] { firstId, secondId };
         Arrays.sort(sortedIds);
         
         String dedupID = sortedIds[0] + "-" + sortedIds[1];
@@ -460,7 +461,7 @@ public class SolrDedupServiceImpl implements DedupService
             for (SolrDedupServiceIndexPlugin solrServiceIndexPlugin : searchSignature
                     .getSolrIndexPlugin())
             {
-                solrServiceIndexPlugin.additionalIndex(ctx, sortedIds[0], sortedIds[1],
+                solrServiceIndexPlugin.additionalIndex(ctx, UUID.fromString(sortedIds[0]), UUID.fromString(sortedIds[1]),
                         type, doc);
             }
 
@@ -899,7 +900,7 @@ public class SolrDedupServiceImpl implements DedupService
                                             SearchDeduplication.class);
                             if(onlyFake) {                                
                                 buildFromDedupReject(context, item, tmpMapFilter, tmpFilter, searchSignature);                                
-                                build(context, item.getID(), item.getID(), DeduplicationFlag.FAKE, Constants.ITEM, tmpMapFilter, searchSignature, null);                                
+                                build(context, item.getID().toString(), item.getID().toString(), DeduplicationFlag.FAKE, Constants.ITEM, tmpMapFilter, searchSignature, null);                                
                             }
                             else {                              
                                 buildPotentialMatch(context, item, tmpMapFilter, tmpFilter, searchSignature);
@@ -935,7 +936,7 @@ public class SolrDedupServiceImpl implements DedupService
 
         try
         {
-        	List<CrisDeduplication> tri = getHibernateSession(ctx).createQuery("from CrisDeduplication where (first_item_id = :par0 or second_item_id = :par1)").setParameter(0, iu.getID()).setParameter(1, iu.getID()).list();
+        	List<CrisDeduplication> tri = getApplicationService().getCrisDeduplicationByFirstAndSecond(iu.getID().toString(),iu.getID().toString());
 
             for (CrisDeduplication row : tri) 
             {
@@ -946,8 +947,8 @@ public class SolrDedupServiceImpl implements DedupService
                 String readerNote = row.getReader_note();
                 String adminNote = row.getNote();
                 
-                UUID firstId = row.getFirst_item_id();
-                UUID secondId = row.getSecond_item_id();
+                String firstId = row.getFirstItemId();
+                String secondId = row.getSecondItemId();
                 int resourceTypeId = row.getResource_type_id();
                 if(StringUtils.isNotBlank(submitterDecision)) {
                     buildReject(ctx, firstId,
@@ -976,7 +977,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void buildReject(Context context, UUID firstId, UUID secondId,
+    public void buildReject(Context context, String firstId, String secondId,
             Integer type, DeduplicationFlag flag, String note)
     {
         build(context, firstId, secondId, flag, type, null, null, note);
@@ -1012,10 +1013,6 @@ public class SolrDedupServiceImpl implements DedupService
             log.error(e.getMessage(), e);
         }
  
-    }
-    
-    protected Session getHibernateSession(Context context) throws SQLException {
-        return ((Session) context.getDBConnection().getSession());
     }
 
 	public void setItemService(ItemService itemService) {

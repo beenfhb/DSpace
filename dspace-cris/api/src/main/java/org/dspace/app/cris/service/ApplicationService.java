@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.dao.CrisDeduplicationDao;
 import org.dspace.app.cris.dao.CrisObjectDao;
 import org.dspace.app.cris.dao.CrisSubscriptionDao;
 import org.dspace.app.cris.dao.DynamicObjectDao;
@@ -27,6 +28,7 @@ import org.dspace.app.cris.dao.ResearcherPageDao;
 import org.dspace.app.cris.dao.StatSubscriptionDao;
 import org.dspace.app.cris.dao.UserWSDao;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisDeduplication;
 import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
@@ -1009,4 +1011,14 @@ public class ApplicationService extends ExtendedTabService
         DynamicObjectTypeDao dao = (DynamicObjectTypeDao)getDaoByModel(clazz);
         return dao.findNestedMaskById(id);
     }
+
+	public List<CrisDeduplication> getCrisDeduplicationByFirstAndSecond(String firstID, String secondID) {
+		CrisDeduplicationDao dao = (CrisDeduplicationDao)getDaoByModel(CrisDeduplication.class);
+		return dao.findByFirstAndSecond(firstID, secondID);
+	}
+	
+	public CrisDeduplication uniqueCrisDeduplicationByFirstAndSecond(String firstID, String secondID) {
+		CrisDeduplicationDao dao = (CrisDeduplicationDao)getDaoByModel(CrisDeduplication.class);
+		return dao.uniqueByFirstAndSecond(firstID, secondID);
+	}
 } 

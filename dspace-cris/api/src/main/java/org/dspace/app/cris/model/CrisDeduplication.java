@@ -3,16 +3,31 @@ package org.dspace.app.cris.model;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+
+import org.dspace.eperson.EPerson;
+import org.hibernate.annotations.Type;
 
 import it.cilea.osd.common.model.Identifiable;
 
 @Entity
 @Table(name="cris_deduplication")
+@NamedQueries({
+    @NamedQuery(name = "CrisDeduplication.findAll", query = "from CrisDeduplication order by id"),
+    @NamedQuery(name = "CrisDeduplication.count", query = "select count(*) from CrisDeduplication"),
+    @NamedQuery(name = "CrisDeduplication.findByFirstAndSecond", query = "from CrisDeduplication where firstItemId = ? and secondItemId = ?"),
+    @NamedQuery(name = "CrisDeduplication.uniqueByFirstAndSecond", query = "from CrisDeduplication where firstItemId = ? and secondItemId = ?")
+})
 public class CrisDeduplication implements Identifiable {
 	/** DB Primary key */
 	@Id
@@ -20,11 +35,15 @@ public class CrisDeduplication implements Identifiable {
 	@SequenceGenerator(name = "CRIS_DEDUPLICATION_SEQ", sequenceName = "CRIS_DEDUPLICATION_SEQ", allocationSize = 1)
 	private Integer id;
 
-    private UUID first_item_id;
-    private UUID second_item_id;
+	@Column(name="first_item_id")
+    private String firstItemId;
+	@Column(name="second_item_id")
+    private String secondItemId;
+    
     private Integer resource_type_id;
     private boolean tofix;
     private boolean fake;
+    
     private String reader_note;
     private UUID reader_id;
     private Date reader_time;    
@@ -33,6 +52,7 @@ public class CrisDeduplication implements Identifiable {
     private String admin_decision;
     private UUID admin_id;
     private String note;
+    
     private Date admin_time;
     private UUID eperson_id;
     private Date reject_time;
@@ -43,17 +63,17 @@ public class CrisDeduplication implements Identifiable {
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	public UUID getFirst_item_id() {
-		return first_item_id;
+	public String getFirstItemId() {
+		return firstItemId;
 	}
-	public void setFirst_item_id(UUID first_item_id) {
-		this.first_item_id = first_item_id;
+	public void setFirstItemId(String first_item_id) {
+		this.firstItemId = first_item_id;
 	}
-	public UUID getSecond_item_id() {
-		return second_item_id;
+	public String getSecondItemId() {
+		return secondItemId;
 	}
-	public void setSecond_item_id(UUID second_item_id) {
-		this.second_item_id = second_item_id;
+	public void setSecondItemId(String second_item_id) {
+		this.secondItemId = second_item_id;
 	}
 	public Integer getResource_type_id() {
 		return resource_type_id;
