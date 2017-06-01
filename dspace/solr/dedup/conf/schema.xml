@@ -514,7 +514,7 @@
    -->
 	
     <!-- Internal DSpaceObject Type ID -->
-    <field name="dedup.withdrawn" type="string" indexed="true" stored="true" omitNorms="true" docValues="true" />
+    <field name="dedup.withdrawn" type="string" indexed="true" stored="true" omitNorms="true" docValues="true" multiValued="true"/>
     <field name="dedup.resourcetype" type="sint" indexed="true" stored="true" required="true" omitNorms="true" />
 	<field name="dedup.signaturetype" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
 

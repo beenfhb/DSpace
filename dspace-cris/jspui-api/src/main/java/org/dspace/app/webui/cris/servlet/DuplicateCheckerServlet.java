@@ -669,7 +669,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                         
                         
                         getHibernateSession(context).createSQLQuery(
-                                "DELETE FROM cris_deduplication WHERE first_item_id = :remove OR second_item_id = :remove").setParameter("remove", remove).executeUpdate();
+                                "DELETE FROM cris_deduplication WHERE first_item_id = :remove OR second_item_id = :remove").setParameter("remove", remove.toString()).executeUpdate();
                     }
                 }
             }
@@ -1513,42 +1513,24 @@ public class DuplicateCheckerServlet extends DSpaceServlet
     
     class DTOBitstream {
     	
-    	UUID id;
-    	
-    	UUID itemID;
-    	
-    	UUID bundleID;
-    	
-    	String name;
-    	
-    	String source;
-    	
-    	String description;
-    	
-    	BitstreamFormat format;
-    	
-    	String userFormatDescription;
-    	
-    	List<DTOResourcePolicy> rps;
-    	
-    	InputStream is;
+    	DTOBitstreamData data = new DTOBitstreamData();
 
 		public String getName() {
-			return name;
+			return data.getName();
 		}
 
 		public void setInputStream(InputStream retrieve) {
-			this.is = retrieve;
+			this.data.setIs(retrieve);
 		}
 
 		public void create(UUID id, String name2, String source2, String description2, BitstreamFormat format2,
 				String userFormatDescription2, List<ResourcePolicy> policies) {
-			this.id = id;
-			this.name = name2;
-			this.source = source2;
-			this.description = description2;
-			this.format = format2;
-			this.userFormatDescription = userFormatDescription2;
+			this.data.setId(id);
+			this.data.setName(name2);
+			this.data.setSource(source2);
+			this.data.setDescription(description2);
+			this.data.setFormat(format2);
+			this.data.setUserFormatDescription(userFormatDescription2);
 			if (policies != null) {
 				for (ResourcePolicy rp : policies) {
 					DTOResourcePolicy dtorp = new DTOResourcePolicy();
@@ -1561,140 +1543,130 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 		}
 
 		public void setName(String name) {
-			this.name = name;
+			this.data.setName(name);
 		}
 
 		public String getSource() {
-			return source;
+			return data.getSource();
 		}
 
 		public void setSource(String source) {
-			this.source = source;
+			this.data.setSource(source);
 		}
 
 		public String getDescription() {
-			return description;
+			return data.getDescription();
 		}
 
 		public void setDescription(String description) {
-			this.description = description;
+			this.data.setDescription(description);
 		}
 
 		public BitstreamFormat getFormat() {
-			return format;
+			return data.getFormat();
 		}
 
 		public void setFormat(BitstreamFormat format) {
-			this.format = format;
+			this.data.setFormat(format);
 		}
 
 		public String getUserFormatDescription() {
-			return userFormatDescription;
+			return data.getUserFormatDescription();
 		}
 
 		public void setUserFormatDescription(String userFormatDescription) {
-			this.userFormatDescription = userFormatDescription;
+			this.data.setUserFormatDescription(userFormatDescription);
 		}
 
-		public List<DTOResourcePolicy> getRps() {
-			return rps;
+		public List<DTOResourcePolicy> getRps() {			
+			return data.getRps();
 		}
 
 		public void setRps(List<DTOResourcePolicy> rps) {
-			this.rps = rps;
+			this.data.setRps(rps);
 		}
 
 		public UUID getItemID() {
-			return itemID;
+			return data.getItemID();
 		}
 
 		public void setItemID(UUID itemID) {
-			this.itemID = itemID;
+			this.data.setItemID(itemID);
 		}
 
 		public UUID getBundleID() {
-			return bundleID;
+			return data.getBundleID();
 		}
 
 		public void setBundleID(UUID bundleID) {
-			this.bundleID = bundleID;
+			this.data.setBundleID(bundleID);
 		}
 
 		public UUID getId() {
-			return id;
+			return data.getId();
 		}
 
 		public void setId(UUID id) {
-			this.id = id;
+			this.data.setId(id);
 		}
 
 		public InputStream getIs() {
-			return is;
+			return data.getIs();
 		}
 
 		public void setIs(InputStream is) {
-			this.is = is;
+			this.data.setIs(is);
 		}
     }
     
     class DTOResourcePolicy {
     	
-		Group group;
-		
-		EPerson eperson;
-		
-		int action;
-		
-		String resourcePolicyType;
-		
-		Date startDate;
-		
-		Date endDate;
-    	
+		DTOResourcePolicyData data = new DTOResourcePolicyData();
+
 		public Group getGroup() {
-			return group;
+			return data.getGroup();
 		}
 		public void create(Group group2, EPerson ePerson2, int action2, String rpType, Date startDate2, Date endDate2) {
-			this.group = group2;
-			this.eperson = ePerson2;
-			this.action = action2;
-			this.resourcePolicyType = rpType;
-			this.startDate = startDate2;
-			this.endDate = endDate2;			
+			this.data.setGroup(group2);
+			this.data.setEperson(ePerson2);
+			this.data.setAction(action2);
+			this.data.setResourcePolicyType(rpType);
+			this.data.setStartDate(startDate2);
+			this.data.setEndDate(endDate2);			
 		}
 		
 		public void setGroup(Group group) {
-			this.group = group;
+			this.data.setGroup(group);
 		}
 		public EPerson getEperson() {
-			return eperson;
+			return data.getEperson();
 		}
 		public void setEperson(EPerson eperson) {
-			this.eperson = eperson;
+			this.data.setEperson(eperson);
 		}
 		public int getAction() {
-			return action;
+			return data.getAction();
 		}
 		public void setAction(int action) {
-			this.action = action;
+			this.data.setAction(action);
 		}
 		public String getResourcePolicyType() {
-			return resourcePolicyType;
+			return data.getResourcePolicyType();
 		}
 		public void setResourcePolicyType(String resourcePolicyType) {
-			this.resourcePolicyType = resourcePolicyType;
+			this.data.setResourcePolicyType(resourcePolicyType);
 		}
 		public Date getStartDate() {
-			return startDate;
+			return data.getStartDate();
 		}
 		public void setStartDate(Date startDate) {
-			this.startDate = startDate;
+			this.data.setStartDate(startDate);
 		}
 		public Date getEndDate() {
-			return endDate;
+			return data.getEndDate();
 		}
 		public void setEndDate(Date endDate) {
-			this.endDate = endDate;
+			this.data.setEndDate(endDate);
 		}
     }
 }
