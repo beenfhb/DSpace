@@ -29,9 +29,10 @@ import org.json.JSONObject;
 
 /**
  * Base class to lookup value from authority based on Getty vocabularies
- * https://www.getty.edu/research/tools/vocabularies/index.html 
  * 
- * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ * @see https://www.getty.edu/research/tools/vocabularies/index.html 
+ * 
+ * @author Riccardo Fazio (riccardo.fazio at 4science dot it)
  *
  */
 public abstract class GettyAuthority implements ChoiceAuthority {

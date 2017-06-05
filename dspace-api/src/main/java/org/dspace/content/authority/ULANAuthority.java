@@ -10,10 +10,11 @@ package org.dspace.content.authority;
 import org.dspace.content.Collection;
 
 /**
- * Implementation to lookup value from The Union List of Artist Names ® (ULAN),
- * https://www.getty.edu/research/tools/vocabularies/ulan/index.html
+ * Implementation to lookup value from The Union List of Artist Names (ULAN),
+ * 
+ * @see https://www.getty.edu/research/tools/vocabularies/ulan/index.html
  *  
- * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ * @author Riccardo Fazio (riccardo.fazio at 4science dot it)
  */
 public class ULANAuthority extends GettyAuthority {
 

@@ -10,10 +10,11 @@ package org.dspace.content.authority;
 import org.dspace.content.Collection;
 
 /**
- * Implementation to lookup value from The Art & Architecture Thesaurus ® (AAT),
- * https://www.getty.edu/research/tools/vocabularies/aat/index.html
+ * Implementation to lookup value from The Art & Architecture Thesaurus (AAT),
+ * 
+ * @see https://www.getty.edu/research/tools/vocabularies/aat/index.html
  *  
- * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ * @author Riccardo Fazio (riccardo.fazio at 4science dot it)
  */
 public class AATAuthority extends GettyAuthority {
 

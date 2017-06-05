@@ -10,10 +10,11 @@ package org.dspace.content.authority;
 import org.dspace.content.Collection;
 
 /**
- * Implementation to lookup value from Getty Thesaurus of Geographic Names® Online
- * https://www.getty.edu/research/tools/vocabularies/tgn/index.html
+ * Implementation to lookup value from Getty Thesaurus of Geographic Names Online
+ * 
+ * @see https://www.getty.edu/research/tools/vocabularies/tgn/index.html
  *  
- * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ * @author Riccardo Fazio (riccardo.fazio at 4science dot it)
  *
  */
 public class TGNAuthority extends GettyAuthority {
