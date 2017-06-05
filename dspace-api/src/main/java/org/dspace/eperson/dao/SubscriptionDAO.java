@@ -29,8 +29,8 @@ public interface SubscriptionDAO extends GenericDAO<Subscription> {
     public void deleteByCollection(Context context, Collection collection) throws SQLException;
 
     public List<Subscription> findByEPerson(Context context, EPerson eperson) throws SQLException;
-    public List<Collection> findByEPersonWithCollection(Context context, EPerson eperson) throws SQLException;
-    public List<Community> findByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException;
+    public List<Subscription> findByEPersonWithCollection(Context context, EPerson eperson) throws SQLException;
+    public List<Subscription> findByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException;
     
     public Subscription findByCollectionAndEPerson(Context context, EPerson eperson, Collection collection) throws SQLException;
 

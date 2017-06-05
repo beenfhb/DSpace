@@ -185,11 +185,11 @@ public class SubscribeServiceImpl implements SubscribeService {
 	}
 	
 	@Override
-	public List<Collection> getSubscriptionsCollection(Context context, EPerson eperson) throws SQLException {
+	public List<Subscription> getSubscriptionsCollection(Context context, EPerson eperson) throws SQLException {
 		return subscriptionDAO.findByEPersonWithCollection(context, eperson);
 	}
 	@Override
-	public List<Community> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException {
+	public List<Subscription> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException {
 		return subscriptionDAO.findByEPersonWithCommunity(context, eperson);
 	}
 

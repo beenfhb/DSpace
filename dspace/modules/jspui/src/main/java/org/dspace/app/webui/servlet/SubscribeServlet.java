@@ -29,8 +29,9 @@ import org.dspace.content.Community;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Subscription;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.SubscribeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -45,9 +46,6 @@ public class SubscribeServlet extends DSpaceServlet
     /** Logger */
     private static Logger log = Logger.getLogger(SubscribeServlet.class);
 
-    @Autowired
-    private SubscribeService subscribeService;
-    
     protected void doDSGet(Context context, HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException,
             SQLException, AuthorizeException
@@ -66,6 +64,9 @@ public class SubscribeServlet extends DSpaceServlet
 
         CrisSubscribeService rpsubscribe = (CrisSubscribeService) applicationContext
                 .getBean("CrisSubscribeService");
+        
+        SubscribeService subscribeService = EPersonServiceFactory.getInstance().getSubscribeService();
+
         /*
          * Parameters: submit_unsubscribe - unsubscribe from a collection
          * submit_clear - clear all subscriptions submit_cancel - cancel update -
@@ -169,12 +170,13 @@ public class SubscribeServlet extends DSpaceServlet
         Researcher researcher = new Researcher();
         CrisSubscribeService rpsubscribe = researcher.getCrisSubscribeService();
         ApplicationService applicationService = researcher.getApplicationService();
-           
+        SubscribeService subscribeService = EPersonServiceFactory.getInstance().getSubscribeService();
+        
         // Subscribed collections
-        List<Collection> subs = subscribeService.getSubscriptionsCollection(context, context
+        List<Subscription> subs = subscribeService.getSubscriptionsCollection(context, context
                 .getCurrentUser());
         // Subscribed communities
-        List<Community> subsComm = subscribeService.getSubscriptionsCommunity(context, context
+        List<Subscription> subsComm = subscribeService.getSubscriptionsCommunity(context, context
                 .getCurrentUser());
         
         List<String> subsRP = rpsubscribe.getSubscriptions(context
@@ -188,11 +190,4 @@ public class SubscribeServlet extends DSpaceServlet
         JSPManager.showJSP(request, response, "/mydspace/subscriptions.jsp");
     }
 
-	public SubscribeService getSubscribeService() {
-		return subscribeService;
-	}
-
-	public void setSubscribeService(SubscribeService subscribeService) {
-		this.subscribeService = subscribeService;
-	}
 }

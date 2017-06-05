@@ -116,8 +116,8 @@ public interface SubscribeService {
 
     public void deleteByEPerson(Context context, EPerson ePerson) throws SQLException;
 
-	public List<Collection> getSubscriptionsCollection(Context context, EPerson eperson) throws SQLException;
-	public List<Community> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException;
+	public List<Subscription> getSubscriptionsCollection(Context context, EPerson eperson) throws SQLException;
+	public List<Subscription> getSubscriptionsCommunity(Context context, EPerson eperson) throws SQLException;
 
 	public void subscribeCommunity(Context context, EPerson currentUser, Community community) throws SQLException, AuthorizeException;
 

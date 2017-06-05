@@ -79,7 +79,7 @@ public class CommunityListServlet extends DSpaceServlet
         }
 
         EPerson currUser = context.getCurrentUser();
-        List<Community> commIDsubs = new ArrayList<Community>();
+        List<Subscription> commIDsubs = new ArrayList<Subscription>();
         if (currUser != null)
         {
             commIDsubs = EPersonServiceFactory.getInstance().getSubscribeService().getSubscriptionsCommunity(context, currUser);

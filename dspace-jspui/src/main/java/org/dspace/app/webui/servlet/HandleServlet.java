@@ -769,7 +769,7 @@ public class HandleServlet extends DSpaceServlet
 
             if (e != null)
             {
-            	subscribeService.isSubscribed(context, e, collection);
+            	subscribed = subscribeService.isSubscribed(context, e, collection);
 
                 // is the user a COLLECTION_EDITOR?
                 if (collectionService.canEditBoolean(context, collection, true))
