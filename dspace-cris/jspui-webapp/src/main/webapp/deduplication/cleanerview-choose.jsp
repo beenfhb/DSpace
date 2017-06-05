@@ -24,16 +24,25 @@
 	
 	
 	function validateBeforeSubmit(){
-		var input = $('#itemid_list').val();
+		var input = jQuery('#itemid_list').val();
 		var res = input.split(",");
-		for (i=0; i<res.length; i++) { 
-			if (isNaN(res[i].trim()) || res[i].trim() == ''){
+		for (i=0; i<res.length; i++) {
+			if(res[i].trim() == ''){
 				$( "#dialog-confirm" ).modal("show");
 				return false;
 			}
+			else {
+				var str = res[i].trim();
+				var regex = /^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+				let m;
+				if ((m = regex.exec(str)) == null) {
+					jQuery( "#dialog-confirm" ).modal("show");
+					return false;
+				}
+			}		
 		}
 		if (res.length < 2){
-			$( "#dialog-confirm" ).modal("show");
+			jQuery( "#dialog-confirm" ).modal("show");
 			return false;			
 		}
 		document.formItemIdList.submit();
