@@ -27,6 +27,13 @@ import org.dspace.content.Collection;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Base class to lookup value from authority based on Getty vocabularies
+ * https://www.getty.edu/research/tools/vocabularies/index.html 
+ * 
+ * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ *
+ */
 public abstract class GettyAuthority implements ChoiceAuthority {
 	
 	Logger log = Logger.getLogger(GettyAuthority.class);

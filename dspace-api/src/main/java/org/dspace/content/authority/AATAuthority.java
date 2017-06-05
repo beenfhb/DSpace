@@ -9,6 +9,12 @@ package org.dspace.content.authority;
 
 import org.dspace.content.Collection;
 
+/**
+ * Implementation to lookup value from The Art & Architecture Thesaurus ® (AAT),
+ * https://www.getty.edu/research/tools/vocabularies/aat/index.html
+ *  
+ * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ */
 public class AATAuthority extends GettyAuthority {
 
 	String query ="SELECT ?Subject ?Term ?Parents ?ScopeNote { ?Subject luc:term \"%s\"; skos:inScheme aat: ; gvp:prefLabelGVP [skosxl:literalForm ?Term; gvp:term ?pureTerm]. optional {?Subject gvp:parentStringAbbrev ?Parents} optional {?Subject skos:scopeNote [dct:language gvp_lang:en; rdf:value ?ScopeNote]}} ORDER BY ASC(LCASE(STR(?pureTerm)))";
