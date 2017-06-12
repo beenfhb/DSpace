@@ -403,7 +403,7 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
         return legacyId;
     }
 
-    private BitstreamService getBitstreamService() {
+    public BitstreamService getBitstreamService() {
         if(bitstreamService == null)
         {
             bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
