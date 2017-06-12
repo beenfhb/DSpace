@@ -40,13 +40,13 @@
 		<org.jdyna.version>5.8-SNAPSHOT</org.jdyna.version>		
 		<it.cilea.ccommons.version>2.3-SNAPSHOT</it.cilea.ccommons.version>
 		
-		<ckan.addon.modules>[5.1-SNAPSHOT,6.0-SNAPSHOT)</ckan.addon.modules>
-		<iiif.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</iiif.addon.modules>
-		<commons.addon.modules>[5.1-SNAPSHOT,6.0-SNAPSHOT)</commons.addon.modules>
-		<annoiiif.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</annoiiif.addon.modules>
-		<ocr.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</ocr.addon.modules>
-		<docviewer.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</docviewer.addon.modules>		
-		<av.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</av.addon.modules>
+		<ckan.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ckan.addon.modules>
+		<iiif.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</iiif.addon.modules>
+		<commons.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</commons.addon.modules>
+		<annoiiif.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</annoiiif.addon.modules>
+		<ocr.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ocr.addon.modules>
+		<docviewer.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</docviewer.addon.modules>		
+		<av.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</av.addon.modules>
 		
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
