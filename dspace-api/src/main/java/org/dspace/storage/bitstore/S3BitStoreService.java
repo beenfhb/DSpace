@@ -414,4 +414,9 @@ public class S3BitStoreService implements BitStoreService
         store.get(id);
 */
 	}
+
+	@Override
+	public String path(Bitstream bitstream) throws IOException {
+		return "s3://" + getBucketName() + "/" + getFullKey(bitstream.getInternalId()); 
+	}
 }

@@ -89,4 +89,6 @@ public interface BitStoreService
      *            If a problem occurs while removing the asset
      */
 	public void remove(Bitstream bitstream) throws IOException;
+
+	public String path(Bitstream bitstream) throws IOException;
 }

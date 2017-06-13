@@ -443,4 +443,10 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         // Less than one hour old
         return (now - lastModified) < (1 * 60 * 1000);
     }
+
+	@Override
+	public String absolutePath(Context context, Bitstream bitstream) throws IOException {
+        Integer storeNumber = bitstream.getStoreNumber();
+        return stores.get(storeNumber).path(bitstream);		
+	}
 }

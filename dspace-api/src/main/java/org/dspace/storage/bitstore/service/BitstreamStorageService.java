@@ -166,4 +166,5 @@ public interface BitstreamStorageService {
      */
     public void migrate(Context context, Integer assetstoreSource, Integer assetstoreDestination, boolean deleteOld, Integer batchCommitSize) throws IOException, SQLException, AuthorizeException;
 
+    public String absolutePath(Context context, Bitstream bitstream) throws IOException;
 }

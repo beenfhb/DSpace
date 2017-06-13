@@ -52,6 +52,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.identifier.factory.IdentifierServiceFactory;
 import org.dspace.identifier.service.IdentifierService;
+import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.workflow.WorkflowException;
@@ -1248,7 +1249,7 @@ public class ItemImportOA
         }
         else
         {
-            bs.setSource(c, bs.getSource());
+            bs.setSource(c, StorageServiceFactory.getInstance().getBitstreamStorageService().absolutePath(c, bs));
         }
 
         if (embargoGroup == null) {
