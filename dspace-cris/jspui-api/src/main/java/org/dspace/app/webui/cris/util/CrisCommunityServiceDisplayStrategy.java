@@ -10,6 +10,7 @@ package org.dspace.app.webui.cris.util;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.MissingResourceException;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -41,7 +42,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 			.getServiceByName("applicationService", ApplicationService.class);
 
 	@Override
-	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject item, boolean disableCrossLinks, boolean emph) {
 		ACrisObject crisObject = (ACrisObject)item;
 		String metadata = internalDisplay(hrq, metadataArray, crisObject);
@@ -49,7 +50,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 	}
 
 	@Override
-	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks, boolean emph) throws JspException {
 
 		ACrisObject crisObject = (ACrisObject) item;
@@ -194,7 +195,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
     }
 
 	@Override
-	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
 			throws JspException {
 		// noop
@@ -202,7 +203,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 	}
 
 	@Override
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem, boolean disableCrossLinks,
 			boolean emph) throws JspException {
 		// noop
@@ -210,7 +211,7 @@ public class CrisCommunityServiceDisplayStrategy implements IDisplayMetadataValu
 	}
 
 	@Override
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
 			throws JspException {
 		// noop

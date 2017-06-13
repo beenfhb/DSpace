@@ -18,13 +18,12 @@ import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.IMetadataValue;
-import org.dspace.content.IMetadataValue;
 import org.dspace.core.I18nUtil;
 
 public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy {
 	
 	@Override
-	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, UUID colIdx,
 			UUID itemid, String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
 			throws JspException {
 		String metadataDisplay = "-";
@@ -63,7 +62,7 @@ public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy {
 		return metadataDisplay;
 	}
 
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String string, int colIdx,
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String string, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
 			PageContext pageContext) {
 		return "nowrap=\"nowrap\" align=\"center\"";

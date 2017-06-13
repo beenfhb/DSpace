@@ -9,6 +9,7 @@ package org.dspace.discovery;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -24,6 +25,7 @@ import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.sort.OrderFormat;
 import org.dspace.sort.SortException;
@@ -58,7 +60,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
     protected ChoiceAuthorityService choiceAuthorityService;
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document)
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
         // Only works for Items
         if (!(dso instanceof Item))

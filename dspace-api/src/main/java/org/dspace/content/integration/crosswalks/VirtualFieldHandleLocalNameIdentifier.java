@@ -8,9 +8,9 @@
 package org.dspace.content.integration.crosswalks;
 
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
 
 /**
  * Implements virtual field processing to build custom identifier

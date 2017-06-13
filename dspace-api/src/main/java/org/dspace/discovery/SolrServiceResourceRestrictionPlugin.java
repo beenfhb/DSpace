@@ -10,6 +10,7 @@ package org.dspace.discovery;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -24,6 +25,7 @@ import org.dspace.content.service.CommunityService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
@@ -54,7 +56,7 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
     protected ResourcePolicyService resourcePolicyService;
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
         try {
             List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, dso, Constants.READ);
             for (ResourcePolicy resourcePolicy : policies) {

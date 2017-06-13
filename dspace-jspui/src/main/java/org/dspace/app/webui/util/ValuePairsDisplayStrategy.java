@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -19,12 +20,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 
 public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy
 {
@@ -44,8 +46,8 @@ public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, int itemid,
-            String field, Metadatum[] metadataArray, boolean disableCrossLinks,
+            boolean viewFull, String browseType, UUID colIdx, UUID itemid,
+            String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         try
@@ -81,18 +83,18 @@ public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy
 
             for (String pairsname : pairsnames)
             {
-                ChoiceAuthority choice = (ChoiceAuthority) PluginManager
+                ChoiceAuthority choice = (ChoiceAuthority) CoreServiceFactory.getInstance().getPluginService()
                         .getNamedPlugin(ChoiceAuthority.class, pairsname);
 
                 int ii = 0;                
-                for (Metadatum r : metadataArray)
+                for (IMetadataValue r : metadataArray)
                 {
                     if (ii > 0)
                     {
                         result += " ";
                     }
-                    Choices choices = choice.getBestMatch(field, r.value,
-                            colIdx,
+                    Choices choices = choice.getBestMatch(field, r.getValue(),
+                            ContentServiceFactory.getInstance().getCollectionService().find(obtainContext, colIdx),
                             obtainContext.getCurrentLocale().toString());
                     if (choices != null)
                     {

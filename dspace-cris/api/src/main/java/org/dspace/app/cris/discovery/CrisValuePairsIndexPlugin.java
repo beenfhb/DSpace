@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,16 +20,11 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.ICrisObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
-import org.dspace.app.cris.model.jdyna.DynamicNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
-import org.dspace.app.cris.model.jdyna.OUNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
-import org.dspace.app.cris.model.jdyna.ProjectNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.ProjectPropertiesDefinition;
-import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.util.DCInput;
@@ -38,8 +32,8 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
@@ -217,25 +211,25 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                         {
                             if (StringUtils.isNotBlank(myInput.getPairsType()))
                             {
-                                for (Metadatum metadatum : item.getMetadata(
+                                for (IMetadataValue metadatum : item.getMetadata(
                                         myInput.getSchema(),
                                         myInput.getElement(),
                                         myInput.getQualifier(), Item.ANY))
                                 {
-                                    String stored_value = metadatum.value;
+                                    String stored_value = metadatum.getValue();
                                     String displayVal = myInput
                                             .getDisplayString(null,
                                                     stored_value);
                                     if(StringUtils.isBlank(displayVal)) {
                                         displayVal = stored_value;
                                     }
-                                    document.removeField(metadatum.getField()
+                                    document.removeField(metadatum.getMetadataField().toString('.')
                                             + "_authority");
                                     document.addField(
-                                            metadatum.getField() + "_authority",
+                                    		metadatum.getMetadataField().toString('.') + "_authority",
                                             stored_value);
-                                    document.removeField(metadatum.getField());
-                                    document.addField(metadatum.getField(),
+                                    document.removeField(metadatum.getMetadataField().toString('.'));
+                                    document.addField(metadatum.getMetadataField().toString('.'),
                                             displayVal);
                                     document.addField("valuepairsname_"+myInput.getPairsType(),
                                             displayVal);
@@ -245,7 +239,7 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                                             + Item.ANY;
                                     buildSearchFilter(document, searchFilters,
                                             stored_value.toString(),
-                                            metadatum.getField(),
+                                            metadatum.getMetadataField().toString('.'),
                                             unqualifiedField, displayVal);
                                 }
                             }

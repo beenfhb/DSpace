@@ -10,6 +10,7 @@ package org.dspace.app.webui.cris.util;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.MissingResourceException;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -50,7 +51,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
+            boolean viewFull, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, BrowsableDSpaceObject item,
             boolean disableCrossLinks, boolean emph)
     {
@@ -61,7 +62,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
+            boolean viewFull, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph)
     {
@@ -71,7 +72,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
 
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
+            boolean b, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
@@ -80,7 +81,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
     
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
+            boolean b, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph)
                     throws JspException
@@ -90,7 +91,7 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-            int colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+            UUID colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
             boolean emph) throws JspException 
     {       
         String metadata = "N/A";

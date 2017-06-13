@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -541,7 +542,7 @@ public class ItemListTag extends TagSupport {
 
                     // prepare extra special layout requirements for dates
                     String extras = strategy.getExtraCssDisplay(hrq, limit,
-							viewFull[colIdx], browseType[colIdx], colIdx,
+							viewFull[colIdx], browseType[colIdx], item.getOwningCollection()!=null?item.getOwningCollection().getID():null,
 							field, metadataArray, item, disableCrossLinks,
 							emph[colIdx]);
 
@@ -785,7 +786,7 @@ public class ItemListTag extends TagSupport {
         try
         {
             metadata = strategy.getMetadataDisplay(hrq, limit, viewFull[colIdx],
-                    browseType[colIdx], colIdx, field, metadataArray, items.get(i),
+                    browseType[colIdx], UUID.randomUUID(), field, metadataArray, items.get(i),
                     disableCrossLinks, emph[colIdx]);
         }
         catch (Exception e)

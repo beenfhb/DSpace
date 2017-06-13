@@ -22,7 +22,7 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
     
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
+            boolean viewFull, String browseType, UUID colIdx, UUID itemid, String field,
             List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata;
@@ -46,7 +46,7 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
             sb.append(getDisplayForValue(hrq, metadataArray.get(j).getValue(), itemid));
             if (j < (loopLimit - 1))
             {
-                if (colIdx != -1) // we are showing metadata in a table row
+                if (colIdx != null) // we are showing metadata in a table row
                                   // (browse or item list)
                 {
                     sb.append("; ");
@@ -60,7 +60,7 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
         }
         if (truncated)
         {
-            if (colIdx != -1)
+            if (colIdx != null)
             {
                 sb.append("; ...");
             }
@@ -70,7 +70,7 @@ public abstract class AUniformDisplayStrategy extends ASimpleDisplayStrategy
             }
         }
 
-        if (colIdx != -1) // we are showing metadata in a table row (browse or
+        if (colIdx != null) // we are showing metadata in a table row (browse or
                           // item list)
         {
             metadata = (emph ? "<strong><em>" : "<em>") + sb.toString()

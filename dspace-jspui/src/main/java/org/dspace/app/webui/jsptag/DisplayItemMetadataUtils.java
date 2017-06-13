@@ -231,7 +231,7 @@ public class DisplayItemMetadataUtils {
 					}
 				}
 
-				String displayvalue = strategy.getMetadataDisplay(req, -1, viewFull, browseIndex, -1, field, values,
+				String displayvalue = strategy.getMetadataDisplay(req, -1, viewFull, browseIndex, null, field, values,
 						item, false, false);
 
 				metadata.add(new DisplayMetadata(label, displayvalue));

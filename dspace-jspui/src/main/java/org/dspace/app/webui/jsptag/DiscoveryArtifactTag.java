@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -264,7 +265,7 @@ public class DiscoveryArtifactTag extends BodyTagSupport {
 				}
 
 				metadata = strategy.getMetadataDisplay(request, -1, viewFull,
-                        browseIndex, 0, field,
+                        browseIndex, UUID.randomUUID(), field,
                         arrayDcMetadataValue, artifact,
                         false, false);
 			} else {
@@ -340,7 +341,7 @@ public class DiscoveryArtifactTag extends BodyTagSupport {
 			strategy = new DefaultDisplayStrategy();
 		}
 
-		String metadata = strategy.getMetadataDisplay(request, -1, viewFull, browseIndex, 0, field,
+		String metadata = strategy.getMetadataDisplay(request, -1, viewFull, browseIndex, UUID.randomUUID(), field,
 				artifact.getMetadataValueInDCFormat(field), artifact, false, false);
 
 		String label = null;

@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -34,7 +35,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
     @Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject item, boolean disableCrossLinks,
+			UUID colIdx, String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject item, boolean disableCrossLinks,
 			boolean emph) {
     	ACrisObject crisObject = (ACrisObject)item;
 		String metadata = "-";
@@ -49,7 +50,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
+			UUID colIdx, String field, List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph) {
 		String metadata;
 		// limit the number of records if this is the author field (if
 		// -1, then the limit is the full list)
@@ -68,7 +69,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 			buildBrowseLink(hrq, viewFull, browseType, metadataArray, disableCrossLinks, sb, j);
 			buildAuthority(hrq, metadataArray, sb, j);
 			if (j < (loopLimit - 1)) {
-				if (colIdx != -1) // we are showing metadata in a table row
+				if (colIdx != null) // we are showing metadata in a table row
 									// (browse or item list)
 				{
 					sb.append("; ");
@@ -85,7 +86,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 			sb.append(", " + etal);
 		}
 
-		if (colIdx != -1) // we are showing metadata in a table row (browse or
+		if (colIdx != null) // we are showing metadata in a table row (browse or
 							// item list)
 		{
 			metadata = (emph ? "<strong><em>" : "<em>") + sb.toString() + (emph ? "</em></strong>" : "</em>");
@@ -183,14 +184,14 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
 
 	@Override
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, UUID colIdx,
 			String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem, boolean disableCrossLinks, boolean emph) throws JspException {
 		return null;
 	}
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			UUID colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException {
 		ACrisObject crisObject = (ACrisObject) item;
 		String metadata = "-";
@@ -205,7 +206,7 @@ public class CrisDisplayStrategy implements IDisplayMetadataValueStrategy {
 
     @Override
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
+            boolean b, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {

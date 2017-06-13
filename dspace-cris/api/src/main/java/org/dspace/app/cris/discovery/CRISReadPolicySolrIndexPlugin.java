@@ -8,28 +8,23 @@
 package org.dspace.app.cris.discovery;
 
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
@@ -86,25 +81,25 @@ public class CRISReadPolicySolrIndexPlugin implements CrisServiceIndexPlugin
                         try
                         {
                             context = new Context();
-                            dso = Item.find(context,
-                                    Integer.parseInt(metadata));
-                            List<ResourcePolicy> policies = AuthorizeManager
+                            dso = ContentServiceFactory.getInstance().getItemService().find(context,
+                                    UUID.fromString(metadata));
+                            List<ResourcePolicy> policies = AuthorizeServiceFactory.getInstance().getAuthorizeService()
                                     .getPoliciesActionFilter(context, dso,
                                             Constants.READ);
                             for (ResourcePolicy resourcePolicy : policies)
                             {
                                 String fieldValue;
-                                if (resourcePolicy.getGroupID() != -1)
+                                if (resourcePolicy.getID() != null)
                                 {
                                     // We have a group add it to the value
                                     fieldValue = "g"
-                                            + resourcePolicy.getGroupID();
+                                            + resourcePolicy.getID();
                                 }
                                 else
                                 {
                                     // We have an eperson add it to the value
                                     fieldValue = "e"
-                                            + resourcePolicy.getEPersonID();
+                                            + resourcePolicy.getEPerson().getID();
 
                                 }
 

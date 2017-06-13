@@ -8,6 +8,7 @@
 package org.dspace.app.cris.discovery;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.integration.RPAuthority;
@@ -19,13 +20,14 @@ import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 public class PendingMatchSolrIndexer implements SolrServiceIndexPlugin
 {
 
     @Override
     public void additionalIndex(Context context, DSpaceObject dso,
-            SolrInputDocument document)
+            SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
 
         if (dso instanceof Item)

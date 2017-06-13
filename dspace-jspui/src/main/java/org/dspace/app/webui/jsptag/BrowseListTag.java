@@ -737,13 +737,13 @@ public class BrowseListTag extends TagSupport
                     }
 
                     String metadata = strategy.getMetadataDisplay(hrq, limit,
-                            viewFull[colIdx], browseType[colIdx], colIdx,
+                            viewFull[colIdx], browseType[colIdx], item.getParentObject()!=null?item.getParentObject().getID():null,
                             field, metadataArray, item, disableCrossLinks,
                             emph[colIdx]);
 
                     // prepare extra special layout requirements for dates
                     String extras = strategy.getExtraCssDisplay(hrq, limit,
-                            viewFull[colIdx], browseType[colIdx], colIdx,
+                            viewFull[colIdx], browseType[colIdx], item.getParentObject()!=null?item.getParentObject().getID():null,
                             field, metadataArray, item, disableCrossLinks,
                             emph[colIdx]);
                     

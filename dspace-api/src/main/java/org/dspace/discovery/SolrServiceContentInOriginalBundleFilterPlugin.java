@@ -8,6 +8,7 @@
 package org.dspace.discovery;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.Bitstream;
@@ -15,6 +16,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 /**
  * This plugin adds three fields to the solr index to make a facet with/without
@@ -32,7 +34,7 @@ public class SolrServiceContentInOriginalBundleFilterPlugin implements SolrServi
 {
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document)
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
         if (dso instanceof Item)
         {

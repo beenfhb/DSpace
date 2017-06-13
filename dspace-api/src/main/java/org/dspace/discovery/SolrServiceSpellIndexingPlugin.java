@@ -8,6 +8,7 @@
 package org.dspace.discovery;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
@@ -16,6 +17,7 @@ import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -31,7 +33,7 @@ public class SolrServiceSpellIndexingPlugin implements SolrServiceIndexPlugin {
     protected ItemService itemService;
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
         if(dso instanceof Item){
             Item item = (Item) dso;
             List<IMetadataValue> dcValues = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);

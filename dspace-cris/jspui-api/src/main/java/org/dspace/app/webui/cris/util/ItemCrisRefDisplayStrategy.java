@@ -52,7 +52,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
 
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-			boolean viewFull, String browseType, int colIdx, UUID itemId,
+			boolean viewFull, String browseType, UUID colIdx, UUID itemId,
 			String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks,
 			boolean emph) throws JspException {
     	String publicPath = null;
@@ -103,7 +103,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
             }
             if (j < (loopLimit - 1))
             {
-                if (colIdx != -1) // we are showing metadata in a table row
+                if (colIdx != null) // we are showing metadata in a table row
                                   // (browse or item list)
                 {
                     sb.append("; ");
@@ -122,7 +122,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
             sb.append(", " + etal);
         }
 
-        if (colIdx != -1) // we are showing metadata in a table row (browse or
+        if (colIdx != null) // we are showing metadata in a table row (browse or
                           // item list)
         {
             metadata = (emph ? "<strong><em>" : "<em>") + sb.toString()

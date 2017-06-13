@@ -8,6 +8,7 @@
 package org.dspace.app.cris.discovery;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
@@ -16,13 +17,14 @@ import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 public class HasDoiSolrIndexer implements SolrServiceIndexPlugin {
 
 	Logger log = Logger.getLogger(HasDoiSolrIndexer.class);
 
 	@Override
-	public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+	public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
 		if (dso instanceof Item) {
 			Item item = (Item) dso;
 			List<IMetadataValue> dois = item.getItemService().getMetadataByMetadataString(item, "dc.identifier.doi");

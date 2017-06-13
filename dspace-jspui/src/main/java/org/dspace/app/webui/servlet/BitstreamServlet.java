@@ -22,7 +22,7 @@ import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
@@ -183,7 +183,7 @@ public class BitstreamServlet extends DSpaceServlet
                 "bitstream_id=" + bitstream.getID()));
  
 		if (bitstream.getMetadataValue(IViewer.METADATA_STRING_PROVIDER).contains(IViewer.STOP_DOWNLOAD)
-				&& !AuthorizeManager.isAdmin(context, bitstream)) {
+				&& !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context, bitstream)) {
 			throw new AuthorizeException("Download not allowed by viewer policy");
 		}
         //new UsageEvent().fire(request, context, AbstractUsageEvent.VIEW,

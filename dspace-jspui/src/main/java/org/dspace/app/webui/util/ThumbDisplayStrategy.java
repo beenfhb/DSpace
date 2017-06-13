@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -22,11 +23,9 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.browse.BrowseDSpaceObject;
 import org.dspace.content.Bitstream;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.Thumbnail;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
@@ -101,7 +100,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     }
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
+            boolean viewFull, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, BrowsableDSpaceObject item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
@@ -116,7 +115,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     }
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
+            boolean viewFull, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
@@ -124,7 +123,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     }
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String string, int colIdx, String field,
+            boolean b, String string, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
@@ -132,7 +131,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     }
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
+            boolean b, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
@@ -316,7 +315,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
+            boolean viewFull, String browseType, UUID colIdx, String field,
             List<IMetadataValue> metadataArray, IGlobalSearchResult item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {

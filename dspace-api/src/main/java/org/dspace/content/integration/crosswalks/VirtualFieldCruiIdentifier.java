@@ -7,10 +7,12 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
 
 /**
  * Implements virtual field processing to build custom identifier
@@ -31,13 +33,13 @@ public class VirtualFieldCruiIdentifier
             return (new String[] {
                 (String)fieldCache.get(fieldName)
             });
-        Metadatum mds[] = item.getMetadata("dc", "identifier", "issn", "*");
+        List<IMetadataValue> mds = item.getMetadata("dc", "identifier", "issn", "*");
         String element = "";
-        if(mds != null && mds.length > 0)
-            element = mds[0].value;
+        if(mds != null && mds.size() > 0)
+            element = mds.get(0).getValue();
         mds = item.getMetadata("dc", "identifier", "eissn", "*");
-        if(mds != null && mds.length > 0)
-            element = mds[0].value;
+        if(mds != null && mds.size() > 0)
+            element = mds.get(0).getValue();
         String handle = item.getHandle();
         if(StringUtils.isNotBlank(handle))
             fieldCache.put("virtual.cruiidentifier", (new StringBuilder(String.valueOf(element))).append("/").append(handle.substring(6)).toString());

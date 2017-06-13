@@ -9,12 +9,15 @@ package org.dspace.app.cris.discovery;
 
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 
@@ -36,7 +39,7 @@ public class CrisSolrServiceResourceRestrictionPlugin implements CrisServiceInde
 
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-			ACrisObject<P, TP, NP, NTP, ACNO, ATNO> crisObject, SolrInputDocument sorlDoc) {
+			ACrisObject<P, TP, NP, NTP, ACNO, ATNO> crisObject, SolrInputDocument sorlDoc, Map<String, List<DiscoverySearchFilter>> searchFilters) {
 		
 		Context context = new Context();
 		try {
@@ -49,7 +52,7 @@ public class CrisSolrServiceResourceRestrictionPlugin implements CrisServiceInde
 
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-			ACNO dso, SolrInputDocument sorlDoc) {
+			ACNO dso, SolrInputDocument sorlDoc, Map<String, List<DiscoverySearchFilter>> searchFilters) {
 		// TODO Auto-generated method stub
 		
 	}

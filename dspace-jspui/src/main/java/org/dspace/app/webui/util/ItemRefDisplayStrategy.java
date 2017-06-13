@@ -24,7 +24,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
     private static Logger log = Logger.getLogger(ItemRefDisplayStrategy.class);
     
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, UUID itemid, String field,
+            boolean viewFull, String browseType, UUID colIdx, UUID itemid, String field,
             List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
     {
         String metadata;
@@ -48,7 +48,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
             sb.append(getDisplayForValue(hrq, field, metadataArray.get(j).getValue(), metadataArray.get(j).getAuthority(), itemid));
             if (j < (loopLimit - 1))
             {
-                if (colIdx != -1) // we are showing metadata in a table row
+                if (colIdx != null) // we are showing metadata in a table row
                                   // (browse or item list)
                 {
                     sb.append("; ");
@@ -62,7 +62,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
         }
         if (truncated)
         {
-            if (colIdx != -1)
+            if (colIdx != null)
             {
                 sb.append("; ...");
             }
@@ -72,7 +72,7 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
             }
         }
 
-        if (colIdx != -1) // we are showing metadata in a table row (browse or
+        if (colIdx != null) // we are showing metadata in a table row (browse or
                           // item list)
         {
             metadata = (emph ? "<strong><em>" : "<em>") + sb.toString()
