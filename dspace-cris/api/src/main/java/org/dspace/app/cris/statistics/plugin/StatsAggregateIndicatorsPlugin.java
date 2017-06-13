@@ -68,7 +68,7 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
 
         if (crisEntityTypeId > 1000)
         {
-            rs = (List<ACO>)applicationService.getResearchObjectByShortNameType(CrisConstants.getEntityTypeText(crisEntityTypeId));
+            rs = (List<ACO>)applicationService.getResearchObjectByIDType(crisEntityTypeId);
         }
         else
         {
@@ -105,6 +105,7 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
 
                 if (resourceId != null)
                 {
+                    //TODO manage year (passed by filter)
                     CrisMetrics citation = pService
                             .getLastMetricByResourceIDAndResourceTypeAndMetricsType(
                                     resourceId, resourceType, type);

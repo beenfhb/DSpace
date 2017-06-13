@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -29,14 +30,12 @@ import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authority.service.AuthorityValueService;
-import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.UsageEventEntity;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
@@ -165,8 +164,24 @@ public class CrisConsumer implements Consumer
                                                 "import.submission");
                                 if (activateImportInSubmission)
                                 {
-                                    String valueHashed = HashUtil
-                                            .hashMD5(dcval.getValue());
+                                    String valueHashed = "";
+
+                                    boolean buildFromUUID = ConfigurationManager
+                                            .getBooleanProperty("cris",
+                                                    "import.submission.strategy.uuid."
+                                                            + metadata,
+                                                    false);
+                                    if (buildFromUUID)
+                                    {
+                                        valueHashed = UUID.randomUUID()
+                                                .toString();
+                                    }
+                                    else
+                                    {
+                                        valueHashed = HashUtil
+                                                .hashMD5(dcval.getValue());
+                                    }
+                                        
                                     List<IMetadataValue> list = new ArrayList<IMetadataValue>();
                                     if (toBuild.containsKey(valueHashed))
                                     {

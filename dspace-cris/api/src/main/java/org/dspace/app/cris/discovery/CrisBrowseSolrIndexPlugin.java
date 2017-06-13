@@ -10,6 +10,7 @@ package org.dspace.app.cris.discovery;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,6 +22,7 @@ import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.discovery.SolrServiceImpl;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.sort.OrderFormat;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
@@ -59,7 +61,7 @@ public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 
     @Override
     public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-            ACrisObject<P, TP, NP, NTP, ACNO, ATNO> dso, SolrInputDocument doc)
+            ACrisObject<P, TP, NP, NTP, ACNO, ATNO> dso, SolrInputDocument doc, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
         if (!(dso instanceof ACrisObject))
         {
@@ -297,7 +299,7 @@ public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-			ACNO dso, SolrInputDocument sorlDoc) {
+			ACNO dso, SolrInputDocument sorlDoc, Map<String, List<DiscoverySearchFilter>> searchFilters) {
 		// FIXME NOT SUPPORTED OPERATION
 	}
 }
