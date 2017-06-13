@@ -134,8 +134,8 @@
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.item.enabled", false);
 	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
 	String cfg = ConfigurationManager.getProperty("exportcitation.options");
-	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","core-aggregator.enabled");
-	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "core-aggregator.credentials");
+	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","enabled");
+	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "credentials");
 %>
 
 
