@@ -181,7 +181,7 @@ public interface AuthorizeService {
      *         given DSpace object
      * @throws SQLException if database error
      */
-    public boolean isAdmin(Context c, EPerson e, DSpaceObject o) throws SQLException;
+    public boolean isAdmin(Context c, EPerson e, AuthorizableEntity o) throws SQLException;
 
 
     /**

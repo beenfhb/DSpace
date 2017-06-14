@@ -8,11 +8,12 @@
 package org.dspace.content;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
@@ -38,8 +39,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Sort;
-import org.hibernate.annotations.SortType;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**

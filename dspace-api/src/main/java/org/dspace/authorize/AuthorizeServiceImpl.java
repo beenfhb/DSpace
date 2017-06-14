@@ -383,7 +383,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public boolean isAdmin(Context c, EPerson e, DSpaceObject o) throws SQLException
+    public boolean isAdmin(Context c, EPerson e, AuthorizableEntity o) throws SQLException
     {
         // return true if user is an Administrator
         if (isAdmin(c, e))

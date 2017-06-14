@@ -88,11 +88,4 @@
             context.abort();
         }
     }
-    finally
-    {
-      if (context != null)
-      {
-      	context.abort();
-      }
-    }
 %>
