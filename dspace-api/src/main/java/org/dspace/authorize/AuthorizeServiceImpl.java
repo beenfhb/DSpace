@@ -269,7 +269,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
             // if user is an Admin on this object
             AuthorizableEntity adminObject = useInheritance ? serviceFactory.getDSpaceObjectService((DSpaceObject)o).getAdminObject(c, (DSpaceObject)o, action) : null;
 
-            if (isAdmin(c, adminObject))
+            if (isAdmin(c, e, adminObject))
             {
                 c.cacheAuthorizedAction(o, action, e, true, null);
                 return true;
@@ -331,7 +331,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
                 }
 
                 if ((rp.getGroup() != null)
-                        && (groupService.isMember(c, rp.getGroup())))
+                        && (groupService.isMember(c, e, rp.getGroup())))
                 {
                     // group was set, and eperson is a member
                     // of that group
@@ -379,9 +379,14 @@ public class AuthorizeServiceImpl implements AuthorizeService
     @Override
     public boolean isAdmin(Context c, AuthorizableEntity o) throws SQLException
     {
+        return this.isAdmin(c, c.getCurrentUser(), o);
+    }
 
+    @Override
+    public boolean isAdmin(Context c, EPerson e, DSpaceObject o) throws SQLException
+    {
         // return true if user is an Administrator
-        if (isAdmin(c))
+        if (isAdmin(c, e))
         {
             return true;
         }
@@ -391,7 +396,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
             return false;
         }
 
-        Boolean cachedResult = c.getCachedAuthorizationResult(o, Constants.ADMIN, c.getCurrentUser());
+        Boolean cachedResult = c.getCachedAuthorizationResult(o, Constants.ADMIN, e);
         if (cachedResult != null) {
             return cachedResult.booleanValue();
         }
@@ -406,18 +411,18 @@ public class AuthorizeServiceImpl implements AuthorizeService
             // check policies for date validity
             if (resourcePolicyService.isDateValid(rp))
             {
-                if (rp.getEPerson() != null && rp.getEPerson().equals(c.getCurrentUser()))
+                if (rp.getEPerson() != null && rp.getEPerson().equals(e))
                 {
-                    c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), true, rp);
+                    c.cacheAuthorizedAction(o, Constants.ADMIN, e, true, rp);
                     return true; // match
                 }
 
                 if ((rp.getGroup() != null)
-                        && (groupService.isMember(c, rp.getGroup())))
+                        && (groupService.isMember(c, e, rp.getGroup())))
                 {
                     // group was set, and eperson is a member
                     // of that group
-                    c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), true, rp);
+                    c.cacheAuthorizedAction(o, Constants.ADMIN, e, true, rp);
                     return true;
                 }
             }
@@ -443,7 +448,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
 			}
         }
 
-        c.cacheAuthorizedAction(o, Constants.ADMIN, c.getCurrentUser(), false, null);
+        c.cacheAuthorizedAction(o, Constants.ADMIN, e, false, null);
         return false;
     }
 
@@ -464,6 +469,24 @@ public class AuthorizeServiceImpl implements AuthorizeService
         } else
         {
             return groupService.isMember(c, Group.ADMIN);
+        }
+    }
+
+    @Override
+    public boolean isAdmin(Context c, EPerson e) throws SQLException
+    {
+        // if we're ignoring authorization, user is member of admin
+        if (c.ignoreAuthorization())
+        {
+            return true;
+        }
+
+        if (e == null)
+        {
+            return false; // anonymous users can't be admins....
+        } else
+        {
+            return groupService.isMember(c, e, Group.ADMIN);
         }
     }
     

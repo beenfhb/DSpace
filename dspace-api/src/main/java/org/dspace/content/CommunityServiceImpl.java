@@ -463,7 +463,7 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
 
         rawDelete(context, childCommunity);
 
-        childCommunity.getParentCommunities().remove(parentCommunity);
+        childCommunity.removeParentCommunity(parentCommunity);
         parentCommunity.removeSubCommunity(childCommunity);
 
         log.info(LogManager.getHeader(context, "remove_subcommunity",
@@ -500,7 +500,7 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
             Iterator<Community> subcommunities = community.getSubcommunities().iterator();
             while (subcommunities.hasNext()) {
                 Community subCommunity = subcommunities.next();
-                subcommunities.remove();
+                community.removeSubCommunity(subCommunity);
                 delete(context, subCommunity);
             }
             // now let the parent remove the community
@@ -543,7 +543,7 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
         while (collections.hasNext())
         {
             Collection collection = collections.next();
-            collections.remove();
+            community.removeCollection(collection);
             removeCollection(context, community, collection);
         }
         // delete subcommunities
@@ -552,7 +552,7 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
         while (subCommunities.hasNext())
         {
             Community subComm = subCommunities.next();
-            subCommunities.remove();
+            community.removeSubCommunity(subComm);
             delete(context, subComm);
         }
 
