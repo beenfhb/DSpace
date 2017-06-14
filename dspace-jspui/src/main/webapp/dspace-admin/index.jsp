@@ -84,8 +84,5 @@
             context.abort();
         }
     }
-    finally {
-      context.abort();
-    }
 %>
 
