@@ -462,7 +462,7 @@
                             <%
             				} else if (subInfo.isEditing()) {
 				            %>
-                				query:{edit_item:'<%= subInfo.getSubmissionItem().getID()%>'}
+                				query:{edit_item:'<%= subInfo.getSubmissionItem().getItem().getID()%>'}
 				            <%
                             } else {
                             %>
