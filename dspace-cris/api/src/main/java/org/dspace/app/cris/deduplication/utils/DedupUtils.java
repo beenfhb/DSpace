@@ -200,7 +200,7 @@ public class DedupUtils
                     for(Object tttmp : tmp) {
                         String idtmp = (String)tttmp;
                         UUID parseInt = UUID.fromString(idtmp);
-                        if(parseInt!=id) {
+                        if(!parseInt.equals(id)) {
                             String flag = (String)solrDocument.getFieldValue("dedup.flag");
                             if(SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription().equals(flag)) {
                                 verify.put(parseInt, (String)solrDocument.getFieldValue("dedup.note"));

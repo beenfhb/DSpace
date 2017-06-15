@@ -471,7 +471,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             int k = 0;
             for (UUID i : items)
             {
-                if (i == target)
+                if (i .equals(( target)))
                     legenda.put(i, propertyTargetStyle);
                 else if (k < styles.length)
                     legenda.put(i, styles[k]);
@@ -568,7 +568,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             {
                 for (UUID itemId2 : items)
                 {
-                    if (itemId2 == itemId)
+                    if (itemId2 .equals(( itemId)))
                     {
                         continue;
                     }
@@ -624,7 +624,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 
             for (UUID remove : toRemove)
             {
-                if (remove != item.getID())
+				if (!remove.equals((item.getID())))
                 {
                     Item itemRemove = itemService.find(context, remove);
                     if (itemRemove.isArchived() || itemRemove.isWithdrawn())
@@ -640,7 +640,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                                 remove, resourceType);
                         for (UUID other : toRemove)
                         {
-                            if (other != itemRemove.getID())
+							if (!other.equals((itemRemove.getID())))
                             {
                                 dedupUtils.rejectAdminDups(context,
                                         itemRemove.getID(), other, resourceType);
@@ -947,7 +947,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                 }
                 inner: for (Item other : others)
                 {
-                    if (other.getID() != item.getID())
+					if (!other.getID().equals((item.getID())))
                     {
                         List<IMetadataValue> valueOther = other.getItemService()
                                 .getMetadataByMetadataString(other, mdString);
@@ -1192,7 +1192,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
         List<Collection> result = new ArrayList<Collection>();
         for (UUID item : items)
         {
-            if (item != target)
+			if (!item.equals((target)))
             {
                 Collection collection = ContentServiceFactory.getInstance().getCollectionService().find(context, item);
                 result.add(collection);
@@ -1237,9 +1237,8 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             	BasicWorkflowItem trWfi = (BasicWorkflowItem)WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context, item);
                 if (trWfi == null)
                 {
-                    if (item.getOwningCollection() != null
-                            && item.getOwningCollection()
-                                    .getID() != ownerCollection.getID())
+					if (item.getOwningCollection() != null
+							&& !item.getOwningCollection().getID().equals((ownerCollection.getID())))
                     {
                         itemService.move(context, item, item.getOwningCollection(), ownerCollection); // on
                                                                                 // archived
@@ -1287,7 +1286,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                     boolean founded = false;
                     for (Collection cc : item.getCollections())
                     {
-                        if (c.getID() == cc.getID())
+                        if (c.getID() .equals(( cc.getID())))
                         {
                             founded = true;
                             toRemoveItem.put(cc, false);
