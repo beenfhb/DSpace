@@ -1427,14 +1427,17 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 			if (!bitIDs.isEmpty()) {
 				for (UUID bid : bitIDs) {
 					Bitstream bb = bitstreamService.find(context, bid);
-					DTOBitstream dtoBit = new DTOBitstream();
-					dtoBit.create(bb.getID(), bb.getName(), bb.getSource(), bb.getDescription(), bb.getFormat(),
-							bb.getUserFormatDescription(),
-							AuthorizeServiceFactory.getInstance().getAuthorizeService().getPolicies(context, bb));
-					dtoBit.setInputStream(bitstreamService.retrieve(context, bb));
-					dtoBit.setBundleID(bb.getBundles().get(0).getID());
-					dtoBit.setItemID(item.getID());
-					toAdd.add(dtoBit);
+	                if (!bb.getBundles().get(0).getItems().get(0).getID().equals(item.getID()))
+	                {
+						DTOBitstream dtoBit = new DTOBitstream();
+						dtoBit.create(bb.getID(), bb.getName(), bb.getSource(), bb.getDescription(), bb.getFormat(),
+								bb.getUserFormatDescription(),
+								AuthorizeServiceFactory.getInstance().getAuthorizeService().getPolicies(context, bb));
+						dtoBit.setInputStream(bitstreamService.retrieve(context, bb));
+						dtoBit.setBundleID(bb.getBundles().get(0).getID());
+						dtoBit.setItemID(item.getID());
+						toAdd.add(dtoBit);
+	                }
 				}
 			}
 			List<Bundle> originals = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
@@ -1444,7 +1447,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 				List<Bitstream> bits = orig.getBitstreams();
 				for (Bitstream b : bits) {
 					// bitstream in the target item has been unselect
-					if (bitIDs.contains(b.getID())) {
+					if (!bitIDs.contains(b.getID())) {
 						toRemove.add(b);
 					}
 				}
@@ -1469,31 +1472,29 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 					orig = originals.get(0);
 				}
 				for (DTOBitstream b : toAdd) {
-					
+
 					// we need to add only bitstream that are not yet attached
 					// to
 					// the target item
-					if (!b.getItemID().equals(item.getID())) {
-						Bitstream newBits = bitstreamService.create(context, orig, b.getIs());
+					Bitstream newBits = bitstreamService.create(context, orig, b.getIs());
 
-						// Now set the format and name of the bitstream
-						newBits.setName(context, b.getName());
-						newBits.setSource(context, b.getSource());
-						newBits.setDescription(context, b.getDescription());
-						bitstreamService.setFormat(context, newBits, b.getFormat());
-						bitstreamService.setUserFormatDescription(context, newBits, b.getUserFormatDescription());
-						bitstreamService.update(context, newBits);
+					// Now set the format and name of the bitstream
+					newBits.setName(context, b.getName());
+					newBits.setSource(context, b.getSource());
+					newBits.setDescription(context, b.getDescription());
+					bitstreamService.setFormat(context, newBits, b.getFormat());
+					bitstreamService.setUserFormatDescription(context, newBits, b.getUserFormatDescription());
+					bitstreamService.update(context, newBits);
 
-						b.getIs().close();
-						List<DTOResourcePolicy> rps = b.getRps();
-						for (DTOResourcePolicy rp : rps) {
-							ResourcePolicy newrp = AuthorizeServiceFactory.getInstance().getAuthorizeService()
-									.createResourcePolicy(context, newBits, rp.getGroup(), rp.getEperson(),
-											rp.getAction(), rp.getResourcePolicyType());
-							newrp.setEndDate(rp.getEndDate());
-							newrp.setStartDate(rp.getStartDate());
-							resourcePolicyService.update(context, newrp);
-						}
+					b.getIs().close();
+					List<DTOResourcePolicy> rps = b.getRps();
+					for (DTOResourcePolicy rp : rps) {
+						ResourcePolicy newrp = AuthorizeServiceFactory.getInstance().getAuthorizeService()
+								.createResourcePolicy(context, newBits, rp.getGroup(), rp.getEperson(), rp.getAction(),
+										rp.getResourcePolicyType());
+						newrp.setEndDate(rp.getEndDate());
+						newrp.setStartDate(rp.getStartDate());
+						resourcePolicyService.update(context, newrp);
 					}
 				}
 			}
