@@ -1310,7 +1310,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 
             for (Collection cc : toRemoveItem.keySet())
             {
-                if (cc.getID() != ownerCollection.getID())
+                if (!cc.getID() .equals(( ownerCollection.getID())))
                 {
                     if (toRemoveItem.get(cc))
                     { // if collection is old remove
@@ -1473,7 +1473,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
 					// we need to add only bitstream that are not yet attached
 					// to
 					// the target item
-					if (b.getItemID() != item.getID()) {
+					if (!b.getItemID().equals(item.getID())) {
 						Bitstream newBits = bitstreamService.create(context, orig, b.getIs());
 
 						// Now set the format and name of the bitstream
