@@ -7,6 +7,7 @@
     http://www.dspace.org/license/
 
 --%>
+<%@page import="java.util.UUID"%>
 <%@page import="java.util.Map"%>
 <%@page import="org.dspace.app.webui.servlet.DoiFactoryServlet"%>
 <%@page import="org.apache.commons.lang.StringUtils"%>
@@ -65,8 +66,8 @@ function sortBy(pos, ord){
 	String type = (String)request.getAttribute("type");
 	SortOption so = (SortOption)request.getAttribute("sortedBy");
 	String sortedBy = (so == null) ? null : so.getName();
-	Item      [] items       = (Item[])request.getAttribute("items");
-	Map<Integer, String> doi2items = (Map<Integer, String>)request.getAttribute("doi2items");
+	List<Item> items       = (List<Item>)request.getAttribute("items");
+	Map<UUID, String> doi2items = (Map<UUID, String>)request.getAttribute("doi2items");
 	int pageTotal   = ((Integer)request.getAttribute("pagetotal"  )).intValue();
 	int pageCurrent = ((Integer)request.getAttribute("pagecurrent")).intValue();
 	int pageLast    = ((Integer)request.getAttribute("pagelast"   )).intValue();
@@ -77,7 +78,7 @@ function sortBy(pos, ord){
 	int start		= ((Integer)request.getAttribute("start"  )).intValue();	
 	String prefixDOI = (String)request.getAttribute("prefixDOI");
 	String keyH1page = "jsp.dspace-admin.doi.fix." + type;
-	if (items!=null && items.length>0) {
+	if (items!=null && !items.isEmpty()) {
 %>
 
 <div>
@@ -150,7 +151,7 @@ sb.append("</ul></div>");
 <div>
 	<p align="center"><fmt:message key="jsp.dspace-admin.doi.results.search">
         <fmt:param><%=start+1%></fmt:param>
-        <fmt:param><%=start+items.length %></fmt:param>
+        <fmt:param><%=start+items.size()%></fmt:param>
         <fmt:param><%=total%></fmt:param>        
     </fmt:message></p>
 <%
@@ -228,9 +229,9 @@ if (pageTotal > 1)
 
 	<% 
 	
-	for(Integer ss : doi2items.keySet()) {		
+	for(UUID ss : doi2items.keySet()) {		
 	%>
-		maps[<%= ss%>] = <%= "'"+doi2items.get(ss)+"';"%>
+		maps['<%= ss%>'] = <%= "'"+doi2items.get(ss)+"';"%>
 	<%		
 	}	
 	%>

@@ -177,17 +177,17 @@ public class ScriptDataCiteDeposit
                 if ("oracle".equals(dbName))
                 {
                     rows = getHibernateSession(context).createSQLQuery(
-                                    "select item_id, criteria, identifier_doi from "
+                                    "select d2i.item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i left join item i on d2i.item_id = i.item_id where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
+                                            + " d2i left join item i on d2i.item_id = i.uuid where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
                                             + " AND ROWNUM <= " + limit).list();
                 }
                 else
                 {
                 	rows = getHibernateSession(context).createSQLQuery(
-                                    "select item_id, criteria, identifier_doi from "
+                                    "select d2i.item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i left join item i on d2i.item_id = i.item_id where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
+                                            + " d2i left join item i on d2i.item_id = i.uuid where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
                                             + " LIMIT " + limit).list();
                 }
                 int offset = 0;
@@ -199,9 +199,9 @@ public class ScriptDataCiteDeposit
                             if ("oracle".equals(dbName))
                             {
                                 rows = getHibernateSession(context).createSQLQuery(
-                                                "select item_id, criteria, identifier_doi from "
+                                                "select d2i.item_id, criteria, identifier_doi from "
                                                         + TABLE_NAME_DOI2ITEM
-                                                        + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null"
+                                                        + " d2i left join item i on d2i.item_id = i.uuid where d2i.last_modified is null"
                                                         + " AND ROWNUM > "
                                                         + limit
                                                         + " AND ROWNUM <= "
@@ -210,9 +210,9 @@ public class ScriptDataCiteDeposit
                             else
                             {
                                 rows = getHibernateSession(context).createSQLQuery(
-                                                "select item_id, criteria, identifier_doi from "
+                                                "select d2i.item_id, criteria, identifier_doi from "
                                                         + TABLE_NAME_DOI2ITEM
-                                                        + " d2i left join item i on d2i.item_id = i.item_id where d2i.last_modified is null"
+                                                        + " d2i left join item i on d2i.item_id = i.uuid where d2i.last_modified is null"
                                                         + " LIMIT " + limit
                                                         + " OFFSET " + offset).list();
                             }
@@ -260,7 +260,7 @@ public class ScriptDataCiteDeposit
                     List<Object[]> rows = getHibernateSession(context).createSQLQuery(
                                     "SELECT item_id, criteria, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i left join item i on d2i.item_id = i.item_id where d2i.item_id = :par0 AND d2i.last_modified is null").setParameter(0, 
+                                            + " d2i left join item i on d2i.item_id = i.uuid where d2i.item_id = :item_id AND d2i.last_modified is null").setParameter("item_id", 
                                     id).list();
 
                     for (Object[] row : rows)
@@ -424,16 +424,16 @@ public class ScriptDataCiteDeposit
                 getHibernateSession(context).createSQLQuery(
                         "UPDATE "
                                 + TABLE_NAME_DOI2ITEM
-                                + " SET LAST_MODIFIED = :par0, RESPONSE_CODE = :par1, NOTE = :par2, FILENAME = :par3 WHERE ITEM_ID = :par4").setParameter(0,
-                                		new java.sql.Timestamp(new Date().getTime())).setParameter(1, responseCode).setParameter(2,
-                        result.get(target.getID())).setParameter(3, urlDeposited).setParameter(4, target.getID()).executeUpdate();
+                                + " SET LAST_MODIFIED = :last_modified, RESPONSE_CODE = :response_code, NOTE = :note, FILENAME = :filename WHERE ITEM_ID = :item_id").setParameter("last_modified",
+                                		new java.sql.Timestamp(new Date().getTime())).setParameter("response_code", responseCode).setParameter("note",
+                        result.get(target.getID())).setParameter("filename", urlDeposited).setParameter("item_id", target.getID()).executeUpdate();
             }
             else
             {
             	getHibernateSession(context).createSQLQuery("UPDATE "
                         + TABLE_NAME_DOI2ITEM
-                        + " SET RESPONSE_CODE = :par0, NOTE = :par1 WHERE ITEM_ID = :par2").setParameter(0, responseCode).setParameter(1, responseCode + "-"
-                        + result.get(target.getID())).setParameter(2, target.getID()).executeUpdate();
+                        + " SET RESPONSE_CODE = :response_code, NOTE = :note WHERE ITEM_ID = :item_id").setParameter("response_code", responseCode).setParameter("note", responseCode + "-"
+                        + result.get(target.getID())).setParameter("item_id", target.getID()).executeUpdate();
             }
 
             context.commit();

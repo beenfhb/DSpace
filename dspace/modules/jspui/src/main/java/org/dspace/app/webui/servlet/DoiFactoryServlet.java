@@ -211,21 +211,13 @@ public class DoiFactoryServlet extends DSpaceServlet
             }
 
             // Pass the result
-            Item[] realresult = null;
             Map<UUID, String> doi2items = new HashMap<UUID, String>();
 
-            if (results != null && !results.isEmpty())
-            {
-                realresult = results.toArray(new Item[results.size()]);
-                for (Item real : realresult)
-                {
-                    doi2items.put(real.getID(),
-                            DoiFactoryUtils.buildDoi(context, criteria, real)
-                                    .trim());
-                }
-            }
+			for (Item real : results) {
+				doi2items.put(real.getID(), DoiFactoryUtils.buildDoi(context, criteria, real).trim());
+			}
 
-            request.setAttribute("items", realresult);
+            request.setAttribute("items", results);
             request.setAttribute("doi2items", doi2items);
             request.setAttribute("prefixDOI", DoiFactoryUtils.PREFIX_DOI);
             request.setAttribute("pagetotal", new Integer(pageTotal));

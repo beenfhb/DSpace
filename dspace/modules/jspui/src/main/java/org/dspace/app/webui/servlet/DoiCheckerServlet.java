@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +24,8 @@ import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.utils.DSpace;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 
 
@@ -52,9 +55,10 @@ public class DoiCheckerServlet extends DSpaceServlet
     	boolean haveResultFixed = false;
     	for(String type : criteria) {
     	    
-    	    Iterator tri = getHibernateSession(context).createSQLQuery(
-                    DoiFixUtilityCheckerServlet.getQuery()).setParameter(0, type).iterate();
-    	    if(tri.hasNext()) {
+    	    Query sqlQuery = getHibernateSession(context).createSQLQuery(
+                    DoiFixUtilityCheckerServlet.getQuery()).addScalar("item_id").setParameter("criteria", type);
+    	    List<UUID> tri = sqlQuery.list();
+    	    if(tri!=null && !tri.isEmpty()) {
     	        haveResultFixed = true;
     	    }
     	    

@@ -52,7 +52,7 @@
 </style>
 
 <%
-	Item[] results = (Item[])request.getAttribute("results");
+	List<Item> results = (List<Item>)request.getAttribute("results");
 	Map<Integer, List<String>> doi2items = (Map<Integer, List<String>>)request.getAttribute("doi2items");
 	String prefixDOI = (String)request.getAttribute("prefixDOI");
 %>
@@ -69,7 +69,7 @@ var j = jQuery.noConflict();
 </div>
 <p><fmt:message key="jsp.dspace-admin.doi.general-description" /></p>
 
-<% if(results!=null && results.length>0) {%>
+<% if(results!=null && !results.isEmpty()) {%>
 <form id="sortform" action="" method="get">
 <input id="sort_by" type="hidden" name="sort_by"
 <%

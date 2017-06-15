@@ -193,7 +193,7 @@ public class ScriptCrossrefChecker
                     List<Object[]> rows = getHibernateSession(context).createSQLQuery(
                                     "SELECT item_id, filename, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i where d2i.response_code = '200' and d2i.item_id = :par0").setParameter(0, id).list();
+                                            + " d2i where d2i.response_code = '200' and d2i.item_id = :item_id").setParameter("item_id", id).list();
                     for (Object[] row : rows)
                     {
 	                    String filename = (String)row[1];//.getStringColumn("filename");
@@ -331,17 +331,17 @@ public class ScriptCrossrefChecker
                     getHibernateSession(context).createSQLQuery(
                                     "UPDATE "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " SET LAST_MODIFIED = :par0, RESPONSE_CODE = :par1, NOTE = :par2 WHERE ITEM_ID = :par3").setParameter(0,
-                                    new Date()).setParameter(1, responseCodeToInsert).setParameter(2,
-                                    result.get(target.getID())).setParameter(3, target.getID()).executeUpdate();
+                                            + " SET LAST_MODIFIED = :last_modified, RESPONSE_CODE = :response_code, NOTE = :note WHERE ITEM_ID = :item_id").setParameter("last_modified",
+                                    new Date()).setParameter("response_code", responseCodeToInsert).setParameter("note",
+                                    result.get(target.getID())).setParameter("item_id", target.getID()).executeUpdate();
               
             }
             else
             {
             	getHibernateSession(context).createSQLQuery("UPDATE "
                         + TABLE_NAME_DOI2ITEM
-                        + " SET NOTE = :par0 WHERE ITEM_ID = :par1").setParameter(0, responseCode + "-"
-                        + result.get(target.getID())).setParameter(1, target.getID()).executeUpdate();
+                        + " SET NOTE = :note WHERE ITEM_ID = :item_id").setParameter("note", responseCode + "-"
+                        + result.get(target.getID())).setParameter("item_id", target.getID()).executeUpdate();
             }
 
             context.commit();

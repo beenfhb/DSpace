@@ -132,18 +132,16 @@ public class DoiPendingServlet extends DSpaceServlet
 
         List<Item> results = DoiFactoryUtils.getItemsFromSolrResult(
                 rsp.getResults(), context);
-		Item[] realresult = new Item[] {};
         Map<UUID, List<String>> doi2items = new HashMap<UUID, List<String>>();
         if (results != null && !results.isEmpty())
         {
-            realresult = results.toArray(new Item[results.size()]);
 
-            for (Item real : realresult)
+            for (Item real : results)
             {
                 List<Object[]> rows = getHibernateSession(context).createSQLQuery(
                         "SELECT identifier_doi, " + getColumnNote() + " FROM "
                                 + DoiFactoryUtils.TABLE_NAME
-                                + " where item_id = :par0").addScalar("identifier_doi").addScalar("note").setParameter(0, real.getID()).list();
+                                + " where item_id = :item_id").addScalar("identifier_doi").addScalar("note").setParameter("item_id", real.getID()).list();
 
                 if (rows == null)
                 {
@@ -183,13 +181,13 @@ public class DoiPendingServlet extends DSpaceServlet
         // pageFirst = max(1,pageCurrent-9)
         int pageFirst = ((pageCurrent - 9) > 1) ? (pageCurrent - 9) : 1;
         request.setAttribute("doi2items", doi2items);
-        request.setAttribute("results", realresult);
+        request.setAttribute("results", results);
         request.setAttribute("pagetotal", new Integer(pageTotal));
         request.setAttribute("pagecurrent", new Integer(pageCurrent));
         request.setAttribute("pagelast", new Integer(pageLast));
         request.setAttribute("pagefirst", new Integer(pageFirst));
         request.setAttribute("start", start);
-        request.setAttribute("total", realresult.length);
+        request.setAttribute("total", results.size());
         request.setAttribute("rpp", rpp);
         JSPManager.showJSP(request, response, "/doi/checkerDoiPendings.jsp");
 
@@ -218,7 +216,7 @@ public class DoiPendingServlet extends DSpaceServlet
         for (Item i : items)
         {
 
-            getHibernateSession(context).createSQLQuery("delete from "+ DoiFactoryUtils.TABLE_NAME + " where item_id = " + i.getID());
+            getHibernateSession(context).createSQLQuery("delete from "+ DoiFactoryUtils.TABLE_NAME + " where item_id = :item_id").setParameter("item_id", i.getID()).executeUpdate();
             i.getItemService().clearMetadata(context, i, "dc", "utils", "processdoi", Item.ANY);
             i.getItemService().update(context, i);
             context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, i

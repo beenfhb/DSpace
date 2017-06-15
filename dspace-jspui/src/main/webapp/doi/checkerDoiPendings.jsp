@@ -7,6 +7,7 @@
     http://www.dspace.org/license/
 
 --%>
+<%@page import="java.util.UUID"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dspace.content.Item"%>
@@ -45,8 +46,8 @@
 	}
 </style>
 <%
-	Item[] results = (Item[])request.getAttribute("results");
-	Map<Integer, List<String>> doi2items = (Map<Integer, List<String>>)request.getAttribute("doi2items");
+	List<Item> results = (List<Item>)request.getAttribute("results");
+	Map<UUID, List<String>> doi2items = (Map<UUID, List<String>>)request.getAttribute("doi2items");
 %>
 <dspace:layout locbar="link" navbar="admin" style="submission" titlekey="jsp.dspace-admin.doi.pendings">
 <c:set var="messageproposeddoi"><fmt:message key="jsp.dspace-admin.doi.table.header.proposeddoi"/></c:set>
@@ -128,10 +129,10 @@ sb.append("</ul></div>");
 
 <div class="row">
       <h1><fmt:message key="jsp.dspace-admin.doi.pendings"/></h1>
-<% if(results!=null && results.length>0) {%>
+<% if(results!=null && !results.isEmpty()) {%>
 	<p align="center"><fmt:message key="jsp.dspace-admin.doi.results.search">
         <fmt:param><%=start+1%></fmt:param>
-        <fmt:param><%=start+results.length %></fmt:param>
+        <fmt:param><%=start+results.size() %></fmt:param>
         <fmt:param><%=total%></fmt:param>        
     </fmt:message></p>
 <% }
@@ -165,7 +166,7 @@ if (pageTotal > 1)
            <input id="start" type="hidden" name="start" value="<%= start %>" />
 </form>
 
-<% if(results!=null && results.length>0) {%>
+<% if(results!=null && !results.isEmpty()) {%>
 <form method="post" action="<%= request.getContextPath() %>/dspace-admin/doipendings" name="pendingsform">			
 
 <dspace:itemlist items="<%= results %>" itemStart="1" radioButton="false" inputName="pendingdoi" 
@@ -176,7 +177,7 @@ if (pageTotal > 1)
 	<input id="submitanyreal" type="submit" name="submit" value="<%=DoiPendingServlet.EXCLUDE_ANY%>" />		
 </div>
 	
-	<input id="submitall" type="button" class="submitbutton" value="<fmt:message key="jsp.search.doi.form.button.pendingall"><fmt:param value="<%= results.length %>"></fmt:param></fmt:message>" />
+	<input id="submitall" type="button" class="submitbutton" value="<fmt:message key="jsp.search.doi.form.button.pendingall"><fmt:param value="<%= results.size() %>"></fmt:param></fmt:message>" />
 	<input id="submitany" type="button" class="submitbutton" value="<fmt:message key="jsp.search.doi.form.button.pendingany"/>" />
 
 </form>		
@@ -196,10 +197,10 @@ var maps2 = new Object();
 
 <% 
 
-for(Integer ss : doi2items.keySet()) {		
+for(UUID ss : doi2items.keySet()) {		
 %>
-	maps[<%= ss%>] = <%= "'"+doi2items.get(ss).get(0)+"';"%>
-	maps2[<%= ss%>] = <%= "'"+StringEscapeUtils.escapeJavaScript(doi2items.get(ss).get(1))+"';"%>
+	maps['<%= ss%>'] = <%= "'"+doi2items.get(ss).get(0)+"';"%>
+	maps2['<%= ss%>'] = <%= "'"+StringEscapeUtils.escapeJavaScript(doi2items.get(ss).get(1))+"';"%>
 <%		
 }	
 %>

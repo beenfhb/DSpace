@@ -43,7 +43,7 @@ public class VirtualFieldDoi implements VirtualFieldDisseminator,
             Object row = getHibernateSession(context).createSQLQuery(
                     "select identifier_doi from "
                             + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-                            + " where item_id = :par0").setParameter(0,item.getID()).uniqueResult();
+                            + " where item_id = :identifier_doi").setParameter("identifier_doi",item.getID()).uniqueResult();
             fieldCache.put("virtual.doi", (String)row);
             // Return the value of the virtual field (if any)
             if (fieldCache.containsKey(fieldName))
@@ -55,13 +55,6 @@ public class VirtualFieldDoi implements VirtualFieldDisseminator,
         catch (SQLException e)
         {
             // nothing
-        }
-        finally
-        {
-            if (context!=null && context.isValid())
-            {
-                context.abort();
-            }
         }
         return null;
     }

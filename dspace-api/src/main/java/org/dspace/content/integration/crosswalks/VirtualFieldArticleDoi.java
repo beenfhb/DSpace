@@ -89,7 +89,7 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
             
             Object count = getHibernateSession(context).createSQLQuery("select count(*) as cc from "
                     + ScriptCrossrefSender.TABLE_NAME_DOI2ITEM
-                    + " where identifier_doi = :par0").setParameter(0, result).uniqueResult();
+                    + " where identifier_doi = :identifier_doi").setParameter("identifier_doi", result).uniqueResult();
             if(count!=null) {
                 if((Integer)count>0) {
                     result += "_" + item.getID();
@@ -107,13 +107,6 @@ public class VirtualFieldArticleDoi implements VirtualFieldDisseminator,
         catch (SQLException e)
         {
             // nothing
-        }
-        finally
-        {
-            if (context!=null && context.isValid())
-            {
-                context.abort();
-            }
         }
         return null;
     }
