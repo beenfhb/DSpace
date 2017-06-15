@@ -7,13 +7,6 @@
  */
 package org.dspace.content.service;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.ResourcePolicy;
-import org.dspace.content.*;
-import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -21,6 +14,20 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.Thumbnail;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 
 /**
  * Service interface class for the Item object.

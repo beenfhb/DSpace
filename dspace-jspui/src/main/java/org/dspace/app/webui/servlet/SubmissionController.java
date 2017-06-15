@@ -1460,7 +1460,7 @@ public class SubmissionController extends DSpaceServlet
         String info = "";
 
         if ((si.getSubmissionItem() != null) && si.isEditing()) {
-            info = info + "<input type=\"hidden\" name=\"edit_item\" value=\"" + si.getSubmissionItem().getID()
+            info = info + "<input type=\"hidden\" name=\"edit_item\" value=\"" + si.getSubmissionItem().getItem().getID()
                     + "\"/>";
         } 
         else if ((si.getSubmissionItem() != null) && si.isInWorkflow())

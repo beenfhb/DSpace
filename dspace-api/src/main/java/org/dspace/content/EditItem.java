@@ -8,6 +8,7 @@
 package org.dspace.content;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -26,7 +27,8 @@ public class EditItem implements InProgressSubmission {
 
 	@Override
 	public Integer getID() {
-		return item.getLegacyId();
+		//risk of collision but this is only a fake ID, instead use getItem().getID()
+		return item.getID().hashCode();
 	}
 
 	@Override

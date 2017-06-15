@@ -8,6 +8,7 @@
 package org.dspace.content.factory;
 
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.EditItem;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.RootObject;
 import org.dspace.content.WorkspaceItem;
@@ -41,6 +42,8 @@ public abstract class ContentServiceFactory {
     public abstract CommunityService getCommunityService();
 
     public abstract ItemService getItemService();
+    
+    public abstract EditItemService getEditItemService();
 
     public abstract MetadataFieldService getMetadataFieldService();
 
@@ -58,6 +61,9 @@ public abstract class ContentServiceFactory {
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission)
     {
+    	if(inProgressSubmission instanceof EditItem) {
+    		return getEditItemService();
+    	}
         if(inProgressSubmission instanceof WorkspaceItem)
         {
             return getWorkspaceItemService();

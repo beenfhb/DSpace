@@ -22,6 +22,7 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -36,6 +37,7 @@ import org.dspace.eperson.service.GroupService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.submit.AbstractProcessingStep;
+import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.workflowbasic.BasicWorkflowItem;
 import org.dspace.workflowbasic.factory.BasicWorkflowServiceFactory;
@@ -390,11 +392,39 @@ public class MyDSpaceServlet extends DSpaceServlet
         // We have a workspace item
         if (buttonPressed.equals("submit_delete"))
         {
-            // User has clicked on "delete"
-            log.info(LogManager.getHeader(context, "remove_submission",
-                    "workspace_item_id=" + workspaceItem.getID() + ",item_id="
-                            + workspaceItem.getItem().getID()));
-            workspaceItemService.deleteAll(context, workspaceItem);
+        	
+        	if (workspaceItem != null)
+            {
+                // User has clicked on "delete"
+                log.info(LogManager.getHeader(context, "remove_submission",
+                        "workspace_item_id=" + workspaceItem.getID() + ",item_id="
+                                + workspaceItem.getItem().getID()));
+                workspaceItemService.deleteAll(context, workspaceItem);
+            }
+            else
+            {
+                // User has clicked on "delete"
+                log.info(LogManager.getHeader(context, "remove_submission",
+                        "item_id=" + item.getID()));
+                context.turnOffAuthorisationSystem();
+                Integer status = ItemUtils.getItemStatus(context, item);
+                if(status == ItemUtils.ARCHIVE) {
+                    itemService.withdraw(context, item);
+                }
+                else {
+                    if(status == ItemUtils.WITHDRAWN) {
+                        collectionService.removeItem(context, item.getOwningCollection(), item);
+                    }
+                    else {
+                        //Find item in workspace or workflow...
+                        InProgressSubmission inprogress = workspaceItemService.findByItem(context, item);
+                        if (inprogress == null) {
+                            inprogress = workflowItemService.findByItem(context, item);
+                        }
+                        ContentServiceFactory.getInstance().getInProgressSubmissionService(inprogress).deleteWrapper(context, inprogress);
+                    }
+                }
+            }
             showMainPage(context, request, response);
             context.complete();
         }
