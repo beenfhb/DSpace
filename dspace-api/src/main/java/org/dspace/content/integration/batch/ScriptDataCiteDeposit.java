@@ -54,6 +54,7 @@ import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.event.Event;
 import org.hibernate.Session;
+import org.hibernate.type.UUIDCharType;
 import org.xml.sax.SAXException;
 
 public class ScriptDataCiteDeposit
@@ -177,10 +178,10 @@ public class ScriptDataCiteDeposit
                 if ("oracle".equals(dbName))
                 {
                     rows = getHibernateSession(context).createSQLQuery(
-                                    "select d2i.item_id, criteria, identifier_doi from "
+                                    "select d2i.item_id as item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
                                             + " d2i left join item i on d2i.item_id = i.uuid where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
-                                            + " AND ROWNUM <= " + limit).list();
+                                            + " AND ROWNUM <= " + limit).addScalar("item_id", UUIDCharType.INSTANCE).addScalar("criteria").addScalar("identifier_doi").list();
                 }
                 else
                 {
@@ -188,7 +189,7 @@ public class ScriptDataCiteDeposit
                                     "select d2i.item_id, criteria, identifier_doi from "
                                             + TABLE_NAME_DOI2ITEM
                                             + " d2i left join item i on d2i.item_id = i.uuid where (d2i.last_modified is null OR d2i.last_modified < i.last_modified)"
-                                            + " LIMIT " + limit).list();
+                                            + " LIMIT " + limit).addScalar("item_id", UUIDCharType.INSTANCE).addScalar("criteria").addScalar("identifier_doi").list();
                 }
                 int offset = 0;
                 int count = 0;
@@ -205,7 +206,7 @@ public class ScriptDataCiteDeposit
                                                         + " AND ROWNUM > "
                                                         + limit
                                                         + " AND ROWNUM <= "
-                                                        + (offset + limit)).list();
+                                                        + (offset + limit)).addScalar("item_id", UUIDCharType.INSTANCE).addScalar("criteria").addScalar("identifier_doi").list();
                             }
                             else
                             {
@@ -214,7 +215,7 @@ public class ScriptDataCiteDeposit
                                                         + TABLE_NAME_DOI2ITEM
                                                         + " d2i left join item i on d2i.item_id = i.uuid where d2i.last_modified is null"
                                                         + " LIMIT " + limit
-                                                        + " OFFSET " + offset).list();
+                                                        + " OFFSET " + offset).addScalar("item_id", UUIDCharType.INSTANCE).addScalar("criteria").addScalar("identifier_doi").list();
                             }
                         }
                         offset = limit + offset;
@@ -260,7 +261,7 @@ public class ScriptDataCiteDeposit
                     List<Object[]> rows = getHibernateSession(context).createSQLQuery(
                                     "SELECT item_id, criteria, identifier_doi FROM "
                                             + TABLE_NAME_DOI2ITEM
-                                            + " d2i left join item i on d2i.item_id = i.uuid where d2i.item_id = :item_id AND d2i.last_modified is null").setParameter("item_id", 
+                                            + " d2i left join item i on d2i.item_id = i.uuid where d2i.item_id = :item_id AND d2i.last_modified is null").addScalar("item_id", UUIDCharType.INSTANCE).addScalar("criteria").addScalar("identifier_doi").setParameter("item_id", 
                                     id).list();
 
                     for (Object[] row : rows)
