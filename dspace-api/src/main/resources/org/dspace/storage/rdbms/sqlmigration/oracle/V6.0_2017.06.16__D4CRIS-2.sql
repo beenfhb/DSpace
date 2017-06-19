@@ -17,10 +17,9 @@ ALTER TABLE CRIS_DO MODIFY (uuid VARCHAR2(36) );
 UPDATE cris_metrics SET resourceid = (SELECT bitstream.uuid FROM bitstream WHERE cris_metrics.resourceid_legacy_id = bitstream.bitstream_id) WHERE cris_metrics.resourcetypeid = 0;
 UPDATE cris_metrics SET resourceid = (SELECT bundle.uuid FROM bundle WHERE cris_metrics.resourceid_legacy_id = bundle.bundle_id) WHERE cris_metrics.resourcetypeid = 1;
 UPDATE cris_metrics SET resourceid = (SELECT item.uuid FROM item WHERE cris_metrics.resourceid_legacy_id = item.item_id) WHERE cris_metrics.resourcetypeid = 2;
-UPDATE cris_metrics SET resourceid = (SELECT collection.uuid FROM collection WHERE cris_metrics.resourceid_legacy_id = collection.eperson_id) WHERE cris_metrics.resourcetypeid = 3;
+UPDATE cris_metrics SET resourceid = (SELECT collection.uuid FROM collection WHERE cris_metrics.resourceid_legacy_id = collection.collection_id) WHERE cris_metrics.resourcetypeid = 3;
 UPDATE cris_metrics SET resourceid = (SELECT community.uuid FROM community WHERE cris_metrics.resourceid_legacy_id = community.community_id) WHERE cris_metrics.resourcetypeid = 4;
-UPDATE cris_metrics SET resourceid = (SELECT site.uuid FROM site WHERE cris_metrics.resourceid_legacy_id = site.site_id) WHERE cris_metrics.resourcetypeid = 5;
-UPDATE cris_metrics SET resourceid = (SELECT epersongroup.uuid FROM epersongroup WHERE cris_metrics.resourceid_legacy_id = epersongroup.epersongroup_id) WHERE cris_metrics.resourcetypeid = 6;
+UPDATE cris_metrics SET resourceid = (SELECT epersongroup.uuid FROM epersongroup WHERE cris_metrics.resourceid_legacy_id = epersongroup.eperson_group_id) WHERE cris_metrics.resourcetypeid = 6;
 UPDATE cris_metrics SET resourceid = (SELECT eperson.uuid FROM eperson WHERE cris_metrics.resourceid_legacy_id = eperson.eperson_id) WHERE cris_metrics.resourcetypeid = 7;
 UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_rpage.uuid FROM cris_rpage WHERE cris_metrics.resourceid_legacy_id = cris_rpage.id)) WHERE cris_metrics.resourcetypeid = 9;
 UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_project.uuid FROM cris_project WHERE cris_metrics.resourceid_legacy_id = cris_project.id)) WHERE cris_metrics.resourcetypeid = 10;
@@ -28,6 +27,6 @@ UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_orgunit.uu
 UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_do.uuid FROM cris_do WHERE cris_metrics.resourceid_legacy_id = cris_do.id)) WHERE cris_metrics.resourcetypeid > 11;
 
 ALTER TABLE cris_metrics DROP COLUMN resourceid_legacy_id;
-CREATE INDEX cris_metrics_resourceid on doi2item(resourceid);
-CREATE INDEX cris_metrics_uuid on doi2item(uuid);
-CREATE INDEX cris_metrics_resourceid_resourcetypid on doi2item(resourceid, resourcetypeid);
+CREATE INDEX cris_metrics_resourceid on cris_metrics(resourceid);
+CREATE INDEX cris_metrics_uuid on cris_metrics(uuid);
+CREATE INDEX cris_metrics_resourceid_resourcetypid on cris_metrics(resourceid, resourcetypeid);
