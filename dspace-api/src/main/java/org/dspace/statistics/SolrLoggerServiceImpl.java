@@ -121,6 +121,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     private Boolean useProxies;
     
+    @Autowired(required = true)
     private SpiderDetector spiderDetector;
 
     private List<String> statisticYearCores = new ArrayList<String>();
