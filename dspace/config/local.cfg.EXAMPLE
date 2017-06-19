@@ -407,3 +407,7 @@ proxyservlet.use.default.httpclient = false
 ### GOOGLEAPI KEY for GOOGLE MAPS
 key.googleapi.maps =
 
+cookies.policy.enabled = false
+
+core-aggregator.enabled = false
+core-aggregator.credentials =
