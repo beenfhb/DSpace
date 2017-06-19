@@ -8,13 +8,13 @@
 
 -- migrate cris_rpage
 ALTER TABLE cris_rpage RENAME COLUMN epersonid to epersonid_legacy_id;
-ALTER TABLE cris_rpage ADD COLUMN epersonid RAW(16);
+ALTER TABLE cris_rpage ADD epersonid RAW(16);
 UPDATE cris_rpage SET epersonid = (SELECT eperson.uuid FROM eperson WHERE cris_rpage.epersonid_legacy_id = eperson.eperson_id);
 ALTER TABLE cris_rpage DROP COLUMN epersonid_legacy_id;
 
 -- migrate reletionpref
 ALTER TABLE cris_relpref RENAME COLUMN itemid to itemid_legacy_id;
-ALTER TABLE cris_relpref ADD COLUMN itemid RAW(16);
+ALTER TABLE cris_relpref ADD itemid RAW(16);
 UPDATE cris_relpref SET itemid = (SELECT item.uuid FROM item WHERE cris_relpref.itemid_legacy_id = item.item_id);
 ALTER TABLE cris_relpref DROP COLUMN itemid_legacy_id;
 
@@ -26,12 +26,12 @@ UPDATE Subscription SET community_id = (SELECT community.uuid FROM community WHE
 ALTER TABLE Subscription DROP COLUMN community_legacy_id;
 
 ALTER TABLE cris_subscription RENAME COLUMN epersonid to epersonid_legacy_id;
-ALTER TABLE cris_subscription ADD COLUMN epersonid RAW(16);
+ALTER TABLE cris_subscription ADD epersonid RAW(16);
 UPDATE cris_subscription SET epersonid = (SELECT eperson.uuid FROM eperson WHERE cris_subscription.epersonid_legacy_id = eperson.eperson_id);
 ALTER TABLE cris_subscription DROP COLUMN epersonid_legacy_id;
 
 ALTER TABLE cris_statsubscription RENAME COLUMN epersonid to epersonid_legacy_id;
-ALTER TABLE cris_statsubscription ADD COLUMN epersonid RAW(16);
+ALTER TABLE cris_statsubscription ADD epersonid RAW(16);
 UPDATE cris_statsubscription SET epersonid = (SELECT eperson.uuid FROM eperson WHERE cris_statsubscription.epersonid_legacy_id = eperson.eperson_id);
 ALTER TABLE cris_statsubscription DROP COLUMN epersonid_legacy_id;
 
@@ -46,11 +46,11 @@ ALTER TABLE cris_deduplication RENAME COLUMN reader_id to reader_legacy_id;
 ALTER TABLE cris_deduplication RENAME COLUMN first_item_id to first_item_legacy_id;
 ALTER TABLE cris_deduplication RENAME COLUMN second_item_id to second_item_legacy_id;
 
-ALTER TABLE cris_deduplication ADD COLUMN eperson_id RAW(16);
-ALTER TABLE cris_deduplication ADD COLUMN admin_id RAW(16);
-ALTER TABLE cris_deduplication ADD COLUMN reader_id RAW(16);
-ALTER TABLE cris_deduplication ADD COLUMN first_item_id varchar2(255);
-ALTER TABLE cris_deduplication ADD COLUMN second_item_id varchar2(255);
+ALTER TABLE cris_deduplication ADD eperson_id RAW(16);
+ALTER TABLE cris_deduplication ADD admin_id RAW(16);
+ALTER TABLE cris_deduplication ADD reader_id RAW(16);
+ALTER TABLE cris_deduplication ADD first_item_id varchar2(255);
+ALTER TABLE cris_deduplication ADD second_item_id varchar2(255);
 
 UPDATE cris_deduplication SET eperson_id = (SELECT eperson.uuid FROM eperson WHERE cris_deduplication.eperson_legacy_id = eperson.eperson_id);
 UPDATE cris_deduplication SET admin_id = (SELECT eperson.uuid FROM eperson WHERE cris_deduplication.admin_legacy_id = eperson.eperson_id);
