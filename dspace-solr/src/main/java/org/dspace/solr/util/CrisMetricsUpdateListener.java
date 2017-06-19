@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.Term;
@@ -147,7 +148,7 @@ public class CrisMetricsUpdateListener implements SolrEventListener
             
             while (rs.next())
             {
-                int resourceId = rs.getInt(1);
+                UUID resourceId = (UUID)rs.getObject(1);
                 int resourceTypeId = rs.getInt(2);
                 double count = rs.getDouble(5);
                 String type = rs.getString(3);
