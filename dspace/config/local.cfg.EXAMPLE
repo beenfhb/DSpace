@@ -149,6 +149,10 @@ db.schema = public
 mail.server.disabled = true
 mail.fixedRecipient =
 
+# Setting email for Import framework aka IMP_RECORD
+batch.recipient =
+batch.customer.recipient =
+
 ########################
 # HANDLE CONFIGURATION #
 ########################
@@ -411,3 +415,5 @@ cookies.policy.enabled = false
 
 core-aggregator.enabled = false
 core-aggregator.credentials =
+
+community-list.show.all = true
