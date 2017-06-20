@@ -21,10 +21,11 @@ UPDATE cris_metrics SET resourceid = (SELECT collection.uuid FROM collection WHE
 UPDATE cris_metrics SET resourceid = (SELECT community.uuid FROM community WHERE cris_metrics.resourceid_legacy_id = community.community_id) WHERE cris_metrics.resourcetypeid = 4;
 UPDATE cris_metrics SET resourceid = (SELECT epersongroup.uuid FROM epersongroup WHERE cris_metrics.resourceid_legacy_id = epersongroup.eperson_group_id) WHERE cris_metrics.resourcetypeid = 6;
 UPDATE cris_metrics SET resourceid = (SELECT eperson.uuid FROM eperson WHERE cris_metrics.resourceid_legacy_id = eperson.eperson_id) WHERE cris_metrics.resourcetypeid = 7;
-UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_rpage.uuid FROM cris_rpage WHERE cris_metrics.resourceid_legacy_id = cris_rpage.id)) WHERE cris_metrics.resourcetypeid = 9;
-UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_project.uuid FROM cris_project WHERE cris_metrics.resourceid_legacy_id = cris_project.id)) WHERE cris_metrics.resourcetypeid = 10;
-UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_orgunit.uuid FROM cris_orgunit WHERE cris_metrics.resourceid_legacy_id = cris_orgunit.id)) WHERE cris_metrics.resourcetypeid = 11;
-UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw((SELECT cris_do.uuid FROM cris_do WHERE cris_metrics.resourceid_legacy_id = cris_do.id)) WHERE cris_metrics.resourcetypeid > 11;
+UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw(uuid) WHERE cris_metrics.resourcetypeid = 9;
+UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw(uuid) WHERE cris_metrics.resourcetypeid = 10;
+UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw(uuid) WHERE cris_metrics.resourcetypeid = 11;
+UPDATE cris_metrics SET resourceid = utl_raw.cast_to_raw(uuid) WHERE cris_metrics.resourcetypeid > 11;
+DELETE FROM cris_metrics WHERE resourceid is null;
 
 ALTER TABLE cris_metrics DROP COLUMN resourceid_legacy_id;
 CREATE INDEX cris_metrics_resourceid on cris_metrics(resourceid);

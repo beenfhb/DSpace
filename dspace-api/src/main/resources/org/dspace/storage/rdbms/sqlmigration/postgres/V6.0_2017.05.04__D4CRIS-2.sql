@@ -56,8 +56,8 @@ ALTER TABLE cris_deduplication RENAME COLUMN second_item_id to second_item_legac
 ALTER TABLE cris_deduplication ADD COLUMN eperson_id UUID;
 ALTER TABLE cris_deduplication ADD COLUMN admin_id UUID;
 ALTER TABLE cris_deduplication ADD COLUMN reader_id UUID;
-ALTER TABLE cris_deduplication ADD COLUMN first_item_id varchar(255) not null;
-ALTER TABLE cris_deduplication ADD COLUMN second_item_id varchar(255) not null;
+ALTER TABLE cris_deduplication ADD COLUMN first_item_id varchar(255);
+ALTER TABLE cris_deduplication ADD COLUMN second_item_id varchar(255);
 
 UPDATE cris_deduplication SET eperson_id = (SELECT eperson.uuid FROM eperson WHERE cris_deduplication.eperson_legacy_id = eperson.eperson_id);
 UPDATE cris_deduplication SET admin_id = (SELECT eperson.uuid FROM eperson WHERE cris_deduplication.admin_legacy_id = eperson.eperson_id);
