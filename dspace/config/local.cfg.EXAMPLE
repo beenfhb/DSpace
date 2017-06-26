@@ -380,9 +380,9 @@ crosswalk.crossref.registrant =
 community-list.show.all = true 
 
 ### CKAN DATASTORE PROVIDER
-ckan.datastore.url =
-ckan.datastore.apikey = 
-ckan.datastore.orgname =
+ckan.datastore.service.url =
+ckan.datastore.service.apiKey =
+ckan.datastore.service.orgName =
 
 ### IIIF Image Server
 iiif.image.server.url = 
