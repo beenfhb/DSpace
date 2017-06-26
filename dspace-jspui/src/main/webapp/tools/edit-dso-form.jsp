@@ -33,46 +33,41 @@
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="javax.servlet.jsp.PageContext" %>
 
-<%@ page import="org.dspace.content.MetadataField" %>
+
 <%@ page import="org.dspace.app.webui.servlet.admin.AuthorizeAdminServlet" %>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditItemServlet" %>
-<%@ page import="org.dspace.content.Bitstream" %>
-<%@ page import="org.dspace.content.BitstreamFormat" %>
-<%@ page import="org.dspace.content.Bundle" %>
-<%@ page import="org.dspace.content.Collection" %>
-<%@ page import="org.dspace.content.DSpaceObject" %>
-<%@ page import="org.dspace.content.DCDate" %>
-<%@ page import="org.dspace.content.Metadatum" %>
-<%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.core.ConfigurationManager" %>
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="org.dspace.core.Utils" %>
-<%@ page import="org.dspace.content.authority.MetadataAuthorityManager" %>
-<%@ page import="org.dspace.content.authority.ChoiceAuthorityManager" %>
+<%@ page import="org.dspace.content.authority.service.MetadataAuthorityService" %>
+<%@ page import="org.dspace.content.authority.service.ChoiceAuthorityService" %>
 <%@ page import="org.dspace.content.authority.Choices" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.dspace.content.*" %>
+<%@ page import="org.dspace.content.Collection" %>
+<%@ page import="org.dspace.content.authority.factory.ContentAuthorityServiceFactory" %>
+<%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
 
 <%
     DSpaceObject item = (DSpaceObject) request.getAttribute("item");
     String handle = (String) request.getAttribute("handle");
     DSpaceObject parent = (DSpaceObject) request.getAttribute("parent");
-    MetadataField[] dcTypes = (MetadataField[])  request.getAttribute("dc.types");
+    List<MetadataField> dcTypes = (List<MetadataField>)  request.getAttribute("dc.types");
     HashMap metadataFields = (HashMap) request.getAttribute("metadataFields");
     request.setAttribute("LanguageSwitch", "hide");
 
     // Is anyone logged in?
     EPerson user = (EPerson) request.getAttribute("dspace.current.user");
     
-    // owning Collection ID for choice authority calls
-    int collectionID = -1;
 %>
 <%!
-     StringBuffer doAuthority(MetadataAuthorityManager mam, ChoiceAuthorityManager cam,
-            PageContext pageContext,
-            String contextPath, String fieldName, String idx,
-            Metadatum dcv, int collectionID)
-    {
+	 StringBuffer doAuthority(MetadataAuthorityService mam, ChoiceAuthorityService cam,
+        PageContext pageContext,
+        String contextPath, String fieldName, String idx,
+        IMetadataValue dcv, Collection collection)
+	{
         StringBuffer sb = new StringBuffer();
         if (cam.isChoicesConfigured(fieldName))
         {
@@ -89,10 +84,10 @@
                 sb.append("<select class=\"form-control\" id=\"").append(fieldNameIdx)
                    .append("\" name=\"").append(fieldNameIdx)
                    .append("\" size=\"1\">");
-                Choices cs = cam.getMatches(fieldName, dcv.value, collectionID, 0, 0, null);
+                Choices cs = cam.getMatches(fieldName, dcv.getValue(), collection, 0, 0, null);
                 if (cs.defaultSelected < 0)
-                    sb.append("<option value=\"").append(dcv.value).append("\" selected>")
-                      .append(dcv.value).append("</option>\n");
+                    sb.append("<option value=\"").append(dcv.getValue()).append("\" selected>")
+                      .append(dcv.getValue()).append("</option>\n");
 
                 for (int i = 0; i < cs.values.length; ++i)
                 {
@@ -109,11 +104,11 @@
                 String confidenceIndicator = "indicator_"+confidenceName;
                 sb.append("<textarea class=\"form-control\" id=\"").append(fieldNameIdx).append("\" name=\"").append(fieldNameIdx)
                    .append("\" rows=\"3\" cols=\"50\">")
-                   .append(dcv.value).append("</textarea>\n<br/>\n");
+                   .append(dcv.getValue()).append("</textarea>\n<br/>\n");
 
                 if (authority)
                 {
-                    String confidenceSymbol = Choices.getConfidenceText(dcv.confidence).toLowerCase();
+                    String confidenceSymbol = Choices.getConfidenceText(dcv.getConfidence()).toLowerCase();
                     sb.append("<span class=\"col-md-1\">")
                       .append("<img id=\""+confidenceIndicator+"\"  title=\"")
                       .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.authority.confidence.description."+confidenceSymbol))
@@ -122,7 +117,7 @@
                       .append("</span>");
                 	sb.append("<span class=\"col-md-5\">")
                       .append("<input class=\"form-control\" type=\"text\" readonly value=\"")
-                      .append(dcv.authority != null ? dcv.authority : "")
+                      .append(dcv.getAuthority() != null ? dcv.getAuthority() : "")
                       .append("\" id=\"").append(authorityName)
                       .append("\" onChange=\"javascript: return DSpaceAuthorityOnChange(this, '")
                       .append(confidenceName).append("','").append(confidenceIndicator)
@@ -146,7 +141,7 @@
                  .append(fieldName).append("','edit_metadata','")
                  .append(fieldNameIdx).append("','").append(authorityName).append("','")
                  .append(confidenceIndicator).append("',")
-                 .append(String.valueOf(collectionID)).append(",")
+                 .append(String.valueOf(null)).append(",")
                  .append("false").append(",false);\"")
                  .append(" title=\"")
                  .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.lookup"))
@@ -267,9 +262,9 @@
                 <th id="t5" class="oddRowEvenCol">&nbsp;</th>
             </tr>
 <%
-    MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-    ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
-    Metadatum[] dcv = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+	MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+	ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
+	List<IMetadataValue> dcv = ContentServiceFactory.getInstance().getDSpaceObjectService(item).getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
     String row = "even";
     
     // Keep a count of the number of values of each element+qualifier
@@ -277,11 +272,11 @@
     // values are Integers - number of values that element/qualifier so far
     Map<String, Integer> dcCounter = new HashMap<String, Integer>();
     
-    for (int i = 0; i < dcv.length; i++)
+    for (int i = 0; i < dcv.size(); i++)
     {
         // Find out how many values with this element/qualifier we've found
 
-        String key = ChoiceAuthorityManager.makeFieldKey(dcv[i].schema, dcv[i].element, dcv[i].qualifier);
+        String key = dcv.get(i).getMetadataField().toString();
 
         Integer count = dcCounter.get(key);
         if (count == null)
@@ -304,9 +299,9 @@
         }
  %>
             <tr>
-                <td headers="t0" class="<%= row %>RowOddCol"><%=dcv[i].schema %></td>
-                <td headers="t1" class="<%= row %>RowEvenCol"><%= dcv[i].element %>&nbsp;&nbsp;</td>
-                <td headers="t2" class="<%= row %>RowOddCol"><%= (dcv[i].qualifier == null ? "" : dcv[i].qualifier) %></td>
+                <td headers="t0" class="<%= row %>RowOddCol"><%=dcv.get(i).getMetadataField().getMetadataSchema().getName()  %></td>
+                <td headers="t1" class="<%= row %>RowEvenCol"><%= dcv.get(i).getMetadataField().getElement() %>&nbsp;&nbsp;</td>
+                <td headers="t2" class="<%= row %>RowOddCol"><%= (dcv.get(i).getQualifier() == null ? "" : dcv.get(i).getQualifier()) %></td>
                 <td headers="t3" class="<%= row %>RowEvenCol">
                     <%
                         if (cam.isChoicesConfigured(key))
@@ -314,14 +309,14 @@
                     %>
                     <%=
                         doAuthority(mam, cam, pageContext, request.getContextPath(), key, sequenceNumber,
-                                dcv[i], collectionID).toString()
+                                dcv.get(i), null).toString()
                     %>
                     <% } else { %>
-                        <textarea class="form-control" id="value_<%= key %>_<%= sequenceNumber %>" name="value_<%= key %>_<%= sequenceNumber %>" rows="3" cols="50"><%= dcv[i].value %></textarea>
+                        <textarea class="form-control" id="value_<%= key %>_<%= sequenceNumber %>" name="value_<%= key %>_<%= sequenceNumber %>" rows="3" cols="50"><%= dcv.get(i).getValue() %></textarea>
                     <% } %>
                 </td>
                 <td headers="t4" class="<%= row %>RowOddCol">
-                    <input class="form-control" type="text" name="language_<%= key %>_<%= sequenceNumber %>" value="<%= (dcv[i].language == null ? "" : dcv[i].language.trim()) %>" size="5"/>
+                    <input class="form-control" type="text" name="language_<%= key %>_<%= sequenceNumber %>" value="<%= (dcv.get(i).getLanguage() == null ? "" : dcv.get(i).getLanguage().trim()) %>" size="5"/>
                 </td>
                 <td headers="t5" class="<%= row %>RowEvenCol">
                     <%-- <input type="submit" name="submit_remove_<%= key %>_<%= sequenceNumber %>" value="Remove" /> --%>
@@ -337,10 +332,10 @@
         
                 <td headers="t1" colspan="3" class="<%= row %>RowEvenCol">
                     <select  class="form-control" name="addfield_dctype">
-<%  for (int i = 0; i < dcTypes.length; i++)
+<%  for (int i = 0; i < dcTypes.size(); i++)
     {
-        Integer fieldID = new Integer(dcTypes[i].getFieldID());
-        String displayName = (String)metadataFields.get(fieldID);
+    Integer fieldID = new Integer(dcTypes.get(i).getID());
+    String displayName = (String)metadataFields.get(fieldID);
 %>
                         <option value="<%= fieldID.intValue() %>"><%= displayName %></option>
 <%  } %>

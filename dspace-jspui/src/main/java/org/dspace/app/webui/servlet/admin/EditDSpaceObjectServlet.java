@@ -349,12 +349,8 @@ public class EditDSpaceObjectServlet extends DSpaceServlet {
 
         item.getDSpaceObjectService().update(context, item);
 
-    	// commit now to make available in the edit form changes made by optional consumers
-        context.commit();
         // Show edit page again
         showEditForm(context, request, response, item);
         
-        // Complete transaction
-        context.complete();
     }
 }
