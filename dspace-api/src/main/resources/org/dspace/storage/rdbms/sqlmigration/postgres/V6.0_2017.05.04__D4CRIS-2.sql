@@ -43,6 +43,7 @@ ALTER TABLE cris_statsubscription DROP COLUMN epersonid_legacy_id;
 CREATE INDEX cris_statsubscription_epersonid on cris_statsubscription(epersonid);
 
 -- migrate deduplication
+DELETE FROM dedup_reject WHERE first_item_id is null OR second_item_id is null;
 ALTER TABLE dedup_reject RENAME TO cris_deduplication;
 ALTER SEQUENCE dedup_reject_seq RENAME TO cris_deduplication_seq;
 
