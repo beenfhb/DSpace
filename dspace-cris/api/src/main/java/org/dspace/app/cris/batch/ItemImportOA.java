@@ -1330,7 +1330,7 @@ public class ItemImportOA
 
     public void setSourceRef(String sourceRef)
     {
-        this.sourceRef = sourceRef;
+        this.sourceRef = sourceRef.trim();
     }
 
     protected static Session getHibernateSession(Context context) throws SQLException {

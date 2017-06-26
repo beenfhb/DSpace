@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
 
@@ -29,7 +30,19 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
 {
     /** log4j category */
     private static Logger log = Logger.getLogger(DefaultDisplayStrategy.class);
-
+    
+    private String displayStrategyName;
+    
+    public DefaultDisplayStrategy()
+    {
+    
+    }
+    
+    public DefaultDisplayStrategy(String displayStrategyName)
+    {
+        this.displayStrategyName = displayStrategyName;
+    }
+    
     
     private final transient MetadataAuthorityService metadataAuthorityService
             = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
@@ -39,6 +52,7 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
             boolean viewFull, String browseType, UUID colIdx, UUID itemid, String field,
             List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph) throws JspException
     {
+        boolean isNoBreakLine = "nobreakline".equals(getDisplayStrategyName());
         String metadata;
         // limit the number of records if this is the author field (if
         // -1, then the limit is the full list)
@@ -122,9 +136,25 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
             sb.append(endLink);
             if (j < (loopLimit - 1))
             {
-                if (colIdx != null) // we are showing metadata in a table row (browse or item list)
+                if (colIdx != null || isNoBreakLine) // we are showing metadata in a table row (browse or item list)
                 {
-                    sb.append("; ");
+                    if (isNoBreakLine)
+                    {
+                        String separator = ConfigurationManager
+                                .getProperty("webui.itemdisplay.nobreakline."+ field +".separator");
+                        if (separator == null)
+                        {
+                            separator = ConfigurationManager
+                                    .getProperty("webui.itemdisplay.nobreakline.separator");
+                            if(separator == null) {
+                                separator = ";&nbsp;";
+                            }
+                        }
+                        sb.append(separator);
+                    }
+                    else {
+                        sb.append(";&nbsp;");
+                    }
                 }
                 else
                 {
@@ -153,5 +183,15 @@ public class DefaultDisplayStrategy extends ASimpleDisplayStrategy
         }
         
         return metadata;
+    }
+
+    public String getDisplayStrategyName()
+    {
+        return displayStrategyName;
+    }
+
+    public void setDisplayStrategyName(String displayStrategyName)
+    {
+        this.displayStrategyName = displayStrategyName;
     }
 }

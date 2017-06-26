@@ -357,7 +357,8 @@ public class PMCEuropeFeed
                         pmidList.addAll(getPmidList(res));
                         page++;
                     }
-                    else
+
+                    if (res.size() < Integer.parseInt(pagesize))
                     {
                         lastPage = true;
                     }
@@ -582,7 +583,7 @@ public class PMCEuropeFeed
             InputStream is = url.openStream();
 
             impRecord.addBitstream(context, is, null, true, 1, 0, "ORIGINAL",
-                    -1, null, "pubmedEurope-" + pmcID, "application/pdf");
+                    -1, null, "pubmedEurope-" + pmcID + ".pdf", "application/pdf");
         }
         catch (MalformedURLException e)
         {

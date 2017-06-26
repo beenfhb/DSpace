@@ -128,11 +128,11 @@ public abstract class ImpRecordDAO
 
             getHibernateSession(context).createSQLQuery(
                     "INSERT INTO imp_bitstream(imp_bitstream_id, imp_id, filepath, description, bundle, bitstream_order, primary_bitstream, assetstore, name, imp_blob, embargo_policy, embargo_start_date)"
-                            + " VALUES (:par0, :par1, :par2, :par3, :par4, :par5, :par6, :par7, :par8, null, :par9, :par10)").setParameter(0, 
-                    o.getPkey()).setParameter(1, impRecord.getImp_id()).setParameter(2, o.getFilepath()).setParameter(3, 
-                    o.getDescription()).setParameter(4, o.getBundle()).setParameter(5, o.getBitstream_order()).setParameter(6, 
-                    primarybitstream).setParameter(7, o.getAssetstore()).setParameter(8,o.getName()).setParameter(9, 
-                    o.getEmbargoPolicy()).setParameter(10, o.getEmbargoStartDate()).executeUpdate();
+                            + " VALUES (:imp_bitstream_id, :imp_id, :filepath, :description, :bundle, :bitstream_order, :primary_bitstream, :assetstore, :name, null, :embargo_policy, :embargo_start_date)").setParameter("imp_bitstream_id", 
+                    o.getPkey()).setParameter("imp_id", impRecord.getImp_id()).setParameter("filepath", o.getFilepath()).setParameter("description", 
+                    o.getDescription()).setParameter("bundle", o.getBundle()).setParameter("bitstream_order", o.getBitstream_order()).setParameter("primary_bitstream", 
+                    primarybitstream).setParameter("assetstore", o.getAssetstore()).setParameter("name",o.getName()).setParameter("embargo_policy", 
+                    o.getEmbargoPolicy()).setParameter("embargo_start_date", o.getEmbargoStartDate()).executeUpdate();
 
         }
     }
