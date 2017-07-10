@@ -67,7 +67,7 @@
 <%@page import="org.dspace.content.DSpaceObject"%>
 <%@page import="org.dspace.app.cris.model.ACrisObject" %>
 <%@page import="java.util.List"%>
-<%@page import="org.dspace.handle.HandleManager"%>
+<%@page import="org.dspace.handle.factory.HandleServiceFactory"%>
 
 <%
 	String hdlPrefix = ConfigurationManager.getProperty("handle.prefix");
@@ -284,7 +284,7 @@ jsp.search.results.searchin<%= StringUtils.isNotBlank(searchScope) && !StringUti
 String dsoName = "";
 if(StringUtils.contains(searchScope, hdlPrefix) ){
 	String hdl = StringUtils.substring(searchScope, 8);
-	DSpaceObject dso = HandleManager.resolveToObject(UIUtil.obtainContext(request),hdl );
+	DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(UIUtil.obtainContext(request),hdl );
 	dsoName = (dso != null) ? dso.getName() :"";
 }
 %>
