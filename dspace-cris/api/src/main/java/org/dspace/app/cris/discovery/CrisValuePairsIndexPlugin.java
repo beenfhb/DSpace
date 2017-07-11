@@ -263,7 +263,9 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
         String language = null;
         try
         {
-            language = context.getCurrentLocale().getLanguage();
+        	if(context != null && context.getCurrentLocale()!=null) {
+        		language = context.getCurrentLocale().getLanguage();
+        	}
             if(StringUtils.isBlank(language)) {
                 language = configurationService.getProperty("default.locale");
             }
