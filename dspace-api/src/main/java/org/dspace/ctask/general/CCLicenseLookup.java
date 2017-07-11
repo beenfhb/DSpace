@@ -7,11 +7,14 @@
  */
 package org.dspace.ctask.general;
 
+import static org.dspace.curate.Curator.CURATE_SKIP;
+import static org.dspace.curate.Curator.CURATE_SUCCESS;
+import static org.dspace.curate.Curator.CURATE_UNSET;
+
 import java.io.IOException;
 import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -19,10 +22,10 @@ import org.dspace.curate.AbstractCurationTask;
 import org.dspace.curate.Curator;
 import org.dspace.curate.Distributive;
 import org.dspace.curate.Mutative;
-import org.dspace.license.CreativeCommons;
 import org.dspace.license.CCLookup;
-
-import static org.dspace.curate.Curator.*;
+import org.dspace.license.LicenseMetadataValue;
+import org.dspace.license.factory.LicenseServiceFactory;
+import org.dspace.license.service.CreativeCommonsService;
 
 /**
  * CCLicenseLookup assigns to an item (depending on configuration) the
@@ -42,14 +45,16 @@ public class CCLicenseLookup extends AbstractCurationTask
     // CC Web service interface
     private final CCLookup ccl = new CCLookup();
      // field configured for license URI
-    private final CreativeCommons.MdField uriField = CreativeCommons.getCCField("uri");
+    private LicenseMetadataValue uriField;
     // field configured for license name
-    private final CreativeCommons.MdField nameField = CreativeCommons.getCCField("name");
+    private LicenseMetadataValue nameField;
     // update configuration flags
     private boolean updateName = false;
     private boolean updateBitstream = false;
      // task status
     private int status = CURATE_UNSET;
+    
+    private CreativeCommonsService creativeCommons = LicenseServiceFactory.getInstance().getCreativeCommonsService();
 
     /**
      * Initializes task
@@ -62,6 +67,8 @@ public class CCLicenseLookup extends AbstractCurationTask
         super.init(curator, taskId);
         updateName = taskBooleanProperty("update.name", true);
         updateBitstream = taskBooleanProperty("update.bitstream", true);
+        uriField = creativeCommons.getCCField("uri");        
+        nameField = creativeCommons.getCCField("name");
     }
     
     /**
@@ -97,25 +104,25 @@ public class CCLicenseLookup extends AbstractCurationTask
                     String newName = ccl.getLicenseName();
                     if (oldName == null || ! oldName.equals(newName)) {
                         if (oldName != null) {
-                            nameField.removeItemValue(item, oldName);
+                            nameField.removeItemValue(Curator.curationContext(), item, oldName);
                             resultSb.append(" removed name: '").append(oldName).append("'");
                         }
-                        nameField.addItemValue(item, newName);
+                        nameField.addItemValue(Curator.curationContext(), item, newName);
                         resultSb.append(" added name: '").append(newName).append("'");
                     }
                 }
                 if (updateBitstream) {
                     // simliar considerations apply for the license itself
-                    String oldLicense = CreativeCommons.getLicenseRDF(item);
+                    String oldLicense = creativeCommons.getLicenseRDF(Curator.curationContext(),item);
                     String newLicense = ccl.getRdf();
                     if (oldLicense == null || ! oldLicense.equals(newLicense)) {
                         if (oldLicense != null) {
                             // remove the whole bundle - this will also wipe out
                             // any other bitstream license representations
-                            CreativeCommons.removeLicense(Curator.curationContext(), item);
+                            creativeCommons.removeLicense(Curator.curationContext(), item);
                             resultSb.append(" removed license bitstream");
                         }
-                        CreativeCommons.setLicenseRDF(Curator.curationContext(), item, newLicense);
+                        creativeCommons.setLicenseRDF(Curator.curationContext(), item, newLicense);
                         resultSb.append(" added license bitstream");
                     }
                 }

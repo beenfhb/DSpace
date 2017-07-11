@@ -117,11 +117,11 @@ public class DiscoveryArtifactTag extends BodyTagSupport {
 				} else {
 					// TODO MANANAGE COLLECTION AND COMMUNITY
 				    if (artifact.getType() >= 9) {
-			            IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) PluginManager
+			            IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) CoreServiceFactory.getInstance().getPluginService()
 			                        .getNamedPlugin(IDisplayMetadataValueStrategy.class, "crispicture");
 
 	                    if (strategy != null) {
-	                        out.println(strategy.getMetadataDisplay(request, -1, true, "thumbnail", -1, "thumbnail", new Metadatum[]{}, artifact, true, true)); 	                        
+	                        out.println(strategy.getMetadataDisplay(request, -1, true, "thumbnail", UUID.randomUUID(), "thumbnail", new ArrayList<IMetadataValue>(), artifact, true, true)); 	                        
 	                    }
 	                }				    
 				}

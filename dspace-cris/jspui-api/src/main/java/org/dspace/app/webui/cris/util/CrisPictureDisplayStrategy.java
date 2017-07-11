@@ -1,5 +1,8 @@
 package org.dspace.app.webui.cris.util;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
@@ -7,10 +10,10 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.browse.BrowseItem;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.utils.DSpace;
@@ -61,39 +64,40 @@ public class CrisPictureDisplayStrategy
 
     }
 
-    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem item,
-            boolean disableCrossLinks, boolean emph) throws JspException
+	@Override
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
+			UUID colIdx, String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject item,
+			boolean disableCrossLinks, boolean emph) throws JspException
     {
         ACrisObject crisObject = (ACrisObject) ((BrowseDSpaceObject) item)
                 .getBrowsableDSpaceObject();
         return getThumbMarkup(hrq, crisObject);
     }
 
+    @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
             boolean emph) throws JspException
     {
         return null;
     }
 
-    public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String string, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem browseItem,
-            boolean disableCrossLinks, boolean emph) throws JspException
-    {
-        return null;
-    }
+	@Override
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, UUID colIdx,
+			String field, List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
+			boolean disableCrossLinks, boolean emph) throws JspException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
-            boolean emph) throws JspException
-    {
-        return null;
-    }
+	@Override
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, UUID colIdx,
+			String field, List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
+			throws JspException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
     /* generate the (X)HTML required to show the thumbnail */
     private String getThumbMarkup(HttpServletRequest hrq, ACrisObject crisObject) throws JspException
@@ -140,11 +144,12 @@ public class CrisPictureDisplayStrategy
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, IGlobalSearchResult item,
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, IGlobalSearchResult item,
             boolean disableCrossLinks, boolean emph) throws JspException
     {
         ACrisObject crisObject = (ACrisObject)item;
         return getThumbMarkup(hrq, crisObject);
     }
+
 }

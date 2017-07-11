@@ -213,7 +213,11 @@ public interface SolrLoggerService {
 
     public SolrDocumentList getRawData(int type) throws SolrServerException;
     
+    public SolrDocumentList getRawData(int type, int year) throws SolrServerException;
+    
     public HttpSolrServer getSolr();
 
     public void deleteByType(int type) throws SolrServerException, IOException;
+    
+    public void deleteByTypeAndYear(int type, int year) throws SolrServerException, IOException;
 }
