@@ -18,6 +18,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.authorize.AuthorizeException;
@@ -25,9 +26,12 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CommunityService;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.eperson.Subscription;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 
@@ -63,14 +67,33 @@ public class CommunityListServlet extends DSpaceServlet
         commMap = new HashMap<>();
 
         log.info(LogManager.getHeader(context, "view_community_list", ""));
+			List<Community> communities = communityService.findAllTop(context);
+            String showCrisComm = ConfigurationManager.getProperty("community-list.topcommunity.show");
 
-        List<Community> communities = communityService.findAllTop(context);
+        	if (authorizeService.isAdmin(context) &&
+        			StringUtils.equalsIgnoreCase(showCrisComm, "all") ||
+        			( context.getCurrentUser() != null && StringUtils.equalsIgnoreCase(showCrisComm, "user") ) ){
+        		for (Community c : communities) 
+        		{
+        			build(c, colMap, commMap);
+        		}
+            }else{
+        		List<Community> topCom = new ArrayList<Community>();
+        		for (Community c : communities) 
+        		{
+            		List<Group> groups = authorizeService.getAuthorizedGroups(context, c, Constants.READ);
+            		for(Group group : groups){
+            			if(group.getName().equals(Group.ANONYMOUS) || EPersonServiceFactory.getInstance().getGroupService().isMember(context, group)){
+            				build(c, colMap, commMap);
+            				topCom.add(c);
+            				break;
+            			}
+            		}
+        		}
+                communities = topCom;
+            }
 
-        for (Community c : communities) 
-        {
-            build(c, colMap, commMap);
-        }
-
+        
         // can they admin communities?
         if (authorizeService.isAdmin(context))
         {
