@@ -10,7 +10,10 @@ package org.dspace.content;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,11 +25,14 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -41,8 +47,11 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="bitstream")
-public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
+public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
 {
+    /** log4j logger */
+    private static Logger log = Logger.getLogger(Bitstream.class);
+    
     @Column(name="bitstream_id", insertable = false, updatable = false)
     private Integer legacyId;
 
@@ -469,5 +478,56 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
 	@Override
 	public boolean haveHierarchy() {
 		return true;
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		return new HashMap<>();
+	}
+
+	@Override
+	public boolean isArchived() {
+		return false;
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return getBitstreamService().getMetadata(this, schema, element, qualifier, lang);
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return getBitstreamService().getMetadata(this, field);
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return false;
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+	}
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {		
+		Context context = new Context();
+		try {
+			return (BrowsableDSpaceObject)(getBitstreamService().getParentObject(context, this));
+		} catch (SQLException e) {
+			log.error(e.getMessage(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return getBitstreamService().getMetadataFirstValue(this, schema, element, qualifier, language);
+	}
+
+	@Override
+	public Date getLastModified() {
+		return new Date();
 	}
 }

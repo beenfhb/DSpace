@@ -7,7 +7,11 @@
  */
 package org.dspace.content;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.persistence.Cacheable;
@@ -15,11 +19,13 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
@@ -30,7 +36,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "site")
-public class Site extends DSpaceObject
+public class Site extends DSpaceObject implements BrowsableDSpaceObject
 {
 
     @Transient
@@ -105,5 +111,50 @@ public class Site extends DSpaceObject
 	@Override
 	public Integer getLegacyId() {		
 		return -1;
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		return new HashMap<String, Object>();
+	}
+
+	@Override
+	public boolean isArchived() {
+		return false;
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return siteService.getMetadata(this, schema, element, qualifier, lang);
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return siteService.getMetadata(this, field); 
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return false;
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {		
+		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+	}
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return siteService.getMetadataFirstValue(this, schema, element, qualifier, language);
+	}
+
+	@Override
+	public Date getLastModified() {
+		return new Date();
 	}
 }
