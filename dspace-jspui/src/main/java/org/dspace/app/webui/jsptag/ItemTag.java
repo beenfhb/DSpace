@@ -214,9 +214,6 @@ public class ItemTag extends TagSupport
     /** log4j logger */
     private static final Logger log = Logger.getLogger(ItemTag.class);
 
-    private final transient StyleSelection styleSelection
-            = (StyleSelection) CoreServiceFactory.getInstance().getPluginService().getSinglePlugin(StyleSelection.class);
-    
     /** Hashmap of linked metadata to browse, from dspace.cfg */
     private static final Map<String,String> linkedMetadata;
     
