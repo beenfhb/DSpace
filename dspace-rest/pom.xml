@@ -68,15 +68,18 @@
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
                 </exclusion>
+                <exclusion>
+                	<artifactId>jackson-jaxrs-base</artifactId>
+                	<groupId>com.fasterxml.jackson.jaxrs</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.5.4</version>
-        </dependency>
-
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+	      
         <!-- Spring 3 dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
