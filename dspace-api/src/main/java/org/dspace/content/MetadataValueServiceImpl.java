@@ -9,6 +9,7 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -98,7 +99,7 @@ public class MetadataValueServiceImpl implements MetadataValueService {
     }
 
     @Override
-    public List<MetadataValue> findByValueLike(Context context, String value) throws SQLException {
+    public Iterator<MetadataValue> findByValueLike(Context context, String value) throws SQLException {
         return metadataValueDAO.findByValueLike(context, value);
     }
 

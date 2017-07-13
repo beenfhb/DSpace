@@ -27,6 +27,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.comparator.NameAscendingComparator;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -354,9 +355,10 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
         return Constants.COLLECTION;
     }
 
-    public void setWorkflowGroup(int step, Group g)
+    public void setWorkflowGroup(Context context, int step, Group g)
+            throws SQLException, AuthorizeException 
     {
-        getCollectionService().setWorkflowGroup(this, step, g);
+        getCollectionService().setWorkflowGroup(context, this, step, g);
     }
 
     @Override

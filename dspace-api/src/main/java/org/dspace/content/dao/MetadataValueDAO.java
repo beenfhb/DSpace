@@ -8,6 +8,7 @@
 package org.dspace.content.dao;
 
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 import org.dspace.content.MetadataField;
@@ -26,7 +27,7 @@ public interface MetadataValueDAO extends GenericDAO<MetadataValue> {
 
     public List<MetadataValue> findByField(Context context, MetadataField fieldId) throws SQLException;
 
-    public List<MetadataValue> findByValueLike(Context context, String value) throws SQLException;
+    public Iterator<MetadataValue> findByValueLike(Context context, String value) throws SQLException;
 
     public void deleteByMetadataField(Context context, MetadataField metadataField) throws SQLException;
 

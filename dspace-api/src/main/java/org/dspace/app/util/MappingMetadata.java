@@ -18,6 +18,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -38,7 +39,6 @@ import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.ConfigurationManager;
@@ -75,6 +75,8 @@ public abstract class MappingMetadata {
 	// Patter to extract the converter name if any
 	private static final Pattern converterPattern = Pattern.compile(".*\\((.*)\\)");
 
+    private GoogleBitstreamComparator googleBitstreamComparator;
+    
 	// Load configured fields from google-metadata.properties
 	public void init(String configuration) {
 	    
@@ -666,20 +668,15 @@ public abstract class MappingMetadata {
             for (Bundle bundle : contentBundles)
             {
                 List<Bitstream> bitstreams = bundle.getBitstreams();
-                for (Bitstream candidate : bitstreams)
-                {
-                    if (candidate.equals(bundle.getPrimaryBitstream()))
-                    { // is primary -> use this one
-                        if (isPublic(candidate))
-                        {
+                Collections.sort(bitstreams, googleBitstreamComparator);
+
+                for (Bitstream candidate : bitstreams) {
+                    if (candidate.equals(bundle.getPrimaryBitstream())) { // is primary -> use this one
+                        if (isPublic(candidate)) {
                             return candidate;
                         }
-                    }
-                    else
-                    {
-                        if (bestSoFar == null && isPublic(candidate))
-                        { // if bestSoFar is null but the candidate is not
-                          // public you don't use it and try to find another
+                    } else {
+                        if (bestSoFar == null && isPublic(candidate)) { //if bestSoFar is null but the candidate is not public you don't use it and try to find another
                             bestSoFar = candidate;
                         }
                     }
@@ -1066,5 +1063,13 @@ public abstract class MappingMetadata {
 			// No values found
 			return false;
 		}
+	}
+
+	public GoogleBitstreamComparator getGoogleBitstreamComparator() {
+		return googleBitstreamComparator;
+	}
+
+	public void setGoogleBitstreamComparator(GoogleBitstreamComparator googleBitstreamComparator) {
+		this.googleBitstreamComparator = googleBitstreamComparator;
 	}
 }

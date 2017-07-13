@@ -38,7 +38,7 @@ import org.dspace.workflow.factory.WorkflowServiceFactory;
  */
 @Entity
 @Table(name = "workflowitem")
-public class BasicWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>
+public class BasicWorkflowItem implements WorkflowItem
 {
 
     @Id

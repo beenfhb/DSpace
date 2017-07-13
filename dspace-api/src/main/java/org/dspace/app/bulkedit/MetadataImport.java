@@ -53,6 +53,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.utils.DSpace;
+import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
@@ -142,6 +143,9 @@ public class MetadataImport
         // Make the changes
         try
         {
+            Context.Mode originalMode = c.getCurrentMode();
+            c.setMode(Context.Mode.BATCH_EDIT);
+
             // Process each change
             for (DSpaceCSVLine line : toImport)
             {
@@ -154,11 +158,15 @@ public class MetadataImport
                     throw new MetadataImportException("'action' not allowed for new items!");
                 }
 
+                WorkspaceItem wsItem = null;
+                WorkflowItem wfItem = null;
+                Item item = null;
+
                 // Is this a new item?
                 if (id != null)
                 {
                     // Get the item
-                    Item item = itemService.find(c, id);
+                    item = itemService.find(c, id);
                     if (item == null)
                     {
                         throw new MetadataImportException("Unknown item ID " + id);
@@ -365,8 +373,8 @@ public class MetadataImport
                         // Create the item
                         String collectionHandle = line.get("collection").get(0);
                         collection = (Collection) handleService.resolveToObject(c, collectionHandle);
-                        WorkspaceItem wsItem = workspaceItemService.create(c, collection, useTemplate);
-                        Item item = wsItem.getItem();
+                        wsItem = workspaceItemService.create(c, collection, useTemplate);
+                        item = wsItem.getItem();
 
                         // Add the metadata to the item
                         for (BulkEditMetadataValue dcv : whatHasChanged.getAdds())
@@ -384,9 +392,9 @@ public class MetadataImport
                         if(useWorkflow){
                             WorkflowService workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
                             if (workflowNotify) {
-                                workflowService.start(c, wsItem);
+                                wfItem = workflowService.start(c, wsItem);
                             } else {
-                                workflowService.startWithoutNotify(c, wsItem);
+                                wfItem = workflowService.startWithoutNotify(c, wsItem);
                             }
                         }
                         else
@@ -414,7 +422,16 @@ public class MetadataImport
                     // Record the changes
                     changes.add(whatHasChanged);
                 }
+
+                if (change) {
+                    //only clear cache if changes have been made.
+                    c.uncacheEntity(wsItem);
+                    c.uncacheEntity(wfItem);
+                    c.uncacheEntity(item);
+                }
             }
+
+            c.setMode(originalMode);
         }
         catch (MetadataImportException mie)
         {

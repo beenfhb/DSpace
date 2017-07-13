@@ -8,7 +8,27 @@
 package org.dspace.app.util;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import org.apache.log4j.Logger;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.content.*;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.jdom.Element;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +38,6 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.jdom.Element;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
@@ -38,89 +55,61 @@ public class GoogleMetadata extends MappingMetadata
 
     protected static final String GOOGLE_PREFIX = "google.";
 
-    public static final String TITLE = "citation_title";
-    
+    protected final String TITLE = "citation_title";
 
-    public static final String JOURNAL_TITLE = "citation_journal_title";
-    
+    protected final String JOURNAL_TITLE = "citation_journal_title";
 
-    public static final String PUBLISHER = "citation_publisher";
-    
+    protected final String PUBLISHER = "citation_publisher";
 
-    public static final String AUTHORS = "citation_author";
-    
+    protected final String AUTHORS = "citation_author";
 
-    public static final String DATE = "citation_date";
-    
+    protected final String DATE = "citation_date";
 
-    public static final String VOLUME = "citation_volume";
-    
+    protected final String VOLUME = "citation_volume";
 
-    public static final String ISSUE = "citation_issue";
-    
+    protected final String ISSUE = "citation_issue";
 
-    public static final String FIRSTPAGE = "citation_firstpage";
-    
+    protected final String FIRSTPAGE = "citation_firstpage";
 
-    public static final String LASTPAGE = "citation_lastpage";
-    
+    protected final String LASTPAGE = "citation_lastpage";
 
-    public static final String DOI = "citation_doi";
-    
+    protected final String DOI = "citation_doi";
 
-    public static final String PMID = "citation_pmid";
-    
+    protected final String PMID = "citation_pmid";
 
-    public static final String ABSTRACT = "citation_abstract_html_url";
-    
+    protected final String ABSTRACT = "citation_abstract_html_url";
 
-    public static final String FULLTEXT = "citation_fulltext_html_url";
-    
+    protected final String FULLTEXT = "citation_fulltext_html_url";
 
-    public static final String PDF = "citation_pdf_url";
-    
+    protected final String PDF = "citation_pdf_url";
 
-    public static final String ISSN = "citation_issn";
-    
+    protected final String ISSN = "citation_issn";
 
-    public static final String ISBN = "citation_isbn";
-    
+    protected final String ISBN = "citation_isbn";
 
-    public static final String LANGUAGE = "citation_language";
-    
+    protected final String LANGUAGE = "citation_language";
 
-    public static final String KEYWORDS = "citation_keywords";
-    
+    protected final String KEYWORDS = "citation_keywords";
 
-    public static final String CONFERENCE = "citation_conference";
-    
+    protected final String CONFERENCE = "citation_conference";
 
-    public static final String DISSERTATION_ID = "identifiers.dissertation";
-    
+    protected final String DISSERTATION_ID = "identifiers.dissertation";
 
-    public static final String DISSERTATION_NAME = "citation_dissertation_name";
-    
+    protected final String DISSERTATION_NAME = "citation_dissertation_name";
 
-    public static final String DISSERTATION_INSTITUTION = "citation_dissertation_institution";
-    
+    protected final String DISSERTATION_INSTITUTION = "citation_dissertation_institution";
 
-    public static final String PATENT_ID = "identifiers.patent";
-    
+    protected final String PATENT_ID = "identifiers.patent";
 
-    public static final String PATENT_NUMBER = "citation_patent_number";
-    
+    protected final String PATENT_NUMBER = "citation_patent_number";
 
-    public static final String PATENT_COUNTRY = "citation_patent_country";
-    
+    protected final String PATENT_COUNTRY = "citation_patent_country";
 
-    public static final String TECH_REPORT_ID = "identifiers.technical_report";
-    
+    protected final String TECH_REPORT_ID = "identifiers.technical_report";
 
-    public static final String TECH_REPORT_NUMBER = "citation_technical_report_number";
-    
+    protected final String TECH_REPORT_NUMBER = "citation_technical_report_number";
 
-    public static final String TECH_REPORT_INSTITUTION = "citation_technical_report_institution";
-    
+    protected final String TECH_REPORT_INSTITUTION = "citation_technical_report_institution";    
 
     /**
      * Wrap the item, parse all configured fields and generate metadata field
@@ -136,6 +125,7 @@ public class GoogleMetadata extends MappingMetadata
         // Hold onto the item in case we need to refresh a stale parse
         this.item = item;
         itemURL = HandleServiceFactory.getInstance().getHandleService().resolveToURL(context, item.getHandle());
+        setGoogleBitstreamComparator(new GoogleBitstreamComparator(context, configuredFields));
         parseItem();
     }
 

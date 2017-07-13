@@ -8,9 +8,9 @@
 package org.dspace.content.dao.impl;
 
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.dao.MetadataValueDAO;
@@ -49,14 +49,14 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
     }
 
     @Override
-    public List<MetadataValue> findByValueLike(Context context, String value) throws SQLException {
-        Criteria criteria = createCriteria(context, MetadataValue.class);
-        criteria.add(
-                Restrictions.like("value", "%" + value + "%")
-        );
-        criteria.setFetchMode("metadataField", FetchMode.JOIN);
+    public Iterator<MetadataValue> findByValueLike(Context context, String value) throws SQLException {
+        String queryString = "SELECT m FROM MetadataValue m JOIN m.metadataField f " +
+                "WHERE m.value like concat('%', concat(:searchString,'%')) ORDER BY m.id ASC";
 
-        return list(criteria);
+        Query query = createQuery(context, queryString);
+        query.setString("searchString", value);
+
+        return iterate(query);
     }
 
     @Override

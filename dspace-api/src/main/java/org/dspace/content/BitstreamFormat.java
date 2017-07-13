@@ -174,7 +174,7 @@ public class BitstreamFormat implements Serializable, ReloadableEntity<Integer>
      * 
      * @return the MIME type
      */
-    public final String getMIMEType()
+    public String getMIMEType()
     {
         return mimetype;
     }
@@ -185,7 +185,7 @@ public class BitstreamFormat implements Serializable, ReloadableEntity<Integer>
      * @param s
      *            the new MIME type
      */
-    public final void setMIMEType(String s)
+    public void setMIMEType(String s)
     {
         this.mimetype = s;
     }

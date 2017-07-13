@@ -24,6 +24,10 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.Iterator;
+
 /**
  * CurationCli provides command-line access to Curation tools and processes.
  * 
@@ -141,7 +145,7 @@ public class CurationCli
     	}
         EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
-        Context c = new Context();
+        Context c = new Context(Context.Mode.BATCH_EDIT);
         if (ePersonName != null)
         {
             EPerson ePerson = ePersonService.findByEmail(c, ePersonName);

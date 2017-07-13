@@ -227,7 +227,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 
         try
         {
-            context = new Context();
+            context = new Context(Context.Mode.BATCH_EDIT);
             context.turnOffAuthorisationSystem();
 
             List<Bitstream> storage = bitstreamService.findDeletedBitstreams(context);
@@ -258,6 +258,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                         }
                         bitstreamService.expunge(context, bitstream);
                     }
+                    context.uncacheEntity(bitstream);
                     continue;
                 }
 
@@ -266,7 +267,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 if (isRecent(Long.valueOf(receivedMetadata.get("modified").toString())))
                 {
                 	log.debug("file is recent");
-                    continue;
+                    context.uncacheEntity(bitstream);
+                	continue;
                 }
 
                 if (deleteDbRecords)
@@ -285,6 +287,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 }
 
 				if (isRegisteredBitstream(bitstream.getInternalId())) {
+                    context.uncacheEntity(bitstream);
 				    continue;			// do not delete registered bitstreams
 				}
 
@@ -314,6 +317,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 {
                     context.dispatchEvents();
                 }
+
+                context.uncacheEntity(bitstream);
             }
 
             System.out.print("Committing changes to the database...");
@@ -381,6 +386,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
             }
 
             processedCounter++;
+            context.uncacheEntity(bitstream);
+
             //modulo
             if ((processedCounter % batchCommitSize) == 0) {
                 log.info("Migration Commit Checkpoint: " + processedCounter);

@@ -61,6 +61,14 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.mail.MessagingException;
+import java.io.*;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 /**
  * Item exporter to create simple AIPs for DSpace content. Currently exports
  * individual items, or entire collections. For instructions on use, see
@@ -145,7 +153,9 @@ public class ItemExportServiceImpl implements ItemExportService
             }
 
             System.out.println("Exporting item to " + mySequenceNumber);
-            exportItem(c, i.next(), fullPath, mySequenceNumber, migrate, excludeBitstreams);
+            Item item = i.next();
+            exportItem(c, item, fullPath, mySequenceNumber, migrate, excludeBitstreams);
+            c.uncacheEntity(item);
             mySequenceNumber++;
         }
     }

@@ -146,16 +146,38 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
     }
     
     /**
-     * Get the bitstreams in this bundle
+     * Get a copy of the bitstream list of this bundle
+     * Note that this is a copy and if you wish to manipulate the bistream list, you should use
+     * {@ref Bundle.addBitstream}, {@ref Bundle.removeBitstream} or {@ref Bundle.clearBitstreams}
      * 
      * @return the bitstreams
      */
     public List<Bitstream> getBitstreams() {
-        return bitstreams;
+        List<Bitstream> bitstreamList = new LinkedList<>(this.bitstreams);
+        return bitstreamList;
     }
 
+    /**
+     * Add a new bitstream to this bundle.
+     * @param bitstream
+     */
     void addBitstream(Bitstream bitstream){
         bitstreams.add(bitstream);
+    }
+
+    /**
+     * Clear the list of bitstream of this bundle
+     */
+    public void clearBitstreams() {
+        bitstreams.clear();
+    }
+
+    /**
+     * Remove the given bitstream from this bundles bitstream list
+     * @param bitstream The bitstream to remove
+     */
+    public void removeBitstream(Bitstream bitstream) {
+        bitstreams.remove(bitstream);
     }
 
     /**
@@ -231,7 +253,6 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
         }
         return bundleService;
     }
-
 	@Override
 	public String getTypeText() {
 		return Constants.typeText[Constants.BUNDLE];

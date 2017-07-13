@@ -22,6 +22,7 @@ import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.content.Item;
+import org.dspace.core.exception.DatabaseSchemaValidationException;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -182,8 +183,18 @@ public class Context
             dbConnection = new DSpace().getSingletonService(DBConnection.class);
             if(dbConnection == null)
             {
+                //It appears there is a problem with the database, run the Schema validator
+                DatabaseSchemaValidator schemaValidator = new DSpace().getSingletonService(DatabaseSchemaValidator.class);
+
+                String validationError = schemaValidator == null ? "null" : schemaValidator.getDatabaseSchemaValidationError();
+                String message = "The schema validator returned: " +
+                        validationError;
+
                 log.fatal("Cannot obtain the bean which provides a database connection. " +
-                        "Check previous entries in the dspace.log to find why the db failed to initialize.");
+                        "Check previous entries in the dspace.log to find why the db failed to initialize. " + message);
+
+                //Fail fast
+                throw new DatabaseSchemaValidationException(message);
             }
         }
 
@@ -406,8 +417,13 @@ public class Context
         try
         {
             // As long as we have a valid, writeable database connection,
-            // commit any changes made as part of the transaction
-            commit();
+            // rollback any changes if we are in read-only mode,
+            // otherwise, commit any changes made as part of the transaction
+            if(isReadOnly()) {
+                abort();
+            } else {
+                commit();
+            }
         }
         finally
         {
