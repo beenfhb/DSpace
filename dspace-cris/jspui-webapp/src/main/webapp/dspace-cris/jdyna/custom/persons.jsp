@@ -15,7 +15,7 @@
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.dspace.browse.BrowseItem" %>
+<%@ page import="org.dspace.browse.BrowsableDSpaceObject" %>
 <%@page import="org.dspace.app.webui.cris.dto.ComponentInfoDTO"%>
 <%@page import="it.cilea.osd.jdyna.web.Box"%>
 <%@page import="org.dspace.discovery.configuration.*"%>
@@ -213,7 +213,7 @@ if (info.getPagetotal() > 1)
 </form>
 <div class="row">
 <div class="table-responsive">
-<dspace:browselist items="<%= (BrowseItem[])info.getItems() %>" config="crisrp.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= info.getOrder() %>"/>
+<dspace:browselist items="<%= (BrowsableDSpaceObject[])info.getItems() %>" config="crisrp.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= info.getOrder() %>"/>
 </div>
 </div>
 <script type="text/javascript"><!--
