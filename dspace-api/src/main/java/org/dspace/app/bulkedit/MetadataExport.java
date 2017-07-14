@@ -169,9 +169,10 @@ public class MetadataExport
             DSpaceCSV csv = new DSpaceCSV(exportAll);
             while (toExport.hasNext())
             {
-                Item item = toExport.next();
-                csv.addItem(item);
-                context.uncacheEntity(item);
+            	BrowseDSpaceObject item = toExport.next();
+                Item browsableDSpaceObject = (Item)item.getBrowsableDSpaceObject();
+				csv.addItem(browsableDSpaceObject);
+                context.uncacheEntity(browsableDSpaceObject);
             }
 
             context.setMode(originalMode);
