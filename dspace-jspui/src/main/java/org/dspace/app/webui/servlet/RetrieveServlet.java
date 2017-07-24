@@ -31,6 +31,8 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.Utils;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.plugin.BitstreamHomeProcessor;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.usage.UsageEvent;
 
@@ -107,7 +109,7 @@ public class RetrieveServlet extends DSpaceServlet
         // Did we get a bitstream?
         if (bitstream != null)
         {
-
+            preProcessBitstreamHome(context, request, response, bitstream);
             // Check whether we got a License and if it should be displayed
             // (Note: list of bundles may be empty array, if a bitstream is a Community/Collection logo)
             Bundle bundle = bitstream.getBundles().size()>0 ? bitstream.getBundles().get(0) : null;
@@ -170,6 +172,25 @@ public class RetrieveServlet extends DSpaceServlet
 
             JSPManager.showInvalidIDError(request, response, idString,
                     Constants.BITSTREAM);
+        }
+    }
+    
+    private void preProcessBitstreamHome(Context context, HttpServletRequest request,
+            HttpServletResponse response, Bitstream item)
+        throws ServletException, IOException, SQLException
+    {
+        try
+        {
+            BitstreamHomeProcessor[] chp = (BitstreamHomeProcessor[]) CoreServiceFactory.getInstance().getPluginService().getPluginSequence(BitstreamHomeProcessor.class);
+            for (int i = 0; i < chp.length; i++)
+            {
+                chp[i].process(context, request, response, item);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("caught exception: ", e);
+            throw new ServletException(e);
         }
     }
 }
