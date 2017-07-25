@@ -58,7 +58,7 @@ public class DSpaceObjectPropertyEditor extends AdvancedPropertyEditorSupport
         }
         else
         {
-            setValue(Integer.parseInt(text));
+            setValue(UUID.fromString(text));
         }
     }
 
@@ -117,7 +117,7 @@ public class DSpaceObjectPropertyEditor extends AdvancedPropertyEditorSupport
     {
         if (value != null && value instanceof String)
         {
-            super.setValue(Integer.parseInt((String) value));
+            super.setValue(UUID.fromString((String) value));
         }
         else
         {

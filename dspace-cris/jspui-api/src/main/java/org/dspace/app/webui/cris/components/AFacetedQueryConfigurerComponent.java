@@ -226,9 +226,14 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpace
         {
             if(request == null) {
                 RequestService requestService = new DSpace().getServiceManager().getServiceByName(RequestService.class.getName(), RequestService.class);
-                request = requestService.getCurrentRequest().getHttpServletRequest();
-            }
-            context = UIUtil.obtainContext(request);
+                if(requestService.getCurrentRequest()!=null) {
+                	request = requestService.getCurrentRequest().getHttpServletRequest();
+                	context = UIUtil.obtainContext(request);
+                }
+                else {
+                	context = new Context();
+                }
+            }            
             ACrisObject cris = getApplicationService().get(getTarget(), id);
             List<FacetResult> facetresults = search(context, request, type, cris, 0, 0, null, true).getFacetQueryResult(type);
             if(facetresults.isEmpty()) {
