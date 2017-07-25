@@ -24,6 +24,7 @@ import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.RootObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
@@ -44,7 +45,7 @@ public class StatUploadObjectComponent<T extends BrowsableDSpaceObject> extends 
             {
                 for (StatisticDatasBeanRow row : myvalue.getLimitedDataTable())
                 {                   
-                	DSpaceObject item = ContentServiceFactory.getInstance().getDSpaceObjectService(getRelationObjectType()).find(context, UUID.fromString(row.getLabel()));
+                	RootObject item = ContentServiceFactory.getInstance().getDSpaceObjectService(getRelationObjectType()).find(context, UUID.fromString(row.getLabel()));
                     if (item != null)
                     {
                         labels.addValue(type, row.getLabel(), item);

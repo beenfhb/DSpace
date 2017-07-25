@@ -719,6 +719,25 @@ public class ApplicationService extends ExtendedTabService
         return obj;
     }
 
+    public <T extends ACrisObject> T getEntityByUUID(String uuid, Class<T> className)
+    {
+		if (cacheByUUID != null) {
+			Element element = cacheByUUID.getQuiet(uuid);
+			if (element != null) {
+				T crisObject = (T) element.getValue();
+				if (!isExpiredCache(crisObject.getClass(), element, crisObject.getId(), crisObject)) {
+					return crisObject;
+				}
+			}
+		}    	
+        CrisObjectDao<T> dao = (CrisObjectDao<T>) getDaoByModel(className);
+		T object = dao.uniqueByUUID(uuid);
+		if (object != null) {
+			putToCache(className, object, object.getId());
+		}
+		return object;
+    }
+    
     public User getUserWSByUsernameAndPassword(String username,
             String password)
     {

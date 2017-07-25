@@ -17,6 +17,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.app.xmlui.wing.Message;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeServiceImpl;
 import org.dspace.authorize.PolicySet;
@@ -204,22 +205,26 @@ public class FlowAuthorizationUtils {
         }
         // end check dates
 
-		DSpaceObject dso = ContentServiceFactory.getInstance().getDSpaceObjectService(objectType).find(context, objectID);
-		// check if a similar policy is already in place
-        if(policy==null){
-            if(authorizeService.isAnIdenticalPolicyAlreadyInPlace(context, dso, groupService.find(context, groupID), actionID, -1)){
-                result.setContinue(false);
-                result.addError("duplicatedPolicy");
-                return result;
-            }
-        }
-        else{
-            if(authorizeService.isAnIdenticalPolicyAlreadyInPlace(context, dso, groupService.find(context, groupID), actionID, policy.getID())){
-                result.setContinue(false);
-                result.addError("duplicatedPolicy");
-                return result;
-            }
-        }
+		RootObject dso = ContentServiceFactory.getInstance().getDSpaceObjectService(objectType).find(context, objectID);
+		if (dso instanceof AuthorizableEntity) {
+			// check if a similar policy is already in place
+			AuthorizableEntity authorizableEntity = (AuthorizableEntity)dso;
+			if (policy == null) {
+				if (authorizeService.isAnIdenticalPolicyAlreadyInPlace(context, authorizableEntity,
+						groupService.find(context, groupID), actionID, -1)) {
+					result.setContinue(false);
+					result.addError("duplicatedPolicy");
+					return result;
+				}
+			} else {
+				if (authorizeService.isAnIdenticalPolicyAlreadyInPlace(context, authorizableEntity,
+						groupService.find(context, groupID), actionID, policy.getID())) {
+					result.setContinue(false);
+					result.addError("duplicatedPolicy");
+					return result;
+				}
+			}
+		}
 
         /* If the policy doesn't exist, create a new one and set its parent resource */
 		DSpaceObject policyParent = null;

@@ -235,8 +235,8 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
 	}
 
 	public static DSpaceObject find(Context context, int resourceTypeID, UUID internalID) throws SQLException {
-		DSpaceObject dso = ContentServiceFactory.getInstance().getDSpaceObjectService(resourceTypeID).find(context, internalID);
-		return dso;
+		RootObject dso = ContentServiceFactory.getInstance().getDSpaceObjectService(resourceTypeID).find(context, internalID);
+		return (DSpaceObject)dso;
 	}
 
 	public DSpaceObjectService<DSpaceObject> getDSpaceObjectService() {

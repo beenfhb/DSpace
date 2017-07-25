@@ -47,6 +47,7 @@ import org.dspace.app.util.Util;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.RootObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
@@ -628,7 +629,7 @@ public class SolrDedupServiceImpl implements DedupService
 
                     for (Object id : ids)
                     {
-                        DSpaceObject o = ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, UUID.fromString((String)id));
+                        RootObject o = ContentServiceFactory.getInstance().getDSpaceObjectService(type).find(context, UUID.fromString((String)id));
 
                         if (o == null)
                         {

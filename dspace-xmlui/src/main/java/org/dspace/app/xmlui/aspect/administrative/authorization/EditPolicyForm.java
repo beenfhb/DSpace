@@ -20,6 +20,7 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.RootObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.eperson.Group;
@@ -203,7 +204,7 @@ public class EditPolicyForm extends AbstractDSpaceTransformer
 
 
         /* Set up our current Dspace object */
-        DSpaceObject dso = null;
+        RootObject dso = null;
         if(objectID != null){
             dso = ContentServiceFactory.getInstance().getDSpaceObjectService(objectType).find(context, UUID.fromString(objectID));
         }
@@ -332,7 +333,7 @@ public class EditPolicyForm extends AbstractDSpaceTransformer
         if (!query.equals("-1")) {
             Division groupsList = main.addDivision("edit-policy-groupsList");
             groupsList.setHead(T_groups_head);
-            this.addGroupSearch(groupsList, currentGroup, dso, query, page);
+            this.addGroupSearch(groupsList, currentGroup, (DSpaceObject)dso, query, page);
         }
 
         main.addHidden("administrative-continue").setValue(knot.getId());

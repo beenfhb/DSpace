@@ -78,6 +78,7 @@ import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
+import org.dspace.content.RootObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -1734,7 +1735,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         if("location.comm".equals(field) || "location.coll".equals(field))
         {
             int type = ("location.comm").equals(field) ? Constants.COMMUNITY : Constants.COLLECTION;
-            DSpaceObject commColl = null;
+            RootObject commColl = null;
             if (StringUtils.isNotBlank(value))
             {
                 commColl = contentServiceFactory.getDSpaceObjectService(type).find(context, UUID.fromString(value));
@@ -2275,7 +2276,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             {
                 SolrDocument doc = (SolrDocument) iter.next();
 
-                BrowsableDSpaceObject o = (BrowsableDSpaceObject)contentServiceFactory.getDSpaceObjectService((Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD)).find(context, UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD)));
+                BrowsableDSpaceObject o = (BrowsableDSpaceObject)contentServiceFactory.getRootObjectService((Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD)).find(context, UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD)));
 
                 if (o != null)
                 {
