@@ -109,6 +109,10 @@ public class JSPStartSubmissionLookupStep extends JSPStep
             throws ServletException, IOException, SQLException,
             AuthorizeException
     {
+    	
+        Context.Mode originalMode = context.getCurrentMode();
+        context.setMode(Context.Mode.READ_ONLY);
+        
         if (request.getAttribute("no.collection") == null
                 || !(Boolean) request.getAttribute("no.collection"))
         {
@@ -126,21 +130,15 @@ public class JSPStartSubmissionLookupStep extends JSPStep
          * With no parameters, this servlet prepares for display of the Select
          * Collection JSP.
          */
-        UUID collection_id = null;
-        if(!DEFAULT_COLLECTION_ID.equals(request.getParameter("collection"))) {
-        collection_id = UIUtil.getUUIDParameter(request, "collection");
-    }
-
-        if(collection_id == null && !DEFAULT_COLLECTION_ID.equals(request.getParameter("collectionid"))) {
-            collection_id = UIUtil.getUUIDParameter(request, "collectionid");
-        }
+        
+        UUID collection_id = UIUtil.getUUIDParameter(request, "collection");
+        UUID collectionID = UIUtil.getUUIDParameter(request, "collectionid");
         Collection col = null;
 
-        if (collection_id != null)
+        if (collectionID != null)
         {
-            col = collectionService.find(context, collection_id);
+            col = collectionService.find(context, collectionID);
         }
-
         // if we already have a valid collection, then we can forward directly
         // to post-processing
         if (col != null)
@@ -177,7 +175,7 @@ public class JSPStartSubmissionLookupStep extends JSPStep
             else {
                 request.setAttribute("collection_id", DEFAULT_COLLECTION_ID);
             }
-            request.setAttribute("collectionID", collection_id);
+            request.setAttribute("collectionID", collectionID);
 
             Map<String, List<String>> identifiers2providers = slService
                     .getProvidersIdentifiersMap();
@@ -191,6 +189,7 @@ public class JSPStartSubmissionLookupStep extends JSPStep
             JSPStepManager
                     .showJSP(request, response, subInfo, START_LOOKUP_JSP);
         }
+        context.setMode(originalMode);
     }
 
     /**

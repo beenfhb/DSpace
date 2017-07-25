@@ -155,7 +155,7 @@ public class SelectCollectionTag extends TagSupport
 					selected = "";
 				}
 				else {
-					if(col.getID()==fromString) {
+					if(col.getID().equals(fromString)) {
 						selected = "selected";
 					}
 				}
