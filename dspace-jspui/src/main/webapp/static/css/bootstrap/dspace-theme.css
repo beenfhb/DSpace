@@ -5,27 +5,72 @@
  *
  * http://www.dspace.org/license/
  */
-.banner img {background-color: #FFFFFF;padding:15px;margin-top:20px;}
-.brand h4 {color: #999999}
-#communitylist-top-menu a, #userloggedin-top-menu a {padding-top:0.3em;padding-bottom:0.3em;}
-#user-top-menu, #userloggedin-top-menu {margin-right: 15px;}
-footer {padding-top: 1em;}
-footer.navbar-inverse {color: white;}
-footer .extra-footer{background-color: black; color:white;}
-#designedby img {margin-right: 5px;}
-#formsearch-top-menu {width: 310px;}
-div.panel.panel-primary ul.list-group li.list-group-item.active {border-left: 3px solid #428bca; background: white;}
-div.panel.panel-primary ul.list-group li.list-group-item.active .badge {background-color: #428bca;}
+body {background: no-repeat center right fixed; background-size: 100% 100%;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;line-height:1.42857143;color:#333}
+header {margin-top:5px; background-color: transparent;}
+header div.container {background-color: white; border-bottom: #eee 2px solid; border-left: 2px #eee solid; border-right: 2px #eee solid;}
+main {margin-top: -21px;}
+main div.container {background-color: white; border-left: 2px #eee solid; border-right: 2px #eee solid; padding-top: 1em;}
+.panel > .panel-heading {padding: 10px 0px; background: transparent; color: black; border-bottom: 2px #555 solid;}
+.panel > .panel-body {background: transparent;}
+.panel > .panel-heading > h1, .panel > .panel-heading > h2, .panel > .panel-heading > h3, 
+.panel > .panel-heading > h4, .panel > .panel-heading > h5, .panel > .panel-heading > h6  {
+	display: inline; 
+	padding-right: 1em; 
+	padding-bottom:11px;
+	margin-bottom: -15px;
+}
+.panel-primary > .panel-heading > h1, .panel-primary > .panel-heading > h2, .panel-primary > .panel-heading > h3, 
+.panel-primary > .panel-heading > h4, .panel-primary > .panel-heading > h5, .panel-primary > .panel-heading > h6  {
+	border-bottom: 2px #f0ad4e solid; 
+}
+.panel {background: transparent;}
+footer {padding-top: 2.5em;}
+footer .panel-primary > .panel-heading {color: white;}
+footer.navbar {border-radius: 0px;}
+footer div.extra-footer {color: black; background-color: #ff9200;}
+footer div.extra-footer a {color: white;}
+.navbar-default .navbar-nav>.active>a,.navbar-default .navbar-nav>.active>a:focus,.navbar-default .navbar-nav>.active>a:hover {
+	border-bottom:2px solid #df8a13; margin-bottom: -2px; color: #df8a13;
+}
+.navbar-default .navbar-nav> li >a:hover {
+	margin-bottom: -2px;
+}
+.nowrap {white-space: nowrap;}
+.navbar-inverse {color: white;}
+.input-group-btn .brn {border-radius: 0px;}
+@media (max-width:768px) {
+	#logo-univ {height: 40px; margin-right:-5px;}
+	#logo-library {height: 30px; margin-right: -20px;}
+	.lead {font-size: 18px;}
+	.lead > small > sup {font-size: 11px;}
+}
+@media (max-width:991px) {
+	#logo-univ {height: 40px; margin-right:-5px;}
+	#logo-library {height: 30px; margin-right: -20px;}
+	.lead {font-size: 17px;}
+	.lead > small > sup {font-size: 11px;}
+}
+@media (min-width:992px) {
+	#logo-univ {height: 95px; margin-top:20px;}
+	#logo-library {height: 140px; margin-top:20px;}
+	header div div div.well {margin-top: 20px;}
+	nav>ul>li {padding-right: 30px;}
+}
+@media (min-width:1200px) {	
+	#logo-library {margin-right: -20px;}
+	nav>ul>li {padding-right: 55px;}
+	.lead {font-size: 27px;}
+	.lead > small > sup {font-size: 16px;}
+}
+.alert.alert-info {color: #222;}
+.panel-body > div.vertical-item > a {color: #333;}
+.panel-body > div.vertical-item > a:hover {color: #ff9200;}
+a:hover {text-decoration: none; font-weight: bolder; color: #ff9200;}
+
 ol.breadcrumb li {color: white; font-style: italic;}
 ol.breadcrumb li a {color: white; font-weight: bold; font-style: normal;}
-body.undernavigation {overflow-x: hidden;
-// padding-top: 65px;
-}
-.navbar-square {border-radius: 0px;}
-#content {padding-bottom:60px;}
-#designedby {padding-top: 5px; padding-bottom:5px;}
+#designedby {padding: 5px;}
 #footer_feedback {padding-top: 12px;}
-#footer_feedback > a {margin-left:5px;}
 input[type="file"] {display: block;height: auto;}
 div.panel-primary div.panel-heading a {color: white;}
 /* This magic gets the 16x16 icon to show up.. setting height/width didn't
@@ -129,15 +174,6 @@ span.batchimport-error-caused {
 	font-weight:bold;
 }
 
-div.carousel-inner div.item div.list-group-item {
-	background-color: inherit;
-}
-
-div.carousel-inner div.item div.list-group-item div.list-group-item-heading h4.text-primary {
-	color: inherit;
-}
-
-
 .metric-ranking > span {
     display: block;
     height: 1.7em;
@@ -179,32 +215,23 @@ div.carousel-inner div.item div.list-group-item div.list-group-item-heading h4.t
 	border-radius: 0.4em; 
 }
 
-.media.download, .media.download_aggregate, .media.download_count,
-.media.download a, .media.download_aggregate a, .media.download_count a {
+.media.download, .media.download_aggregate, .media.download_count {
 	color: white;
 	background: #c0392b;
 }
-.media.view, .media.view_aggregate, .media.view_count,
-.media.view a, .media.view_aggregate a, .media.view_count a {
+.media.view, .media.view_aggregate, .media.view_count {
 	color: white;
 	background: #72c02c;
 }
-.media.scopus, .media.scopus_aggregate, .media.scopus_count,
-.media.scopus a, .media.scopus_aggregate a, .media.scopus_count a {
+.media.scopus, .media.scopus_aggregate, .media.scopus_count {
 	color: white;
 	background: #ff7800;
 }
-.media.pubmed, .media.pubmed_aggregate, .media.pubmed_count,
-.media.pubmed a, .media.pubmed_aggregate a, .media.pubmed_count a {
-	color: white;
-	background: #141927;
-}
-.media.wos, .media.wos_aggregate, .media.wos_count,
-.media.wos a, .media.wos_aggregate a, .media.wos_count a {
+.media.wos, .media.wos_aggregate, .media.wos_count {
 	color: white;
 	background: #505050;
 }
-.media.google, .media.google a {
+.media.google {
 	color: white;
 	background: #4285f4;
 }
@@ -217,77 +244,19 @@ div.carousel-inner div.item div.list-group-item div.list-group-item-heading h4.t
 	font-size: 3em;
 }
 
-.col-lg-12 > .media, .col-xs-12 > .media  {margin-bottom: 1em; width: 100%;}
-.media-left {float:left;}
+.col-lg-12 > .media, .col-xs-12 > .media  {margin-bottom: 1em;}
+.blank-page {min-height: 20em;}
+.cris-functions-menu {margin-top: 2em;}
+.cris-tabs-menu > li {border: 1px solid #555;}
+#preferredNameDiv, #translatedNameDiv {font-size: 1.6em; font-weight: bolder;}
+main > div:last-of-type {padding-bottom: 2em;}
+div.dynaFieldValue > div.image > img {max-height: 20em;}
+div.jdyna-form-button {padding-bottom: 30px; border-top: none;}
+#logo-sx-footer { width: 150px;}
 
-#collapseFacet { background-color: whitesmoke;}
-#export-biblio-panel { background-color: whitesmoke;}
-
-footer.navbar-bottom {
-	z-index: 0;
-}
-
-.span-filter-applied-bordered {   
-}
-
-.a-filter-applied-remove {   
+.panel-primary {
+	border: none;
 }
 
-.media.identifier_signature {
-	color: white;
-	background: #505050;
-}
-
-.media.title_signature {
-	color: white;
-	background: #4285f4;
-}
-
-.media.identifier_signature a {
-	color: white;
-}
-
-.media.title_signature a {
-	color: white;
-}
-
-.tabsignature {
-	padding: 1em;
-}
-
-.media.dedup, .media.dedup a {
-	color: white;
-	background: gray;
-}
-
-.container{
-	background-color: #fff;
-}
-
-ol.breadcrumb li a {
-    color: white;
-    font-weight: bold;
-    font-style: normal;
-}
-		
-#content{
-	padding-bottom: 0px;
-}
-
-footer.navbar{
-	border:0px;
-}
-footer .container {
-	background: transparent;
-}
-
-.form-control{
-	color:#000;
-}
-
-.modal.in .modal-dialog {
-	margin:0px auto;
-	left: auto;
-	right:auto;
-}
-.fullheight {min-height: 35em;}
+.navbar-default .navbar-nav>li>a:focus,.navbar-default .navbar-nav>li>a:hover{color:#f0ad4e;font-weight:bold;background-color:transparent}
+.popover,.tooltip{text-decoration:none;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:400;letter-spacing:normal;line-break:auto;line-height:1.42857143;text-shadow:none;text-transform:none;white-space:normal;word-break:normal;word-spacing:normal;word-wrap:normal}

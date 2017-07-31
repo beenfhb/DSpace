@@ -57,9 +57,9 @@ JARS=`echo $DSPACEDIR/lib/*.jar | sed 's/ /\:/g'`
 #   The JARs (WEB-INF/lib/*.jar)
 #   The WEB-INF/classes directory
 if [ "$CLASSPATH" = "" ]; then
-    FULLPATH=$OAICLASSES:$JARS:$DSPACEDIR/config
+    FULLPATH=$OAICLASSES:$DSPACEDIR/lib:$DSPACEDIR/lib/*:$DSPACEDIR/config
 else
-    FULLPATH=$CLASSPATH:$OAICLASSES:$JARS:$DSPACEDIR/config
+    FULLPATH=$CLASSPATH:$OAICLASSES:$DSPACEDIR/lib:$DSPACEDIR/lib/*:$DSPACEDIR/config
 fi
 
 
@@ -73,9 +73,15 @@ fi
 
 #Allow user to specify java options through JAVA_OPTS variable
 if [ "$JAVA_OPTS" = "" ]; then
-  #Default Java to use 256MB of memory
-  JAVA_OPTS="-Xmx1024m -Dfile.encoding=UTF-8"
+  #Default Java to use 512MB of memory
+  JAVA_OPTS="-Xmx2048m -Dfile.encoding=UTF-8"
 fi
+
+echo using dspace.dir = $DSPACEDIR
+echo using CLASSPATH = $FULLPATH
+echo using JAVA_OPTS = $JAVA_OPTS
+
+
 
 # Now invoke Java
 java $JAVA_OPTS -classpath $FULLPATH org.dspace.app.launcher.ScriptLauncher "$@"

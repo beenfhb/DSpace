@@ -581,6 +581,29 @@
             </activation>
             <modules>
                 <module>dspace-oai</module>
+                <module>xoai</module>
+            </modules>
+        </profile> 
+      <profile>
+            <id>cerif-jpa-model</id>
+            <activation>
+                <file>
+                    <exists>cerif-jpa-model/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>cerif-jpa-model</module>
+            </modules>
+        </profile> 
+      <profile>
+            <id>cerif-jpa-xml</id>
+            <activation>
+                <file>
+                    <exists>cerif-jpa-xml/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>cerif-jpa-xml</module>
             </modules>
         </profile> 
 

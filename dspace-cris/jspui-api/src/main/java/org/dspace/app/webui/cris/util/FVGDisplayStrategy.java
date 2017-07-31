@@ -34,7 +34,6 @@ import org.dspace.utils.DSpace;
 
 public class FVGDisplayStrategy extends ADiscoveryDisplayStrategy implements IDisplayMetadataValueStrategy {
 	private static Logger log = Logger.getLogger(FVGDisplayStrategy.class);   
-	private DSpace dspace = new DSpace();
 
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, int colIdx,
 			String field, Metadatum[] metadataArray, BrowseItem item, boolean disableCrossLinks, boolean emph,
@@ -45,7 +44,7 @@ public class FVGDisplayStrategy extends ADiscoveryDisplayStrategy implements IDi
 			String message = null;
 			try {
 				Context ctx = UIUtil.obtainContext(hrq);
-				message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(),
+				message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(), null,
 		                ctx.getCurrentLocale());
 			} catch (Exception e){
 				log.error(e.getMessage(), e);
@@ -69,7 +68,7 @@ public class FVGDisplayStrategy extends ADiscoveryDisplayStrategy implements IDi
 			String message = null;
 			try {
 				Context ctx = UIUtil.obtainContext(hrq);
-				message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(),
+				message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(), null,
 		                ctx.getCurrentLocale());
 			} catch (Exception e){
 				log.error(e.getMessage(), e);
@@ -82,19 +81,6 @@ public class FVGDisplayStrategy extends ADiscoveryDisplayStrategy implements IDi
 			}
 		}
 		return dispalyedValue;
-	}
-
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph,
-			PageContext pageContext) throws JspException {
-		return null;
-	}
-
-	@Override
-	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String browseType, int colIdx,
-			String field, Metadatum[] metadataArray, BrowseItem browseItem, boolean disableCrossLinks, boolean emph,
-			PageContext pageContext) throws JspException {
-		return null;
 	}
 
 	@Override
@@ -107,7 +93,7 @@ public class FVGDisplayStrategy extends ADiscoveryDisplayStrategy implements IDi
 			String message = null;
 			try {
 				Context ctx = UIUtil.obtainContext(hrq);
-				message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(),
+				message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(), null,
 		                ctx.getCurrentLocale());
 			} catch (Exception e){
 				log.error(e.getMessage(), e);
@@ -121,4 +107,105 @@ public class FVGDisplayStrategy extends ADiscoveryDisplayStrategy implements IDi
 		}
 		return dispalyedValue;
 	}
+
+    @Override
+    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
+            boolean viewFull, String browseType, int colIdx, String field,
+            Metadatum[] metadataArray, BrowseItem item,
+            boolean disableCrossLinks, boolean emph) throws JspException
+    {
+        String dispalyedValue = "";
+        if (metadataArray.length > 0) {
+            dispalyedValue = metadataArray[0].value;
+            String message = null;
+            try {
+                Context ctx = UIUtil.obtainContext(hrq);
+                message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(), null,
+                        ctx.getCurrentLocale());
+            } catch (Exception e){
+                log.error(e.getMessage(), e);
+            }
+            if (("9999 - 9999".equals(dispalyedValue)) || ("9999".equals(dispalyedValue))) {
+                return "In print";
+            } 
+            if(StringUtils.isNotBlank(message)){        
+                return message;
+            }
+        }
+        return dispalyedValue;
+    }
+
+    @Override
+    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
+            boolean viewFull, String browseType, int colIdx, String field,
+            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            boolean emph) throws JspException
+    {
+        String dispalyedValue = "";
+        if (metadataArray.length > 0) {
+            dispalyedValue = metadataArray[0].value;
+            String message = null;
+            try {
+                Context ctx = UIUtil.obtainContext(hrq);
+                message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(), null,
+                        ctx.getCurrentLocale());
+            } catch (Exception e){
+                log.error(e.getMessage(), e);
+            }
+            if (("9999 - 9999".equals(dispalyedValue)) || ("9999".equals(dispalyedValue))) {
+                return "In print";
+            } 
+            if(StringUtils.isNotBlank(message)){        
+                return message;
+            }
+        }
+        return dispalyedValue;
+    }
+
+    @Override
+    public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
+            boolean b, String browseType, int colIdx, String field,
+            Metadatum[] metadataArray, BrowseItem browseItem,
+            boolean disableCrossLinks, boolean emph) throws JspException
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
+            boolean b, String browseType, int colIdx, String field,
+            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
+            boolean emph) throws JspException
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
+            boolean viewFull, String browseType, int colIdx, String field,
+            Metadatum[] metadataArray, IGlobalSearchResult item,
+            boolean disableCrossLinks, boolean emph) throws JspException
+    {
+        String dispalyedValue = "";
+        if (metadataArray.length > 0) {
+            dispalyedValue = metadataArray[0].value;
+            String message = null;
+            try {
+                Context ctx = UIUtil.obtainContext(hrq);
+                message = I18nUtil.getMessageIfExists("jsp.display.fvgdisplaystrategy." + dispalyedValue.toLowerCase(), null,
+                        ctx.getCurrentLocale());
+            } catch (Exception e){
+                log.error(e.getMessage(), e);
+            }
+            if (("9999 - 9999".equals(dispalyedValue)) || ("9999".equals(dispalyedValue))) {
+                return "In print";
+            } 
+            if(StringUtils.isNotBlank(message)){        
+                return message;
+            }
+        }
+        return dispalyedValue;
+    }
 }

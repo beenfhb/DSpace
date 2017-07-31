@@ -13,18 +13,41 @@
 
 <%@page import="org.dspace.core.ConfigurationManager"%>
 <%@page import="org.apache.commons.lang3.StringUtils"%>
-<%@page import="org.dspace.eperson.EPerson"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ page contentType="text/html;charset=UTF-8" %>
+
+<%@page import="org.dspace.app.webui.util.UIUtil"%>
+<%@page import="org.dspace.core.I18nUtil"%>
+<%@page import="java.util.Locale"%>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@page import="org.dspace.eperson.EPerson"%>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="org.dspace.core.NewsManager" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@ page import="org.dspace.app.webui.util.LocaleUIHelper" %>
 
 <%
+	// Is anyone logged in?
+	EPerson user = (EPerson) request.getAttribute("dspace.current.user");
+	
+	// Is the logged in user an admin
+	Boolean admin = (Boolean)request.getAttribute("is.admin");
+	boolean isAdmin = (admin == null ? false : admin.booleanValue());
+	
+	// E-mail may have to be truncated
+	String navbarEmail = null;
+	
+	if (user != null)
+	{
+	    navbarEmail = user.getEmail();
+	}
+	
+	// get the locale languages
+	Locale[] supportedLocales = I18nUtil.getSupportedLocales();
+	Locale sessionLocale = UIUtil.getSessionLocale(request);
+	
 	String footerNews = NewsManager.readNewsFile(LocaleSupport.getLocalizedMessage(pageContext, "news-footer.html"));
     String sidebar = (String) request.getAttribute("dspace.layout.sidebar");
 	String[] mlinks = new String[0];
@@ -51,50 +74,119 @@
     }
 %>
 </div>
-<br/>
 </main>
             <%-- Page footer --%>
-            <footer class="navbar navbar-inverse navbar-bottom navbar-square">
-             <div class="container">
+             <footer class="container navbar navbar-inverse navbar-bottom">
 	             <div class="row">
-					<div class="col-md-3 col-sm-6">
-	             		<div class="panel panel-default">
+	             	<div class="col-md-3 col-sm-6">
+	             	<a href="" target="_blank">
+			<img id="logo-sx-footer" src="<%= request.getContextPath() %>/static/fvg/LogoSX-UNITY.png"
+				border="0"></a>
+	             	<%-- <p><fmt:message key="jsp.layout.footer-default.misc"/>&nbsp;<a href="" target="_blank">[read more <i class="fa fa-external-link"></i>]</a></p> --%>
+	             	</div>
+	             	<div class="col-md-3 col-sm-6">
+	             		<div class="panel panel-primary">
 	             			<div class="panel-heading">
-	             				<h6 class="panel-title"><fmt:message key="jsp.layout.footer-default.explore"/></h6>
+	             				<h6 class="panel-title"><fmt:message key="jsp.layout.footer-default.infobox"/></h6>
 	             			</div>
 	             			<div class="panel-body">
 	             			<ul>
-	    <% 	if(showCommList){ %>
-           <li><a href="<%= request.getContextPath() %>/community-list"><fmt:message key="jsp.layout.navbar-default.communities-collections"/></a></li>
-        <%	} 
-            for (String mlink : mlinks) { 
-         %>
-           <c:set var="fmtkey">
-           jsp.layout.navbar-default.cris.<%= mlink.trim() %>
-           </c:set>
-           <li><a href="<%= request.getContextPath() %>/cris/explore/<%= mlink.trim() %>"><fmt:message key="${fmtkey}"/></a></li>
-           <% } %>
+           
+           						<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfobox1"/>"><fmt:message key="jsp.layout.footer-default.infobox1"/></a></li>
+           						<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfobox2"/>"><fmt:message key="jsp.layout.footer-default.infobox2"/></a></li>
+           						<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfobox3"/>"><fmt:message key="jsp.layout.footer-default.infobox3"/></a></li>
+           
 							</ul>
 	             			</div>
 	             		</div>
 	             	</div>
-	             	<div class="col-md-9 col-sm-6">
-	             		<%= footerNews %>
+	             	<div class="col-md-6 col-sm-12">
+	             		<div class="panel panel-primary">
+	             			<div class="panel-heading">
+	             				<h6 class="panel-title"><fmt:message key="jsp.layout.footer-default.linkbox"/></h6>
+	             			</div>
+	             			<div class="panel-body">
+	             			<ul>
+								<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfolink1"/>"><fmt:message key="jsp.layout.footer-default.infolink1"/></a></li>
+           						<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfolink2"/>"><fmt:message key="jsp.layout.footer-default.infolink2"/></a></li>
+           						<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfolink3"/>"><fmt:message key="jsp.layout.footer-default.infolink3"/></a></li>
+           						<li><a href="<fmt:message key="jsp.layout.footer-default.linkinfolink4"/>"><fmt:message key="jsp.layout.footer-default.infolink4"/></a></li>
+							</ul>
+	             			</div>
+	             		</div>
 	             	</div>
-	            </div> 
-            </div>
-			<div class="container-fluid extra-footer row">
-      			<div id="footer_feedback" class="col-sm-4 pull-<%= isRtl ? "right":"left" %>">                                    
+<%-- 	             	<div class="col-md-3 col-sm-6">
+	             		<div class="panel panel-primary">
+	             			<div class="panel-heading">
+	             				<h6 class="panel-title"><fmt:message key="jsp.layout.footer-default.contactus"/></h6>
+	             			</div>
+	             			<div class="panel-body">
+	             			<p><fmt:message key="jsp.layout.footer-default.content.contactus"/></p>
+	             			</div>
+	             		</div>
+	             	</div> --%>
+	             </div>
+             <div class="extra-footer row">
+            
+	<div class="pull-left col-md-3 col-sm-2">
+         <%
+    if (user != null)
+    {
+		%>
+		<a href="<%= request.getContextPath() %>/mydspace"><i class="fa fa-user"></i> <fmt:message key="jsp.layout.navbar-default.loggedin">
+		      <fmt:param><%= StringUtils.abbreviate(navbarEmail, 20) %></fmt:param>
+		  </fmt:message></a> |
+		  <a href="<%= request.getContextPath() %>/logout"><fmt:message key="jsp.layout.navbar-default.logout"/> <i class="fa fa-sign-out"></i> </a>
+		<%
+    } else {
+		%>
+             <a href="<%= request.getContextPath() %>/mydspace"><i class="fa fa-key"></i> <fmt:message key="jsp.layout.navbar-default.sign"/></a>
+	<% } %>             
+		<%
+		  if (isAdmin)
+		  {
+		%>
+			   |  
+               <a href="<%= request.getContextPath() %>/dspace-admin"><fmt:message key="jsp.administer"/> <i class="fa fa-cogs"></i> </a>
+		<%
+		  }
+	if (supportedLocales != null && supportedLocales.length > 1)
+     {
+ %> |
+       <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-default.language"/><b class="caret"></b></a>
+        <ul class="dropdown-menu">
+ <%
+    for (int i = supportedLocales.length-1; i >= 0; i--)
+     {
+ %>
+      <li>
+        <a onclick="javascript:document.repost.locale.value='<%=supportedLocales[i].toString()%>';
+                  document.repost.submit();" href="<%= request.getContextPath() %>?locale=<%=supportedLocales[i].toString()%>">
+         <%= supportedLocales[i].getDisplayLanguage(supportedLocales[i])%>
+       </a>
+      </li>
+ <%
+     }
+ %>
+     </ul>
+ <%
+   }
+ %>
+		</div>
+		<div id="footer_feedback" class="col-md-6 col-sm-7 text-center">                                    
+                     <a target="_blank" href=""><fmt:message key="jsp.layout.footer-default.privacy"/>&nbsp;<i class="fa fa-external-link"></i></a> |
+                     <a target="_blank" href=""><fmt:message key="jsp.layout.footer-default.copyright"/>&nbsp;<i class="fa fa-external-link"></i></a> |
                      <a href="<%= request.getContextPath() %>/feedback"><fmt:message key="jsp.layout.footer-default.feedback"/></a>
+                     <a href="<%= request.getContextPath() %>/htmlmap"></a></p>
                 </div>
-	           	<div id="designedby" class="col-sm-8 text-<%= isRtl ? "left": "right" %>">
+	           	<div id="designedby" class="col-md-3 col-sm-3 text-<%= isRtl ? "left": "right" %>">
             	 	<fmt:message key="jsp.layout.footer-default.text"/> - 
             	 	<fmt:message key="jsp.layout.footer-default.version-by"/> 
             	 	<a href="http://www.4science.it/en/dspace-and-dspace-cris-services/">
             	 		<img src="<%= request.getContextPath() %>/image/logo-4science-small.png"
                                     alt="Logo 4SCIENCE" height="32px"/></a>
-				</div>
-			</div>
-	    </footer>
+				</div>				
+		</div>
+    </footer>
     </body>
 </html>

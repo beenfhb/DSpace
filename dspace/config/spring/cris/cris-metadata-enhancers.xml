@@ -164,7 +164,7 @@
 		</property>
 	</bean>
 	
-	<bean class="org.dspace.content.ItemEnhancer">
+<!--	<bean class="org.dspace.content.ItemEnhancer">
 		<property name="alias" value="fulltext" />
 		<property name="metadata">
 			<list>
@@ -193,5 +193,5 @@
 	</bean>
 	
 	<bean name="enhancerFulltext" class="org.dspace.content.integration.defaultvalues.FulltextInfoGenerator"/>
-	<bean name="enhancerPermissionFulltext" class="org.dspace.content.integration.defaultvalues.FulltextPermissionGenerator"/>
+	<bean name="enhancerPermissionFulltext" class="org.dspace.content.integration.defaultvalues.FulltextPermissionGenerator"/>-->
 </beans>

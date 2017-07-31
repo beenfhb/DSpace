@@ -1485,8 +1485,7 @@ public class OAIHarvester {
 				boolean newRP = false;
 				if (rp == null) {
 					rp = new ResearcherPage();
-					rp.setSourceRef(ConfigurationManager.getProperty("oai",
-							"harvester.collection.fvg." + targetCollection.getID()));
+					rp.setSourceRef(source);
 					rp.setSourceID(oaiID);
 					rp.setUuid(UUID.randomUUID().toString());
 					rp.setStatus(true);
@@ -1565,7 +1564,7 @@ public class OAIHarvester {
 					log.info("New OU found: " + oaiID);
 				}
 				setStringValueOU(ou, "description",
-						ConfigurationManager.getProperty("oai", "harvester.collection.fvg." + targetCollection.getID()),
+						source,
 						applicationService);
 				String orgUnitID = null;
 				try {

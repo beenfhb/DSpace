@@ -47,7 +47,8 @@
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="driverTransformer"/>
             <!-- The driver filter -->
-            <Filter ref="driverFilter"/>
+            <!-- <Filter ref="driverFilter"/>  -->
+            <Filter ref="defaultFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="driverSet"/>
             <!-- Metadata Formats -->
@@ -72,20 +73,45 @@
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
             <!-- OpenAIRE filter -->
-            <Filter ref="openAireFilter"/>
+            <!-- <Filter ref="openAireFilter"/> -->
+            <Filter ref="defaultFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="openaireSet"/>
+            <Set ref="openaireSet_ec_funded"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="mets"/>
             <Description>
-                This contexts complies with OpenAIRE rules.
+                This contexts complies with OpenAIRE guideline for Literature Repositories.
+            </Description>
+        </Context> 
+          
+         <Context baseurl="openaire-cris" name="OpenAIRE Cris Context">
+            <!-- Date format, field prefixes, etc are ensured by the transformer -->
+            <Transformer ref="openaireTransformer"/>
+            <!-- OpenAIRE filter -->
+    	    <Filter ref="openAireCrisFilter"/> 
+            <!-- Just an alias, in fact it returns all items within the driver context -->
+            <Set ref="openaireSet"/>
+            <Set ref="researcherSet" />
+            <Set ref="orgUnitSet" />
+            <Set ref="publicationSet" />            
+            <!-- Metadata Formats -->
+            <Format ref="cerif"/>
+            <Format ref="oaidc"/>          
+            <Description>
+                This contexts complies with OpenAIRE guideline for CRIS managers.
             </Description>
         </Context>
     </Contexts>
 
 
     <Formats>
+        <Format id="cerif">
+            <Prefix>cerif</Prefix>
+            <CustomClass>org.dspace.xoai.filter.CerifFormatter</CustomClass>
+            <Namespace>urn:xmlns:org:eurocris:cerif-1.6-2::eu:openaire:cris-mgr-guidelines-1.0</Namespace>
+            <SchemaLocation>https://www.openaire.eu/cerif_schema/cerif-1.6-2_openaire-1.0.xsd</SchemaLocation>
+        </Format>        
         <Format id="oaidc">
             <Prefix>oai_dc</Prefix>
             <XSLT>metadataFormats/oai_dc.xsl</XSLT>
@@ -167,6 +193,8 @@
             <Namespace>http://irdb.nii.ac.jp/oai</Namespace>
             <SchemaLocation>http://irdb.nii.ac.jp/oai/junii2-3-1.xsd</SchemaLocation>
         </Format>
+   
+
     </Formats>
 
     <Transformers>
@@ -194,6 +222,8 @@
                     <LeftCondition>
                         <And>
                             <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
                                 <Custom ref="titleExistsCondition"/>
                             </LeftCondition>
                             <RightCondition>
@@ -226,6 +256,12 @@
                         </And>
                     </RightCondition>
                 </And>
+            		</LeftCondition>
+            		<RightCondition>
+           				<custom ref="itemCondition" />
+            		</RightCondition>
+            	</And>
+            
             </Definition>
         </Filter>
 
@@ -237,9 +273,29 @@
                * AND the OpenAIRE "dc.relation" is specified
              This filter is only used in the OpenAIRE context ([oai]/openaire).
         -->
+
+        <Filter id="openAireCrisFilter">
+            <Definition>
+                  <Or>
+                      <LeftCondition>
+                          <Custom ref="itemAccessCondition"/>
+                      </LeftCondition>
+                      <RightCondition>
+                          <Custom ref="itemWithdrawnCondition"/>
+                      </RightCondition>
+                  </Or>             		
+            </Definition>
+        </Filter>
+   
+   
         <Filter id="openAireFilter">
             <Definition>
                 <And>
+            	<leftCondition>
+            			<custom ref="itemCondition" />
+            	</leftCondition>
+            	<RightCondition>
+		                <And>
                     <LeftCondition>
                         <And>
                             <LeftCondition>
@@ -275,6 +331,10 @@
                         </And>
                     </RightCondition>
                 </And>
+            	
+            	</RightCondition>
+            </And>
+
             </Definition>
         </Filter>
 
@@ -299,6 +359,8 @@
         -->
         <Filter id="defaultFilter">
             <Definition>
+            	<And>
+            		<leftCondition>
                 <Or>
                     <LeftCondition>
                         <Custom ref="itemAccessCondition"/>
@@ -307,6 +369,12 @@
                         <Custom ref="itemWithdrawnCondition"/>
                     </RightCondition>
                 </Or>
+            		</leftCondition>
+            		<RightCondition>
+           				<custom ref="itemCondition" />
+            		</RightCondition>
+            	</And>
+
             </Definition>
         </Filter>
 
@@ -345,7 +413,8 @@
                 <string name="field">dc.type</string>
                 <string name="operator">ends_with</string>
                 <list name="values">
-                    <string>article</string>
+                    <string>Articolo in Rivista</string>
+                    <string>hesis</string>
                     <string>bachelorThesis</string>
                     <string>masterThesis</string>
                     <string>doctoralThesis</string>
@@ -360,7 +429,7 @@
                     <string>annotation</string>
                     <string>contributionToPeriodical</string>
                     <string>patent</string>
-                    <string>other</string>
+                    <string>Altro</string>
                 </list>
             </Configuration>
         </CustomCondition>
@@ -403,6 +472,54 @@
                 <string name="value">info:eu-repo/grantAgreement/EC/FP</string>
             </Configuration>
         </CustomCondition>
+
+        <CustomCondition id="cerifCondition">
+        	<Class>org.dspace.xoai.filter.DSpaceCerifFilter</Class>
+        	<Configuration>
+        		<string name="cerifEntity">00000</string>
+        		<string name="operator">isCerif</string>
+        	</Configuration>
+        </CustomCondition>     
+        
+        <CustomCondition id="itemCondition">
+        	<Class>org.dspace.xoai.filter.DSpaceCerifFilter</Class>
+        	<Configuration>
+        		<string name="cerifEntity">00000</string>
+        		<string name="operator">isItem</string>
+        	</Configuration>
+        </CustomCondition>             
+         
+        
+        
+        <CustomCondition id="researcherSetFilter">
+        	<Class>org.dspace.xoai.filter.DSpaceCerifFilter</Class>
+        	<Configuration>
+        		<string name="cerifEntity">gr.ekt.cerif.entities.base.Person</string>
+        		<string name="operator">equal</string>
+        	</Configuration>
+        </CustomCondition> 
+        
+        <CustomCondition id="orgUnitSetFilter">
+        	<Class>org.dspace.xoai.filter.DSpaceCerifFilter</Class>
+        	<Configuration>
+        		<string name="cerifEntity">gr.ekt.cerif.entities.base.OrganisationUnit</string>
+        		<string name="operator">equal</string>
+        	</Configuration>
+        </CustomCondition>   
+        <CustomCondition id="projectSetFilter">
+        	<Class>org.dspace.xoai.filter.DSpaceCerifFilter</Class>
+        	<Configuration>
+        		<string name="cerifEntity">gr.ekt.cerif.entities.base.Project</string>
+        		<string name="operator">equal</string>
+        	</Configuration>
+        </CustomCondition>     
+        <CustomCondition id="publicationSetFilter">
+        	<Class>org.dspace.xoai.filter.DSpaceCerifFilter</Class>
+        	<Configuration>
+        		<string name="cerifEntity">gr.ekt.cerif.entities.result.ResultPublication</string>
+        		<string name="operator">equal</string>
+        	</Configuration>
+        </CustomCondition>                
     </Filters>
 
     <Sets>
@@ -411,10 +528,41 @@
             <Name>Open Access DRIVERset</Name>
             <!-- Just an alias -->
         </Set>
-        <Set id="openaireSet">
+        <Set id="openaireSet_ec_funded">
             <Spec>ec_fundedresources</Spec>
             <Name>EC_fundedresources set</Name>
             <!-- Just an alias -->
         </Set>
+        <Set id="openaireSet">
+            <Spec>openaire_cris</Spec>
+            <Name>OpenAIRE_CRIS</Name>
+            <!-- Just an alias -->
+        </Set>        
+        <Set id="researcherSet">
+            <Spec>openaire_cris_persons</Spec>
+            <Name>OpenAIRE_CRIS_persons</Name>
+            <Filter ref="researcherSetFilter" />
+        </Set>
+        <Set id="orgUnitSet">
+            <Spec>openaire_cris_orgunits</Spec>
+            <Name>OpenAIRE_CRIS_orgunits</Name>
+            <Filter ref="orgUnitSetFilter" />            
+        </Set>
+        <Set id="projectSet">
+            <Spec>openaire_cris_projects</Spec>
+            <Name>OpenAIRE_CRIS_projects</Name>
+            <Filter ref="projectSetFilter" />            
+        </Set>   
+        <Set id="publicationSet">
+            <Spec>openaire_cris_publications</Spec>
+            <Name>OpenAIRE_CRIS_publications</Name>
+            <Filter ref="publicationSetFilter" />            
+        </Set> 
+                
+        <Set id="journalSet">
+            <Spec>journal</Spec>
+            <Name>Journals set</Name>
+            <Filter ref="journalSetFilter" />            
+        </Set>          
     </Sets>
 </Configuration>

@@ -15,6 +15,8 @@
   -    recent.submissions - RecetSubmissions
   --%>
 
+<%@page import="org.dspace.core.Utils"%>
+<%@page import="org.dspace.content.Bitstream"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -34,16 +36,11 @@
 <%@ page import="org.dspace.core.ConfigurationManager" %>
 <%@ page import="org.dspace.core.NewsManager" %>
 <%@ page import="org.dspace.browse.ItemCounter" %>
-<%@ page import="org.dspace.content.Metadatum" %>
 <%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.discovery.configuration.DiscoveryViewConfiguration" %>
-<%@page import="org.dspace.app.webui.components.MostViewedBean"%>
-<%@page import="org.dspace.app.webui.components.MostViewedItem"%>
 <%@page import="org.dspace.discovery.SearchUtils"%>
 <%@page import="org.dspace.discovery.IGlobalSearchResult"%>
 <%@page import="org.dspace.core.Utils"%>
-<%@page import="org.dspace.content.Bitstream"%>
-<%@ page import="org.dspace.app.webui.util.LocaleUIHelper" %>
 
 <%
     Community[] communities = (Community[]) request.getAttribute("communities");
@@ -63,51 +60,34 @@
     ItemCounter ic = new ItemCounter(UIUtil.obtainContext(request));
 
     RecentSubmissions submissions = (RecentSubmissions) request.getAttribute("recent.submissions");
-    MostViewedBean mostViewedItem = (MostViewedBean) request.getAttribute("mostViewedItem");
-    MostViewedBean mostCitedItem = (MostViewedBean) request.getAttribute("mostCitedItem");
-    MostViewedBean mostViewedBitstream = (MostViewedBean) request.getAttribute("mostDownloadedItem");
-    boolean isRtl = StringUtils.isNotBlank(LocaleUIHelper.ifLtr(request, "","rtl"));
 %>
 
 <dspace:layout locbar="nolink" titlekey="jsp.home.title" feedData="<%= feedData %>">
-<div class="row">
-	<div class="col-md-8 sm-12 pull-<%= isRtl? "right":"left" %>">
-        <%= topNews %>
 
-	<%
-    	int discovery_panel_cols = 8;
-    	int discovery_facet_cols = 4;
-    	String processorSidebar = (String) request.getAttribute("processorSidebar");
-    	String processorGlobal = (String) request.getAttribute("processorGlobal");
-          
-    if(processorGlobal!=null && processorGlobal.equals("global")) {
-		%>
-	<%@ include file="discovery/static-globalsearch-component-facet.jsp" %>
-	<% } %>        
-		  </div>
-	<div class="col-md-4 sm-12 pull-<%= isRtl? "left":"right" %>">
-    <%@ include file="components/recent-submissions.jsp" %>
-	</div>
-</div>
 <div class="row">
-	<div class="col-md-4 <%= isRtl ? "pull-right":""%>">
-		<%@ include file="components/most-viewed.jsp" %>	
-	</div>
-	<div class="col-md-4 <%= isRtl ? "pull-right":""%>">
-		<%@ include file="components/most-downloaded.jsp" %>
-	</div>
-	<div class="col-md-4 <%= isRtl ? "pull-left":""%>">
-	<%= sideNews %>
-	<%-- <%@ include file="discovery/static-tagcloud-facet.jsp" %> --%>
-	<%-- <%@ include file="components/most-cited.jsp" %> --%>
-	</div>
+<div class="col-md-6">
+    <%= sideNews %>
 </div>
+<div class="col-md-6">
+    <%= topNews %>
+</div>
+<%
+if (submissions != null && submissions.count() > 0)
+{
+%>
+        <div class="col-md-6">
+			<%@ include file="components/recent-submissions.jsp" %>
+        </div>
+<%
+}
+%>
+</div>
+<div class="container row">
 <%
 if (communities != null && communities.length != 0)
 {
 %>
-<div class="row">
-	<div class="col-md-5">		
+	<div class="col-md-4">		
                <h3><fmt:message key="jsp.home.com1"/></h3>
                 <p><fmt:message key="jsp.home.com2"/></p>
 				<div class="list-group">
@@ -139,20 +119,38 @@ if (communities != null && communities.length != 0)
 		</h4>
 		<p><%= communities[i].getMetadata("short_description") %></p>
     </div>
+</div>
 </div>                            
-	
+<%
+    }
+%>	
+	</div>
+	</div>
 <%
 }
-}
+%>
+	<%
+    	int discovery_panel_cols = 12;
+    	int discovery_facet_cols = 3;
+    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
+    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
+    	String processorSidebar = (String) request.getAttribute("processorSidebar");
+    	String processorGlobal = (String) request.getAttribute("processorGlobal");
     
+    if(processorGlobal!=null && processorGlobal.equals("global")) {
+    %>
+	<%@ include file="discovery/static-globalsearch-component-facet.jsp" %>
+	<% } 
     if(processorSidebar!=null && processorSidebar.equals("sidebar")) {
 	%>
-	<div class="col-md-7">
 	<%@ include file="discovery/static-sidebar-facet.jsp" %>
-	</div>
-	<% } %>	
+	<% } %>
+	
 </div>
+
 <div class="row">
 	<%@ include file="discovery/static-tagcloud-facet.jsp" %>
+</div>
+	
 </div>
 </dspace:layout>

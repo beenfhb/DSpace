@@ -1014,7 +1014,7 @@ public class CerifMapping {
 			
 			
 //DiscoverResult res = component.search(context,null,"all",item,0,Integer.MAX_VALUE,"search.resourceid",false,null);
-		    DiscoverResult res = component.search(context,"all",item,0,Integer.MAX_VALUE,"search.resourceid",false);
+		    DiscoverResult res = component.search(context,null,"all",item,0,Integer.MAX_VALUE,"search.resourceid",false);
 //		    search(Context context, String type, ACrisObject cris, int start, int rpp, String orderfield,boolean ascending) throws SearchServiceException
 //    	    search(Context context, HttpServletRequest request, String type, ACrisObject cris, int start, int rpp, String orderfield,boolean ascending, List<String> extraFields) throws SearchServiceException			
 

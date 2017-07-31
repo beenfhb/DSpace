@@ -505,7 +505,20 @@ public class I18nUtil
         }
         return message;
     }
-    
+
+    public static String getMessageIfExists(String key, Object[] args, Locale locale) {
+        if (locale == null) {
+            locale = DEFAULTLOCALE;
+        }
+
+        String message = "";
+        try {
+            message = getMessageSource().getMessage(key.trim(), args, locale);
+            return message;
+        } catch (MissingResourceException e) {
+            return null;
+        }
+    }
     
     public static MessageSource getMessageSource() {
         if (I18nUtil.messageSource == null) {

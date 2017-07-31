@@ -64,7 +64,7 @@ public class DSpaceAuthorizationFilter extends DSpaceFilter
             }
 
             //VSTODO: crash if this is set to true. Why??
-            context.setRequiredItemWrapper(false);
+//            context.turnOffItemWrapper();
             Item dspaceItem = (Item) HandleManager.resolveToObject(context, handle);
             if (dspaceItem == null)
                 return false;

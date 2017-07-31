@@ -66,7 +66,7 @@
     boolean submit_button = (submit_b == null ? false : submit_b.booleanValue());
 
 	// get the browse indices
-    BrowseIndex[] bis = BrowseIndex.getBrowseCollectionIndices();
+    BrowseIndex[] bis = BrowseIndex.getBrowseIndices();
 
     // Put the metadata values into guaranteed non-null variables
     String name = collection.getMetadata("name");
@@ -117,7 +117,7 @@
             }
 %>
 		<small><fmt:message key="jsp.collection-home.heading1"/></small>
-      <a class="statisticsLink btn btn-info" href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collection.getHandle() %>&type=selected"><fmt:message key="jsp.collection-home.display-statistics"/></a>
+      <a class="statisticsLink btn btn-info" href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collection.getHandle() %>"><fmt:message key="jsp.collection-home.display-statistics"/></a>
       </h2></div>
 <%  if (logo != null) { %>
         <div class="col-md-4">
@@ -133,12 +133,12 @@
   <p class="copyrightText"><%= copyright %></p>
   
   <%-- Browse --%>
-  <div class="panel panel-primary">
+<%--   <div class="panel panel-primary">
   	<div class="panel-heading">
         <fmt:message key="jsp.general.browse"/>
 	</div>
 	<div class="panel-body">
-	<%-- Insert the dynamic list of browse options --%>
+	Insert the dynamic list of browse options
 <%
 	for (int i = 0; i < bis.length; i++)
 	{
@@ -146,13 +146,13 @@
 %>
 	<form method="get" class="btn-group" action="<%= request.getContextPath() %>/handle/<%= collection.getHandle() %>/browse">
 		<input type="hidden" name="type" value="<%= bis[i].getName() %>"/>
-		<%-- <input type="hidden" name="collection" value="<%= collection.getHandle() %>" /> --%>
+		<input type="hidden" name="collection" value="<%= collection.getHandle() %>" />
 		<input type="submit" class="btn btn-default" name="submit_browse" value="<fmt:message key="<%= key %>"/>"/>
 	</form>
 <%	
 	}
 %>	</div>
-</div>
+</div> --%>
 <%  if (submit_button)
     { %>
           <form class="form-group" action="<%= request.getContextPath() %>/submit" method="post">
@@ -369,15 +369,15 @@
 	{
 %>
 	<h3><fmt:message key="jsp.collection-home.recentsub"/></h3>
-<%
+	<%	
 		for (IGlobalSearchResult obj : rs.getRecentSubmissions()) {
 		%>
 		
 				<dspace:discovery-artifact style="global" artifact="<%= obj %>" view="<%= rs.getConfiguration() %>"/>
 		
 		<%
-		}
-%>
+		     }
+		%>
     <p>&nbsp;</p>
 <%      } %>
 
@@ -385,6 +385,8 @@
     <%
     	int discovery_panel_cols = 12;
     	int discovery_facet_cols = 12;
+    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
+    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
     	String processorSidebar = (String) request.getAttribute("processorSidebar");
     
     if(processorSidebar!=null && processorSidebar.equals("sidebar")) {

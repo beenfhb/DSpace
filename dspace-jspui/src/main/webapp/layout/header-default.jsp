@@ -28,6 +28,7 @@
 <%@ page import="javax.servlet.jsp.jstl.core.*" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.*" %>
 <%@ page import="org.apache.commons.lang.StringUtils"%>
+<%@page import="org.dspace.eperson.EPerson"%>
 
 <%
     String title = (String) request.getAttribute("dspace.layout.title");
@@ -46,6 +47,22 @@
     String generator = dsVersion == null ? "DSpace" : "DSpace "+dsVersion;
     String analyticsKey = ConfigurationManager.getProperty("jspui.google.analytics.key");
 
+
+    // Is anyone logged in?
+    EPerson user = (EPerson) request.getAttribute("dspace.current.user");
+
+    // Is the logged in user an admin
+    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    boolean isAdmin = (admin == null ? false : admin.booleanValue());
+
+    // E-mail may have to be truncated
+    String navbarEmail = null;
+
+    if (user != null)
+    {
+        navbarEmail = user.getEmail();
+    }
+    
     boolean cookiesPolicyEnabled = ConfigurationManager.getBooleanProperty("cookies.policy.enabled", false);
     
     // get the locale languages
@@ -73,6 +90,7 @@
 	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/dspace-theme.css" type="text/css" />
 	    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/orcid.css" type="text/css" />
 	    <link rel="stylesheet" type="text/css" href="<%= request.getContextPath() %>/static/css/dataTables.bootstrap.min.css"/>
+	    <link href="<%= request.getContextPath() %>/static/fvg/lavish-bootstrap.css" rel="stylesheet"/>
 		<link rel="stylesheet" type="text/css" href="<%= request.getContextPath() %>/static/css/buttons.bootstrap.min.css"/>
 		<link rel="stylesheet" type="text/css" href="<%= request.getContextPath() %>/static/css/responsive.bootstrap.min.css"/>
 		<link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/dspace-theme.css" type="text/css" />
@@ -195,12 +213,26 @@
     <%-- HACK: marginwidth, marginheight: for non-CSS compliant Netscape browser --%>
     <body class="undernavigation" dir="<%= LocaleUIHelper.ifLtr(request, "ltr","rtl") %>">
 <a class="sr-only" href="#content">Skip navigation</a>
-<header class="navbar navbar-inverse navbar-square">    
+<header class="navbar navbar-default">    
+  <div class="container">
+  	<div class="row">
+		<div class="col-sm-5 col-md-5 col-xs-6">
+			<a href="<%= request.getContextPath() %>/"><img id="logo-library"
+					src="<%= request.getContextPath() %>/static/fvg/LogoSX2-UNITY.png" height="40" border="0"></a>
+		</div>
+       	<div class="col-sm-7 col-md-7 col-xs-6">
+       	<div class="pull-right nowrap">
+			<a href="http://www.regione.fvg.it/rafvg/cms/RAFVG/istruzione-ricerca/fare-ricerca/" target="_blank">
+			<img id="logo-univ"src="<%= request.getContextPath() %>/static/fvg/LogoDX2-Enti.png"
+				border="0" height="61"></a>
+		</div>
+        </div>
+    </div>
     <%
     if (!navbar.equals("off"))
     {
 %>
-            <div class="container-fluid">
+            <div class="row">
                 <dspace:include page="<%= navbar %>" />
             </div>
 <%
@@ -208,7 +240,7 @@
     else
     {
     	%>
-        <div class="container-fluid">
+        <div class="row">
             <dspace:include page="/layout/navbar-minimal.jsp" />
         </div>
 <%    	
@@ -244,57 +276,7 @@ window.cookieconsent.initialise({
 </header>
 
 <main id="content" role="main">
-<div class="container banner">
-	<div class="row">
-		<div class="col-sm-12">
-<% if (supportedLocales != null && supportedLocales.length > 1)
-     {
- %>
-	 <ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
-      
- <%
-    for (int i = supportedLocales.length-1; i >= 0; i--)
-     {
- %>
-        <li><a onclick="javascript:document.repost.locale.value='<%=supportedLocales[i].toString()%>';
-                  document.repost.submit();" href="?locale=<%=supportedLocales[i].toString()%>">
-          <%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.layout.navbar-default.language."+supportedLocales[i].toString()) %>                  
-       </a></li>
- <%
-     }
- %>
-     </ul>
- <%
-   }
- %>		
-		
-		
-		
-		</div>
-		  <div class="col-sm-8 brand pull-<%= isRtl ?"right" :"left" %>">
-		<h1><fmt:message key="jsp.layout.header-default.brand.heading" /></h1>
-        <fmt:message key="jsp.layout.header-default.brand.description" /> 
-        </div>
-        <div class="col-sm-4 hidden-xs pull-<%= isRtl ?"left" :"right" %>"><img class="img-responsive" src="<%= request.getContextPath() %>/image/logo.gif" alt="DSpace logo" />
-        </div>
-	</div>
-</div>	
-<br/>
-                <%-- Location bar --%>
-<%
-    if (locbar)
-    {
-%>
-<div class="container">
-	<div class="row">
-		<div class="col-sm-12">
-                <dspace:include page="/layout/location-bar.jsp" />
-        </div>        
-    </div>
-</div>                
-<%
-    }
-%>
+
 
 
 

@@ -26,8 +26,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
-<%@ page import="org.dspace.app.webui.components.MostViewedBean"%>
-<%@ page import="org.dspace.app.webui.components.MostViewedItem"%>
 <%@ page import="org.dspace.discovery.SearchUtils"%>
 <%@ page import="org.dspace.discovery.IGlobalSearchResult"%>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet" %>
@@ -54,7 +52,6 @@
     RecentSubmissions submissions = (RecentSubmissions) request.getAttribute("recently.submitted");
     List<Integer> commSubscribed = (List<Integer>) request.getAttribute("subscription_communities");
     List<Integer> collSubscribed = (List<Integer>) request.getAttribute("subscription_collections");
-    MostViewedBean mostViewedItem = (MostViewedBean) request.getAttribute("mostViewedItem");
     boolean loggedIn =
           ((Boolean) request.getAttribute("logged.in")).booleanValue();
     boolean subscribed =
@@ -68,7 +65,7 @@
     boolean remove_button = (remove_b == null ? false : remove_b.booleanValue());
 
 	// get the browse indices
-    BrowseIndex[] bis = BrowseIndex.getBrowseCommunityIndices();
+    BrowseIndex[] bis = BrowseIndex.getBrowseIndices();
 
     // Put the metadata values into guaranteed non-null variables
     String name = community.getMetadata("name");
@@ -102,7 +99,7 @@
             }
 %>
 		<small><fmt:message key="jsp.community-home.heading1"/></small>
-        <a class="statisticsLink btn btn-info" href="<%= request.getContextPath() %>/cris/stats/community.html?handle=<%= community.getHandle() %>&type=selected"><fmt:message key="jsp.community-home.display-statistics"/></a>
+        <a class="statisticsLink btn btn-info" href="<%= request.getContextPath() %>/cris/stats/community.html?handle=<%= community.getHandle() %>"><fmt:message key="jsp.community-home.display-statistics"/></a>
 		</h2>
 	</div>
 <%  if (logo != null) { %>
@@ -130,24 +127,20 @@
 <%  } %>
 </form>
 
-	<div class="row">
-	<div class="col-md-4">
-	<%@ include file="components/recent-submissions.jsp" %>
-		    </div>
-	<div class="col-md-4">
-	<%@ include file="components/most-viewed.jsp" %>
-	<%-- @ include file="components/most-downloaded.jsp" --%>
-		</div>
-	<div class="col-md-4">
+<div class="row">
+	<div class="col-md-6">
+		<%@ include file="components/recent-submissions.jsp" %>
+	</div>
+	<div class="col-md-6">
     	<%= sidebar %>
 	</div>
-</div>	
+</div>
 
 <%-- Browse --%>
-<div class="panel panel-primary">
+<%-- <div class="panel panel-primary">
 	<div class="panel-heading"><fmt:message key="jsp.general.browse"/></div>
 	<div class="panel-body">
-   				<%-- Insert the dynamic list of browse options --%>
+   				Insert the dynamic list of browse options
 <%
 	for (int i = 0; i < bis.length; i++)
 	{
@@ -155,7 +148,7 @@
 %>
 	<form method="get" action="<%= request.getContextPath() %>/handle/<%= community.getHandle() %>/browse">
 		<input type="hidden" name="type" value="<%= bis[i].getName() %>"/>
-		<%-- <input type="hidden" name="community" value="<%= community.getHandle() %>" /> --%>
+		<input type="hidden" name="community" value="<%= community.getHandle() %>" />
 		<input class="btn btn-default col-md-3" type="submit" name="submit_browse" value="<fmt:message key="<%= key %>"/>"/>
 	</form>
 <%	
@@ -163,13 +156,15 @@
 %>
 			
 	</div>
-</div>
+</div> --%>
 
 <div class="row">
 
     <%
     	int discovery_panel_cols = 12;
     	int discovery_facet_cols = 4;
+    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
+    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
     	String processorSidebar = (String) request.getAttribute("processorSidebar");
     
     if(processorSidebar!=null && processorSidebar.equals("sidebar")) {
@@ -218,22 +213,7 @@
                     [<%= ic.getCount(subcommunities[j]) %>]
 <%
                 }
-			if(isAdmin || !ConfigurationManager.getBooleanProperty("solr-statistics","authorization.admin")) { %>
-					<a href="<%= request.getContextPath() %>/cris/stats/community.html?handle=<%= subcommunities[j].getHandle() %>&type=selected"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
-				&nbsp;
-		 <% } %>
-        
-		<a href="<%= request.getContextPath() %>/feed/rss_2.0/<%= subcommunities[j].getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/feed.png" border="0" title="Content update: RSS feed"/></a>
-		&nbsp;<a href=<%= request.getContextPath() %>/handle/<%= subcommunities[j].getHandle() %>?handle=<%= subcommunities[j].getHandle() %>&submit_<%
-		    if (commSubscribed!=null && commSubscribed.contains(subcommunities[j].getID()))
-		    { // subscribed
-		        %>unsubscribe=unsubscribe"><img src="<%= request.getContextPath() %>/image/stats/stop-bell.png" border="0" title="Content update: Email subscription"/></a><%
-		    }
-		    else
-		    { // not yet subscribed
-		        %>subscribe=subscribe"><img src="<%= request.getContextPath() %>/image/stats/start-bell.png" border="0" title="Content update: Email subscription"/></a><%
-		    }
-    	%>
+%>
 	    		<% if (remove_button) { %>
 	                <form class="btn-group" method="post" action="<%=request.getContextPath()%>/tools/edit-communities">
 			          <input type="hidden" name="parent_community_id" value="<%= community.getID() %>" />
@@ -290,7 +270,7 @@
 <%
             }
 			if(isAdmin || !ConfigurationManager.getBooleanProperty("solr-statistics","authorization.admin")) { %>
-					<a href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collections[i].getHandle() %>&type=selected"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
+					<a href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collections[i].getHandle() %>"><img src="<%= request.getContextPath() %>/image/stats/chart_curve.png" border="0" title="usage statistics"/></a>
 				&nbsp;
 		 <% } %>
         

@@ -434,12 +434,11 @@
     <!--Which sidebar facets are to be displayed -->
 		<property name="sidebarFacets">
 			<list>
-				<ref bean="searchFilterAuthor" />
+				<ref bean="searchFilterTypeRepo" />								
 				<ref bean="searchFilterSubject" />
+				<ref bean="searchFilterType" />
 				<ref bean="searchFilterIssued" />
-				
-				<ref bean="searchFilterObjectPeople" />
-				<ref bean="searchFilterObjectOU" />
+				<ref bean="searchFilterFulltext" />			
 			</list>
 		</property>
 		<!--The search filters which can be used on the discovery search page -->
@@ -448,9 +447,12 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterTypeRepo" />
+				<ref bean="searchFilterType" />
 				<ref bean="searchFilterObjectType" />
 				<ref bean="searchFilterObjectPeople" />
 				<ref bean="searchFilterObjectOU" />
+				<ref bean="searchFilterFulltext" />	
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -669,11 +671,11 @@
 			<list>
 				<ref bean="searchFilterTitle" />
 				<ref bean="searchFilterAuthor" />
-				<ref bean="searchFilterJournalTitle" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterTypeRepo" />
 				<ref bean="searchFilterType" />
-				<ref bean="searchFilterFulltext" />
+				<ref bean="searchFilterObjectType" />
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -779,6 +781,7 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterObjectType" />
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -884,6 +887,7 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterObjectType" />
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -1690,7 +1694,7 @@
 		<property name="indexFieldName" value="objectpeople" />
 		<property name="metadataFields">
 			<list>
-				<value>dc.contributor.*</value>
+				<value>dc.contributor.author</value>
 				<value>crisrp.this</value>
 				<value>crisproject.investigator</value>
 				<value>crisproject.coinvestigators</value>
@@ -1744,6 +1748,16 @@
 		<property name="metadataFields">
 			<list>
 				<value>dc.type</value>
+			</list>
+		</property>
+	</bean>	
+
+	<bean id="searchFilterTypeRepo"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="repotype" />
+		<property name="metadataFields">
+			<list>
+				<value>dc.identifier.sourcefvg</value>
 			</list>
 		</property>
 	</bean>	
@@ -1955,7 +1969,18 @@
 		<property name="sortOrder" value="VALUE" />
 	</bean>
 
+
 	<bean id="searchFilterFulltext"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="fulltext" />
+		<property name="metadataFields">
+			<list>
+				<value>dc.rights</value>
+			</list>
+		</property>
+	</bean>
+
+<!--	<bean id="searchFilterFulltext"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
 		<property name="indexFieldName" value="infofulltext" />
 		<property name="metadataFields">
@@ -1977,7 +2002,7 @@
 		</property>
 		<property name="facetLimit" value="10" />
 		<property name="sortOrder" value="COUNT" />
-	</bean>
+	</bean> -->
 	
 	<!--Sort properties -->
 	<bean id="sortTitle"
@@ -2028,8 +2053,8 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
-				<ref bean="searchFilterType" />
-				<ref bean="searchFilterFulltext" />			
+				<ref bean="searchFilterTypeRepo" />
+				<ref bean="searchFilterType" />		
 		</list>
 		</constructor-arg>
 	</bean>

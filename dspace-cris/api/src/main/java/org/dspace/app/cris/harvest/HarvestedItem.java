@@ -64,7 +64,7 @@ public class HarvestedItem extends org.dspace.harvest.HarvestedItem{
 	                + "JOIN cris_rpage rp ON rp.id = crp.parent_id WHERE rp.sourceref= ? and shortName='harvestsourceid' and jdv.textvalue= ?",
 	                sourceRef, remoteID);
 			if(tri.hasNext()){
-				TableRow r = tri.next();
+				TableRow r = tri.next(context);
 				String crisID = r.getStringColumn("crisid");
 				DSpace dspace = new DSpace();
 				ApplicationService applicationService = dspace.getServiceManager().getServiceByName("applicationService",
@@ -86,7 +86,7 @@ public class HarvestedItem extends org.dspace.harvest.HarvestedItem{
 	                + "JOIN cris_orgunit ou ON ou.id = cou.parent_id WHERE ou.sourceref= ? and shortName='harvestsourceid' and jdv.textvalue= ?",
 	                sourceRef, remoteID);
 			if(tri.hasNext()){
-				TableRow r = tri.next();
+				TableRow r = tri.next(context);
 				String crisID = r.getStringColumn("crisid");
 				DSpace dspace = new DSpace();
 				ApplicationService applicationService = dspace.getServiceManager().getServiceByName("applicationService",

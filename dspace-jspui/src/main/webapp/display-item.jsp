@@ -23,7 +23,6 @@
   -                  display any collections.
   -    admin_button - Boolean, show admin 'edit' button
   --%>
-<%@page import="org.apache.commons.lang.StringUtils"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -46,8 +45,6 @@
 <%@page import="org.dspace.core.Constants"%>
 <%@page import="org.dspace.eperson.EPerson"%>
 <%@page import="org.dspace.versioning.VersionHistory"%>
-<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
-
 <%
     // Attributes
     Boolean displayAllBoolean = (Boolean) request.getAttribute("display.all");
@@ -87,13 +84,7 @@
 			title = "Item " + handle;
 		}
 	}
-    boolean pmcEnabled = ConfigurationManager.getBooleanProperty("cris","pmc.enabled",false);
-    boolean scopusEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.elsevier.scopus.enabled",false);
-    boolean wosEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.thomsonreuters.wos.enabled",false);
-    String doi = item.getMetadata("dc.identifier.doi");
-    boolean scholarEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.google.scholar.enabled",false);
-    boolean altMetricEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.enabled",false) && StringUtils.isNotBlank(doi);
-    
+    Boolean pmcEnabled = ConfigurationManager.getBooleanProperty("cris","pmc.enabled",false);
     Boolean versioningEnabledBool = (Boolean)request.getAttribute("versioning.enabled");
     boolean versioningEnabled = (versioningEnabledBool!=null && versioningEnabledBool.booleanValue());
     Boolean hasVersionButtonBool = (Boolean)request.getAttribute("versioning.hasversionbutton");
@@ -111,89 +102,39 @@
     
     VersionHistory history = (VersionHistory)request.getAttribute("versioning.history");
     List<Version> historyVersions = (List<Version>)request.getAttribute("versioning.historyversions");
-    
-    EPerson user = (EPerson) request.getAttribute("dspace.current.user");
-    boolean dedupEnabled = ConfigurationManager.getBooleanProperty("deduplication", "deduplication.admin.feature", false);
-    
-	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.item.enabled", false);
-	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
-	String cfg = ConfigurationManager.getProperty("exportcitation.options");
-	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","core-aggregator.enabled");
-	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "core-aggregator.credentials");
 %>
 
-<% if(pmcEnabled || scopusEnabled || wosEnabled || scholarEnabled || altMetricEnabled) { %>
-<c:set var="dspace.layout.head.last" scope="request">
-<% if(altMetricEnabled) { %> 
-<script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
-<% } %>
-<script type="text/javascript"><!--
-j(document).ready(function() {
+<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 
-	<% if(altMetricEnabled) { %>
-	j(function () {
-	    j('div.altmetric-embed').on('altmetric:hide ', function () {
-	    	j('div.altmetric').hide();
-	    });
-	});
-	<% } %>
-	
-	<% if (dedupEnabled && admin_button) { %>
-	j.ajax({
-		url : "<%=request.getContextPath()%>/json/duplicate",
-		data : {																			
-			"itemid" : <%= item.getID()%>,
-			"typeid" : "2",
-			"admin": true
-		},
-		success : function(data) {
-			if(data.iTotalDisplayRecords==0) {
-				j('div.dedup').hide();
-			}
-			else {
-				j('#dedupCounter').html(data.iTotalDisplayRecords);
-				var queryString = "?";
-				var tmp_itemid_list = <%= item.getID()%> + ",";
-				j.each(data.aaData, function( index, value ) {
-					tmp_itemid_list += value.entityID;
-					tmp_itemid_list += ",";
-				});				
-				var itemid_list = tmp_itemid_list.substr(0, tmp_itemid_list.length-1);
-				queryString += 'scope=0&submitcheck=submitcheck&itemid_list='+itemid_list;
-				j('#dedupCounter').attr('href', '<%=request.getContextPath()%>/tools/duplicate' + queryString);
-			}			
-		},
-		error : function(data) {
-		}
-	});
-	<% } %>
+<% if(pmcEnabled) { %>
+<c:set var="dspace.layout.head.last" scope="request">
+<script type="text/javascript"><!--
+var j = jQuery.noConflict();
+
+ajaxPMCCitedBy = function(args) {
+        new j.ajax({
+                url: "<%= request.getContextPath() %>/pmcCitedBy",
+                data: { item_id: encodeURIComponent(args)}
+        }).done(function(transport) {
+               var respPmc = jQuery.trim(String(transport.textContent));
+               if(respPmc=="null") {
+                       j('#pmcCitedResult').html("No data found");
+               }
+               else {
+                       j('#pmcCitedResult').html(transport);
+                       j('.citedCount').show();
+               }
+               j('#pmcCitedCount').show();
+
+
+        });
+
+}
+
+j(document).ready(function() {
+        ajaxPMCCitedBy('<%= item.getID()%>');
 });
 --></script>
-	<% if(coreRecommender) { %>
-	<link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/recommender/core.css" type="text/css" />	
-	<script>
-		(function(d, s, idScript, idRec, userInput) {
-			var coreAddress = 'https://core.ac.uk/';
-			var js, fjs = d.getElementsByTagName(s)[0];
-			if (d.getElementById(idScript))
-				return;
-			js = d.createElement(s);
-			js.id = idScript;
-			js.src = coreAddress + 'recommender/embed.js';
-			fjs.parentNode.insertBefore(js, fjs);
-	
-			localStorage.setItem('idRecommender', idRec);
-			localStorage.setItem('userInput', JSON.stringify(userInput));
-	
-/* 			var link = d.createElement('link');
-			link.setAttribute('rel', 'stylesheet');
-			link.setAttribute('type', 'text/css');
-			link.setAttribute('href', coreAddress
-					+ 'recommender/embed-default-style.css');
-			d.getElementsByTagName('head')[0].appendChild(link); */
-		}(document, 'script', 'recommender-embed', '<%= coreCredentials %>', {}));
-	</script>
-	<% } %>
 </c:set>
 <% } %>
 
@@ -202,8 +143,7 @@ j(document).ready(function() {
     if (handle != null)
     {
 %>
-	<div class="row">
-		<div class="col-sm-<%= admin_button?"7":"12" %> col-md-<%= admin_button?"8":"12" %> col-lg-<%= admin_button?"9":"12" %>">
+
 		<%		
 		if (newVersionAvailable)
 		   {
@@ -231,24 +171,17 @@ j(document).ready(function() {
                 <code><%= HandleManager.getCanonicalForm(handle) %></code></strong>--%>
                 <div class="well"><fmt:message key="jsp.display-item.identifier"/>
                 <code><%= HandleManager.getCanonicalForm(handle) %></code></div>
-       </div>         
 <%
         if (admin_button)  // admin edit button
         { %>
-        <div class="col-sm-5 col-md-4 col-lg-3">
+        <dspace:sidebar>
             <div class="panel panel-warning">
             	<div class="panel-heading"><fmt:message key="jsp.admintools"/></div>
             	<div class="panel-body">
-				<form method="get" action="<%= request.getContextPath() %>/submit">
-                    <input type="hidden" name="edit_item" value="<%= item.getID() %>" />
-                    <input type="hidden" name="pageCallerID" value="0" />
-                    <%--<input type="submit" name="submit" value="Edit...">--%>
-                    <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.editsubmission.button"/>" />
-                </form>
                 <form method="get" action="<%= request.getContextPath() %>/tools/edit-item">
                     <input type="hidden" name="item_id" value="<%= item.getID() %>" />
                     <%--<input type="submit" name="submit" value="Edit...">--%>
-                    <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.editnormal.button"/>" />
+                    <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.edit.button"/>" />
                 </form>
                 <form method="post" action="<%= request.getContextPath() %>/mydspace">
                     <input type="hidden" name="item_id" value="<%= item.getID() %>" />
@@ -279,35 +212,17 @@ j(document).ready(function() {
 					<% } %>
              </div>
           </div>
-        </div>
+        </dspace:sidebar>
 <%      } %>
 
-</div>
 <%
     }
 
     String displayStyle = (displayAll ? "full" : "");
 %>
-
-<div class="row">
-<div id="wrapperDisplayItem" class="col-lg-9">
     <dspace:item-preview item="<%= item %>" />
     <dspace:item item="<%= item %>" collections="<%= collections %>" style="<%= displayStyle %>" />
-    <%-- SFX Link --%>
-<%
-    if (ConfigurationManager.getProperty("sfx.server.url") != null)
-    {
-        String sfximage = ConfigurationManager.getProperty("sfx.server.image_url");
-        if (sfximage == null)
-        {
-            sfximage = request.getContextPath() + "/image/sfx-link.gif";
-        }
-%>
-        <a class="btn btn-default" href="<dspace:sfxlink item="<%= item %>"/>" /><img src="<%= sfximage %>" border="0" alt="SFX Query" /></a>
-<%
-    }
-%>
-
+<div class="container row">
 <%
     String locationLink = request.getContextPath() + "/handle/" + handle;
 
@@ -318,7 +233,7 @@ j(document).ready(function() {
         if (workspace_id != null)
         {
 %>
-    <form class="pull-left" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
+    <form class="col-md-2" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
         <input type="hidden" name="workspace_id" value="<%= workspace_id.intValue() %>" />
         <input class="btn btn-default" type="submit" name="submit_simple" value="<fmt:message key="jsp.display-item.text1"/>" />
     </form>
@@ -332,13 +247,17 @@ j(document).ready(function() {
     </a>
 <%
         }
+%>
+<%
     }
     else
     {
+%>
+<%
         if (workspace_id != null)
         {
 %>
-    <form class="pull-left" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
+    <form class="col-md-2" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
         <input type="hidden" name="workspace_id" value="<%= workspace_id.intValue() %>" />
         <input class="btn btn-default" type="submit" name="submit_full" value="<fmt:message key="jsp.display-item.text2"/>" />
     </form>
@@ -357,261 +276,53 @@ j(document).ready(function() {
     if (workspace_id != null)
     {
 %>
-   <form class="pull-left" method="post" action="<%= request.getContextPath() %>/workspace">
+   <form class="col-md-2" method="post" action="<%= request.getContextPath() %>/workspace">
         <input type="hidden" name="workspace_id" value="<%= workspace_id.intValue() %>"/>
         <input class="btn btn-primary" type="submit" name="submit_open" value="<fmt:message key="jsp.display-item.back_to_workspace"/>"/>
     </form>
 <%
     } else {
-    	if (exportBiblioEnabled && ( exportBiblioAll || user!=null ) ) {
-    %>
 
-    		<form target="blank" class="form-inline"  id="exportform" action="<%= request.getContextPath() %>/references">
-
-    		<div id="export-biblio-panel">
-    	<%		
-    		if (cfg == null)
-    		{
-    			cfg = "refman, endnote, bibtex, refworks";
-    		}
-    		String[] cfgSplit = cfg.split("\\s*,\\s*");
-    		for (String format : cfgSplit) {
-    	%>
-    		<c:set var="format"><%= format %></c:set>	    
-    		<label class="radio-inline">
-        		  <input id="${format}" type="radio" name="format" value="${format}" <c:if test="${format=='bibtex'}"> checked="checked"</c:if>/><fmt:message key="exportcitation.option.${format}" />
-    	    </label>
-
-    		
-    	<% } %>
-    		<label class="checkbox-inline">
-    			<input type="checkbox" id="email" name="email" value="true"/><fmt:message key="exportcitation.option.email" />
-    		</label>
-    			<input type="hidden" name="item_id" value="<%= item.getID() %>" />
-    			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" />
-    		</div>	
-    		</form>
-    <% }
 		if (suggestLink)
         {
 %>
-    <a class="btn btn-success" href="<%= request.getContextPath() %>/suggest?handle=<%= handle %>" target="_blank">
-       <fmt:message key="jsp.display-item.suggest"/>
-    </a>
+    <a class="btn btn-success" href="<%= request.getContextPath() %>/suggest?handle=<%= handle %>" target="new_window">
+       <fmt:message key="jsp.display-item.suggest"/></a>
 <%
         }
 %>
-	<% if(coreRecommender) { %>	
-	<br/>
-	<br/>
-	<div id="recommender" class="panel panel-default">
-	<div class="panel-heading"><fmt:message key="jsp.display-item.recommender" /></div>
-	
-	<div class="panel-body">
-	<div id="coreRecommenderOutput"></div>
-	</div>
-	</div>
-	<% } %>
-</div>
-<div class="col-lg-3">
-<div class="row">
-<%
-if (dedupEnabled && admin_button) { %>	
-<div class="col-lg-12 col-md-4 col-sm-6">
-<div class="media dedup">
-	<div class="media-left">
-		<fmt:message key="jsp.display-item.dedup.title"/>
-	</div>
-	<div id="dedupResult" class="media-body text-center">
-		<h4 class="media-heading"><fmt:message key="jsp.display-item.dedup.heading"/></h4>
-	    <span class="metric-counter"><a id="dedupCounter" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.dedup.tooltip"/>" href=""><fmt:message key="jsp.display-item.dedup.check"/></a></span>
-	</div>
-</div>	
-</div>
-<br class="visible-lg" />
-<% } %>
-<c:forEach var="metricType" items="${metricTypes}">
-<c:set var="metricNameKey">
-	jsp.display-item.citation.${metricType}
-</c:set>
-<c:set var="metricIconKey">
-	jsp.display-item.citation.${metricType}.icon
-</c:set>
-<c:if test="${not empty metrics[metricType].counter and metrics[metricType].counter gt 0}">
-	<c:if test="${!empty metrics[metricType].moreLink}">
-		<script type="text/javascript">
-		j(document).ready(function() {
-			var obj = JSON.parse('${metrics[metricType].moreLink}');
-			j( "div" ).data( "moreLink", obj );
-			j( "#metric-counter-${metricType}" ).wrap(function() {
-				  return "<a target='_blank' href='" + j( "div" ).data( "moreLink" ).link + "'></a>";
-			}).append(" <i class='fa fa-info-circle' data-toggle='tooltip' title='Get updated citations from database'></i>");
-			
-			jQuery('[data-toggle="tooltip"]').tooltip();
-		});
-		</script>
-	</c:if>
-<div class="col-lg-12 col-md-4 col-sm-6 col-xs-12 box-${metricType}">
-<div class="media ${metricType}">
-	<div class="media-left">
-		<fmt:message key="${metricIconKey}"/>
-	</div>
-	<div class="media-body text-center">
-		<h4 class="media-heading"><fmt:message key="${metricNameKey}"/>
-		<c:if test="${not empty metrics[metricType].rankingLev}">
-		<span class="pull-right">
-		<fmt:message key="jsp.display-item.citation.top"/>		
-		<span class="metric-ranking arc">
-			<span class="circle" data-toggle="tooltip" data-placement="bottom" 
-				title="<fmt:message key="jsp.display-item.citation.${metricType}.ranking.tooltip"><fmt:param><fmt:formatNumber value="${metrics[metricType].rankingLev}" type="NUMBER" maxFractionDigits="0" /></fmt:param></fmt:message>">
-				<fmt:formatNumber value="${metrics[metricType].rankingLev}" 
-					type="NUMBER" maxFractionDigits="0" />
-			</span>
-		</span>
-		</span>
-		</c:if>
-		</h4>
-		<span id="metric-counter-${metricType}" class="metric-counter">
-		<c:choose>		
-		<c:when test="${!empty metrics[metricType].formatter.type}">
-		<c:choose>
-		<c:when test="${!(metrics[metricType].formatter.type eq 'PERCENT')}">
-			<fmt:formatNumber value="${metrics[metricType].counter}" 
-				type="${metrics[metricType].formatter.type}"
-				maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
-				minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
-		</c:when>
-		<c:otherwise>
-			<fmt:formatNumber value="${metrics[metricType].counter/100}" 
-				type="${metrics[metricType].formatter.type}"
-				maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
-				minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
-		</c:otherwise>
-		</c:choose>
-		</c:when>		
-		<c:otherwise>
-			<fmt:formatNumber value="${metrics[metricType].counter}" 
-				pattern="${metrics[metricType].formatter.pattern}"/>
-		</c:otherwise>
-		</c:choose>
-		</span>
-	</div>
-	<c:if test="${not empty metrics[metricType].last1}">
-	<div class="row">
-		<div class="col-xs-6 text-left">
-			<fmt:message key="jsp.display-item.citation.last1" />
-			<br/>
-				<c:choose>		
-					<c:when test="${!empty metrics[metricType].formatter.type}">
-					<c:choose>
-						<c:when test="${!(metrics[metricType].formatter.type eq 'PERCENT')}">
-							<fmt:formatNumber value="${metrics[metricType].last1}" 
-								type="${metrics[metricType].formatter.type}"
-								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
-								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
-						</c:when>
-						<c:otherwise>
-							<fmt:formatNumber value="${metrics[metricType].last1/100}" 
-								type="${metrics[metricType].formatter.type}"
-								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
-								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
-						</c:otherwise>
-					</c:choose>
-					</c:when>		
-					<c:otherwise>
-						<fmt:formatNumber value="${metrics[metricType].last1}" 
-							pattern="${metrics[metricType].formatter.pattern}"/>
-					</c:otherwise>
-				</c:choose>			
-		</div>
-		<div class="col-xs-6 text-right">
-			<fmt:message key="jsp.display-item.citation.last2" />
-			<br/>
-				<c:choose>		
-					<c:when test="${!empty metrics[metricType].formatter.type}">
-					<c:choose>
-						<c:when test="${!(metrics[metricType].formatter.type eq 'PERCENT')}">
-							<fmt:formatNumber value="${metrics[metricType].last2}" 
-								type="${metrics[metricType].formatter.type}"
-								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
-								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
-						</c:when>
-						<c:otherwise>
-							<fmt:formatNumber value="${metrics[metricType].last2/100}" 
-								type="${metrics[metricType].formatter.type}"
-								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
-								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
-						</c:otherwise>
-					</c:choose>
-					</c:when>		
-					<c:otherwise>
-						<fmt:formatNumber value="${metrics[metricType].last2}" 
-							pattern="${metrics[metricType].formatter.pattern}"/>
-					</c:otherwise>
-				</c:choose>				
-		</div>
-	</div>
-	</c:if>
-	<div class="row">
-		<div class="col-lg-12 text-center small">
-			<fmt:message
-				key="jsp.display-item.citation.time">
-				<fmt:param value="${metrics[metricType].time}" />
-			</fmt:message>
-		</div>
-	</div>
-	</div>
-</div>
-</c:if>
-</c:forEach>
-    <%
-	   if(scholarEnabled) { %>
-<div class="col-lg-12 col-md-4 col-sm-6">
-<div class="media google">
-	<div class="media-left">
-		<fmt:message key="jsp.display-item.citation.google.icon">
-			<fmt:param value="<%=request.getContextPath()%>" />
-		</fmt:message>
-	</div>
-	<div id="googleCitedResult" class="media-body text-center">
-		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.google"/></h4>
-		
-		
-   		    <span class="metric-counter"><a data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.citation.google.tooltip"/>" href="https://scholar.google.com/scholar?as_q=&as_epq=<%= title %>&as_occt=any"><fmt:message key="jsp.display-item.citation.google.check"/></a></span>
-	</div>
-</div>	
-</div>
-<br class="visible-lg" />
-    <% }
-	   if(altMetricEnabled) { %>
-<div class="col-lg-12 col-md-4 col-sm-6">
-<div class="media altmetric">
-	<div class="media-left">
-      		<div class='altmetric-embed' data-hide-no-mentions="true" data-badge-popover="right" data-badge-type="donut" data-link-target='_blank' data-doi="<%= doi %>"></div>
-	</div>
-	<div class="media-body media-middle text-center">
-		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.altmetric"/></h4>
-	</div>
-</div>
-</div>
-<% } %>
-    </div>
-</div>
-<% if(pmcEnabled) { %>
-<div class="modal fade" id="dialogPMC" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
 
-    </div>
-  </div>
+<% if(pmcEnabled) { %>
+<div>&nbsp;</div>
+<div class="panel panel-info">
+<div class="panel-heading">Citations:</div>
+<ul class="panel-body">
+       <li id="pmcCitedCount" style="display: none;"><div id="pmcCitedResult" class="citedByDiv"></div></li>
+</ul>
 </div>
-<% }%>
+
+<% } %>
+
+
+    <a class="statisticsLink  btn btn-primary" href="<%= request.getContextPath() %>/cris/stats/item.html?handle=<%=handle %>"><fmt:message key="jsp.display-item.display-statistics"/></a>
+
+    <%-- SFX Link --%>
 <%
+    if (ConfigurationManager.getProperty("sfx.server.url") != null)
+    {
+        String sfximage = ConfigurationManager.getProperty("sfx.server.image_url");
+        if (sfximage == null)
+        {
+            sfximage = request.getContextPath() + "/image/sfx-link.gif";
+        }
+%>
+        <a class="btn btn-default" href="<dspace:sfxlink item="<%= item %>"/>" /><img src="<%= sfximage %>" border="0" alt="SFX Query" /></a>
+<%
+    }
     }
 %>
 </div>
-</div>
-<div class="container">
+<br/>
     <%-- Versioning table --%>
 <%
     if (versioningEnabled && hasVersionHistory)
@@ -664,7 +375,7 @@ if (dedupEnabled && admin_button) { %>
     if (cc_url != null)
     {
 %>
-    <p class="text-center alert alert-info"><fmt:message key="jsp.display-item.text3"/> <a href="<%= cc_url %>"><fmt:message key="jsp.display-item.license"/></a>
+    <p class="submitFormHelp alert alert-info"><fmt:message key="jsp.display-item.text3"/> <a href="<%= cc_url %>"><fmt:message key="jsp.display-item.license"/></a>
     <a href="<%= cc_url %>"><img src="<%= request.getContextPath() %>/image/cc-somerights.gif" border="0" alt="Creative Commons" style="margin-top: -5px;" class="pull-right"/></a>
     </p>
     <!--
@@ -673,10 +384,8 @@ if (dedupEnabled && admin_button) { %>
 <%
     } else {
 %>
-    <p class="text-center alert alert-info"><fmt:message key="jsp.display-item.copyright"/></p>
+    <p class="submitFormHelp alert alert-info"><fmt:message key="jsp.display-item.copyright"/></p>
 <%
     } 
-%>
-	</div>
-    
+%>    
 </dspace:layout>

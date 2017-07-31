@@ -96,7 +96,7 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         return subLinks;
     }
 
-    protected DiscoverResult search(Context context, HttpServletRequest request, String type, ACrisObject cris, int start,
+    public DiscoverResult search(Context context, HttpServletRequest request, String type, ACrisObject cris, int start,
             int rpp, String orderfield, boolean ascending)
             throws SearchServiceException
     {
