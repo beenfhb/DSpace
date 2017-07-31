@@ -1,0 +1,10 @@
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_0.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_1.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_2.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_3.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_4.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_5.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_6.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_7.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_units.xls_8.xls -a
+/production/dspace-fvg/bin/dspace dsrun org.dspace.app.cris.batch.ScriptCrisBulkChanges -t CSVBulkChangesService -f researcher_at_uniud.xls -a

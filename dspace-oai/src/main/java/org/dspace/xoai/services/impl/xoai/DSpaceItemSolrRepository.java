@@ -19,6 +19,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.xoai.data.DSpaceSolrItem;
@@ -53,20 +54,17 @@ public class DSpaceItemSolrRepository extends DSpaceItemRepository
     @Override
     public Item getItem(String identifier) throws IdDoesNotExistException {
         if (identifier == null) throw new IdDoesNotExistException();
-        String parts[] = identifier.split(Pattern.quote(":"));
-        if (parts.length == 3)
+
+        try
         {
-            try
-            {
-                SolrQuery params = new SolrQuery("item.handle:" + parts[2]);
-                return new DSpaceSolrItem(DSpaceSolrSearch.querySingle(server, params));
-            }
-            catch (SolrSearchEmptyException ex)
-            {
-                throw new IdDoesNotExistException(ex);
-            }
+        	identifier = ClientUtils.escapeQueryChars(identifier);
+            SolrQuery params = new SolrQuery("item.identifier:" + identifier);           
+            return new DSpaceSolrItem(DSpaceSolrSearch.querySingle(server, params));
         }
-        throw new IdDoesNotExistException();
+        catch (SolrSearchEmptyException ex)
+        {
+            throw new IdDoesNotExistException(ex);
+        }
     }
 
     @Override

@@ -389,11 +389,13 @@
      
                 <div class="input-group">	
                 <label class="input-group-addon" for="source_normal"><fmt:message key="jsp.tools.edit-collection.form.label16"/></label>
-                <div class="form-control">
+                <div class="form-control"  style="float:none"> <!-- VSTODO: mettere nel css (lavish-bootstrap.css)  se non impatta su altre pagine -->
                 	<input class="col-md-1" type="radio" value="source_normal" <% if (harvestLevelValue == 0) { %> checked="checked" <% } %> name="source" />
                 	<span class="col-md-11"><fmt:message key="jsp.tools.edit-collection.form.label17"/></span>
+                	
                		<input class="col-md-1" type="radio" value="source_harvested" <% if (harvestLevelValue > 0) { %> checked="checked" <% } %> name="source" />
                 	<span class="col-md-11"><fmt:message key="jsp.tools.edit-collection.form.label18"/></span>
+                	
                 </div>
                 </div><br/>
                 <div class="row">
@@ -441,7 +443,7 @@
 				</div><br/>
 				<div class="input-group">	
                 <label class="input-group-addon" for="harvest_level"><fmt:message key="jsp.tools.edit-collection.form.label22"/></label>
-                <div class="form-control">
+                <div class="form-control" style="float:none"> <!-- VSTODO: mettere nel css (lavish-bootstrap.css)  se non impatta su altre pagine -->
                 	<input class="col-md-1" type="radio" value="1" <% if (harvestLevelValue != 2 && harvestLevelValue != 3) { %> checked="checked" <% } %> name="harvest_level" />
                 	<span class="col-md-11"><fmt:message key="jsp.tools.edit-collection.form.label23"/></span><br/>
                 	<input class="col-md-1" type="radio" value="2" <% if (harvestLevelValue == 2) { %> checked="checked" <% } %> name="harvest_level" />

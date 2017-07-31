@@ -1872,6 +1872,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     solrQuery.setParam("f." + field + "."
                             + FacetParams.FACET_OFFSET,
                             String.valueOf(facetFieldConfig.getOffset()));
+					}
                 }
                 }
                 if(facetFieldConfig.getPrefix() != null)

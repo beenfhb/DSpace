@@ -1,0 +1,6 @@
+#!/bin/sh
+for file in `ls split_files_openstarts*`
+do
+echo $file;
+/production/dspace-fvg/bin/dspace metadata-import -f $file -s -e 1 -w
+done

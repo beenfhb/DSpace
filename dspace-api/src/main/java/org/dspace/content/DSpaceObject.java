@@ -656,6 +656,41 @@ public abstract class DSpaceObject implements IGlobalSearchResult
         return values;
     }
 
+    public Metadatum[] getMetadataByMetadataString2(String mdString)
+    {
+        StringTokenizer dcf = new StringTokenizer(mdString, ".");
+
+        String[] tokens = { "", "", "", "" };
+        int i = 0;
+        while(dcf.hasMoreTokens())
+        {
+            tokens[i] = dcf.nextToken().trim();
+            i++;
+        }
+        String schema = tokens[0];
+        String element = tokens[1];
+        String qualifier = tokens[2];
+        String lang = tokens[3];
+        if("".equals(lang)) lang=Item.ANY;
+        
+        Metadatum[] values;
+        if ("*".equals(qualifier))
+        {
+            values = getMetadata(schema, element, Item.ANY, lang);
+        }
+        else if ("".equals(qualifier))
+        {
+            values = getMetadata(schema, element, null, lang);
+        }
+        else
+        {
+            values = getMetadata(schema, element, qualifier, lang);
+        }
+
+        return values;
+    }    
+    
+    
     /**
      * Retrieve first metadata field value
      */

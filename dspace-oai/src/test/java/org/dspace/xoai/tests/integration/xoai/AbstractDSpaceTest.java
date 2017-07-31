@@ -12,6 +12,8 @@ import com.lyncode.xoai.dataprovider.services.api.ResourceResolver;
 import com.lyncode.xoai.dataprovider.services.impl.BaseDateProvider;
 import com.lyncode.xoai.dataprovider.xml.xoaiconfig.Configuration;
 import com.lyncode.xoai.dataprovider.xml.xoaiconfig.FormatConfiguration;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.FormatConfigurationSuper;
+
 import org.apache.solr.client.solrj.SolrServer;
 import org.dspace.xoai.controller.DSpaceOAIDataProvider;
 import org.dspace.xoai.services.api.config.ConfigurationService;
@@ -155,7 +157,7 @@ public abstract class AbstractDSpaceTest {
         return resourceResolver;
     }
 
-    protected FormatConfiguration aFormat(String id) {
+    protected FormatConfigurationSuper aFormat(String id) {
         return new FormatConfiguration(id);
     }
 

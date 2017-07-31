@@ -12,9 +12,13 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
 import org.dspace.content.authority.Choices;
@@ -22,12 +26,44 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Utils;
 import org.dspace.xoai.data.DSpaceItem;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import gr.ekt.cerif.features.additional.*;
+import gr.ekt.cerif.features.semantics.Class;
+import gr.ekt.cerif.features.semantics.ClassScheme;
+import gr.ekt.cerif.xml.loader.CerifToXmlDataLoader;
+import gr.ekt.cerif.xml.loadingSpecs.LoadingSpecs;
+import gr.ekt.cerif.xml.output.CerifToXmlOutputGenerator;
+import gr.ekt.cerif.xml.service.XmlCERIFService;
+import gr.ekt.cerif.xml.service.XmlCERIFServiceImpl;
+import gr.ekt.transformationengine.core.RecordSet;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import gr.ekt.cerif.CerifEntity;
+import gr.ekt.cerif.entities.base.Person;
+import gr.ekt.cerif.entities.link.FederatedIdentifier_Class;
+import gr.ekt.cerif.entities.link.PersonName_Person;
+import gr.ekt.cerif.entities.second.FederatedIdentifier;
+import gr.ekt.cerif.enumerations.semantics.ClassEnum;
+import gr.ekt.cerif.enumerations.semantics.ClassSchemeEnum;
+import gr.ekt.cerif.CerifEntity;
+import gr.ekt.cerif.entities.base.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -38,6 +74,8 @@ public class ItemUtils
 {
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
+//	private static XmlCERIFService xmlCERIFService = new ClassPathXmlApplicationContext("config/cerif2xml-context.xml").getBean(XmlCERIFService.class);
+    
 
     private static Element getElement(List<Element> list, String name)
     {
@@ -47,14 +85,14 @@ public class ItemUtils
 
         return null;
     }
-    private static Element create(String name)
+    public  static Element create(String name)
     {
         Element e = new Element();
         e.setName(name);
         return e;
     }
 
-    private static Element.Field createValue(
+    public static Element.Field createValue(
             String name, String value)
     {
         Element.Field e = new Element.Field();
@@ -62,13 +100,99 @@ public class ItemUtils
         e.setName(name);
         return e;
     }
-    public static Metadata retrieveMetadata (Item item) {
+    
+    
+    public static Metadata retrieveMetadata(ACrisObject item) {
+        Metadata metadata;
+        metadata = new Metadata();
+    
+        // create dc.title
+    	String val;
+    	switch(item.getType())
+    	{
+    	case CrisConstants.RP_TYPE_ID: val = item.getMetadata("fullName"); break;
+    	case CrisConstants.OU_TYPE_ID: val = item.getMetadata("name"); break;
+    	case CrisConstants.PROJECT_TYPE_ID: val = item.getMetadata("title"); break;
+    	case 1005: val = item.getMetadata("journalsname"); break;  //VSTODO: prendi l' id tramite  il nome dell' entità
+    	default: val = null;
+    	}
+    	if(val != null && !val.isEmpty()) {
+        	Element schema = getElement(metadata.getElement(),"dc");
+            if (schema == null) {
+                schema = create("dc");
+                metadata.getElement().add(schema);
+            }
+            Element element = getElement(schema.getElement(),"title");
+            if (element == null) {
+            	element = create("title");
+            	schema.getElement().add(element);
+            }
+            Element lang = create("none");
+            element.getElement().add(lang);
+            lang.getField().add(createValue("value",val));   
+    	}
+    	
+    	//create dc.description
+    	switch(item.getType())
+    	{
+    	case CrisConstants.RP_TYPE_ID: val = item.getMetadata("biography"); break;
+    	case CrisConstants.OU_TYPE_ID: val = item.getMetadata("description"); break;
+    	case CrisConstants.PROJECT_TYPE_ID: val = item.getMetadata("description"); break;
+    	case 1005: val = item.getMetadata("note"); break;  //VSTODO: prendi l' id tramite  il nome dell' entità  
+    	default: val = null;
+    	}
+    	if(val != null && !val.isEmpty()) {
+        	Element schema = getElement(metadata.getElement(),"dc");
+            if (schema == null) {
+                schema = create("dc");
+                metadata.getElement().add(schema);
+            }
+            Element element = getElement(schema.getElement(),"description");
+            if (element == null) {
+            	element = create("title");
+            	schema.getElement().add(element);
+            }           
+            Element lang = create("none");
+            element.getElement().add(lang);
+            lang.getField().add(createValue("value",val));   
+    	}    	
+
+    	//create dc.date
+    	switch(item.getType())
+    	{
+    	//case CrisConstants.RP_TYPE_ID: val = item.getMetadata("biography"); break;
+    	case CrisConstants.OU_TYPE_ID: val = item.getMetadata("year"); break;
+    	case CrisConstants.PROJECT_TYPE_ID: val = item.getMetadata("startdate"); break;
+    	//case 1005: val = item.getMetadata("note"); break;  //VSTODO: prendi l' id tramite  il nome dell' entità  
+    	default: val = null;
+    	}
+    	if(val != null && !val.isEmpty()) {
+        	Element schema = getElement(metadata.getElement(),"dc");
+            if (schema == null) {
+                schema = create("dc");
+                metadata.getElement().add(schema);
+            }
+            Element element = getElement(schema.getElement(),"date");
+            if (element == null) {
+            	element = create("title");
+            	schema.getElement().add(element);
+            }           
+            Element lang = create("none");
+            element.getElement().add(lang);
+            lang.getField().add(createValue("value",val));   
+    	}       	
+    	addRepositoryInfo(metadata);
+    	return metadata;
+    }
+    
+    public static Metadata retrieveMetadata (DSpaceObject item) {
         Metadata metadata;
         
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
+        
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         for (Metadatum val : vals)
         {
@@ -139,11 +263,31 @@ public class ItemUtils
             }
         }
         // Done! Metadata has been read!
+
+        addRepositoryInfo(metadata);
+        
+        return metadata;
+    }
+    
+    public static Metadata addRepositoryInfo(Metadata metadata) {
+    // Repository Info
+    Element repository = create("repository");
+    repository.getField().add(
+            createValue("name",
+                    ConfigurationManager.getProperty("dspace.name")));
+    repository.getField().add(
+            createValue("mail",
+                    ConfigurationManager.getProperty("mail.admin")));
+    metadata.getElement().add(repository);
+    return metadata;
+    }
+    
+    public static void addItemInfo(Metadata metadata, Item item) {
         // Now adding bitstream info
         Element bundles = create("bundles");
         metadata.getElement().add(bundles);
 
-        Bundle[] bs;
+    	Bundle[] bs;
         try
         {
             bs = item.getBundles();
@@ -245,16 +389,7 @@ public class ItemUtils
                         .getLastModified().toString()));
         metadata.getElement().add(other);
 
-        // Repository Info
-        Element repository = create("repository");
-        repository.getField().add(
-                createValue("name",
-                        ConfigurationManager.getProperty("dspace.name")));
-        repository.getField().add(
-                createValue("mail",
-                        ConfigurationManager.getProperty("mail.admin")));
-        metadata.getElement().add(repository);
-
+        
         // Licensing info
         Element license = create("license");
         Bundle[] licBundles;
@@ -299,7 +434,73 @@ public class ItemUtils
         {
             log.warn(e1.getMessage(), e1);
         }
-        
-        return metadata;
+
     }
+    
+
+//VSTODO: non funziona    
+//	@Autowired
+//	private static ObjectFactory<CerifToXmlOutputGenerator> cerifToXmlOutputGenerator;
+//	
+//    @Autowired
+//    private static XmlCERIFService service;  
+    
+//    
+//    public static void addItemInfo(Metadata metadata, ACrisObject item) {
+//
+//		String testCerif;
+//    	
+//		List<CerifEntity> ents = new ArrayList<CerifEntity>();
+//    	
+//		Person person = new Person();
+//		person.setId((long)1);
+//		person.setBirthDate(new Date(100,0,1));
+//		
+//		PersonName personName = new PersonName("Sabatini","Vincenzo","");
+//		personName.setId((long)2);
+//		
+//		PersonName_Person personName_Person = new PersonName_Person(person, personName, null, null, null);
+//		personName_Person.setId((long)3);
+//		
+//		ClassScheme identifierTypesScheme = new ClassScheme();
+//		identifierTypesScheme.setUuid(ClassSchemeEnum.IDENTIFIER_TYPES.getUuid());
+//		
+//		Class orcidClass = new Class(new Date(90,0,2),new Date(0,0,2),identifierTypesScheme);
+//		orcidClass.setUuid(ClassEnum.ORCID.getUuid());
+//
+//		FederatedIdentifier federatedIdentifier = new FederatedIdentifier((long)2, "MyOrcidId",new Date(109,10,31), null);
+//		federatedIdentifier.setId((long)87686);
+//
+//		FederatedIdentifier_Class federatedIdentifier_Class = new FederatedIdentifier_Class((long)5, federatedIdentifier, orcidClass, null, null, null);
+//
+//		federatedIdentifier.setFederatedIdentifiers_classes(java.util.Collections.singleton(federatedIdentifier_Class));
+//		
+//		person.setFederatedIdentifiers(java.util.Collections.singletonList(federatedIdentifier));
+//		person.setPersonNames_persons(java.util.Collections.singleton(personName_Person));
+//		
+////		Project proj = new Project();
+//		
+//		ents.add(person);	
+////		ents.add(personName);
+//			
+//		
+//		
+//		//GENERATE CERIF
+//	
+////		LoadingSpecs specs = new LoadingSpecs();
+////		specs.setEntities(ents);		
+//		testCerif = xmlCERIFService.makeXMLString(ents); 
+////		testCerif=  "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <IShotTheCerif cerif=\"shot\"> yeah "
+////            	+ "<yoyo> yes </yoyo> </IShotTheCerif>";
+//
+//	
+//    	
+//        Element cerif = create("cerif");       
+//        metadata.getElement().add(cerif);
+//        cerif.getField().add(
+//                createValue("openaire", testCerif));
+//        
+//
+//	}
+
 }

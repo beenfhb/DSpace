@@ -244,17 +244,33 @@
                     </h5>
                     <div class="spec">
                         <a>
-                            <xsl:attribute name="href">
-                                <xsl:value-of
-                                        select="concat(/oai:OAI-PMH/oai:request/text(), '?verb=ListRecords&amp;metadataPrefix=oai_dc&amp;set=', oai:setSpec/text())" />
-                            </xsl:attribute>
+                        <xsl:choose> 
+                        	<xsl:when test="contains(/oai:OAI-PMH/oai:request/text(),'openaire-cris') and not(substring-after(/oai:OAI-PMH/oai:request/text(),'openaire-cris'))">
+	                            <xsl:attribute name="href">
+									<xsl:value-of select="concat(/oai:OAI-PMH/oai:request/text(), '?verb=ListRecords&amp;metadataPrefix=cerif&amp;set=', oai:setSpec/text())" />
+	                            </xsl:attribute>
+                            </xsl:when>
+                            <xsl:otherwise>
+	                            <xsl:attribute name="href">
+									<xsl:value-of select="concat(/oai:OAI-PMH/oai:request/text(), '?verb=ListRecords&amp;metadataPrefix=oai_dc&amp;set=', oai:setSpec/text())" />
+	                            </xsl:attribute>                            
+                            </xsl:otherwise>
+						</xsl:choose>                            
                             Records
                         </a>
                         <a>
-                            <xsl:attribute name="href">
-                                <xsl:value-of
-                                        select="concat(/oai:OAI-PMH/oai:request/text(), '?verb=ListIdentifiers&amp;metadataPrefix=oai_dc&amp;set=', oai:setSpec/text())" />
-                            </xsl:attribute>
+                        <xsl:choose> 
+                        	<xsl:when test="contains(/oai:OAI-PMH/oai:request/text(),'openaire-cris') and not(substring-after(/oai:OAI-PMH/oai:request/text(),'openaire-cris'))">
+	                            <xsl:attribute name="href">
+	                                <xsl:value-of select="concat(/oai:OAI-PMH/oai:request/text(), '?verb=ListIdentifiers&amp;metadataPrefix=cerif&amp;set=', oai:setSpec/text())" />
+	                            </xsl:attribute>
+                            </xsl:when>
+                            <xsl:otherwise>
+	                            <xsl:attribute name="href">
+	                                <xsl:value-of select="concat(/oai:OAI-PMH/oai:request/text(), '?verb=ListIdentifiers&amp;metadataPrefix=oai_dc&amp;set=', oai:setSpec/text())" />
+	                            </xsl:attribute>
+                            </xsl:otherwise>
+						</xsl:choose>                            
                             Identifiers
                         </a>
                     </div>
@@ -282,7 +298,15 @@
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-lg-6">
-                            <h5>Identifier <small><xsl:value-of select="oai:header/oai:identifier/text()"></xsl:value-of></small></h5>
+                            <h5>
+                            	Identifier 
+                            	<a>
+                            		<xsl:attribute name="href">
+                            			<xsl:value-of select="concat(/oai:OAI-PMH/oai:request/text(),'?verb=GetRecord&amp;identifier=' ,oai:header/oai:identifier/text(),'&amp;metadataPrefix=',/oai:OAI-PMH/oai:request/@metadataPrefix)"></xsl:value-of>
+                            		</xsl:attribute>
+                            		<small><xsl:value-of select="oai:header/oai:identifier/text()"></xsl:value-of></small>
+                            	</a>
+                            </h5>
                         </div>
                         <div class="col-lg-6">
                             <h5>Last Modified <small><xsl:value-of select="translate(oai:header/oai:datestamp/text(), 'TZ', ' ')"></xsl:value-of></small></h5>

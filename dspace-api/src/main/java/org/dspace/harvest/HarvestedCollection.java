@@ -84,6 +84,23 @@ public class HarvestedCollection
     	return new HarvestedCollection(c, row);
     }
     
+    public static HarvestedCollection find(Context c, int collectionId, String oaiSetID) throws SQLException 
+    {
+    	if(oaiSetID == null){
+    		return HarvestedCollection.find(c, collectionId);
+    	} else {
+	    	TableRowIterator tri = DatabaseManager.queryTable(c, "harvested_collection", "SELECT * FROM harvested_collection where collection_id = ? and oai_set_id = ?", collectionId, oaiSetID);
+	    	if(!tri.hasNext()){
+	    		return null;
+	    	}
+	    	TableRow row = null;
+	    	if(tri.hasNext()){
+	    		row = (TableRow)tri.next();
+	    	}
+	    	return new HarvestedCollection(c, row);
+    	}
+    }
+    
     /**
      * Create a new harvest instance row for a specified collection.  
      * @return a new HarvestInstance object

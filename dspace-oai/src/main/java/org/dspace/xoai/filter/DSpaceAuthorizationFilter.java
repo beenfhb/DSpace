@@ -20,8 +20,11 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
 import org.dspace.xoai.data.DSpaceItem;
+import org.dspace.xoai.data.DSpaceSolrItem;
 import org.dspace.xoai.filter.results.DatabaseFilterResult;
 import org.dspace.xoai.filter.results.SolrFilterResult;
+
+import gr.ekt.cerif.entities.result.ResultPublication;
 
 /**
  * 
@@ -54,6 +57,14 @@ public class DSpaceAuthorizationFilter extends DSpaceFilter
             String handle = DSpaceItem.parseHandle(item.getIdentifier());
             if (handle == null)
                 return false;
+            
+            //VSTODO: temporary fix for cerif entity in solr 
+            if(item instanceof DSpaceSolrItem && ((DSpaceSolrItem) item).isCerif() ) {
+            	return true;
+            }
+
+            //VSTODO: crash if this is set to true. Why??
+            context.setRequiredItemWrapper(false);
             Item dspaceItem = (Item) HandleManager.resolveToObject(context, handle);
             if (dspaceItem == null)
                 return false;
