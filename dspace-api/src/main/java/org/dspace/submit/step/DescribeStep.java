@@ -9,6 +9,7 @@ package org.dspace.submit.step;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,9 +32,10 @@ import org.dspace.content.Collection;
 import org.dspace.content.DCDate;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DCSeriesNumber;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
-import org.dspace.content.WorkspaceItem;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -88,6 +90,8 @@ public class DescribeStep extends AbstractProcessingStep
 
     // there were validation errors found
     public static final int STATUS_ERROR_VALIDATION_FIELDS = 3;
+    
+    private HashMap<String,String> fieldName2inputType =new HashMap<String,String>();
 
     protected final ChoiceAuthorityService choiceAuthorityService;
     protected final MetadataAuthorityService metadataAuthorityService;
@@ -172,12 +176,19 @@ public class DescribeStep extends AbstractProcessingStep
                     currentPage - 1,
                     subInfo.getSubmissionItem().hasMultipleTitles(),
                     subInfo.getSubmissionItem().isPublishedBefore());
+            
         }
         catch (DCInputsReaderException e)
         {
             throw new ServletException(e);
         }
 
+        for(DCInput input: inputs){
+        	String field = MetadataField
+                    .formKey(input.getSchema(), input.getElement(), input.getQualifier());
+        	fieldName2inputType.put(field, input.getInputType());
+        	
+        }
         // Fetch the document type (dc.type)
         String documentType = "";
         if( (itemService.getMetadataByMetadataString(item, "dc.type") != null) && (itemService.getMetadataByMetadataString(item, "dc.type").size() >0) )
@@ -756,19 +767,73 @@ public class DescribeStep extends AbstractProcessingStep
 
         String fieldKey = metadataAuthorityService.makeFieldKey(schema, element, qualifier);
         boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(fieldKey);
+        
+        String parentMetadataField = "";
+        String parentMetadataFieldParam = "";
+        if(dcInput.hasParent()){
+        	parentMetadataField=dcInput.getParent();
+        }
 
         // Values to add
         TreeMap<Integer, String> vals = null;
-        List<String> auths = null;
-        List<String> confs = null;
+        TreeMap<Integer, String> auths = null;
+        TreeMap<Integer, String> confs = null;
 
-        if (repeated)
+        if (repeated && dcInput.hasParent())
         {
+        	String parentType= fieldName2inputType.get(parentMetadataField);
+            if (StringUtils.equals(parentType,"name"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_last";
+            }
+            else if (StringUtils.equals(parentType,"date"))
+            {
+            	parentMetadataFieldParam = parentMetadataField+"_year";
+            }
+            else if (StringUtils.equals(parentType,"series"))
+            {
+            	parentMetadataFieldParam = parentMetadataField+"_series";
+            }
+            else if (StringUtils.equals(parentType,"qualdrop_value"))
+            {
+            	parentMetadataFieldParam = parentMetadataField+"_value";
+            }else{
+            	parentMetadataFieldParam = parentMetadataField;
+            }
+            
+            vals = getRepeatedParameterParent(request, metadataField, metadataField,parentMetadataField,parentMetadataFieldParam);
+            if (isAuthorityControlled)
+            {
+                auths = getRepeatedParameterParent(request, metadataField, metadataField+"_authority",parentMetadataField,parentMetadataField+"_authority");
+                confs = getRepeatedParameterParent(request, metadataField, metadataField+"_confidence",parentMetadataField,parentMetadataField+"_confidence");
+            }
+
+            // Find out if the relevant "remove" button was pressed
+            // TODO: These separate remove buttons are only relevant
+            // for DSpace JSP UI, and the code below can be removed
+            // once the DSpace JSP UI is obsolete!
+            String buttonPressed = Util.getSubmitButton(request, "");
+            String removeButton = "submit_" + parentMetadataField + "_remove_";
+
+            if (buttonPressed.startsWith(removeButton))
+            {
+                int valToRemove = Integer.parseInt(buttonPressed
+                        .substring(removeButton.length()));
+
+                vals.remove(valToRemove);
+                if(isAuthorityControlled)
+                {
+                   auths.remove(valToRemove);
+                   confs.remove(valToRemove);
+                }
+            }
+        }
+        else if(repeated){
             vals = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField);
             if (isAuthorityControlled)
             {
-                auths = getRepeatedParameter(request, metadataField, metadataField+"_authority");
-                confs = getRepeatedParameter(request, metadataField, metadataField+"_confidence");
+                auths = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField+"_authority");
+                confs = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField+"_confidence");
             }
 
             // Find out if the relevant "remove" button was pressed
@@ -793,25 +858,49 @@ public class DescribeStep extends AbstractProcessingStep
                    confs.remove(valToRemove);
                 }
             }
+
+        }else if(StringUtils.isNotBlank(parentMetadataField)){
+            vals = new TreeMap<Integer, String>();
+            String value = request.getParameter(metadataField);
+            String parent = request.getParameter(parentMetadataField);
+            if (StringUtils.isNotBlank(parent))
+            {
+            	if(StringUtils.isNotBlank(value)){
+            		vals.put(0, value.trim());
+            	}else{
+            		vals.put(0, MetadataValue.PARENT_PLACEHOLDER_VALUE);
+            	}
+                
+	            if (isAuthorityControlled)
+	            {
+	                auths = new TreeMap<Integer, String>();
+	                confs = new TreeMap<Integer, String>();
+	                String av = request.getParameter(metadataField+"_authority");
+	                String cv = request.getParameter(metadataField+"_confidence");
+	                auths.put(0, av == null ? "":av.trim());
+	                confs.put(0, cv == null ? "":cv.trim());
+	            }
+            }
         }
         else
         {
             // Just a single name
             vals = new TreeMap<Integer, String>();
             String value = request.getParameter(metadataField);
+            
             if (value != null)
             {
                 vals.put(0, value.trim());
             }
             if (isAuthorityControlled)
             {
-                auths = new LinkedList<String>();
-                confs = new LinkedList<String>();
+                auths = new TreeMap<Integer, String>();
+                confs = new TreeMap<Integer, String>();
                 String av = request.getParameter(metadataField+"_authority");
                 String cv = request.getParameter(metadataField+"_confidence");
-                auths.add(av == null ? "":av.trim());
-                confs.add(cv == null ? "":cv.trim());
-        }
+                auths.put(0, av == null ? "":av.trim());
+                confs.put(0, cv == null ? "":cv.trim());
+            }
         }
 
         // Remove existing values, already done in doProcessing see also bug DS-203
@@ -1179,6 +1268,80 @@ public class DescribeStep extends AbstractProcessingStep
         }
 
         log.debug("getRepeatedParameterWithTheirIndices: metadataField=" + metadataField
+                + " param=" + metadataField + ", return count = "+vals.size());
+
+        return new TreeMap(vals);
+    }
+
+    protected TreeMap<Integer, String> getRepeatedParameterParent(HttpServletRequest request,
+            String metadataField, String param,String parentMetadataField, String parentParam)
+    {
+    	LinkedHashMap<Integer, String> vals = new LinkedHashMap<Integer, String>();
+
+        int i = 1;    //start index at the first of the previously entered values
+        boolean foundLast = false;
+
+        // Iterate through the values in the form.
+        while (!foundLast)
+        {
+            String s = null;
+            String parent = null;
+            //First, add the previously entered values.
+            // This ensures we preserve the order that these values were entered
+            s = request.getParameter(param + "_" + i);
+            parent = request.getParameter(parentParam + "_" + i);
+
+            // If there are no more previously entered values,
+            // see if there's a new value entered in textbox
+            if (!StringUtils.isNotBlank(parent))
+            {
+                s = request.getParameter(param);
+                parent= request.getParameter(parentParam);
+                //this will be the last value added
+                foundLast = true;
+            }
+
+            // We're only going to add non-null values
+            if (StringUtils.isNotBlank(parent))
+            {
+                boolean addValue = true;
+
+                // Check to make sure that this value was not selected to be
+                // removed.
+                // (This is for the "remove multiple" option available in
+                // Manakin)
+                String[] selected = request.getParameterValues(parentMetadataField
+                        + "_selected");
+
+                if (selected != null)
+                {
+                    for (int j = 0; j < selected.length; j++)
+                    {
+                        if (selected[j].equals(parentMetadataField + "_" + i))
+                        {
+                            addValue = false;
+                        }
+                    }
+                }
+
+                if (addValue)
+                {
+                	if(!StringUtils.isNotBlank(s) && StringUtils.equals(param, metadataField)){
+                		vals.put(i, MetadataValue.PARENT_PLACEHOLDER_VALUE);
+                	}else if(StringUtils.isNotBlank(s)){
+                		vals.put(i, StringUtils.trim(s));
+                	}else{
+                		vals.put(i, "");
+                	}
+                		
+
+                }
+            }
+
+            i++;
+        }
+
+        log.debug("getRepeatedParameterParent: metadataField=" + metadataField
                 + " param=" + metadataField + ", return count = "+vals.size());
 
         return new TreeMap(vals);

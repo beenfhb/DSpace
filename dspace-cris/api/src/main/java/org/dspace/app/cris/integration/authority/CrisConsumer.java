@@ -32,6 +32,7 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.UsageEventEntity;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
@@ -115,6 +116,11 @@ public class CrisConsumer implements Consumer
                         for (IMetadataValue dcval : MetadataValues)
                         {
                             dcval.setPlace(idx);
+                            if(StringUtils.equals(dcval.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+                            	idx++;
+                            	continue;
+                            }
+                            
                             String authority = dcval.getAuthority();
                             if (StringUtils.isNotBlank(authority))
                             {

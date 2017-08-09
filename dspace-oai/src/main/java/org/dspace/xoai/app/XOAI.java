@@ -7,14 +7,27 @@
  */
 package org.dspace.xoai.app;
 
-import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
-import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
-import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
-import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
+import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
+import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -25,15 +38,19 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.Utils;
-import org.dspace.handle.Handle;
 import org.dspace.xoai.exceptions.CompilingException;
 import org.dspace.xoai.services.api.CollectionsService;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
@@ -47,16 +64,10 @@ import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.util.*;
-
-import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
-import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
+import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
+import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
+import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
@@ -246,7 +257,8 @@ public class XOAI {
             if (field.getQualifier() != null) {
                 key += "." + field.getQualifier();
             }
-            doc.addField(key, dc.getValue());
+			String val =StringUtils.equals(dc.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE)? "N/D":dc.getValue();  
+            doc.addField(key, val);
             if (dc.getAuthority() != null) {
                 doc.addField(key + ".authority", dc.getAuthority());
                 doc.addField(key + ".confidence", dc.getConfidence() + "");

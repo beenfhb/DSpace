@@ -40,6 +40,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name="metadatavalue")
 public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
 {
+	public static final String PARENT_PLACEHOLDER_VALUE ="#PLACEHOLDER_PARENT_METADATA_VALUE#";
     /** The reference to the metadata field */
     @Id
     @Column(name="metadata_value_id")

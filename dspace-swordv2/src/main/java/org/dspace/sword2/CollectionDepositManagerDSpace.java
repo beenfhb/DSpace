@@ -64,7 +64,7 @@ public class CollectionDepositManagerDSpace extends DSpaceSwordAPI
                 log.debug(
                         LogManager.getHeader(context, "sword_create_new", ""));
             }
-
+			context.turnOffItemWrapper();
             // get the deposit target
             Collection collection = this
                     .getDepositTarget(context, collectionUri, config);

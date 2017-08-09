@@ -73,13 +73,12 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.RootObject;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -1208,7 +1207,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
                 String value = meta.getValue();
 
-                if (value == null)
+                if (value == null || StringUtils.equals(value, MetadataValue.PARENT_PLACEHOLDER_VALUE))
                 {
                     continue;
                 }

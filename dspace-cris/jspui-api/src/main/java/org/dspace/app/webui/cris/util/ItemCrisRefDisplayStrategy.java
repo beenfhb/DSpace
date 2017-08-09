@@ -203,7 +203,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy
         sb.append(endLink);
     }
 
-    private void buildAuthority(HttpServletRequest hrq,
+    protected void buildAuthority(HttpServletRequest hrq,
             List<IMetadataValue> metadataArray, String publicPath, StringBuffer sb, int j)
     {
         String startLink = "";

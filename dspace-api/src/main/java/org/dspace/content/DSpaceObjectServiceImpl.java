@@ -644,4 +644,21 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 	public boolean isSupportsTypeConstant(int type) {
 		return getSupportsTypeConstant() == type;
 	}
+	
+	@Override
+    public List<IMetadataValue> getMetadataWithoutPlaceholder(T dso, String schema, String element, String qualifier,
+            String lang)
+	{
+    	List<IMetadataValue> metadata = getMetadata(dso, schema, element, qualifier, lang);
+    	List<IMetadataValue> result = new ArrayList<>();
+		for (IMetadataValue dcv : metadata)
+		{
+			if (!StringUtils.equals(dcv.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE) && match(schema, element, qualifier, lang, dcv))
+			{
+				result.add(dcv);
+			}
+		}
+		
+		return result;
+	}
 }

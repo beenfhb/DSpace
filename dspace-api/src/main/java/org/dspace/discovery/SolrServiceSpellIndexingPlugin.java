@@ -10,12 +10,14 @@ package org.dspace.discovery;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,12 @@ public class SolrServiceSpellIndexingPlugin implements SolrServiceIndexPlugin {
             List<IMetadataValue> dcValues = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
             List<String> toIgnoreMetadataFields = SearchUtils.getIgnoredMetadataFields(item.getType());
             for (IMetadataValue dcValue : dcValues) {
+
+                if (dcValue.getValue() == null || StringUtils.equals(dcValue.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE))
+                {
+                    continue;
+                }
+
                 if(!toIgnoreMetadataFields.contains(dcValue.getMetadataField().toString('.'))){
                     document.addField("a_spell", dcValue.getValue());
                 }

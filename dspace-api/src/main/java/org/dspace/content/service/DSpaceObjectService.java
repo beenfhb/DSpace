@@ -354,6 +354,9 @@ public interface DSpaceObjectService<T extends DSpaceObject> extends RootEntityS
     public void removeMetadataValues(Context context, T dso, List<IMetadataValue> values) throws SQLException;
 
     public String getMetadataFirstValue(T dso, String schema, String element, String qualifier, String language);
+    
+    public List<IMetadataValue> getMetadataWithoutPlaceholder(T dso, String schema, String element, String qualifier, String lang);
+    
     /**
      * Set first metadata field value
      * @param context DSpace context

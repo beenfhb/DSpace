@@ -27,6 +27,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -186,6 +187,19 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
         getMetadata().removeAll(metadataValues);
     }
 
+    public List<IMetadataValue> getMetadataWithoutPlaceholder(String schema, String element, String qualifier,
+            String lang)
+	{
+    	return getMetadataWithoutPlaceholder(schema, element, qualifier, lang);
+	}
+
+    
+    /**
+     * Retrieve first metadata field value
+     */
+    protected String getMetadataFirstValue(String schema, String element, String qualifier, String language){
+        return getDSpaceObjectService().getMetadataFirstValue(this, schema, element, qualifier, language);
+    }
 
     protected void addMetadata(MetadataValue metadataValue) {
         setMetadataModified();

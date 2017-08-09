@@ -29,7 +29,6 @@ import org.dspace.app.util.IViewer;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.MetadataExposureService;
 import org.dspace.app.webui.jsptag.DisplayItemMetadataUtils.DisplayMetadata;
-import org.dspace.app.webui.util.StyleSelection;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -38,9 +37,9 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -51,7 +50,6 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
-import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
@@ -446,7 +444,7 @@ public class ItemTag extends TagSupport
         Context context = UIUtil.obtainContext(request);
 
         // Get all the metadata
-        List<IMetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        List<IMetadataValue> values = itemService.getMetadataWithoutPlaceholder(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
         out.println("<div class=\"panel panel-info\"><div class=\"panel-heading\">"
                 + LocaleSupport.getLocalizedMessage(pageContext,
@@ -995,8 +993,13 @@ public class ItemTag extends TagSupport
 		List<ViewOption> results = new ArrayList<ViewOption>();
 
 		List<String> externalProviders = bit.getMetadataValue(IViewer.METADATA_STRING_PROVIDER);
+		boolean showDownload = true;
 		if(externalProviders!=null) {
 			for (String externalProvider : externalProviders) {
+			if (IViewer.STOP_DOWNLOAD.equals(externalProvider)) {
+				showDownload = false;
+				continue;
+			}
 				ViewOption opt = new ViewOption();
 				opt.link = request.getContextPath() + "/explore?bitstream_id=" + bit.getID() + "&handle=" + handle
 						+ "&provider=" + externalProvider;
@@ -1006,6 +1009,7 @@ public class ItemTag extends TagSupport
 			}
 		}
 
+		if (showDownload) {
 		ViewOption opt = new ViewOption();
 		opt.link = request.getContextPath();
 
@@ -1021,6 +1025,7 @@ public class ItemTag extends TagSupport
                         pageContext,
                         "org.dspace.app.webui.jsptag.ItemTag.view");
 		results.add(opt);
+		}
 		return results;
     }
 }
