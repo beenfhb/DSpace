@@ -776,8 +776,8 @@ public class DescribeStep extends AbstractProcessingStep
 
         // Values to add
         TreeMap<Integer, String> vals = null;
-        TreeMap<Integer, String> auths = null;
-        TreeMap<Integer, String> confs = null;
+        List<String> auths = null;
+        List<String> confs = null;
 
         if (repeated && dcInput.hasParent())
         {
@@ -801,7 +801,7 @@ public class DescribeStep extends AbstractProcessingStep
             	parentMetadataFieldParam = parentMetadataField;
             }
             
-            vals = getRepeatedParameterParent(request, metadataField, metadataField,parentMetadataField,parentMetadataFieldParam);
+            vals = getRepeatedParameterParentWithTheirIndices(request, metadataField, metadataField,parentMetadataField,parentMetadataFieldParam);
             if (isAuthorityControlled)
             {
                 auths = getRepeatedParameterParent(request, metadataField, metadataField+"_authority",parentMetadataField,parentMetadataField+"_authority");
@@ -820,7 +820,8 @@ public class DescribeStep extends AbstractProcessingStep
                 int valToRemove = Integer.parseInt(buttonPressed
                         .substring(removeButton.length()));
 
-                vals.remove(valToRemove);
+                int key = vals.keySet().toArray(new Integer[vals.size()])[valToRemove];
+                vals.remove(key);
                 if(isAuthorityControlled)
                 {
                    auths.remove(valToRemove);
@@ -832,8 +833,8 @@ public class DescribeStep extends AbstractProcessingStep
             vals = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField);
             if (isAuthorityControlled)
             {
-                auths = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField+"_authority");
-                confs = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField+"_confidence");
+                auths = getRepeatedParameter(request, metadataField, metadataField+"_authority");
+                confs = getRepeatedParameter(request, metadataField, metadataField+"_confidence");
             }
 
             // Find out if the relevant "remove" button was pressed
@@ -873,12 +874,12 @@ public class DescribeStep extends AbstractProcessingStep
                 
 	            if (isAuthorityControlled)
 	            {
-	                auths = new TreeMap<Integer, String>();
-	                confs = new TreeMap<Integer, String>();
+	                auths = new LinkedList<String>();
+	                confs = new LinkedList<String>();
 	                String av = request.getParameter(metadataField+"_authority");
 	                String cv = request.getParameter(metadataField+"_confidence");
-	                auths.put(0, av == null ? "":av.trim());
-	                confs.put(0, cv == null ? "":cv.trim());
+	                auths.add(av == null ? "":av.trim());
+	                confs.add(cv == null ? "":cv.trim());
 	            }
             }
         }
@@ -894,12 +895,12 @@ public class DescribeStep extends AbstractProcessingStep
             }
             if (isAuthorityControlled)
             {
-                auths = new TreeMap<Integer, String>();
-                confs = new TreeMap<Integer, String>();
+                auths = new LinkedList<String>();
+                confs = new LinkedList<String>();
                 String av = request.getParameter(metadataField+"_authority");
                 String cv = request.getParameter(metadataField+"_confidence");
-                auths.put(0, av == null ? "":av.trim());
-                confs.put(0, cv == null ? "":cv.trim());
+                auths.add(av == null ? "":av.trim());
+                confs.add(cv == null ? "":cv.trim());
             }
         }
 
@@ -1273,7 +1274,7 @@ public class DescribeStep extends AbstractProcessingStep
         return new TreeMap(vals);
     }
 
-    protected TreeMap<Integer, String> getRepeatedParameterParent(HttpServletRequest request,
+    protected TreeMap<Integer, String> getRepeatedParameterParentWithTheirIndices(HttpServletRequest request,
             String metadataField, String param,String parentMetadataField, String parentParam)
     {
     	LinkedHashMap<Integer, String> vals = new LinkedHashMap<Integer, String>();
@@ -1293,7 +1294,7 @@ public class DescribeStep extends AbstractProcessingStep
 
             // If there are no more previously entered values,
             // see if there's a new value entered in textbox
-            if (!StringUtils.isNotBlank(parent))
+            if (StringUtils.isBlank(parent))
             {
                 s = request.getParameter(param);
                 parent= request.getParameter(parentParam);
@@ -1301,8 +1302,7 @@ public class DescribeStep extends AbstractProcessingStep
                 foundLast = true;
             }
 
-            // We're only going to add non-null values
-            if (StringUtils.isNotBlank(parent))
+            if (StringUtils.isNotBlank(parent)) 
             {
                 boolean addValue = true;
 
@@ -1345,6 +1345,81 @@ public class DescribeStep extends AbstractProcessingStep
                 + " param=" + metadataField + ", return count = "+vals.size());
 
         return new TreeMap(vals);
+    }
+    
+    
+    protected List<String> getRepeatedParameterParent(HttpServletRequest request,
+            String metadataField, String param,String parentMetadataField, String parentParam)
+    {
+        List<String> vals = new LinkedList<String>();
+
+        int i = 1;    //start index at the first of the previously entered values
+        boolean foundLast = false;
+
+        // Iterate through the values in the form.
+        while (!foundLast)
+        {
+            String s = null;
+            String parent = null;
+            //First, add the previously entered values.
+            // This ensures we preserve the order that these values were entered
+            s = request.getParameter(param + "_" + i);
+            parent = request.getParameter(parentMetadataField + "_" + i);
+
+            // If there are no more previously entered values,
+            // see if there's a new value entered in textbox
+            if (StringUtils.isBlank(parent))
+            {
+                s = request.getParameter(param);
+                parent= request.getParameter(parentParam);
+                //this will be the last value added
+                foundLast = true;
+            }
+
+            // We're only going to add non-null values
+            if (StringUtils.isNotBlank(parent))
+            {
+                boolean addValue = true;
+
+                // Check to make sure that this value was not selected to be
+                // removed.
+                // (This is for the "remove multiple" option available in
+                // Manakin)
+                String[] selected = request.getParameterValues(parentMetadataField
+                        + "_selected");
+
+                if (selected != null)
+                {
+                    for (int j = 0; j < selected.length; j++)
+                    {
+                        if (selected[j].equals(parentMetadataField + "_" + i))
+                        {
+                            addValue = false;
+                        }
+                    }
+                }
+
+                if (addValue)
+                {
+                	if(StringUtils.isBlank(s) && StringUtils.equals(param, metadataField)){
+                		vals.add(MetadataValue.PARENT_PLACEHOLDER_VALUE);
+                	}else if(StringUtils.isNotBlank(s)){
+                		vals.add(StringUtils.trim(s));
+                	}else{
+                		vals.add("");
+                	}
+                		
+
+                }
+            }
+
+            i++;
+        }
+
+        log.debug("getRepeatedParameter: metadataField=" + metadataField
+                + " param=" + metadataField + ", return count = "+vals.size());
+
+        return vals;
     }
 
     /**

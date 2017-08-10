@@ -1046,12 +1046,12 @@
 
 		if (authorityType != null) {
 			sb.append("<div class=\"col-md-2\">");
-			sb.append(doAuthority(pageContext, fieldName, count, fieldCount, fieldNameIdx, auth, conf, false, repeatable,
+			sb.append(doAuthority(pageContext, fieldName, count, fieldCount, fieldName, auth, conf, false, repeatable,
 					defaults, null, collection));
 			sb.append("</div></div>");
 		}
 
-		if (repeatable && !readonly && count < fieldCount - 1) {
+		if (!hasParent && repeatable && !readonly && count < fieldCount - 1) {
 			// put a remove button next to filled in values
 			sb.append("<button class=\"btn btn-danger col-md-2\" name=\"submit_").append(fieldName).append("_remove_")
 					.append(count).append("\" value=\"")
@@ -1059,7 +1059,7 @@
 					.append("\"><span class=\"glyphicon glyphicon-trash\"></span>&nbsp;&nbsp;"
 							+ LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.button.remove")
 							+ "</button>");
-		} else if (repeatable && !readonly && count == fieldCount - 1) {
+		} else if (!hasParent && repeatable && !readonly && count == fieldCount - 1) {
 			// put a 'more' button next to the last space
 			sb.append("<button class=\"btn btn-default col-md-2\" name=\"submit_").append(fieldName)
 					.append("_add\" value=\"")
