@@ -24,28 +24,28 @@ import it.cilea.osd.jdyna.model.AValue;
 
 @Entity
 @DiscriminatorValue(value="eperson")
-public class EPersonValue extends AValue<String>
+public class EPersonValue extends AValue<UUID>
 {
 
     @Basic
     @Column(name="customPointer")
-    private String real;
+    private UUID real;
 
     @Override
-    public String getObject()
+    public UUID getObject()
     {
         return real;
     }
 
     @Override
-    protected void setReal(String oggetto)
+    protected void setReal(UUID oggetto)
     {
         this.real = oggetto;
         if(oggetto != null) {
             Context context = null;
             try {
                 context = new Context();
-                String displayValue = EPersonServiceFactory.getInstance().getEPersonService().find(context, UUID.fromString(oggetto)).getFullName().toLowerCase();
+                String displayValue = EPersonServiceFactory.getInstance().getEPersonService().find(context, oggetto).getFullName().toLowerCase();
                 sortValue = displayValue.substring(0,(displayValue.length()<200?displayValue.length():200));
             }
             catch(Exception ex) {
@@ -60,7 +60,7 @@ public class EPersonValue extends AValue<String>
     }
 
     @Override
-    public String getDefaultValue()
+    public UUID getDefaultValue()
     {
         Context context = null;
         EPerson eperson = null;
@@ -79,7 +79,7 @@ public class EPersonValue extends AValue<String>
                 context.abort();
             }
         }
-        return eperson.getID().toString();
+        return eperson.getID();
     }
 
     @Override
