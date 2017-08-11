@@ -29,7 +29,7 @@ UNION
 select jdv.id from jdyna_values jdv join cris_ou_prop crp on jdv.id = crp.value_id join cris_ou_pdef pdef on crp.typo_id = pdef.id where rendering_id in (select id from cris_weperson)
 UNION
 select jdv.id from jdyna_values jdv join cris_do_prop crp on jdv.id = crp.value_id join cris_do_pdef pdef on crp.typo_id = pdef.id where rendering_id in (select id from cris_weperson)
-)
+);
 
 ALTER TABLE jdyna_values DROP COLUMN custompointer_legacy_id;
 CREATE INDEX jdyna_values_custompointer on jdyna_values(custompointer);
