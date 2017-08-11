@@ -18,6 +18,7 @@ import org.dspace.eperson.Group;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Service interface class for the Group object.
@@ -29,7 +30,8 @@ public interface GroupService extends DSpaceObjectService<Group>, DSpaceObjectLe
 
     public static final int NAME = 1; // sort by NAME (default)
 
-
+    public Group find(Context context, UUID id) throws SQLException;
+    
     /**
      * Create a new group
      *

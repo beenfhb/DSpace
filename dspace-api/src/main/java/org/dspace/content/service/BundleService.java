@@ -29,6 +29,8 @@ import java.util.UUID;
 public interface BundleService extends DSpaceObjectService<Bundle>, DSpaceObjectLegacySupportService<Bundle>
 {
 
+	public Bundle find(Context context, UUID id) throws SQLException;
+	
     /**
      * Create a new bundle, with a new ID and link it to the provided item
      *

@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.MissingResourceException;
+import java.util.UUID;
 
 /**
  * Service interface class for the Community object.
@@ -29,6 +30,7 @@ import java.util.MissingResourceException;
 public interface CommunityService extends DSpaceObjectService<Community>, DSpaceObjectLegacySupportService<Community>
 {
 
+	public Community find(Context context, UUID id) throws SQLException;
 
     /**
      * Create a new top-level community, with a new ID.

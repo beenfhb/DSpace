@@ -37,6 +37,9 @@ import org.dspace.eperson.Group;
  */
 public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLegacySupportService<Item>
 {
+	
+	public Item find(Context context, UUID id) throws SQLException;
+	
     public Thumbnail getThumbnail(Context context, Item item, boolean requireOriginal) throws SQLException;
 
     /**

@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Service interface class for the EPerson object.
@@ -42,6 +43,8 @@ import java.util.Set;
 public interface EPersonService extends DSpaceObjectService<EPerson>, DSpaceObjectLegacySupportService<EPerson>
 {
 
+	public EPerson find(Context context, UUID id) throws SQLException;
+	
     /**
      * Find the eperson by their email address.
      *

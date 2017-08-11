@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service interface class for the Bitstream object.
@@ -25,6 +26,8 @@ import java.util.List;
  */
 public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpaceObjectLegacySupportService<Bitstream>{
 
+	public Bitstream find(Context context, UUID id) throws SQLException;
+	
     public List<Bitstream> findAll(Context context) throws SQLException;
 
     /**

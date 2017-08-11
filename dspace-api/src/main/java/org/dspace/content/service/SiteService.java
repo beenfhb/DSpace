@@ -11,6 +11,7 @@ import org.dspace.content.Site;
 import org.dspace.core.Context;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 /**
  * Service interface class for the Site object.
@@ -21,6 +22,8 @@ import java.sql.SQLException;
 public interface SiteService extends DSpaceObjectService<Site>
 {
 
+	public Site find(Context context, UUID id) throws SQLException;
+	
     public Site createSite(Context context) throws SQLException;
 
     public Site findSite(Context context) throws SQLException;

@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.UUID;
 
 /**
  * Service interface class for the Collection object.
@@ -30,6 +31,8 @@ import java.util.MissingResourceException;
  */
 public interface CollectionService extends DSpaceObjectService<Collection>, DSpaceObjectLegacySupportService<Collection> {
 
+	public Collection find(Context context, UUID id) throws SQLException;
+	
     /**
      * Create a new collection with a new ID.
      * Once created the collection is added to the given community

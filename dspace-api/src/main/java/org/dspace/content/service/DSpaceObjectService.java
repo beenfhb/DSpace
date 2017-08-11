@@ -34,6 +34,17 @@ public interface DSpaceObjectService<T extends DSpaceObject> extends RootEntityS
 
 
     /**
+     * Generic find for when the precise type of a DSO is not known, just the
+     * a pair of type number and database ID.
+     *
+     * @param context - the context
+     * @param id - id within table of type'd objects
+     * @return the object found, or null if it does not exist.
+     * @throws SQLException only upon failure accessing the database.
+     */
+    public T find(Context context, UUID id) throws SQLException;
+
+    /**
      * Get a proper name for the object. This may return <code>null</code>.
      * Name should be suitable for display in a user interface.
      *
