@@ -37,7 +37,7 @@ public interface StyleSelection
      * @param style
      * @return An array of Strings each containing a metadata field and if given a display option.
      */
-    public String getConfigurationForStyle(Context context, String style, HttpServletRequest request) throws SQLException;
+    public String[] getConfigurationForStyle(Context context, String style, HttpServletRequest request) throws SQLException;
     
     /**
      * Return true if the requested configuration is defined, it doesn't fallback to default configuration

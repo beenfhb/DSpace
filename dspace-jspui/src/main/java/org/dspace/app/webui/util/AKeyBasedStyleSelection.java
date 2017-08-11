@@ -14,6 +14,7 @@ import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 /**
@@ -24,19 +25,19 @@ import org.dspace.core.Context;
  */
 public abstract class AKeyBasedStyleSelection implements StyleSelection
 {   
-    public String getConfigurationForStyle(Context context, String style, HttpServletRequest request) throws SQLException
+    public String[] getConfigurationForStyle(Context context, String style, HttpServletRequest request) throws SQLException
     {
     	Locale locale = UIUtil.getSessionLocale(request);
 		if (locale != null) {
 			String localeStyle = locale.getLanguage() + "." + style;
-			String config = DSpaceServicesFactory.getInstance().getConfigurationService()
-                .getProperty("webui.itemdisplay." + localeStyle);
-			if (config != null) {
+			String[] config = DSpaceServicesFactory.getInstance().getConfigurationService()
+	                .getArrayProperty("webui.itemdisplay." + localeStyle);
+			if (ArrayUtils.isNotEmpty(config)) {
 				return config;
 			}
 		}
         return DSpaceServicesFactory.getInstance().getConfigurationService()
-                .getProperty("webui.itemdisplay." + style);
+                .getArrayProperty("webui.itemdisplay." + style);
     }
     
     public boolean isConfigurationDefinedForStyle(Context context, String style, HttpServletRequest request) throws SQLException
@@ -45,11 +46,12 @@ public abstract class AKeyBasedStyleSelection implements StyleSelection
 		if (locale != null) {
 			String localeStyle = locale.getLanguage() + "." + style;
 			String config = DSpaceServicesFactory.getInstance().getConfigurationService()
-                .getProperty("webui.itemdisplay." + localeStyle);
+	                .getProperty("webui.itemdisplay." + localeStyle);
 			if (config != null) {
 				return true;
 			}
 		}
-        return ConfigurationManager.getProperty("webui.itemdisplay." + style) != null;
+		return DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getProperty("webui.itemdisplay." + style) != null;
     }
 }

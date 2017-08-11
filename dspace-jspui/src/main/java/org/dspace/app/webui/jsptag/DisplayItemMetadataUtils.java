@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.webui.util.DateDisplayStrategy;
@@ -138,17 +139,18 @@ public class DisplayItemMetadataUtils {
 		List<DisplayMetadata> metadata = new ArrayList<DisplayMetadata>();
 
 		String style = styleSelection.getStyleForItem(context, item, req);
-		String configLine;
+		String[] configLine;
 		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(context, style + "." + postfix, req)) {
 			configLine = styleSelection.getConfigurationForStyle(context, style + "." + postfix, req);
 		} else {
 			configLine = styleSelection.getConfigurationForStyle(context, style, req);
 		}
 
-		if (configLine == null) {
-			configLine = defaultFields;
-		}
-
+        if (ArrayUtils.isEmpty(configLine))
+        {
+        	configLine = defaultFields.split(",");
+        }
+        
 		/*
 		 * Break down the configuration into fields and display them
 		 * 
@@ -158,7 +160,7 @@ public class DisplayItemMetadataUtils {
 		 */
 		
 
-		for(String st : configLine.split(",")) {
+		for(String st : configLine) {
 			String field = st.trim();
 			String displayStrategyName = null;
 			Matcher fieldStyleMatcher = fieldStylePatter.matcher(field);
