@@ -12,17 +12,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.CollectionConverter;
 import org.dspace.app.rest.model.CollectionRest;
 import org.dspace.app.rest.model.hateoas.CollectionResource;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +39,10 @@ import org.springframework.stereotype.Component;
 
 @Component(CollectionRest.CATEGORY + "." + CollectionRest.NAME)
 public class CollectionRestRepository extends DSpaceRestRepository<CollectionRest, UUID> {
+	
 	CollectionService cs = ContentServiceFactory.getInstance().getCollectionService();
+	CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
+	
 	@Autowired
 	CollectionConverter converter;
 	
@@ -72,6 +80,41 @@ public class CollectionRestRepository extends DSpaceRestRepository<CollectionRes
 			throw new RuntimeException(e.getMessage(), e);
 		}
 		Page<CollectionRest> page = new PageImpl<Collection>(collections, pageable, total).map(converter);
+		return page;
+	}
+
+	@SearchRestMethod(name="authorized-by-community")
+	public Page<CollectionRest> findAuthorizedByCommunity(@Param(value="community") UUID community, Pageable pageable) {
+		Context context = obtainContext();
+		List<Collection> it = null;
+		List<Collection> collections = new ArrayList<Collection>();
+		try {
+			Community com = communityService.find(context, community);
+			it = cs.findAuthorized(context, com, Constants.ADD);
+			for (Collection c: it) {
+				collections.add(c);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
+		Page<CollectionRest> page = utils.getPage(collections, pageable).map(converter);
+		return page;
+	}
+
+	@SearchRestMethod(name="authorized-all")
+	public Page<CollectionRest> findAuthorized(Pageable pageable) {
+		Context context = obtainContext();
+		List<Collection> it = null;
+		List<Collection> collections = new ArrayList<Collection>();
+		try {
+			it = cs.findAuthorizedOptimized(context, Constants.ADD);
+			for (Collection c: it) {
+				collections.add(c);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
+		Page<CollectionRest> page = utils.getPage(collections, pageable).map(converter);
 		return page;
 	}
 	
