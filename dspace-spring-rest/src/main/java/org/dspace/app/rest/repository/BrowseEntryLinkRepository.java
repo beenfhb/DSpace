@@ -67,7 +67,7 @@ public class BrowseEntryLinkRepository extends AbstractDSpaceRestRepository
 		// argument
 		String scope = null;
 		if (request != null) {
-			request.getParameter("scope");
+			scope = request.getParameter("scope");
 		}
 
 		Context context = obtainContext();
