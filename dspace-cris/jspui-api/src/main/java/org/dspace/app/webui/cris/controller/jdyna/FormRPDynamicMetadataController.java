@@ -202,7 +202,7 @@ public class FormRPDynamicMetadataController
                 ResearcherPage.class, id);
         Context context = UIUtil.obtainContext(request);
         EPerson currentUser = context.getCurrentUser();
-        if ((currentUser==null || (researcher.getEpersonID()!=null && currentUser.getID()!=researcher.getEpersonID()))
+        if ((currentUser==null || (researcher.getEpersonID()!=null && !currentUser.getID().equals(researcher.getEpersonID())))
                && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             throw new AuthorizeException(

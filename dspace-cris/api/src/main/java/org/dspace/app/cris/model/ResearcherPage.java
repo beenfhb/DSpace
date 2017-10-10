@@ -708,7 +708,7 @@ public class ResearcherPage extends
     @Override
     public boolean isOwner(EPerson eperson)
     {
-        return eperson != null && this.getEpersonID()!=null && (this.getEpersonID() == eperson.getID());
+        return eperson != null && this.getEpersonID()!=null && (this.getEpersonID().equals(eperson.getID()));
     }
 
 	@Override

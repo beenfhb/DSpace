@@ -147,7 +147,7 @@ public class ResearcherPageDetailsController
         
         if (isAdmin
                 || (currUser != null && (researcher.getEpersonID() != null && currUser
-                        .getID() == researcher.getEpersonID())))
+                        .getID().equals(researcher.getEpersonID()))))
         {
             model.put("researcher_page_menu", new Boolean(true));
             model.put("authority_key",
