@@ -46,7 +46,7 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
             	if(eperson.getNetid()!=null && 
             			(rp = applicationService.getEntityBySourceId(netidSourceRef,eperson.getNetid(), ResearcherPage.class))!=null){
 	                if(rp.getEpersonID()!=null) {
-	                    if (rp.getEpersonID() != eperson.getID())
+	                    if (!rp.getEpersonID().equals(eperson.getID()))
 	                    {
 	                        rp.setEpersonID(eperson.getID());
 	                        save = true;
@@ -85,7 +85,7 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
                     	rp = applicationService.getResearcherByAuthorityKey(rpKey);
                     	if(rp!=null){
                     		if(rp.getEpersonID()!=null) {
-                    			if (rp.getEpersonID() != eperson.getID())
+                    			if (!rp.getEpersonID().equals(eperson.getID()))
                     			{
                     				rp.setEpersonID(eperson.getID());
                     				save = true;

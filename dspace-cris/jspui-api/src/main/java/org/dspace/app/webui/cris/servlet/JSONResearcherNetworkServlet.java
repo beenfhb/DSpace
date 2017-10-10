@@ -63,7 +63,7 @@ public class JSONResearcherNetworkServlet extends JSONRequest
                     !(AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context) || // the user logged in is
                                                            // not an admin
                     (currUser != null && (rp.getEpersonID() != null && currUser
-                            .getID() == rp.getEpersonID())))) // the user logged
+                            .getID().equals(rp.getEpersonID()))))) // the user logged
                                                                  // in is not the
                                                                  // rp owner
                     

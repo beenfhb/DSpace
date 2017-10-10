@@ -38,7 +38,7 @@ public class ResearcherLoggedInAction implements PostLoggedInAction
 						eperson.getNetid(), ResearcherPage.class);
                 if (rp != null) {
 					if(rp.getEpersonID()!=null) {
-	                    if (rp.getEpersonID() != eperson.getID())
+	                    if (!rp.getEpersonID().equals(eperson.getID()))
 	                    {
 	                        rp.setEpersonID(eperson.getID());
 	                    }
