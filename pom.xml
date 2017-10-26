@@ -1691,6 +1691,10 @@
 					<groupId>ch.qos.logback</groupId>
 					<artifactId>logback-core</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.jaxrs</groupId>
+    				<artifactId>jackson-jaxrs-base</artifactId>
+        	    </exclusion>
 			</exclusions>
 		</dependency>		
       </dependencies>
