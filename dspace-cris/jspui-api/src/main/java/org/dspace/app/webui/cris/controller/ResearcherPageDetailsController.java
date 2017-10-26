@@ -193,7 +193,7 @@ public class ResearcherPageDetailsController
             boolean subscribed = subscribeService.isSubscribed(currUser,
                     researcher);
             model.put("subscribed", subscribed);
-            EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().findByNetid(context, researcher.getSourceID());
+            EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context, researcher.getEpersonID());
             if (eperson != null) {
             	model.put("subscriptions", subscribeService.getSubscriptions(eperson));
             }

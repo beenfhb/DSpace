@@ -26,8 +26,6 @@ public class ResearcherClaimOrcidProfile implements ExtraLoggedInAction {
 
 	private ApplicationService applicationService;
 
-	private String netidSourceRef;
-
 	public void loggedIn(Context context, HttpServletRequest request,
 			EPerson eperson) {
 		String orcid = (String) request.getAttribute("orcid");
@@ -84,7 +82,4 @@ public class ResearcherClaimOrcidProfile implements ExtraLoggedInAction {
 		this.applicationService = applicationService;
 	}
 
-	public void setNetidSourceRef(String netidSourceRef) {
-		this.netidSourceRef = netidSourceRef;
-	}
 }

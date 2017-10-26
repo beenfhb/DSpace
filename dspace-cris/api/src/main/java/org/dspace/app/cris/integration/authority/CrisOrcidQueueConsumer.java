@@ -14,11 +14,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.ORCIDAuthority;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
-import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.content.UsageEventEntity;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.RootObject;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.core.Context;
@@ -59,11 +58,11 @@ public class CrisOrcidQueueConsumer implements Consumer {
 								if (StringUtils.isNotBlank(authority)) {
 									// 3)check the orcid preferences
 									boolean isAPreferiteWork = orcidPreferencesUtils
-											.isAPreferiteToSendToOrcid(authority, (BrowsableDSpaceObject)dso, "orcid-publications-prefs");
+											.isAPreferiteToSendToOrcid(authority, (RootObject)dso, "orcid-publications-prefs");
 									// 4)if the publications match the
 									// preference add publication to queue
 									if (isAPreferiteWork) {
-										orcidPreferencesUtils.prepareOrcidQueue(authority, (BrowsableDSpaceObject)dso);
+										orcidPreferencesUtils.prepareOrcidQueue(authority, (RootObject)dso);
 									}
 								}
 							}

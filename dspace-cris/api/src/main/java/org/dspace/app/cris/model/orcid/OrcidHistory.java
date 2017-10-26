@@ -7,8 +7,6 @@
  */
 package org.dspace.app.cris.model.orcid;
 
-import java.util.UUID;
-
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -37,8 +35,11 @@ import it.cilea.osd.common.model.IdentifiableObject;
     @NamedQuery(name = "OrcidHistory.findOrcidHistoryInError", query = "from OrcidHistory where timestampLastAttempt.timestamp > timestampSuccessAttempt.timestamp order by id"),
     @NamedQuery(name = "OrcidHistory.findOrcidHistoryInSuccessByOwner", query = "from OrcidHistory where owner = ? and timestampLastAttempt.timestamp = timestampSuccessAttempt.timestamp order by id"),
     @NamedQuery(name = "OrcidHistory.findOrcidHistoryInSuccessByOwnerAndTypeId", query = "from OrcidHistory where owner = ? and typeId = ? and timestampLastAttempt.timestamp = timestampSuccessAttempt.timestamp order by id"),
-    @NamedQuery(name = "OrcidHistory.uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId", query = "from OrcidHistory where owner = ? and entityId = ? and typeId = ? and timestampLastAttempt.timestamp = timestampSuccessAttempt.timestamp"),
-    @NamedQuery(name = "OrcidHistory.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId", query = "from OrcidHistory where owner = ? and entityId = ? and typeId = ?")    
+    @NamedQuery(name = "OrcidHistory.uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId", query = "from OrcidHistory where owner = ? and entityUuid = ? and typeId = ? and timestampLastAttempt.timestamp = timestampSuccessAttempt.timestamp"),
+    @NamedQuery(name = "OrcidHistory.uniqueOrcidHistoryByOwnerAndOrcidAndTypeId", query = "from OrcidHistory where owner = ? and orcid = ? and typeId = ?"),
+    @NamedQuery(name = "OrcidHistory.uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId", query = "from OrcidHistory where owner = ? and entityUuid = ? and typeId = ?"),
+    @NamedQuery(name = "OrcidHistory.findOrcidHistoryByOrcidAndTypeId", query = "from OrcidHistory where orcid = ? and typeId = ?"),
+    @NamedQuery(name = "OrcidHistory.findOrcidHistoryByOrcidAndEntityUUIDAndTypeId", query = "from OrcidHistory where orcid = ? and entityUuid = ? and typeId = ?")
 })
 public class OrcidHistory extends IdentifiableObject {
     
@@ -48,13 +49,13 @@ public class OrcidHistory extends IdentifiableObject {
     @SequenceGenerator(name = "CRIS_ORCIDHISTORY_SEQ", sequenceName = "CRIS_ORCIDHISTORY_SEQ", allocationSize = 1)
     private Integer id;
     
-    private UUID entityId;
-    
     private Integer typeId;
     
     private String entityUuid;
     
     private String owner;
+    
+    private String orcid;
     
     @Embedded
     @AttributeOverride(name = "timestamp", column = @Column(name = "lastAttempt"))
@@ -103,14 +104,6 @@ public class OrcidHistory extends IdentifiableObject {
 		this.responseMessage = responseMessage;
 	}
 
-	public UUID getEntityId() {
-		return entityId;
-	}
-
-	public void setEntityId(UUID entityId) {
-		this.entityId = entityId;
-	}
-
 	public Integer getTypeId() {
 		return typeId;
 	}
@@ -144,4 +137,15 @@ public class OrcidHistory extends IdentifiableObject {
     {
         this.putCode = putCode;
     }
+
+    public String getOrcid()
+    {
+        return orcid;
+    }
+
+    public void setOrcid(String orcid)
+    {
+        this.orcid = orcid;
+    }
+
 }

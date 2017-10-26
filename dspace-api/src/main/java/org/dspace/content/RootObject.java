@@ -7,9 +7,12 @@
  */
 package org.dspace.content;
 
+import java.util.UUID;
+
 public interface RootObject {
 	
 	int getType();
 	String getName();
-	
+	UUID getID();
+	String getHandle();
 }

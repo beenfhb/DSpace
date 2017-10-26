@@ -269,11 +269,11 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
             if(StringUtils.isBlank(language)) {
                 language = configurationService.getProperty("default.locale");
             }
-            init(language);
+            init(language);            
         }
         catch (Exception e)
         {
-            log.error(e.getMessage(), e);
+            log.warn(e.getMessage(), e);
         }
         if (StringUtils.isNotBlank(language))
         {

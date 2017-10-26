@@ -445,4 +445,8 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
 	public boolean haveHierarchy() {	
 		return true;
 	}
+	
+	public String getMetadata(String field) {
+		return getePersonService().getMetadata(this, field);
+	}
 }

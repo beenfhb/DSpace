@@ -674,7 +674,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>19.0</version>
+            <version>20.0</version>
         </dependency>
 
 
@@ -824,6 +824,10 @@
 		<dependency>
         	<groupId>com.fasterxml.jackson.jaxrs</groupId>
         	<artifactId>jackson-jaxrs-json-provider</artifactId>
-		</dependency>	
+		</dependency>
+		<dependency>
+			<groupId>it.4science</groupId>
+			<artifactId>tools-orcid-jaxb</artifactId>
+		</dependency>					
     </dependencies>
 </project>

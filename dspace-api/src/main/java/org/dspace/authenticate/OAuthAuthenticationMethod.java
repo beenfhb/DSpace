@@ -18,9 +18,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authority.orcid.OrcidService;
-import org.dspace.authority.orcid.jaxb.OrcidProfile;
+import org.dspace.authority.orcid.jaxb.email.EmailCtype;
+import org.dspace.authority.orcid.jaxb.email.Emails;
+import org.dspace.authority.orcid.jaxb.personaldetails.PersonalDetails;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.IMetadataValue;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -69,7 +70,8 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
 
 
         String email = null;
-
+        EPerson eperson = null;
+        
         String orcid = (String) request.getAttribute("orcid");
         String token = (String) request.getAttribute("access_token");
         String scope = (String) request.getAttribute("scope");
@@ -80,10 +82,14 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
         }
         
         EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        EPerson eperson = ePersonService.findByNetid(context, orcid);
+        List<EPerson> epersons = ePersonService.search(context, orcid);
         
+        if(epersons != null && epersons.size() > 1) {
+            log.error("Fail to authorize user with orcid: "+orcid + " email:" + email + " - Multiple Users found");
+            return AuthenticationMethod.NO_SUCH_USER;
+        }
         // No email address, perhaps the eperson has been setup, better check it
-        if (eperson == null)
+        if (epersons == null || epersons.isEmpty())
         {
         	eperson = context.getCurrentUser();
             if (eperson != null)
@@ -92,30 +98,25 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
                 email = eperson.getEmail();
             }
         }
-        //get the orcid profile
-        OrcidProfile profile = null;
-        OrcidService orcidObject = OrcidService.getOrcid();
-        if(orcid!=null)
-        {            	
-        	if(StringUtils.isNotBlank(token) && StringUtils.contains(scope, "/orcid-profile")) {
-        		profile = orcidObject.getProfile(orcid,token);	
-        	}
-        	else {
-               	// try to retrieve public information
-        		profile = orcidObject.getProfile(orcid);
-        	}
-           	
+        else {
+            eperson = epersons.get(0);
         }
-        //get the email from orcid
-        if(profile!=null && email == null)
+        
+        //get email from orcid
+        OrcidService orcidObject = OrcidService.getOrcid();
+        if (orcid != null && email == null)
         {
-        	if(profile.getOrcidBio()!=null) {
-        		if(profile.getOrcidBio().getContactDetails()!=null) {
-        			if(profile.getOrcidBio().getContactDetails().getEmail()!=null && !profile.getOrcidBio().getContactDetails().getEmail().isEmpty()) {
-        				email = profile.getOrcidBio().getContactDetails().getEmail().get(0).getValue();
-        			}
-        		}
-        	}
+            Emails emails = orcidObject.getEmails(orcid, token);
+            if (emails != null)
+            {
+                if(emails.getEmail() != null && !emails.getEmail().isEmpty()) {
+                    for(EmailCtype emailCType : emails.getEmail()) {
+                        if(emailCType.isVerified()) {
+                            email = emailCType.getEmail();
+                        }
+                    }
+                }
+            }
         }
 
 //        //If Eperson does not exist follow steps similar to Shib....
@@ -126,22 +127,10 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
 //        }
 
         if (email != null) {
-        	email = email.toLowerCase();
+            email = email.toLowerCase();
         }
         
-        String fname = "";
-        String lname = "";
-        if (profile != null && profile.getOrcidBio() != null)
-        {
-			if (profile.getOrcidBio().getPersonalDetails() != null) {
-				// try to grab name from the orcid profile
-				fname = profile.getOrcidBio().getPersonalDetails().getGivenNames();
-
-				// try to grab name from the orcid profile
-				lname = profile.getOrcidBio().getPersonalDetails().getFamilyName();
-			}
-        }
-
+        // never logged in! Use verified email from ORCID Registry if exist
         if (eperson == null && email != null) {
 	        try
 	        {
@@ -165,14 +154,29 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
 	        {
 	            log.info(LogManager.getHeader(context, "autoregister", "orcid="
 	                    + orcid));
-            
-                eperson = ePersonService.create(context);
+
+	            String fname = "";
+	            String lname = "";
+	            
+	            PersonalDetails personalDetails = orcidObject.getPersonalDetails(orcid, token);
+	            if (personalDetails != null)
+	            {
+	                if (personalDetails.getName() != null) {
+	                    // try to grab name from the orcid profile
+	                    fname = personalDetails.getName().getGivenNames().getValue();
+
+	                    // try to grab name from the orcid profile
+	                    lname = personalDetails.getName().getFamilyName().getValue();
+	                }
+	            }
+	            
+	            eperson = ePersonService.create(context);
                 eperson.setEmail(email!=null?email:orcid);
                 eperson.setFirstName(context, fname);
                 eperson.setLastName(context, lname);
                 eperson.setCanLogIn(true);
+
                 AuthenticateServiceFactory.getInstance().getAuthenticationService().initEPerson(context, request, eperson);
-                eperson.setNetid(orcid);
                 ePersonService.addMetadata(context, eperson, "eperson", "orcid", null, null, orcid);
                 ePersonService.addMetadata(context, eperson, "eperson", "orcid", "accesstoken", null, token);
                 ePersonService.update(context, eperson);

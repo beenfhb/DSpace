@@ -9,6 +9,7 @@ package org.dspace.app.cris.integration;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
@@ -21,7 +22,7 @@ public class ResearcherLoggedInAction implements PostLoggedInAction
 
     private ApplicationService applicationService;
     
-    private String netidSourceRef;
+    private String typeSourceRef;
     
 	/** the logger */
 	private static Logger log = Logger.getLogger(ResearcherLoggedInAction.class);
@@ -33,9 +34,10 @@ public class ResearcherLoggedInAction implements PostLoggedInAction
         try
         {
             ResearcherPage rp = applicationService.getResearcherPageByEPersonId(eperson.getID());
-            if(rp==null && eperson.getNetid() != null) {
-				rp = applicationService.getEntityBySourceId(netidSourceRef,
-						eperson.getNetid(), ResearcherPage.class);
+            String key = typeSourceRef.equals("netid")?eperson.getNetid():eperson.getMetadata(typeSourceRef);
+            if(rp==null && StringUtils.isNotBlank(key)) {
+				rp = applicationService.getEntityBySourceId(typeSourceRef,
+				        key, ResearcherPage.class);
                 if (rp != null) {
 					if(rp.getEpersonID()!=null) {
 	                    if (!rp.getEpersonID().equals(eperson.getID()))
@@ -62,7 +64,7 @@ public class ResearcherLoggedInAction implements PostLoggedInAction
         this.applicationService = applicationService;
     }
 
-    public void setNetidSourceRef(String netidSourceRef) {
-		this.netidSourceRef = netidSourceRef;
+    public void setTypeSourceRef(String netidSourceRef) {
+		this.typeSourceRef = netidSourceRef;
 	}
 }

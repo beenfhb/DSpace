@@ -26,12 +26,15 @@ public interface OrcidHistoryDao extends PaginableObjectDao<OrcidHistory, Intege
 	public List<OrcidHistory> findOrcidHistoryByProjectId(UUID entityId);
 	public List<OrcidHistory> findOrcidHistoryByPublicationId(UUID entityId);
 	public List<OrcidHistory> findOrcidHistoryByEntityIdAndTypeId(UUID entityId, Integer typeId);
+    public List<OrcidHistory> findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(String orcid, String uuid, Integer typeId);
+	public List<OrcidHistory> findOrcidHistoryByOrcidAndTypeId(String orcid, Integer typeId);
 	public List<OrcidHistory> findOrcidHistoryInSuccess();
 	public List<OrcidHistory> findOrcidHistoryInError();
 	public List<OrcidHistory> findOrcidHistoryInSuccessByOwner(String owner);
 	public List<OrcidHistory> findOrcidHistoryInSuccessByOwnerAndTypeId(String owner, Integer typeId);
-	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(String owner, UUID entityId, Integer typeId);
-	public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(String owner, UUID entityId, Integer typeId);	
+	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(String owner, UUID entityId, Integer typeId);
+	public OrcidHistory uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(String owner, String orcid, Integer typeId);
+	public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(String owner, String uuid, Integer typeId);
 	
 	
 }
