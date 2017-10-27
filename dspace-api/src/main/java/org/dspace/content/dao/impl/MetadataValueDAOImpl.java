@@ -22,8 +22,8 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 
 /**
- * Hibernate implementation of the Database Access Object interface class for the IMetadataValue object.
- * This class is responsible for all database calls for the IMetadataValue object and is autowired by spring
+ * Hibernate implementation of the Database Access Object interface class for the MetadataValue object.
+ * This class is responsible for all database calls for the MetadataValue object and is autowired by spring
  * This class should never be accessed directly.
  *
  * @author kevinvandevelde at atmire.com
@@ -61,7 +61,7 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
 
     @Override
     public void deleteByMetadataField(Context context, MetadataField metadataField) throws SQLException {
-        String queryString = "delete from IMetadataValue where metadataField= :metadataField";
+        String queryString = "delete from MetadataValue where metadataField= :metadataField";
         Query query = createQuery(context, queryString);
         query.setParameter("metadataField", metadataField);
         query.executeUpdate();
@@ -71,7 +71,7 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
     public MetadataValue getMinimum(Context context, int metadataFieldId)
             throws SQLException
     {
-        String queryString = "SELECT m FROM IMetadataValue m JOIN FETCH m.metadataField WHERE m.metadataField.id = :metadata_field_id ORDER BY text_value";
+        String queryString = "SELECT m FROM MetadataValue m JOIN FETCH m.metadataField WHERE m.metadataField.id = :metadata_field_id ORDER BY text_value";
         Query query = createQuery(context, queryString);
         query.setParameter("metadata_field_id", metadataFieldId);
         query.setMaxResults(1);
@@ -80,7 +80,7 @@ public class MetadataValueDAOImpl extends AbstractHibernateDAO<MetadataValue> im
 
     @Override
     public int countRows(Context context) throws SQLException {
-        return count(createQuery(context, "SELECT count(*) FROM IMetadataValue"));
+        return count(createQuery(context, "SELECT count(*) FROM MetadataValue"));
     }
 
 }
