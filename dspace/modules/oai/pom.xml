@@ -105,6 +105,10 @@
                     <groupId>com.lyncode</groupId>
                     <artifactId>builder-commons</artifactId>
                 </exclusion>
+                <exclusion>
+                	<groupId>javax.validation</groupId>
+                	<artifactId>validation-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
