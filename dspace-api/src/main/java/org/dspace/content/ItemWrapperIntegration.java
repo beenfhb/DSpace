@@ -7,7 +7,14 @@
  */
 package org.dspace.content;
 
+import java.util.List;
+
 public interface ItemWrapperIntegration
 {
-    public Item getWrapper(Item item);  
+	public List<IMetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang);
+
+	public String getMetadata(Item item, String field);
+
+	public String getTypeText(Item item);
+
 }

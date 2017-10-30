@@ -7,6 +7,8 @@
  */
 package org.dspace.content;
 
+import org.h2.util.StringUtils;
+
 public class MetadataValueVolatile implements IMetadataValue {
 
 	public String schema;
@@ -85,8 +87,16 @@ public class MetadataValueVolatile implements IMetadataValue {
 
 	@Override
 	public MetadataField getMetadataField() {
-		//TODO
-		return null;
+		MetadataField mm = new MetadataField();
+		mm.setElement(element);
+		mm.setQualifier(qualifier);
+		
+		MetadataSchema mschema = new MetadataSchema();
+		mschema.setName(schema);
+		mschema.setNamespace("http://dspace.org/cris");
+		mm.setMetadataSchema(mschema);
+		
+		return mm;
 	}
 
 	@Override
@@ -98,4 +108,5 @@ public class MetadataValueVolatile implements IMetadataValue {
 	public void setPlace(int place) {
 		this.place = place;		
 	}
+	
 }

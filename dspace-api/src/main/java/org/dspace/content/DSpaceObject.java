@@ -188,12 +188,10 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     }
 
     public List<IMetadataValue> getMetadataWithoutPlaceholder(String schema, String element, String qualifier,
-            String lang)
-	{
-    	return getMetadataWithoutPlaceholder(schema, element, qualifier, lang);
-	}
+            String lang) {
+    	return getDSpaceObjectService().getMetadataWithoutPlaceholder(this, schema, element, qualifier, lang);
+    }
 
-    
     /**
      * Retrieve first metadata field value
      */

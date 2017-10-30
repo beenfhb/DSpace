@@ -16,8 +16,11 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
@@ -144,4 +147,88 @@ public class ItemUtils
 
         }
     }
+
+
+	/**
+	 * Utility method for pattern-matching metadata elements.  This
+	 * method will return <code>true</code> if the given schema,
+	 * element, qualifier and language match the schema, element,
+	 * qualifier and language of the <code>DCValue</code> object passed
+	 * in.  Any or all of the element, qualifier and language passed
+	 * in can be the <code>Item.ANY</code> wildcard.
+	 *
+	 * @param schema
+	 *            the schema for the metadata field. <em>Must</em> match
+	 *            the <code>name</code> of an existing metadata schema.
+	 * @param element
+	 *            the element to match, or <code>Item.ANY</code>
+	 * @param qualifier
+	 *            the qualifier to match, or <code>Item.ANY</code>
+	 * @param language
+	 *            the language to match, or <code>Item.ANY</code>
+	 * @param metadataValue
+	 *            the Dublin Core value
+	 * @return <code>true</code> if there is a match
+	 */
+	public static boolean match(String schema, String element, String qualifier,
+	        String language, IMetadataValue metadataValue)
+	{
+	
+	    MetadataField metadataField = metadataValue.getMetadataField();
+	    MetadataSchema metadataSchema = metadataField.getMetadataSchema();
+	    // We will attempt to disprove a match - if we can't we have a match
+	    if (!element.equals(Item.ANY) && !element.equals(metadataField.getElement()))
+	    {
+	        // Elements do not match, no wildcard
+	        return false;
+	    }
+	
+	    if (qualifier == null)
+	    {
+	        // Value must be unqualified
+	        if (metadataField.getQualifier() != null)
+	        {
+	            // Value is qualified, so no match
+	            return false;
+	        }
+	    }
+	    else if (!qualifier.equals(Item.ANY))
+	    {
+	        // Not a wildcard, so qualifier must match exactly
+	        if (!qualifier.equals(metadataField.getQualifier()))
+	        {
+	            return false;
+	        }
+	    }
+	
+	    if (language == null)
+	    {
+	        // Value must be null language to match
+	        if (metadataValue.getLanguage() != null)
+	        {
+	            // Value is qualified, so no match
+	            return false;
+	        }
+	    }
+	    else if (!language.equals(Item.ANY))
+	    {
+	        // Not a wildcard, so language must match exactly
+	        if (!language.equals(metadataValue.getLanguage()))
+	        {
+	            return false;
+	        }
+	    }
+	
+	    if (!schema.equals(Item.ANY))
+	    {
+	        if (metadataSchema != null && !metadataSchema.getName().equals(schema))
+	        {
+	            // The namespace doesn't match
+	            return false;
+	        }
+	    }
+	
+	    // If we get this far, we have a match
+	    return true;
+	}
 }

@@ -477,4 +477,9 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 			List<String> authorities, List<Integer> confidences) throws SQLException {
 		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
 	}
+
+	@Override
+	public List<Bundle> getBundlesByBitstream(Context context, Bitstream bitstream) throws SQLException {
+		return bundleDAO.findMany(context, "select bitBundles from Bitstream b join b.bundles bitBundles where b.id = '" + bitstream.getID() + "'");		
+	}
 }

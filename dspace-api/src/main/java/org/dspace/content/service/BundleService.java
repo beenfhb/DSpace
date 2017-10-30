@@ -127,4 +127,6 @@ public interface BundleService extends DSpaceObjectService<Bundle>, DSpaceObject
     public void setOrder(Context context, Bundle bundle, UUID bitstreamIds[]) throws AuthorizeException, SQLException;
 
     int countTotal(Context context) throws SQLException;
+
+	public List<Bundle> getBundlesByBitstream(Context context, Bitstream bitstream) throws SQLException;
 }

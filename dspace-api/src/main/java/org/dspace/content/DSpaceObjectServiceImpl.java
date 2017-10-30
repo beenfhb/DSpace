@@ -31,6 +31,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.identifier.service.IdentifierService;
+import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -134,7 +135,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         List<IMetadataValue> values = new ArrayList<IMetadataValue>();
         for (IMetadataValue dcv : dso.getMetadata())
         {
-            if (match(schema, element, qualifier, lang, dcv))
+            if (ItemUtils.match(schema, element, qualifier, lang, dcv))
             {
                 values.add(dcv);
             }
@@ -362,7 +363,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         {
         	MetadataValue metadataValue = (MetadataValue)metadata.next();
             // If this value matches, delete it
-            if (match(schema, element, qualifier, lang, metadataValue))
+            if (ItemUtils.match(schema, element, qualifier, lang, metadataValue))
             {
                 metadata.remove();
                 metadataValueService.delete(context, metadataValue);
@@ -424,87 +425,31 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     }
 
     /**
-     * Utility method for pattern-matching metadata elements.  This
-     * method will return <code>true</code> if the given schema,
-     * element, qualifier and language match the schema, element,
-     * qualifier and language of the <code>DCValue</code> object passed
-     * in.  Any or all of the element, qualifier and language passed
-     * in can be the <code>Item.ANY</code> wildcard.
-     *
-     * @param schema
-     *            the schema for the metadata field. <em>Must</em> match
-     *            the <code>name</code> of an existing metadata schema.
-     * @param element
-     *            the element to match, or <code>Item.ANY</code>
-     * @param qualifier
-     *            the qualifier to match, or <code>Item.ANY</code>
-     * @param language
-     *            the language to match, or <code>Item.ANY</code>
-     * @param metadataValue
-     *            the Dublin Core value
-     * @return <code>true</code> if there is a match
-     */
-    protected boolean match(String schema, String element, String qualifier,
-            String language, IMetadataValue metadataValue)
-    {
-
-        MetadataField metadataField = metadataValue.getMetadataField();
-        MetadataSchema metadataSchema = metadataField.getMetadataSchema();
-        // We will attempt to disprove a match - if we can't we have a match
-        if (!element.equals(Item.ANY) && !element.equals(metadataField.getElement()))
-        {
-            // Elements do not match, no wildcard
-            return false;
-        }
-
-        if (qualifier == null)
-        {
-            // Value must be unqualified
-            if (metadataField.getQualifier() != null)
-            {
-                // Value is qualified, so no match
-                return false;
-            }
-        }
-        else if (!qualifier.equals(Item.ANY))
-        {
-            // Not a wildcard, so qualifier must match exactly
-            if (!qualifier.equals(metadataField.getQualifier()))
-            {
-                return false;
-            }
-        }
-
-        if (language == null)
-        {
-            // Value must be null language to match
-            if (metadataValue.getLanguage() != null)
-            {
-                // Value is qualified, so no match
-                return false;
-            }
-        }
-        else if (!language.equals(Item.ANY))
-        {
-            // Not a wildcard, so language must match exactly
-            if (!language.equals(metadataValue.getLanguage()))
-            {
-                return false;
-            }
-        }
-
-        if (!schema.equals(Item.ANY))
-        {
-            if (metadataSchema != null && !metadataSchema.getName().equals(schema))
-            {
-                // The namespace doesn't match
-                return false;
-            }
-        }
-
-        // If we get this far, we have a match
-        return true;
-    }
+	 * Utility method for pattern-matching metadata elements.  This
+	 * method will return <code>true</code> if the given schema,
+	 * element, qualifier and language match the schema, element,
+	 * qualifier and language of the <code>DCValue</code> object passed
+	 * in.  Any or all of the element, qualifier and language passed
+	 * in can be the <code>Item.ANY</code> wildcard.
+	 *
+	 * @param schema
+	 *            the schema for the metadata field. <em>Must</em> match
+	 *            the <code>name</code> of an existing metadata schema.
+	 * @param element
+	 *            the element to match, or <code>Item.ANY</code>
+	 * @param qualifier
+	 *            the qualifier to match, or <code>Item.ANY</code>
+	 * @param language
+	 *            the language to match, or <code>Item.ANY</code>
+	 * @param metadataValue
+	 *            the Dublin Core value
+	 * @return <code>true</code> if there is a match
+	 */
+	protected boolean match(String schema, String element, String qualifier,
+	        String language, IMetadataValue metadataValue)
+	{
+		return ItemUtils.match(schema, element, qualifier, language, metadataValue);
+	}
 
     protected void getAuthoritiesAndConfidences(String fieldKey, Collection collection, List<String> values, List<String> authorities, List<Integer> confidences, int i) {
         Choices c = choiceAuthorityService.getBestMatch(fieldKey, values.get(i), null, null);
@@ -635,6 +580,8 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                 return new String[]{"eperson","phone",null};
             case "language":
                 return new String[]{"eperson","language",null};
+            case "orcid":
+                return new String[]{"eperson","orcid",null};                
             default:
                 return new String[]{null, null, null};
         }
@@ -653,7 +600,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     	List<IMetadataValue> result = new ArrayList<>();
 		for (IMetadataValue dcv : metadata)
 		{
-			if (!StringUtils.equals(dcv.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE) && match(schema, element, qualifier, lang, dcv))
+			if (!StringUtils.equals(dcv.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE) && ItemUtils.match(schema, element, qualifier, lang, dcv))
 			{
 				result.add(dcv);
 			}

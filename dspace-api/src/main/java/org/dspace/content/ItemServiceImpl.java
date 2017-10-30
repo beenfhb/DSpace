@@ -48,6 +48,7 @@ import org.dspace.harvest.service.HarvestedItemService;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
@@ -102,7 +103,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Autowired(required=true)
     protected WorkflowItemService workflowItemService;
     
-
+    protected ItemWrapperIntegration wrapperService;
+    
     protected ItemServiceImpl()
     {
         super();
@@ -155,7 +157,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             log.debug(LogManager.getHeader(context, "find_item", "item_id="
                     + id));
         }
-
         return item;
     }
 
@@ -1291,4 +1292,40 @@ prevent the generation of resource policy entry values with null dspace_object a
 			List<String> authorities, List<Integer> confidences) throws SQLException {
 		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);
 	}
+	
+    @Override
+    public String getMetadata(Item item, String field) {
+    	if(item.isWrapperEnabled()) {
+    		return getWrapperService().getMetadata(item, field);
+    	}
+        return super.getMetadata(item, field);
+    }
+    
+    @Override
+    public String getTypeText(Item item) {
+    	if(item.isWrapperEnabled()) {
+    		return getWrapperService().getTypeText(item);
+    	}
+    	return super.getTypeText(item);
+    }
+    
+    @Override
+    public List<IMetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang) {
+    	if(item.isWrapperEnabled()) {
+    		return getWrapperService().getMetadata(item, schema, element, qualifier, lang);
+    	}
+    	return super.getMetadata(item, schema, element, qualifier, lang);
+    }
+    
+	public ItemWrapperIntegration getWrapperService() {
+		if(wrapperService==null) {
+			wrapperService = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(ItemWrapperIntegration.class.getName(),ItemWrapperIntegration.class);
+		}
+		return wrapperService;
+	}
+
+	public void setWrapperService(ItemWrapperIntegration wrapperService) {
+		this.wrapperService = wrapperService;
+	}
+
 }

@@ -18,6 +18,6 @@ public class CrisISSNExtractor extends
 
 	@Override
 	public List<String> getISSNs(Context context, Item item) {
-		return super.getISSNs(context, item.getWrapper());
+		return super.getISSNs(context, item);
 	}
 }

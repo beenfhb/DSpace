@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.ItemEnhancer;
+import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -77,7 +78,7 @@ public class ItemEnhancerUtility
 							} else {
 								dc.setAuthority(null);
 								dc.setConfidence(Choices.CF_UNSET);
-							}
+							}							
 							result.add(dc);
 						}
 					}

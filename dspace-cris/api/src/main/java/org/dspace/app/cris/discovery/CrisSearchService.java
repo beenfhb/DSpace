@@ -114,8 +114,6 @@ public class CrisSearchService extends SolrServiceImpl
         else
         {
 			if (dso.getType() == Constants.ITEM) {
-				super.indexContent(context, ((Item) dso).getWrapper(), force);
-			} else {
 				super.indexContent(context, dso, force);
 			}
         }

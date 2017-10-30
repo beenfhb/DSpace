@@ -11,11 +11,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -39,9 +41,9 @@ import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.handle.factory.HandleServiceFactory;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -117,7 +119,21 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
 
     @Transient
     private transient ItemService itemService;
+    
+    @Transient
+    private boolean wrapperEnabled = true;
 
+    /** A stack with the history of the wrapperEnabled check modify */
+    @Transient
+    private Stack<Boolean> itemWrapperChangeHistory = new Stack<Boolean>();
+        
+    /**
+     * A stack with the name of the caller class that modify wrapperEnabled
+     * system check
+     */
+    @Transient
+    private Stack<String> itemWrapperCallHistory = new Stack<String>();
+    
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.ItemService#create(Context, WorkspaceItem)}
@@ -417,15 +433,9 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
     }
     
     public String getTypeText() {
-        return Constants.typeText[Constants.ITEM];
+    	return getItemService().getTypeText(this);
     }
 
-	public Item getWrapper() {        
-		ItemWrapperIntegration wrapperService = (ItemWrapperIntegration) DSpaceServicesFactory.getInstance().getServiceManager()
-				.getServiceByName(ItemWrapperIntegration.class.getName(),ItemWrapperIntegration.class);
-        return wrapperService.getWrapper(this);    
-    }
-	
 	@Override
 	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
 		return getItemService().getMetadata(this, schema, element, qualifier, lang);
@@ -469,5 +479,58 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
 	@Override
 	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
 		return getItemService().getMetadataFirstValue(this, schema, element, qualifier, language);
-	}   
+	}
+
+	public boolean isWrapperEnabled() {
+		return wrapperEnabled;
+	}
+
+	public void setWrapperEnabled(boolean wrapperEnabled) {
+		this.wrapperEnabled = wrapperEnabled;
+	}
+
+    /**
+    * Turn Off the Item Wrapper for this context and store this change
+    * in a history for future use.
+    */
+   public void turnOffItemWrapper()
+   {
+       itemWrapperChangeHistory.push(wrapperEnabled);
+       if (log.isDebugEnabled())
+       {
+           Thread currThread = Thread.currentThread();
+           StackTraceElement[] stackTrace = currThread.getStackTrace();
+           String caller = stackTrace[stackTrace.length - 1].getClassName();
+
+           itemWrapperCallHistory.push(caller);
+       }
+       wrapperEnabled = false;
+   }
+   
+   
+   /**
+    * Restore the previous item wrapper system state. If the state was not
+    * changed by the current caller a warning will be displayed in log. Use:
+    * <code>
+    *     mycontext.turnOffItemWrapper();
+    *     some java code that require no item wrapper
+    *     mycontext.restoreItemWrapperState(); 
+        * </code> If Context debug is enabled, the correct sequence calling will be
+    * checked and a warning will be displayed if not.
+    */
+   public void restoreItemWrapperState()
+   {
+       Boolean previousState;
+       try
+       {
+           previousState = itemWrapperChangeHistory.pop();
+       }
+       catch (EmptyStackException ex)
+       {
+           log.warn("Restore_itemwrap_sys_state not previous state info available "
+                           + ex.getLocalizedMessage());
+           previousState = Boolean.FALSE;
+       }
+       wrapperEnabled = previousState.booleanValue();
+   }
 }
