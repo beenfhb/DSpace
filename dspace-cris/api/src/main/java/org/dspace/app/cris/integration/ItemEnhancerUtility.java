@@ -89,63 +89,46 @@ public class ItemEnhancerUtility
         return result;
     }
 
-    private static List<DefaultValuesBean> getMetadata(Item item,
-            ItemEnhancer enh, String qualifier)
-    {
-        List<String> mdList = enh.getMetadata();
-        List<DefaultValuesBean> result = new ArrayList<DefaultValuesBean>();
-        Context context = null;
-        try
-        {
-            context = new Context();
+	private static List<DefaultValuesBean> getMetadata(Item item, ItemEnhancer enh, String qualifier) {
+		List<String> mdList = enh.getMetadata();
+		List<DefaultValuesBean> result = new ArrayList<DefaultValuesBean>();
 
-            for (String md : mdList)
-            {
-                List<IMetadataValue> MetadataValues = ContentServiceFactory.getInstance().getItemService().getMetadataByMetadataString(item, md);
-				if ("placeholder.placeholder.placeholder".equalsIgnoreCase(md)) {
+		for (String md : mdList) {
+			item.turnOffItemWrapper();
+			List<IMetadataValue> MetadataValues = ContentServiceFactory.getInstance().getItemService()
+					.getMetadataByMetadataString(item, md);
+			item.restoreItemWrapperState();
+			if ("placeholder.placeholder.placeholder".equalsIgnoreCase(md)) {
+				DefaultValuesBean valueGenerated = null;
+				String schema = "placeholder";
+				String element = "placeholder";
+				String qual = "placeholder";
+				String value = null;
+				for (EnhancedValuesGenerator vg : enh.getGenerators()) {
+					valueGenerated = vg.generateValues(item, schema, element, qual, value);
+					if (valueGenerated.getValues() != null && valueGenerated.getValues().length > 0) {
+						result.add(valueGenerated);
+					}
+				}
+			} else {
+				for (IMetadataValue dc : MetadataValues) {
 					DefaultValuesBean valueGenerated = null;
-					String schema = "placeholder";
-					String element = "placeholder";
-					String qual = "placeholder";
-					String value = null;
+					String schema = dc.getSchema();
+					String element = dc.getElement();
+					String qual = dc.getQualifier();
+					String value = dc.getValue();
 					for (EnhancedValuesGenerator vg : enh.getGenerators()) {
 						valueGenerated = vg.generateValues(item, schema, element, qual, value);
 						if (valueGenerated.getValues() != null && valueGenerated.getValues().length > 0) {
 							result.add(valueGenerated);
 						}
 					}
-				} else {
-					for (IMetadataValue dc : MetadataValues) {
-						DefaultValuesBean valueGenerated = null;
-						String schema = dc.getSchema();
-						String element = dc.getElement();
-						String qual = dc.getQualifier();
-						String value = dc.getValue();
-						for (EnhancedValuesGenerator vg : enh.getGenerators()) {
-							valueGenerated = vg.generateValues(item, schema, element, qual, value);
-							if (valueGenerated.getValues() != null && valueGenerated.getValues().length > 0) {
-								result.add(valueGenerated);
-							}
-						}
-					}
 				}
 			}
+		}
 
-        }
-        catch (Exception ex)
-        {
-            log.error(ex.getMessage(), ex);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
-
-        return result;
-    }
+		return result;
+	}
 
     private static List<ItemEnhancer> getEnhancers(String alias)
     {

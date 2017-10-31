@@ -59,12 +59,6 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
         {
         	log.error(ex.getMessage(), ex);
         }
-        finally {
-        	if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
         result.setValues(values);
         return result;
     }
