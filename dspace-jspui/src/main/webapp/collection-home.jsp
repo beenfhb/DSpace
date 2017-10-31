@@ -30,6 +30,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
 <%@page import="org.dspace.discovery.IGlobalSearchResult"%>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet" %>
@@ -109,9 +110,17 @@
 
     Boolean showItems = (Boolean)request.getAttribute("show.items");
     boolean show_items = showItems != null ? showItems.booleanValue() : false;
+    
+    String formaction = request.getContextPath() + "/handle/" + collection.getHandle();
 %>
-
-<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
+<script type="text/javascript">
+function sortBy(idx, ord)
+{
+       jQuery("#ssort_by").val(idx);
+       jQuery("#sorder").val(ord);
+       jQuery("#sortform").submit();
+}
+</script>
 <%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
 <%@ page import="org.dspace.content.service.CollectionService" %>
 <%@ page import="org.dspace.content.service.ItemService" %>
@@ -222,7 +231,8 @@
    {
         BrowseInfo bi = (BrowseInfo) request.getAttribute("browse.info");
         BrowseIndex bix = bi.getBrowseIndex();
-
+        String direction = (bi.isAscending() ? "ASC" : "DESC");
+        String sortBy = ((String)request.getParameter("sort_by"))==null?"-1":request.getParameter("sort_by");
         // prepare the next and previous links
         String linkBase = request.getContextPath() + "/handle/" + collection.getHandle();
         
@@ -238,7 +248,7 @@
         {
             prev = prev + "?offset=" + bi.getPrevOffset();
         }
-
+        
         String bi_name_key = "browse.menu." + bi.getSortOption().getName();
         String so_name_key = "browse.order." + (bi.isAscending() ? "asc" : "desc");
 %>
@@ -279,13 +289,13 @@
       if (bix.isMetadataIndex())
       {
 %>
-      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getMetadata() %>" />
+      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getMetadata() %>"/>
 <%
       }
       else
       {
 %>
-      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getSortOption().getMetadata() %>" />
+      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getSortOption().getMetadata() %>"/>
 <%
       }
 %>
@@ -319,7 +329,21 @@
       }
 %>
     </div>
-
+   <form class="form-inline hidden"  id="sortform" method="get" action="<%= formaction %>">
+<%
+                if (bi.hasAuthority())
+                {
+                %><input type="hidden" name="authority" value="<%=bi.getAuthority() %>"/><%
+                }
+                else if (bi.hasValue())
+                {
+                        %><input type="hidden" name="value" value="<%= bi.getValue() %>"/><%
+                }
+%>
+                <input type="hidden" id="ssort_by" name="sort_by" value="" />
+                <input type="hidden" id="sorder" name="order" value="<%= direction %>" />
+                <input type="hidden" id="offset" name="offset" value="<%= request.getParameter("offset")==null?0:request.getParameter("offset") %>" />
+		</form>
 <%
    } // end of if (show_title)
 %>
