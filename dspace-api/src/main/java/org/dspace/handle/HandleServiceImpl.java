@@ -266,7 +266,11 @@ public class HandleServiceImpl implements HandleService
             //if handle has been unbound, just return null (as this will result in a PageNotFound)
             return null;
         }
-        
+        if(context.isRequiredItemWrapper()) {
+        	if(dbhandle.getDSpaceObject().getType()==Constants.ITEM) {
+        		((Item)dbhandle.getDSpaceObject()).setWrapperEnabled(true);
+        	}
+        }
         return dbhandle.getDSpaceObject();
     }
 

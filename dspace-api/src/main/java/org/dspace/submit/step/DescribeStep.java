@@ -229,22 +229,14 @@ public class DescribeStep extends AbstractProcessingStep
             {
                 continue;
             }
-            
+
+            String qualifier = inputs[i].getQualifier();
 	        if (inputs[i].getInputType().equals("qualdrop_value"))
 	        {
-		        @SuppressWarnings("unchecked") // This cast is correct
-		        List<String> pairs = inputs[i].getPairs();
-		        for (int j = 0; j < pairs.size(); j += 2)
-		        {
-			        String qualifier = pairs.get(j+1);
-                    itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
-		        }
+	        	qualifier = Item.ANY;
 	        }
-	        else
-	        {
-		        String qualifier = inputs[i].getQualifier();
-                itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
-	        }
+		        
+            itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
         }
 
         // Clear required-field errors first since missing authority

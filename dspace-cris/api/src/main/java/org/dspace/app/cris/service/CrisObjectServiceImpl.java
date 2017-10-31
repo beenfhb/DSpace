@@ -20,12 +20,7 @@ public abstract class CrisObjectServiceImpl<T extends ACrisObject> implements Ro
 	}
 
 	@Override
-	public boolean isSupportsTypeConstant(int type) {
-		if(CrisConstants.CRIS_DYNAMIC_TYPE_ID_START >= type) {
-			return true;
-		}
-		return false;
-	}
+	public abstract boolean isSupportsTypeConstant(int type);
 
 	public ApplicationService getApplicationService() {
 		return applicationService;

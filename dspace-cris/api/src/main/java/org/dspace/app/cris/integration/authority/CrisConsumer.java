@@ -369,7 +369,6 @@ public class CrisConsumer implements Consumer
                 item.getItemService().removeMetadataValues(ctx, item, toBuild.get(orcid));
             }
             item.getItemService().update(ctx, item);
-
             fillerAuthority(ctx, item, toBuild, toBuildType, createdObjects,
                     referencedObjects);
 

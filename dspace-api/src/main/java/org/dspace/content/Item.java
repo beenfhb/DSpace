@@ -121,7 +121,7 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
     private transient ItemService itemService;
     
     @Transient
-    private boolean wrapperEnabled = true;
+    private boolean wrapperEnabled = false;
 
     /** A stack with the history of the wrapperEnabled check modify */
     @Transient

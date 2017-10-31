@@ -157,6 +157,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             log.debug(LogManager.getHeader(context, "find_item", "item_id="
                     + id));
         }
+        if(context.isRequiredItemWrapper()) {
+        	item.setWrapperEnabled(true);
+        }
         return item;
     }
 
