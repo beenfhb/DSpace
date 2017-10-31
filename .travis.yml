@@ -3,7 +3,7 @@ sudo: false
 
 env: 
   # Give Maven 1GB of memory to work with
-  - MAVEN_OPTS=-Xmx1024M
+  - MAVEN_OPTS=-Xmx2048M
 
 # Skip install stage, as we'll do it below
 install: "echo 'Skipping install stage, dependencies will be downloaded during build and test stages.'"
