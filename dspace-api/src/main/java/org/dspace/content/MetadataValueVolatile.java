@@ -7,8 +7,6 @@
  */
 package org.dspace.content;
 
-import org.h2.util.StringUtils;
-
 public class MetadataValueVolatile implements IMetadataValue {
 
 	public String schema;

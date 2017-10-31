@@ -166,6 +166,8 @@ public class IndexEventConsumer implements Consumer {
                  * allow the search indexer to make 
                  * decisions on indexing and/or removal
                  */
+            	//if there are problem with lazy during indexing uncomment follow line and check DS-3660: Fix discovery reindex on metadata change
+            	//UsageEventEntity iu = ctx.reloadEntity(o);
                 String hdl = iu.getHandle();
                 if (hdl != null && !handlesToDelete.contains(hdl)) {
                     try {
