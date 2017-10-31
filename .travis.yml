@@ -19,4 +19,4 @@ script:
   #        -B => Maven batch/non-interactive mode (recommended for CI)
   #        -V => Display Maven version info before build
   #        -Dsurefire.rerunFailingTestsCount=2 => try again for flakey tests, and keep track of/report on number of retries
-  - "mvn clean package license:check -Dmaven.test.skip=false -DskipITs=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2"  
+  - "mvn clean package license:check -Dmaven.test.skip=true -DskipITs=true -P !assembly -B -V"  
