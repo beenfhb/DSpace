@@ -220,7 +220,7 @@ function sortBy(idx, ord)
     EPerson user = (EPerson) request.getAttribute("dspace.current.user");    
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
 	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
-	String cfg = ConfigurationManager.getProperty("exportcitation.options");
+	String[] cfg = ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options");
 	
 	boolean exportBiblio = false;
 	if(exportBiblioEnabled && ( exportBiblioAll || user!=null) ){
@@ -592,10 +592,10 @@ jQuery(document).ready(function() {
 	<%		
 		if (cfg == null)
 		{
-			cfg = "refman, endnote, bibtex, refworks";
+			cfg = new String[]{"refman", "endnote", "bibtex", "refworks"};
 		}
-		String[] cfgSplit = cfg.split("\\s*,\\s*");
-		for (String format : cfgSplit) {
+		
+		for (String format : cfg) {
 	%>
 		<c:set var="format"><%= format %></c:set>	    
 		<label class="radio-inline">

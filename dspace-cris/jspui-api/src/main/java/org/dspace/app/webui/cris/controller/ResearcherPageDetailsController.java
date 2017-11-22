@@ -241,7 +241,7 @@ public class ResearcherPageDetailsController
         
         mvc.getModel().put("researcher", researcher);
         mvc.getModel().put("exportscitations",
-                ConfigurationManager.getProperty("exportcitation.options"));
+                ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options"));
         mvc.getModel()
                 .put("showStatsOnlyAdmin",
                         ConfigurationManager

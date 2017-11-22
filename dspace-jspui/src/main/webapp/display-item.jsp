@@ -133,7 +133,7 @@
     
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.item.enabled", false);
 	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
-	String cfg = ConfigurationManager.getProperty("exportcitation.options");
+	String[] cfg = ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options");
 	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","enabled");
 	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "credentials");
 %>
@@ -405,10 +405,10 @@ j(document).ready(function() {
     	<%		
     		if (cfg == null)
     		{
-    			cfg = "refman, endnote, bibtex, refworks";
+    			cfg = new String[]{"refman", "endnote", "bibtex", "refworks"};
     		}
-    		String[] cfgSplit = cfg.split("\\s*,\\s*");
-    		for (String format : cfgSplit) {
+    		
+    		for (String format : cfg) {
     	%>
     		<c:set var="format"><%= format %></c:set>	    
     		<label class="radio-inline">

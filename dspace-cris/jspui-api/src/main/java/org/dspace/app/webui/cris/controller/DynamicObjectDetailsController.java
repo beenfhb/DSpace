@@ -38,6 +38,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
@@ -174,7 +175,8 @@ public class DynamicObjectDetailsController
         extraTotal.put("metricTypes", metricsTypeTotal);
         extraTotal.put("metrics", metricsTotal);
         request.setAttribute("extra", extraTotal);  
-        
+        mvc.getModel().put("exportscitations",
+                ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options"));
         
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);
         new DSpace().getEventService().fireEvent(

@@ -139,7 +139,7 @@
     
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
 	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
-	String cfg = ConfigurationManager.getProperty("exportcitation.options");
+	String[] cfg = ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options");
 
 	DiscoverResult qResults = (DiscoverResult)request.getAttribute("queryresults");
 	List<Item> items       = (List<Item>)request.getAttribute("items");
@@ -677,10 +677,10 @@ else if( qResults != null)
 	<%		
 		if (cfg == null)
 		{
-			cfg = "refman, endnote, bibtex, refworks";
+			cfg = new String[]{"refman", "endnote", "bibtex", "refworks"};
 		}
-		String[] cfgSplit = cfg.split("\\s*,\\s*");
-		for (String format : cfgSplit) {
+		
+		for (String format : cfg) {
 	%>
 		<c:set var="format"><%= format %></c:set>	    
 		<label class="radio-inline">

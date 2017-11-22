@@ -46,7 +46,7 @@
 	
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
 	
-    String cfg = (String)request.getAttribute("exportscitations");
+    String[] cfg = (String[])request.getAttribute("exportscitations");
 	Boolean isLoggedIn = (Boolean)request.getAttribute("isLoggedIn");
 	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
 	
@@ -235,10 +235,9 @@ if (info.getPagetotal() > 1)
 	<%		
 		if (cfg == null)
 		{
-			cfg = "refman, endnote, bibtex, refworks";
+			cfg = new String[]{"refman", "endnote", "bibtex", "refworks"};
 		}
-		String[] cfgSplit = cfg.split("\\s*,\\s*");
-		for (String format : cfgSplit) {
+		for (String format : cfg) {
 	%>
 		<c:set var="format"><%= format %></c:set>	    
 		<label class="radio-inline">
