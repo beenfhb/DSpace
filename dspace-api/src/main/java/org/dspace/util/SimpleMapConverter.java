@@ -17,6 +17,10 @@ public class SimpleMapConverter extends MapConverterModifier {
 	}
 
 	public String getValue(String key) {
+		return getValue(key, false);
+	}
+
+	public String getValue(String key, boolean returnEmptyString) {
 		String stringValue = key;
 
         String tmp = "";
@@ -46,8 +50,9 @@ public class SimpleMapConverter extends MapConverterModifier {
         {
             return tmp;
         }
-        
+        else if (returnEmptyString) {
+        	return "";
+        }
         return stringValue;
 	}
-
 }
