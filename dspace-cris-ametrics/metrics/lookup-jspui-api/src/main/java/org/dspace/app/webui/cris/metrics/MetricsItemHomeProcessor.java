@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -39,25 +40,23 @@ public class MetricsItemHomeProcessor implements ItemHomeProcessor {
 	private List<String> metricTypes;
 	
 	public MetricsItemHomeProcessor() {
-		String levels = ConfigurationManager.getProperty("metrics.levels");
-		if (StringUtils.isBlank(levels)) {
-			levels = "1,5,10,20,50";
+		String[] levels = ConfigurationManager.getArrayProperty("dspacecris","metrics.levels");
+		if (ArrayUtils.isEmpty(levels)) {
+			levels = new String[] {"1","5","10","20","50"};
 		}
 		
-		String[] split = levels.split(",");
-		rankingLevels = new int[split.length];
-		for (int idx = 0; idx < split.length; idx++) {
-			rankingLevels[idx] = Integer.parseInt(split[idx].trim());
+		rankingLevels = new int[levels.length];
+		for (int idx = 0; idx < levels.length; idx++) {
+			rankingLevels[idx] = Integer.parseInt(levels[idx].trim());
 		}
 		
-		String metricTypesConf = ConfigurationManager.getProperty("metrics.types");
-		if (StringUtils.isBlank(metricTypesConf)) {
-			metricTypesConf = "scopus,wos,view,download";
+		String[] metricTypesConf = ConfigurationManager.getArrayProperty("dspacecris","metrics.types");
+		if (ArrayUtils.isEmpty(metricTypesConf)) {
+			metricTypesConf = new String[] {"scopus","wos","view","download"};
 		}
-		String[] splitTypes = metricTypesConf.split(",");
 		metricTypes = new ArrayList<String>();
-		for (int idx = 0; idx < splitTypes.length; idx++) {
-			metricTypes.add(splitTypes[idx].trim());
+		for (String splitTypes : metricTypesConf) {
+			metricTypes.add(splitTypes.trim());
 		}
 	}
 
