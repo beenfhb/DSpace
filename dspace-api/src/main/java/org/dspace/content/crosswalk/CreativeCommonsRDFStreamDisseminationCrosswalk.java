@@ -74,4 +74,9 @@ public class CreativeCommonsRDFStreamDisseminationCrosswalk
     {
         return "text/xml";
     }
+
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
 }

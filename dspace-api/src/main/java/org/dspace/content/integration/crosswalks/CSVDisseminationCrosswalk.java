@@ -107,4 +107,9 @@ public class CSVDisseminationCrosswalk extends SelfNamedPlugin
         return "export.csv";
     }
 
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
+
 }

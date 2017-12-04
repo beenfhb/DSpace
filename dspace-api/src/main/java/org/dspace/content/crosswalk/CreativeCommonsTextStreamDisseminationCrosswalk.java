@@ -79,4 +79,9 @@ public class CreativeCommonsTextStreamDisseminationCrosswalk
     {
         return "text/plain";
     }
+
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
 }

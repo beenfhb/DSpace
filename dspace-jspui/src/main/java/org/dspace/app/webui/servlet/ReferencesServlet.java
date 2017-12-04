@@ -49,6 +49,7 @@ import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.integration.crosswalks.FileNameDisseminator;
+import org.dspace.content.integration.crosswalks.IDisseminateUniqueNumber;
 import org.dspace.content.integration.crosswalks.StreamGenericDisseminationCrosswalk;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -470,6 +471,7 @@ public class ReferencesServlet extends DSpaceServlet
         }
         else
         {
+        	Integer index = 1;
             for (Item item : items)
             {
 				if (!exportBiblioEnabled || (context.getCurrentUser()==null  && !exportBiblioAll) )
@@ -511,13 +513,29 @@ public class ReferencesServlet extends DSpaceServlet
 
                 StreamDisseminationCrosswalk streamCrosswalk = null;
 
+            	//try to retrieve from inputform type
                 if (type != null)
                 {
                     streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
                             .getNamedPlugin(StreamDisseminationCrosswalk.class,
                                     format + "-" + type);
+                } 
+
+            	//try to retrieve from the lowercase of dc.type deleting all whitespace 
+                if (streamCrosswalk == null)
+                {
+            		String metadata = item.getMetadata("dc.type");
+            		if (StringUtils.isNotBlank(metadata)) {
+            			type = StringUtils.deleteWhitespace(metadata).toLowerCase(); 
+            			if (StringUtils.isNotBlank(type)) {
+                            streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
+                                    .getNamedPlugin(StreamDisseminationCrosswalk.class,
+                                            format + "-" + type);            				
+            			}
+            		}
                 }
 
+                //apply the default
                 if (streamCrosswalk == null)
                 {
                     log.debug(LogManager
@@ -534,13 +552,20 @@ public class ReferencesServlet extends DSpaceServlet
 
                 try
                 {
-                    streamCrosswalk.disseminate(context, item, outputStream);
+                	if(streamCrosswalk.assignUniqueNumber()) {
+                		((IDisseminateUniqueNumber)streamCrosswalk).disseminate(context, item, outputStream, index);
+                	}
+                	else {
+                		streamCrosswalk.disseminate(context, item, outputStream);
+                	}
+                    
                 }
                 catch (CrosswalkException e)
                 {
                     log.error(LogManager.getHeader(context, "references",
 							"item_id=" + item.getID()), e);
                 }
+                index++;
             }
         }
         outputStream.flush();

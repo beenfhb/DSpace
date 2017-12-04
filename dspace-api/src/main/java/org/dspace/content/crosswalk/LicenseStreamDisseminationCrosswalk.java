@@ -73,4 +73,9 @@ public class LicenseStreamDisseminationCrosswalk
     {
         return "text/plain";
     }
+
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
 }

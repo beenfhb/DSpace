@@ -59,4 +59,6 @@ public interface StreamDisseminationCrosswalk
         throws CrosswalkException, IOException, SQLException, AuthorizeException;
 
     public String getMIMEType();
+
+	public boolean assignUniqueNumber();
 }

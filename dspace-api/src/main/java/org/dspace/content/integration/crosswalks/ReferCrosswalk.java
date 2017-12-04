@@ -36,8 +36,8 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
@@ -353,7 +353,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
         File templateFile = new File(parent, templateFileName);
         BufferedReader templateReader = new BufferedReader(new FileReader(templateFile));
 
-		Pattern mdRepl = Pattern.compile("@[a-z0-9.*]+(\\(.*\\))?@");
+		Pattern mdRepl = Pattern.compile("@[a-zA-Z0-9.*]+(\\(.*\\))?@");
         String templateLine = templateReader.readLine();
         while (templateLine != null)
         {
@@ -404,6 +404,11 @@ public class ReferCrosswalk extends SelfNamedPlugin
         return filename==null?"references":filename; 
 
     }
+
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
 }
 
 class TemplateLine

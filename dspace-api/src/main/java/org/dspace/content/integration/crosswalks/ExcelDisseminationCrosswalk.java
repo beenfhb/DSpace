@@ -279,4 +279,9 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
 
         return s;
     }
+
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
 }
