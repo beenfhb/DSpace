@@ -6,12 +6,12 @@
 	<packaging>pom</packaging>
     <name>DSpace Addon Modules</name>
     <description>DSpace Addon Modules</description>
-	<version>CRIS-6.1.0-SNAPSHOT</version>
+	<version>CRIS-6.3.0-SNAPSHOT</version>
 	
 	<parent>
 		<groupId>org.dspace</groupId>
 		<artifactId>dspace-parent</artifactId>
-		<version>CRIS-6.1.0-SNAPSHOT</version>
+		<version>CRIS-6.3.0-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
