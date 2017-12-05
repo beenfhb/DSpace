@@ -2283,7 +2283,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         {
 			// Any acception that we get ignore it.
 			// We do NOT want any crashed to shown by the user
-            log.error(LogManager.getHeader(context, "Error while quering solr", "Queyr: " + query), e);
+            log.error(LogManager.getHeader(context, "Error while quering solr", "Query: " + query), e);
             return new ArrayList<BrowsableDSpaceObject>(0);
 		}
     }
