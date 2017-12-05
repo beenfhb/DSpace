@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.util.Researcher;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.RootEntityService;
 import org.dspace.core.Context;
@@ -23,6 +24,10 @@ public abstract class CrisObjectServiceImpl<T extends ACrisObject> implements Ro
 	public abstract boolean isSupportsTypeConstant(int type);
 
 	public ApplicationService getApplicationService() {
+		if(applicationService==null) {
+			Researcher researcher = new Researcher();
+			applicationService = researcher.getApplicationService();
+		}
 		return applicationService;
 	}
 

@@ -119,16 +119,8 @@
     <bean class="org.dspace.xmlworkflow.XmlWorkflowFactoryImpl"/>-->
 
 	<!-- DSpace-CRIS -->
-	<bean class="org.dspace.app.cris.service.ResearcherPageServiceImpl">
-		<property name="applicationService" ref="applicationService" />
-	</bean>
-	<bean class="org.dspace.app.cris.service.ProjectServiceImpl">
-		<property name="applicationService" ref="applicationService" />
-	</bean>
-	<bean class="org.dspace.app.cris.service.OrganizationUnitServiceImpl">
-		<property name="applicationService" ref="applicationService" />
-	</bean>	
-	<bean class="org.dspace.app.cris.service.ResearchObjectServiceImpl">
-		<property name="applicationService" ref="applicationService" />
-	</bean>
+	<bean class="org.dspace.app.cris.service.ResearcherPageServiceImpl"/>
+	<bean class="org.dspace.app.cris.service.ProjectServiceImpl"/>
+	<bean class="org.dspace.app.cris.service.OrganizationUnitServiceImpl"/>
+	<bean class="org.dspace.app.cris.service.ResearchObjectServiceImpl"/>
 </beans>
