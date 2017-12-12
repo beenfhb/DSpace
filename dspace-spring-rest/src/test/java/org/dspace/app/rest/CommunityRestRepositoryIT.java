@@ -229,9 +229,7 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
 
 
 
-    //TODO The test fails, 404 resource not found. remove @Ignore when this is implemented
     @Test
-    @Ignore
     public void findAllSubCommunities() throws Exception{
 
         //We turn off the authorization system in order to create the structure as defined below
@@ -263,7 +261,8 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
 
         Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
 
-        getClient().perform(get("/api/core/communities/search/subCommunities/" + parentCommunity.getID()))
+        getClient().perform(get("/api/core/communities/search/subCommunities")
+                .param("parent", parentCommunity.getID().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$._embedded.communities", Matchers.containsInAnyOrder(
