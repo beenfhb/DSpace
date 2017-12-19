@@ -50,48 +50,50 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
 		DataDescribe data = new DataDescribe();
 		try {
 			DCInputSet inputConfig = inputReader.getInputsByFormName(config.getId());
-			for(DCInput input : inputConfig.getFields()) {
-				
-				List<String> fieldsName = new ArrayList<String>();
-				if(input.isQualdropValue()) {
-					for(Object qualifier : input.getPairs()) {
-						fieldsName.add(input.getFieldName()+"."+(String)qualifier);
-					}
-				}
-				else {
-					fieldsName.add(input.getFieldName());
-				}
-				
-				
-				for (String fieldName : fieldsName) {
-					List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(),
-							fieldName);
-					for (MetadataValue md : mdv) {
-						MetadataValueRest dto = new MetadataValueRest();
-						dto.setAuthority(md.getAuthority());
-						dto.setConfidence(md.getConfidence());
-						dto.setLanguage(md.getLanguage());
-						dto.setPlace(md.getPlace());
-						dto.setValue(md.getValue());
-
-						String[] metadataToCheck = Utils.tokenize(md.getMetadataField().toString());
-						if (data.getMetadata().containsKey(
-								Utils.standardize(metadataToCheck[0], metadataToCheck[1], metadataToCheck[2], "."))) {
-							data.getMetadata()
-									.get(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
-											md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
-											"."))
-									.add(dto);
-						} else {
-							List<MetadataValueRest> listDto = new ArrayList<>();
-							listDto.add(dto);
-							data.getMetadata()
-									.put(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
-											md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
-											"."), listDto);
-						}
-					}
-				}
+			for(DCInput[] row : inputConfig.getFields()) {
+			    for(DCInput input : row) {
+    				
+    				List<String> fieldsName = new ArrayList<String>();
+    				if(input.isQualdropValue()) {
+    					for(Object qualifier : input.getPairs()) {
+    						fieldsName.add(input.getFieldName()+"."+(String)qualifier);
+    					}
+    				}
+    				else {
+    					fieldsName.add(input.getFieldName());
+    				}
+    				
+    				
+    				for (String fieldName : fieldsName) {
+    					List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(),
+    							fieldName);
+    					for (MetadataValue md : mdv) {
+    						MetadataValueRest dto = new MetadataValueRest();
+    						dto.setAuthority(md.getAuthority());
+    						dto.setConfidence(md.getConfidence());
+    						dto.setLanguage(md.getLanguage());
+    						dto.setPlace(md.getPlace());
+    						dto.setValue(md.getValue());
+    
+    						String[] metadataToCheck = Utils.tokenize(md.getMetadataField().toString());
+    						if (data.getMetadata().containsKey(
+    								Utils.standardize(metadataToCheck[0], metadataToCheck[1], metadataToCheck[2], "."))) {
+    							data.getMetadata()
+    									.get(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
+    											md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
+    											"."))
+    									.add(dto);
+    						} else {
+    							List<MetadataValueRest> listDto = new ArrayList<>();
+    							listDto.add(dto);
+    							data.getMetadata()
+    									.put(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
+    											md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
+    											"."), listDto);
+    						}
+    					}
+    				}
+    			}
 			}
 		} catch (DCInputsReaderException e) {
 			log.error(e.getMessage(), e);

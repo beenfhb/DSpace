@@ -334,15 +334,17 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
     {
         List<DCInputSet> dcinputsets = new DCInputsReader().getInputsBySubmissionName(formName);
         for(DCInputSet dcinputset : dcinputsets) {
-            for (DCInput dcinput : dcinputset.getFields())
-            {
-                if (dcinput.getSchema().equals(schema)
-                        && dcinput.getElement().equals(element)
-                        && ((dcinput.getQualifier() != null && dcinput
-                                .getQualifier().equals(qualifier))
-                        || (dcinput.getQualifier() == null && qualifier == null)))
+            for (DCInput[] dcrow : dcinputset.getFields()) {
+                for (DCInput dcinput : dcrow)
                 {
-                    return dcinput;
+                    if (dcinput.getSchema().equals(schema)
+                            && dcinput.getElement().equals(element)
+                            && ((dcinput.getQualifier() != null && dcinput
+                                    .getQualifier().equals(qualifier))
+                            || (dcinput.getQualifier() == null && qualifier == null)))
+                    {
+                        return dcinput;
+                    }
                 }
             }
         }
