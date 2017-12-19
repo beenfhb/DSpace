@@ -127,6 +127,7 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
         String uuidSubmission = request.getParameter("suuid");
         String uuidLookup = request.getParameter("iuuid");
         String fuuidLookup = request.getParameter("fuuid");
+        String fPath = request.getParameter("filePath");
         String uuid_batch = request.getParameter("iuuid_batch");
         
         boolean forceEmpty = Util.getBoolParameter(request, "forceEmpty");

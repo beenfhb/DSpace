@@ -301,6 +301,7 @@ submissionLookupFile = function(form){
 						j('#collectionid').val(json.result[index].collectionid);
 						j('#suuid').val(json.result[index].uuid);
 						j('#fuuid').val(iindex);
+						j('#filePath').val(json.filePath);
 						j('#form-submission').submit();						
 						return false;
 					}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+<!--
+	<bean id="bibtex" class="org.dspace.submit.extraction.MetadataExtractor">
+		<property name="dataLoader" ref="bibTeXDataLoader"/>	
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="extensions">
+            <list>
+            	<value>bibtex</value>
+            	<value>bib</value>
+            </list>
+        </property>
+    </bean>
+	
+ 	<bean id="grobid" class="org.dspace.submit.extraction.MetadataExtractor">
+		<property name="dataLoader" ref="grobidDataLoader"/>
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="extensions">
+            <list>
+            	<value>pdf</value>
+            </list>
+        </property>
+    </bean>
+
+	<bean id="grobidDataLoader" class="org.dspace.submit.extraction.GrobidFileDataLoader">
+		<property name="url" value="${metadata.extraction.grobid.url}"/>
+		<property name="fieldMap">
+			<map>
+				<entry key="analytictitle" value="title" />
+				<entry key="analyticname" value="authors" />
+				<entry key="monogrtitle" value="journal" />
+				<entry key="publicationStmtdatepublished" value="issued" />
+				<entry key="ISSN" value="jissn" />
+				<entry key="ISBN" value="pisbn" />
+				<entry key="DOI" value="doi" />
+				<entry key="profileDescsabstractparagraph" value="abstract" />
+				<entry key="profileDescskeywordsterm" value="allkeywords" />
+			</map>
+		</property>
+	</bean>    
+ -->
+ 
+ </beans>
