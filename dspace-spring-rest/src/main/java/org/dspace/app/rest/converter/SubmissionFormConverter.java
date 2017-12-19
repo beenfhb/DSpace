@@ -17,6 +17,7 @@ import org.dspace.app.rest.model.ScopeEnum;
 import org.dspace.app.rest.model.SubmissionFormFieldRest;
 import org.dspace.app.rest.model.SubmissionFormInputTypeRest;
 import org.dspace.app.rest.model.SubmissionFormRest;
+import org.dspace.app.rest.model.SubmissionFormRowRest;
 import org.dspace.app.rest.model.SubmissionVisibilityRest;
 import org.dspace.app.rest.model.VisibilityEnum;
 import org.dspace.app.rest.utils.AuthorityUtils;
@@ -48,18 +49,25 @@ public class SubmissionFormConverter extends DSpaceConverter<DCInputSet, Submiss
 	public SubmissionFormRest fromModel(DCInputSet obj) {
 		SubmissionFormRest sd = new SubmissionFormRest();
 		sd.setName(obj.getFormName());
-		DCInput[] step = obj.getFields();
-		List<SubmissionFormFieldRest> fields = getPage(step);
-		sd.setFields(fields);
+		DCInput[][] step = obj.getFields();
+		List<SubmissionFormRowRest> rows = getPage(step);
+		sd.setRows(rows);
 		return sd;
 	}
 
-	private List<SubmissionFormFieldRest> getPage(DCInput[] page) {
-		List<SubmissionFormFieldRest> fields = new LinkedList<SubmissionFormFieldRest>();
-		for (DCInput dcinput : page) {
-			fields.add(getField(dcinput));
+	private List<SubmissionFormRowRest> getPage(DCInput[][] page) {
+	    List<SubmissionFormRowRest> rows = new LinkedList<SubmissionFormRowRest>();
+	    
+		for (DCInput[] row : page) {
+		    List<SubmissionFormFieldRest> fields = new LinkedList<SubmissionFormFieldRest>();
+            SubmissionFormRowRest rowRest = new SubmissionFormRowRest();
+            rowRest.setFields(fields);
+            rows.add(rowRest);
+		    for (DCInput dcinput : row) {
+		        fields.add(getField(dcinput));    		    
+		    }
 		}
-		return fields;
+		return rows;
 	}
 
 	private SubmissionFormFieldRest getField(DCInput dcinput) {
