@@ -7,10 +7,9 @@
  */
 package org.dspace.app.rest.repository;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,28 +20,25 @@ import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.WorkspaceItemConverter;
 import org.dspace.app.rest.exception.PatchBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
+import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.model.hateoas.WorkspaceItemResource;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
-import org.dspace.app.rest.model.step.UploadBitstreamRest;
 import org.dspace.app.rest.submit.AbstractRestProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.rest.submit.UploadableStep;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Bitstream;
-import org.dspace.content.BitstreamFormat;
-import org.dspace.content.Bundle;
-import org.dspace.content.Item;
+import org.dspace.content.Collection;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonServiceImpl;
@@ -194,52 +190,54 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 	}
 	
 	@Override
-	public UploadBitstreamRest upload(HttpServletRequest request, String apiCategory, String model, Integer id,
+	public WorkspaceItemRest upload(HttpServletRequest request, String apiCategory, String model, Integer id,
 			String extraField, MultipartFile file) throws Exception {
 		
-		UploadBitstreamRest result;
-		Bitstream source = null;
-		BitstreamFormat bf = null;
-
 		Context context = obtainContext();
 		WorkspaceItem wsi = wis.find(context, id);
-		Item item = wsi.getItem();
-		// do we already have a bundle?
-		List<Bundle> bundles = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+		Collection collection = wsi.getCollection();
+		List<ErrorRest> errors = new ArrayList<ErrorRest>();
+		if (collection != null) {
+			SubmissionConfig configs = submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle());			
+			for (int i = 0; i<configs.getNumberOfSteps(); i++) {
+				SubmissionStepConfig stepConfig = configs.getStep(i);
 
-		try {
-			InputStream inputStream = new BufferedInputStream(file.getInputStream());
-			if (bundles.size() < 1) {
-				// set bundle's name to ORIGINAL
-				source = itemService.createSingleBitstream(context, inputStream, item, Constants.CONTENT_BUNDLE_NAME);
-			} else {
-				// we have a bundle already, just add bitstream
-				source = bitstreamService.create(context, bundles.get(0), inputStream);
+				/*
+				 * First, load the step processing class (using the current
+				 * class loader)
+				 */
+				ClassLoader loader = this.getClass().getClassLoader();
+				Class stepClass;
+				try {
+					stepClass = loader.loadClass(stepConfig.getProcessingClassName());
+
+					Object stepInstance = stepClass.newInstance();
+					if (UploadableStep.class.isAssignableFrom(stepClass)) {
+						UploadableStep uploadableStep = (UploadableStep) stepInstance;
+						ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, wsi, file, extraField);
+						if(err!=null) {
+							errors.add(err);
+						}
+					} 
+					
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+
 			}
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			result = new UploadBitstreamRest();
-			result.setMessage(e.getMessage());
-			result.setStatus(false);
-			return result;
 		}
-
-		source.setName(context, file.getOriginalFilename());
-		// TODO how retrieve this information?
-		source.setSource(context, extraField);
-
-		// Identify the format
-		bf = bitstreamFormatService.guessFormat(context, source);
-		source.setFormat(context, bf);
-
-		// Update to DB
-		bitstreamService.update(context, source);
-		itemService.update(context, item);
+		WorkspaceItemRest wsir = converter.convert(wsi);
+		
+		if(errors.isEmpty()) {
+			wsir.setStatus(true);	
+		}
+		else {
+			wsir.setStatus(false);
+			wsir.getErrors().addAll(errors);
+		}
+		
 		context.commit();
-
-		result = submissionService.buildUploadBitstream(configurationService, source);
-		result.setStatus(true);
-		return result;
+		return wsir;
 	}
 
 	@Override

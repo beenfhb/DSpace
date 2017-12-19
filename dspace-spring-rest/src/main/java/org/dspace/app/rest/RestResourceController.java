@@ -37,7 +37,6 @@ import org.dspace.app.rest.model.RestModel;
 import org.dspace.app.rest.model.hateoas.DSpaceResource;
 import org.dspace.app.rest.model.hateoas.EmbeddedPage;
 import org.dspace.app.rest.model.patch.Patch;
-import org.dspace.app.rest.model.step.UploadStatusResponse;
 import org.dspace.app.rest.repository.DSpaceRestRepository;
 import org.dspace.app.rest.repository.LinkRestRepository;
 import org.dspace.app.rest.utils.RestRepositoryUtils;
@@ -54,7 +53,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.http.HttpHeaders;
@@ -224,24 +222,20 @@ public class RestResourceController implements InitializingBean {
 		return uploadInternal(request, apiCategory, model, id, extraField, uploadfile);
 	}
     
-	private <ID extends Serializable, U extends UploadStatusResponse> ResponseEntity<ResourceSupport> uploadInternal(HttpServletRequest request, String apiCategory, String model, ID id,
+	private <ID extends Serializable> ResponseEntity<ResourceSupport> uploadInternal(HttpServletRequest request, String apiCategory, String model, ID id,
 			String extraField, MultipartFile uploadfile) {
 		checkModelPluralForm(apiCategory, model);
 		DSpaceRestRepository<DirectlyAddressableRestModel, ID> repository = utils.getResourceRepository(apiCategory, model);
 		
-		U result = null;
+		DirectlyAddressableRestModel modelObject = null;
 		try {
-			result = repository.upload(request, apiCategory, model, id, extraField, uploadfile);
-			if(result.isStatus()) {
-				return ControllerUtils.toResponseEntity(HttpStatus.CREATED, null, new Resource(result));
-			}
-			else {
-				return ControllerUtils.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, null, new Resource(result));
-			}				
+			modelObject = repository.upload(request, apiCategory, model, id, extraField, uploadfile);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			return ControllerUtils.toEmptyResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return ControllerUtils.toEmptyResponse(HttpStatus.INTERNAL_SERVER_ERROR);
+		DSpaceResource result = repository.wrapResource(modelObject);
+		return ControllerUtils.toResponseEntity(HttpStatus.CREATED, null, result);
 	}	
 	
 	@RequestMapping(method = RequestMethod.PATCH, value = "/{id:\\d+}")

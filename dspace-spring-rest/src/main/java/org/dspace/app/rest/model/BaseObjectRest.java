@@ -31,6 +31,13 @@ public abstract class BaseObjectRest<T extends Serializable> implements Identifi
 	@JsonInclude(Include.NON_EMPTY)
 	private List<ErrorRest> errors;
 	
+	private Boolean status;
+	
+	@JsonInclude(Include.NON_NULL)
+	public Boolean isStatus() {
+		return status;
+	}
+	
 	@Override
 	public T getId() {
 		return id;
@@ -49,6 +56,10 @@ public abstract class BaseObjectRest<T extends Serializable> implements Identifi
 
 	public void setErrors(List<ErrorRest> errors) {
 		this.errors = errors;
+	}
+
+	public void setStatus(Boolean status) {
+		this.status = status;
 	}
 
 }

@@ -41,6 +41,8 @@ public class BitstreamRemovePatchOperation extends RemovePatchOperation<String>{
 		
 		String absPath = getAbsolutePath(path);
 		String[] split = absPath.split("/");
+		
+		//TODO manage delete all files
 		int index = Integer.parseInt(split[1]);
 		
 		Item item = source.getItem();
