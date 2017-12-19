@@ -163,7 +163,7 @@ extends AbstractDSpaceRestRepository
 		return null;
 	}
 
-	public <U extends UploadStatusResponse> U upload(HttpServletRequest request, String apiCategory, String model, ID id, String extraField, MultipartFile file) throws Exception {
+	public T upload(HttpServletRequest request, String apiCategory, String model, ID id, String extraField, MultipartFile file) throws Exception {
 		throw new RuntimeException("No implementation found; Method not allowed!"); 
 	}
 
