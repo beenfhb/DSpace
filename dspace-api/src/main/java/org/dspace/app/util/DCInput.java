@@ -49,6 +49,9 @@ public class DCInput
 
     /** a label describing input */
     private String label = null;
+    
+    /** a custom style assigned to the field **/
+    private String style = null;
 
     /** the input type */
     private String inputType = null;
@@ -139,6 +142,7 @@ public class DCInput
         repeatable = "true".equalsIgnoreCase(repStr)
                 || "yes".equalsIgnoreCase(repStr);
         label = fieldMap.get("label");
+        style = fieldMap.get("style");
         inputType = fieldMap.get("input-type");
         // these types are list-controlled
         if ("dropdown".equals(inputType) || "qualdrop_value".equals(inputType)
@@ -313,7 +317,7 @@ public class DCInput
     }
 
     /**
-     * Get the label for this form row.
+     * Get the label for this form field.
      * 
      * @return the label
      */
@@ -321,6 +325,17 @@ public class DCInput
     {
         return label;
     }
+    
+    /**
+     * Get the custom style for this field if any.
+     * 
+     * @return the style
+     */
+    public String getStyle()
+    {
+        return style;
+    }
+
 
     /**
      * Get the name of the pairs type
