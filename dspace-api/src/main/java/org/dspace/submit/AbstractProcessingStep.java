@@ -22,7 +22,6 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.services.model.Request;
 import org.dspace.submit.lookup.SubmissionLookupService;
 
 /**
@@ -43,8 +42,8 @@ public abstract class AbstractProcessingStep
 	protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
 	protected BTEBatchImportService bteBatchImportService = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("org.dspace.app.itemimport.BTEBatchImportService",BTEBatchImportService.class);
 	
-	public abstract void doProcessing(Context context, Request req, InProgressSubmission wsi);
+	public abstract void doPreProcessing(Context context, InProgressSubmission wsi);
 	
-	public abstract void doPostProcessing(Context context, Request obj, InProgressSubmission wsi);
+	public abstract void doPostProcessing(Context context, InProgressSubmission wsi);
 
 }

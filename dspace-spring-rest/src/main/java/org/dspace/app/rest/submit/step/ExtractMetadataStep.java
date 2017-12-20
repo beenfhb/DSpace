@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -26,17 +25,14 @@ import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.submit.UploadableStep;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.services.model.Request;
-import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.submit.extraction.MetadataExtractor;
+import org.dspace.submit.step.ExtractionStep;
 import org.springframework.web.multipart.MultipartFile;
 
 import gr.ekt.bte.core.Record;
@@ -48,7 +44,7 @@ import gr.ekt.bte.dataloader.FileDataLoader;
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
  */
-public class ExtractMetadataStep extends AbstractProcessingStep implements UploadableStep {
+public class ExtractMetadataStep extends ExtractionStep implements UploadableStep {
 
 	private static final Logger log = Logger.getLogger(ExtractMetadataStep.class);
 
@@ -76,7 +72,7 @@ public class ExtractMetadataStep extends AbstractProcessingStep implements Uploa
 					
 					recordSet = convertFields(dataLoader.getRecords(), bteBatchImportService.getOutputMap());
 					 			
-					enrichItem(context, recordSet, item);
+					enrichItem(context, recordSet.getRecords(), item);
 
 				}
 			}
@@ -88,36 +84,6 @@ public class ExtractMetadataStep extends AbstractProcessingStep implements Uploa
 			return result;
 		}
 		return null;
-	}
-
-	private void enrichItem(Context context, RecordSet rset, Item item) throws SQLException {
-		for (Record record : rset.getRecords()) {
-			for (String field : record.getFields()) {
-				String[] tfield = Utils.tokenize(field);
-				List<MetadataValue> mdvs = itemService.getMetadata(item, tfield[0], tfield[1], tfield[2], Item.ANY);
-				if (mdvs == null || mdvs.isEmpty()) {
-					for (Value value : record.getValues(field)) {
-						itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-								value.getAsString());
-					}
-				} else {
-					external: for (Value value : record.getValues(field)) {
-						boolean found = false;
-						for (MetadataValue mdv : mdvs) {
-							if (mdv.getValue().equals(value.getAsString())) {
-								found = true;
-								continue external;
-							}
-						}
-						if (!found) {
-							itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-									value.getAsString());
-						}
-					}
-				}
-			}
-		}
-
 	}
 
 	private File getFile(SubmissionStepConfig stepConfig, MultipartFile multipartFile)
@@ -136,18 +102,6 @@ public class ExtractMetadataStep extends AbstractProcessingStep implements Uploa
 		BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
 		Utils.bufferedCopy(io, out);
 		return file;
-	}
-
-	@Override
-	public void doProcessing(Context context, Request req, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void doPostProcessing(Context context, Request obj, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public RecordSet convertFields(RecordSet recordSet, Map<String, String> fieldMap) {

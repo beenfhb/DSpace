@@ -43,6 +43,7 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonServiceImpl;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.model.Request;
 import org.dspace.submit.AbstractProcessingStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -163,7 +164,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 					// load the JSPStep interface for this step
 					AbstractProcessingStep stepProcessing = (AbstractProcessingStep) stepClass
 							.newInstance();
-					stepProcessing.doProcessing(context, getRequestService().getCurrentRequest(), source);
+					stepProcessing.doPreProcessing(context, source);
 				} else {
 					throw new Exception("The submission step class specified by '"
 							+ stepConfig.getProcessingClassName()
@@ -194,13 +195,12 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 			String extraField, MultipartFile file) throws Exception {
 		
 		Context context = obtainContext();
-		WorkspaceItem wsi = wis.find(context, id);
-		Collection collection = wsi.getCollection();
+		WorkspaceItemRest wsi = findOne(id);
+		WorkspaceItem source = wis.find(context, id);
 		List<ErrorRest> errors = new ArrayList<ErrorRest>();
-		if (collection != null) {
-			SubmissionConfig configs = submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle());			
-			for (int i = 0; i<configs.getNumberOfSteps(); i++) {
-				SubmissionStepConfig stepConfig = configs.getStep(i);
+			SubmissionConfig submissionConfig = submissionConfigReader.getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());			
+			for (int i = 0; i<submissionConfig.getNumberOfSteps(); i++) {
+				SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
 
 				/*
 				 * First, load the step processing class (using the current
@@ -214,7 +214,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 					Object stepInstance = stepClass.newInstance();
 					if (UploadableStep.class.isAssignableFrom(stepClass)) {
 						UploadableStep uploadableStep = (UploadableStep) stepInstance;
-						ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, wsi, file, extraField);
+						uploadableStep.doPreProcessing(context, source);
+						ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, source, file, extraField);
+						uploadableStep.doPostProcessing(context, source);
 						if(err!=null) {
 							errors.add(err);
 						}
@@ -225,19 +227,18 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 				}
 
 			}
-		}
-		WorkspaceItemRest wsir = converter.convert(wsi);
+		wsi = converter.convert(source);
 		
 		if(errors.isEmpty()) {
-			wsir.setStatus(true);	
+			wsi.setStatus(true);	
 		}
 		else {
-			wsir.setStatus(false);
-			wsir.getErrors().addAll(errors);
+			wsi.setStatus(false);
+			wsi.getErrors().addAll(errors);
 		}
 		
 		context.commit();
-		return wsir;
+		return wsi;
 	}
 
 	@Override
@@ -281,7 +282,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 						// load the JSPStep interface for this step
 						AbstractRestProcessingStep stepProcessing = (AbstractRestProcessingStep) stepClass
 								.newInstance();
+						stepProcessing.doPreProcessing(context, source);
 						stepProcessing.doPatchProcessing(context, getRequestService().getCurrentRequest(), source, op);
+						stepProcessing.doPostProcessing(context, source);
 					} else {
 						throw new PatchBadRequestException("The submission step class specified by '"
 								+ stepConfig.getProcessingClassName()

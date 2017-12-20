@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
  */
-public interface UploadableStep {
+public interface UploadableStep extends ListenerProcessingStep {
 	
 	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig, WorkspaceItem wsi,
 			MultipartFile file, String extraField) throws IOException;
