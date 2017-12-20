@@ -46,7 +46,7 @@
 		<step id="extraction">
        		<heading></heading> 
 	   		<processing-class>org.dspace.app.rest.submit.step.ExtractMetadataStep</processing-class>
-			<type>extraction</type>
+			<type>utils</type>
 			<scope visibility="hidden" visibilityOutside="hidden">submission</scope>       
      	</step>
 	    <!-- The "collection" step is a "special step" which is *REQUIRED* -->
@@ -138,7 +138,6 @@
 
 			<!--Uncommment to display the SAMPLE step as your first step -->
 			<!--<step id="sample"/> -->
-
 			<step id="extraction" />
 
 			<step id="collection" />
