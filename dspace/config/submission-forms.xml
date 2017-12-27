@@ -21,6 +21,42 @@
  <!-- serves as a 'this field is required' flag.                           -->
 
  <form-definitions>
+
+	<form name="traditionalpageone-dc-contributor-author">
+		<row>
+			<field>
+				<dc-schema>dc</dc-schema>
+				<dc-element>contributor</dc-element>
+				<dc-qualifier>author</dc-qualifier>
+				<repeatable>false</repeatable>
+				<label>Authors</label>
+				<input-type>name</input-type>
+				<hint>Enter the name of the author.</hint>
+				<required></required>
+			</field>
+			<field>
+				<dc-schema>local</dc-schema>
+				<dc-element>contributor</dc-element>
+				<dc-qualifier>orcid</dc-qualifier>
+				<repeatable>false</repeatable>
+				<label>ORCID</label>
+				<input-type>onebox</input-type>
+				<hint>Enter the ORCID of the author.</hint>
+				<required></required>
+			</field>
+			<field>
+				<dc-schema>local</dc-schema>
+				<dc-element>contributor</dc-element>
+				<dc-qualifier>affiliation</dc-qualifier>
+				<repeatable>false</repeatable>
+				<label>Affiliation</label>
+				<input-type>onebox</input-type>
+				<hint>Enter the affiliation of the author.</hint>
+				<required></required>
+			</field>
+		</row>
+	</form>
+			
 	<form name="bitstream-metadata">
 		<row>
 	       <field>
@@ -55,9 +91,9 @@
 	         <dc-qualifier>author</dc-qualifier>
 	         <repeatable>true</repeatable>
 	         <label>Authors</label>
-	         <input-type>name</input-type>
+	         <input-type>group</input-type>
 	         <hint>Enter the names of the authors of this item.</hint>
-	         <required></required>
+	         <required>You must specify at least one author</required>
 	       </field>
 		</row>
 		<row>
