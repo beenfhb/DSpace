@@ -8,9 +8,9 @@
 
 package org.dspace.google;
 
-import com.google.api.services.analytics.model.GaData;
-
 import java.io.IOException;
+
+import com.google.api.services.analytics.model.GaData;
 
 
 /**

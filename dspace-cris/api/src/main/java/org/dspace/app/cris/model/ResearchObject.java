@@ -10,7 +10,9 @@ package org.dspace.app.cris.model;
 import it.cilea.osd.common.core.TimeStampInfo;
 import it.cilea.osd.jdyna.model.AType;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.persistence.Embedded;
@@ -34,12 +36,17 @@ import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 
 
 @Entity
 @Table(name = "cris_do", uniqueConstraints = @UniqueConstraint(columnNames={"sourceID","sourceRef"}))
 @NamedQueries({
         @NamedQuery(name = "ResearchObject.findAll", query = "from ResearchObject order by id"),
+        @NamedQuery(name = "ResearchObject.findByShortNameType", query = "from ResearchObject where typo.shortName = ? order by id"),
+        @NamedQuery(name = "ResearchObject.findByIDType", query = "from ResearchObject where typo.id = ? order by id"),
         @NamedQuery(name = "ResearchObject.count", query = "select count(*) from ResearchObject"),
         @NamedQuery(name = "ResearchObject.countByType", query = "select count(*) from ResearchObject where typo = ?"),
         @NamedQuery(name = "ResearchObject.paginate.id.asc", query = "from ResearchObject order by id asc"),
@@ -293,4 +300,35 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
         clone.setDynamicField(additionalTemp);
         return clone;
 	}
+	
+    @Override
+    public Class<ResearchObject> getCRISTargetClass()
+    {
+        return ResearchObject.class;
+    }
+
+    @Override
+    public boolean isOwner(EPerson eperson)
+    {
+        // TODO not implemented
+        return false;
+    }
+
+    
+    public String getMetadataFieldName(Locale locale) {
+        return getAuthorityPrefix()+ getMetadataFieldTitle() + locale.getLanguage();
+    }
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

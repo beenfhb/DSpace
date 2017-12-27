@@ -7,11 +7,16 @@
  */
 package org.dspace.app.cris.model.jdyna;
 
+import it.cilea.osd.common.service.IPersistenceService;
 import it.cilea.osd.jdyna.web.AbstractEditTab;
+import it.cilea.osd.jdyna.web.ITabService;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -37,7 +42,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 		@NamedQuery(name = "EditTabOrganizationUnit.findByAccessLevel", query = "from EditTabOrganizationUnit tab where visibility = ? order by priority"),
 		@NamedQuery(name = "EditTabOrganizationUnit.findByAdmin", query = "from EditTabOrganizationUnit tab where visibility = 1 or visibility = 2 or visibility = 3 order by priority"),
 	    @NamedQuery(name = "EditTabOrganizationUnit.findByOwner", query = "from EditTabOrganizationUnit tab where visibility = 0 or visibility = 2 or visibility = 3 order by priority"),
-	    @NamedQuery(name = "EditTabOrganizationUnit.findByAnonimous", query = "from EditTabOrganizationUnit tab where visibility = 3 order by priority")
+	    @NamedQuery(name = "EditTabOrganizationUnit.findByAnonimous", query = "from EditTabOrganizationUnit tab where visibility = 3 order by priority"),
+        @NamedQuery(name = "EditTabOrganizationUnit.findAuthorizedGroupById", query = "select tab.authorizedGroup from EditTabOrganizationUnit tab where tab.id = ?"),
+        @NamedQuery(name = "EditTabOrganizationUnit.findAuthorizedGroupByShortname", query = "select tab.authorizedGroup from EditTabOrganizationUnit tab where tab.shortName = ?"),
+        @NamedQuery(name = "EditTabOrganizationUnit.findAuthorizedSingleById", query = "select tab.authorizedSingle from EditTabOrganizationUnit tab where tab.id = ?"),
+        @NamedQuery(name = "EditTabOrganizationUnit.findAuthorizedSingleByShortname", query = "select tab.authorizedSingle  from EditTabOrganizationUnit tab where tab.shortName = ?")	    
 })
 public class EditTabOrganizationUnit extends
 		AbstractEditTab<BoxOrganizationUnit,TabOrganizationUnit> {
@@ -53,6 +62,22 @@ public class EditTabOrganizationUnit extends
 	@OneToOne
 	private TabOrganizationUnit displayTab;
 
+	@ManyToMany
+	@JoinTable(
+          name="cris_ou_etab2policysingle",
+          joinColumns=@JoinColumn(name="etab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<OUPropertiesDefinition> authorizedSingle;
+    
+	@ManyToMany
+	@JoinTable(
+          name="cris_ou_etab2policygroup",
+          joinColumns=@JoinColumn(name="etab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<OUPropertiesDefinition> authorizedGroup;
+    
 	public EditTabOrganizationUnit() {
 		this.visibility = VisibilityTabConstant.ADMIN;
 	}
@@ -89,6 +114,34 @@ public class EditTabOrganizationUnit extends
     public String getFileSystemPath()
     {
         return ConfigurationManager.getProperty(CrisConstants.CFG_MODULE,"organizationunit.file.path");
+    }
+    
+    @Override
+    public List<OUPropertiesDefinition> getAuthorizedSingle()
+    {
+        if(this.authorizedSingle==null) {
+            this.authorizedSingle = new ArrayList<OUPropertiesDefinition>();
+        }
+        return this.authorizedSingle;
+    }
+
+    public void setAuthorizedSingle(List<OUPropertiesDefinition> authorizedSingle)
+    {
+        this.authorizedSingle = authorizedSingle;
+    }
+
+    @Override
+    public List<OUPropertiesDefinition> getAuthorizedGroup()
+    {
+        if(this.authorizedGroup==null) {
+            this.authorizedGroup = new ArrayList<OUPropertiesDefinition>();
+        }
+        return this.authorizedGroup;
+    }
+
+    public void setAuthorizedGroup(List<OUPropertiesDefinition> authorizedGroup)
+    {
+        this.authorizedGroup = authorizedGroup;
     }
 
 }

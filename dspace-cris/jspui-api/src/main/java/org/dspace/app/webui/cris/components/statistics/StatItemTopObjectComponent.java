@@ -8,13 +8,13 @@
 package org.dspace.app.webui.cris.components.statistics;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.dspace.app.cris.statistics.bean.PieStatisticBean;
 import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
-import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
@@ -41,7 +41,7 @@ public class StatItemTopObjectComponent extends StatTopObjectComponent
             {
                 for (StatisticDatasBeanRow row : myvalue.getLimitedDataTable())
                 {                   
-                    Item item = Item.find(context, Integer.parseInt(row.getLabel()));
+                    Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(row.getLabel()));
 //                    if (item != null)
                     {
                         labels.addValue(type, row.getLabel(), item);

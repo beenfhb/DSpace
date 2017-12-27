@@ -19,7 +19,7 @@
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
 <!--	<bean class="org.dspace.statistics.SolrLogger" id="org.dspace.statistics.SolrLogger"/> -->
-	<bean class="org.dspace.app.cris.statistics.CrisSolrLogger" id="org.dspace.statistics.SolrLogger">
+	<bean class="org.dspace.app.cris.statistics.CrisSolrLogger" id="org.dspace.statistics.service.SolrLoggerService">
 		<property name="spiderDetector" ref="org.dspace.statistics.util.SpiderDetector"/>
 	</bean>
 	

@@ -7,16 +7,16 @@
  */
 package org.dspace.app.cris.integration;
 
-import it.cilea.osd.jdyna.model.ANestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.ICrisObject;
 import org.dspace.app.cris.service.ApplicationService;
+
+import it.cilea.osd.jdyna.model.ANestedObject;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
 
 public class CrisNestedEnhancer extends CrisEnhancer
 {

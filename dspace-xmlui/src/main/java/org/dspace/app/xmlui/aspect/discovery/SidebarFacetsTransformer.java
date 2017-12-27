@@ -7,6 +7,17 @@
  */
 package org.dspace.app.xmlui.aspect.discovery;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.environment.ObjectModelHelper;
 import org.apache.cocoon.environment.Request;
@@ -23,24 +34,23 @@ import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.app.xmlui.wing.element.Options;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.discovery.*;
+import org.dspace.discovery.DiscoverFacetField;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
-import org.dspace.handle.HandleManager;
-import org.dspace.utils.DSpace;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Renders the sidebar filters in Discovery
@@ -71,19 +81,19 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
     private static final Message T_FILTER_HEAD = message("xmlui.discovery.AbstractFiltersTransformer.filters.head");
     private static final Message T_VIEW_MORE = message("xmlui.discovery.AbstractFiltersTransformer.filters.view-more");
 
+    protected HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+
     protected SearchService getSearchService()
     {
-        DSpace dspace = new DSpace();
-        
-        org.dspace.kernel.ServiceManager manager = dspace.getServiceManager() ;
-
-        return manager.getServiceByName(SearchService.class.getName(),SearchService.class);
+        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(SearchService.class.getName(),SearchService.class);
     }
 
     /**
      * Generate the unique caching key.
      * This key must be unique inside the space of this component.
+     * @return the key.
      */
+    @Override
     public Serializable getKey() {
         try {
             DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
@@ -103,15 +113,20 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
 
     /**
      * Generate the cache validity object.
-     * <p/>
+     * <p>
      * The validity object will include the collection being viewed and
      * all recently submitted items. This does not include the community / collection
      * hierarchy, when this changes they will not be reflected in the cache.
+     * @return validity.
      */
+    @Override
     public SourceValidity getValidity() {
         if (this.validity == null) {
 
             try {
+                Context.Mode originalMode = context.getCurrentMode();
+                context.setMode(Context.Mode.READ_ONLY);
+
                 DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
                 DSpaceValidity val = new DSpaceValidity();
 
@@ -121,13 +136,13 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                 // Add the actual collection;
                 if (dso != null)
                 {
-                    val.add(dso);
+                    val.add(context, (BrowsableDSpaceObject)dso);
                 }
 
                 val.add("numFound:" + queryResults.getDspaceObjects().size());
 
-                for (DSpaceObject resultDso : queryResults.getDspaceObjects()) {
-                    val.add(resultDso);
+                for (BrowsableDSpaceObject resultDso : queryResults.getDspaceObjects()) {
+                    val.add(context, resultDso);
                 }
 
                 for (String facetField : queryResults.getFacetResults().keySet()) {
@@ -140,6 +155,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                 }
 
                 this.validity = val.complete();
+                context.setMode(originalMode);
             }
             catch (Exception e) {
                 log.error(e.getMessage(),e);
@@ -157,16 +173,21 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
         //If we are on a search page performing a search a query may be used
         String query = request.getParameter("query");
         if(query != null && !"".equals(query)){
+            // Do standard escaping of some characters in this user-entered query
+            query = DiscoveryUIUtils.escapeQueryChars(query);
             queryArgs.setQuery(query);
         }
 
         //We do not need to retrieve any dspace objects, only facets
         queryArgs.setMaxResults(0);
-        queryResults =  getSearchService().search(context, dso,  queryArgs);
+        queryResults =  getSearchService().search(context, (BrowsableDSpaceObject)dso,  queryArgs);
     }
 
     @Override
     public void addOptions(Options options) throws SAXException, WingException, SQLException, IOException, AuthorizeException {
+
+        Context.Mode originalMode = context.getCurrentMode();
+        context.setMode(Context.Mode.READ_ONLY);
 
         Request request = ObjectModelHelper.getRequest(objectModel);
 
@@ -182,7 +203,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
             DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
             java.util.List<String> fqs = Arrays.asList(DiscoveryUIUtils.getFilterQueries(request, context));
 
-            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
             java.util.List<DiscoverySearchFilterFacet> facets = discoveryConfiguration.getSidebarFacets();
 
             if (facets != null && 0 < facets.size()) {
@@ -221,7 +242,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             {
                                 //When we have an hierarchical facet always show the "view more" they may want to filter the children of the top nodes
                                 if(field.getType().equals(DiscoveryConfigurationParameters.TYPE_HIERARCHICAL)){
-                                    addViewMoreUrl(filterValsList, dso, request, field.getIndexFieldName());
+                                    addViewMoreUrl(filterValsList, dso, request, field);
                                 }
                                 break;
                             }
@@ -251,13 +272,15 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             }
                             //Show a "view more" url should there be more values, unless we have a date
                             if (i == shownFacets - 1 && !field.getType().equals(DiscoveryConfigurationParameters.TYPE_DATE)/*&& facetField.getGap() == null*/) {
-                                addViewMoreUrl(filterValsList, dso, request, field.getIndexFieldName());
+                                addViewMoreUrl(filterValsList, dso, request, field);
                             }
                         }
                     }
                 }
             }
         }
+
+        context.setMode(originalMode);
     }
 
     /**
@@ -300,12 +323,12 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
         return parametersString;
     }
 
-    private void addViewMoreUrl(List facet, DSpaceObject dso, Request request, String fieldName) throws WingException, UnsupportedEncodingException {
+    private void addViewMoreUrl(List facet, DSpaceObject dso, Request request, DiscoverySearchFilterFacet field) throws WingException, UnsupportedEncodingException {
         String parameters = retrieveParameters(request);
         facet.addItem().addXref(
                 contextPath +
                         (dso == null ? "" : "/handle/" + dso.getHandle()) +
-                        "/search-filter?" + parameters + BrowseFacet.FACET_FIELD + "=" + fieldName,
+                        "/search-filter?" + parameters + BrowseFacet.FACET_FIELD + "=" + field.getIndexFieldName()+"&order="+field.getSortOrderFilterPage(),
                 T_VIEW_MORE
 
         );
@@ -314,10 +337,10 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
     public DiscoverQuery getQueryArgs(Context context, DSpaceObject scope, String... filterQueries) {
         DiscoverQuery queryArgs = new DiscoverQuery();
 
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(scope);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)scope);
         java.util.List<DiscoverySearchFilterFacet> facets = discoveryConfiguration.getSidebarFacets();
 
-        log.info("facets for scope, " + scope + ": " + (facets != null ? facets.size() : null));
+        log.debug("facets for scope, " + scope + ": " + (facets != null ? facets.size() : null));
 
 
 
@@ -383,7 +406,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             yearRangeQuery.setSortField(dateFacet + "_sort", DiscoverQuery.SORT_ORDER.asc);
                             yearRangeQuery.addFilterQueries(filterQueries);
                             yearRangeQuery.addSearchField(dateFacet);
-                            DiscoverResult lastYearResult = getSearchService().search(context, scope, yearRangeQuery);
+                            DiscoverResult lastYearResult = getSearchService().search(context, (BrowsableDSpaceObject)scope, yearRangeQuery);
 
 
                             if(0 < lastYearResult.getDspaceObjects().size()){
@@ -394,7 +417,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             }
                             //Now get the first year
                             yearRangeQuery.setSortField(dateFacet + "_sort", DiscoverQuery.SORT_ORDER.desc);
-                            DiscoverResult firstYearResult = getSearchService().search(context, scope, yearRangeQuery);
+                            DiscoverResult firstYearResult = getSearchService().search(context, (BrowsableDSpaceObject)scope, yearRangeQuery);
                             if( 0 < firstYearResult.getDspaceObjects().size()){
                                 java.util.List<DiscoverResult.SearchDocument> searchDocuments = firstYearResult.getSearchDocument(firstYearResult.getDspaceObjects().get(0));
                                 if(0 < searchDocuments.size() && 0 < searchDocuments.get(0).getSearchFieldValues(dateFacet).size()){
@@ -425,7 +448,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                             //We need a list of our years
                             //We have a date range add faceting for our field
                             //The faceting will automatically be limited to the 10 years in our span due to our filterquery
-                            queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrder(), false));
+                            queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar(), false));
                         }else{
                             java.util.List<String> facetQueries = new ArrayList<String>();
                             //Create facet queries but limit them to 11 (11 == when we need to show a "show more" url)
@@ -462,7 +485,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
                     int facetLimit = facet.getFacetLimit();
                     //Add one to our facet limit to make sure that if we have more then the shown facets that we show our "show more" url
                     facetLimit++;
-                    queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), facetLimit, facet.getSortOrder(), false));
+                    queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), facetLimit, facet.getSortOrderSidebar(),false));
                 }
             }
         }
@@ -490,7 +513,7 @@ public class SidebarFacetsTransformer extends AbstractDSpaceTransformer implemen
         else
         {
             // Get the search scope from the location parameter
-            dso = HandleManager.resolveToObject(context, scopeString);
+            dso = handleService.resolveToObject(context, scopeString);
         }
 
         return dso;

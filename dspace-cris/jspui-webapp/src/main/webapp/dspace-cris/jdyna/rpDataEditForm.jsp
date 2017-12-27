@@ -26,7 +26,7 @@
 	import="it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition"%>
 <%@page
 	import="org.dspace.app.cris.model.jdyna.DecoratorRestrictedField"%>
-	
+<%@ page import="org.dspace.core.ConfigurationManager" %>	
 <%@page import="it.cilea.osd.jdyna.model.AccessLevelConstants"%>
 <%@page import="java.net.URL"%>
 <%@page import="org.dspace.eperson.EPerson" %>
@@ -39,7 +39,7 @@
     // Is the logged in user an admin
     Boolean admin = (Boolean)request.getAttribute("is.admin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
-
+    boolean changeStatusAdmin = ConfigurationManager.getBooleanProperty("cris","rp.changestatus.admin");
 %>
 <c:set var="root"><%=request.getContextPath()%></c:set>
 <c:set var="admin"><%=isAdmin%></c:set>
@@ -67,11 +67,19 @@
     <link href="<%=request.getContextPath()%>/js/jscalendar/calendar-blue.css" type="text/css" rel="stylesheet" />
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/commons-edit-jquery-for-cris.css" type="text/css" />
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/researcher.css" type="text/css" />
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/jdyna.css" type="text/css" />               
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/jdyna.css" type="text/css" />     
+    <link href="<%= request.getContextPath() %>/css/select2/select2.css" type="text/css" rel="stylesheet" />
+    <link href="<%= request.getContextPath() %>/css/select2/select2-bootstrap.css" type="text/css" rel="stylesheet" />
+    <link href="<%= request.getContextPath() %>/css/jstree/themes/default/style.min.css" type="text/css" rel="stylesheet" />
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jscalendar/calendar.js"> </script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jscalendar/lang/calendar-en.js"> </script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jscalendar/calendar-setup.js"> </script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jquery.form.js"></script>
+	<script type="text/javascript" src="<%=request.getContextPath()%>/js/select2/select2.min.js"></script>
+	<script type="text/javascript" src="<%=request.getContextPath()%>/js/jstree/jstree.min.js"></script>
+	<script type="text/javascript" src="<%=request.getContextPath()%>/js/jstree/thirdparty/_makeTree.js"></script>
+	<script type="text/javascript" src="<%=request.getContextPath()%>/js/jstree/thirdparty/_queryTreeSort.js"></script>
+	
   	<style>
     .ui-autocomplete-loading {
         background: white url('../../../image/jdyna/indicator.gif') right center no-repeat;
@@ -229,6 +237,48 @@
 										}
 									});	
 							});
+							j('#viewnested_'+id+' .nested_preferred_button').click(function(){
+								var ajaxurlpreferrednested = 
+									"<%= request.getContextPath() %>/cris/tools/${specificPartPath}/preferredNested.htm";
+									j.ajax( {
+										url : ajaxurlpreferrednested,
+										data : {
+											"elementID": j(this).attr('id').substr(('nested_'+id+'_preferred_').length),
+											"parentID" : ${anagraficadto.objectId},
+											"typeNestedID" : id,
+											"editmode" : true,
+											"preferred" : true,
+											"admin": ${admin}
+										},
+										success : function(data) {
+											j('#viewnested_'+id).html(data);
+											postfunction();
+										},
+										error : function(data) {
+										}
+									});	
+							});
+							j('#viewnested_'+id+' .nested_notpreferred_button').click(function(){
+								var ajaxurlnotpreferrednested = 
+									"<%= request.getContextPath() %>/cris/tools/${specificPartPath}/notPreferredNested.htm";
+									j.ajax( {
+										url : ajaxurlnotpreferrednested,
+										data : {
+											"elementID": j(this).attr('id').substr(('nested_'+id+'_notpreferred_').length),
+											"parentID" : ${anagraficadto.objectId},
+											"typeNestedID" : id,
+											"editmode" : true,
+											"preferred" : false,
+											"admin": ${admin}
+										},
+										success : function(data) {
+											j('#viewnested_'+id).html(data);
+											postfunction();
+										},
+										error : function(data) {
+										}
+									});	
+							});
 							j('#nested_'+id+'_addbutton').click(function(){
 								var ajaxurladdnested = 
 									"<%= request.getContextPath() %>/cris/tools/${specificPartPath}/addNested.htm";
@@ -281,6 +331,8 @@
     	
 		j(document).ready(function()
 		{
+			j(".jdynadropdown").select2();
+			
 			j("#alert_eperson_dialog").dialog({ autoOpen: false });
 				
 			 j("#eperson").autocomplete({
@@ -383,6 +435,9 @@
 			
 			activeTab();
 			activePointer();
+			activeCustomPointer();
+			activeTree();
+			
 		});
 
 		
@@ -469,10 +524,109 @@
 		        });
 		});
 
-	}
+		}
 		
-       
-		 
+		var activeTree = function() {
+			 j(".classificationtreeinfo").each(function(){
+				 var id = j(this).html();
+				 var treeObjectType = j('#classificationtree_'+id+'_treeObjectType').html();
+				 var rootResearchObject = j('#classificationtree_'+id+'_rootResearchObject').html();
+				 var metadataBuilderTree = j('#classificationtree_'+id+'_metadataBuilderTree').html();
+				 var chooseOnlyLeaves = j('#classificationtree_'+id+'_chooseOnlyLeaves').html();
+				 var repeatable = j('#classificationtree_'+id+'_repeatable').html();
+				 var propertyPath = j('#classificationtree_'+id+'_propertyPath').html();
+				
+				 j('#classificationtree_'+id+'_selected div img').click(
+						 function(){
+							 j(this).parent().remove();
+				 });
+				 j('#classificationtree_'+id+'_btn').click(
+				 function(event){
+			     j('#classificationtree_modal').modal();	 
+				 event.preventDefault()
+				 j('#classificationtree_modal .modal-body').html('');
+				 j('#classificationtree_modal .modal-footer').html('');
+				 
+				 j('#classificationtree_modal .modal-body').append("<div id=\"jstree_div\"></div>")
+				 j('#classificationtree_modal .modal-footer').append("<button type=\"button\" id=\"btn-close-modal-classificationtree\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>")
+				 j('#classificationtree_modal .modal-footer').append("<button type=\"button\" id=\"button-save-classificationtree_"+propertyPath+"\" class=\"btn btn-primary btn-classificationtree-save\">Done</button>")
+				 				
+				j('.btn-classificationtree-save').click(
+						 function(event){
+							  var propertyPath = j(this).attr("id");
+							  var realPP = propertyPath.replace('button-save-classificationtree_anagraficadto.','');
+							  var n = j('#classificationtree_modal .modal-body').find(".jstree-clicked");
+							  if(n.length>0) {
+								  if(n.length>1) {									  
+									 j("#classificationtree_"+id+"_selected").html('');
+									 j.each(n, function( index, value ) {
+										 var idValue = j(this).parent().attr("id");
+										 var labelValue = j(this).text();				
+										 var div = j("<div id=\"classificationtree_"+ id +"_selected_"+index+"\">");
+										 var input = j("<input type=\"hidden\" id=\""+realPP+"["+index+"]\" name=\""+realPP+"["+index+"]\">").val(idValue);										 
+										 var label = j("<span>").text(labelValue);
+										 div.append(input);										 
+										 div.append(label);
+										 j("#classificationtree_"+id+"_selected").append(div);
+										 
+							           	 var img = j("<img class=\"jdyna-icon jdyna-action-icon jdyna-delete-button\" src=\"<%=request.getContextPath()%>/image/jdyna/delete_icon.gif\">");
+							             j("#classificationtree_"+id+"_selected_"+index).append(img);
+						                 img.click(function(){                     	
+						                 	j("#classificationtree_"+id+"_selected_"+index).html('');
+						                 	var _input = j( "<input type='hidden' id='_"+realPP+"["+index+"]"+"' name='_"+realPP+"["+index+"]"+"'>" ).val('true');
+						                 	j("#classificationtree_"+id+"_selected_"+index).append(_input);             
+						                 });
+									 });
+								  }
+								  else {
+									var idValue = j(n).parent().attr("id");
+									var labelValue = j(n).text();
+									j("#classificationtree_"+id+"_selected").html('');
+									var div = j("<div id=\"classificationtree_"+ id +"_selected_0\">");
+									var input = j("<input type=\"hidden\" id=\""+realPP+"[0]\" name=\""+realPP+"[0]\">").val(idValue);
+									
+									var label = j("<span>").text(labelValue);
+									div.append(input);									
+									div.append(label);
+									j("#classificationtree_"+id+"_selected").append(div);
+					            	var img = j("<img class=\"jdyna-icon jdyna-action-icon jdyna-delete-button\" src=\"<%=request.getContextPath()%>/image/jdyna/delete_icon.gif\">");
+					            	j("#classificationtree_"+id+"_selected").append(img);
+				                     img.click(function(){                     	
+				                        j("#classificationtree_"+id+"_selected").html('');
+				                        var _input = j( "<input type='hidden' id='_"+realPP+"[0]"+"' name='_"+realPP+"[0]"+"'>" ).val('true');
+				                      	j("#classificationtree_"+id+"_selected").append(_input);                     	
+				                  	 });
+								  }
+							  }
+							  
+							  j("#classificationtree_modal").modal("hide");
+						 }
+						 
+				);
+
+				 j('#jstree_div').jstree({
+					 'core' : {
+					   'data' : {
+					     'url': 'buildClassificationTree.htm?method=buildtree&id='+rootResearchObject+'&type='+treeObjectType+'&builder='+metadataBuilderTree,						 
+					   	}
+					  },
+				 	  "checkbox" : {
+				      	"keep_selected_style" : false
+				 	  },
+			    	  "types" : {
+			    	 	"default" : {
+			    	 		"icon" : "fa fa-flash"
+			    	 	}
+			    	  },			    	  
+		    	 	  "plugins" : [ "checkbox", "types"]		    	 	 
+				});
+
+			 });
+		 });
+			 
+		}
+
+		
 		var activeEperson = function(id) {
 			j.ajax({
                 url: "eperson.json",
@@ -498,6 +652,93 @@
                      div.effect('highlight');
                 }
             });			
+		}
+		
+		function updateSelectedCustomPointer( id, count, repeatable, displayvalue, identifiervalue ) {
+			if(identifiervalue!=null) {
+            	if (!repeatable){
+            		j("#custompointer_"+id+"_selected").html(' ');
+            		count = 0;
+            	}
+				var div = j('<div id="custompointer_'+id+'_selected_'+count+'" class="jdyna-pointer-value">');
+            	var img = j('<img class="jdyna-icon jdyna-action-icon jdyna-delete-button" src="<%= request.getContextPath() %>/image/jdyna/delete_icon.gif">');
+				var path = j('#custompointer_'+id+'_path').html();
+				var input = j( "<input type='hidden' id='"+path+"["+count+"]"+"' name='"+path+"["+count+"]"+"'>" ).val(identifiervalue);
+            	var display = j("<span>").text(displayvalue);
+            	var selectedDiv = j("#custompointer_"+id+"_selected");
+            	selectedDiv.append(div);
+            	div.append(input);
+            	div.append(display);
+            	div.append("&nbsp;")
+            	div.append(img);
+            	div.effect('highlight');
+            	j('#custompointer_'+id+'_tot').html(count+1);
+            	img.click(function(){
+                	if (!repeatable){
+                		selectedDiv.html(' ');
+                		var _input = j( "<input type='hidden' id='_"+path+"[0]"+"' name='_"+path+"[0]"+"'>" ).val('true');
+                		selectedDiv.append(_input);
+                	}
+                	else
+                	{
+                		j('#custompointer_'+id+'_selected_'+count).remove();
+                	}
+            	});
+            	if (!repeatable){
+            		var _input = j( "<input type='hidden' id='_"+path+"[0]"+"' name='_"+path+"[0]"+"'>" ).val('true');
+            		selectedDiv.append(_input);
+            	}            	
+			}
+        }
+		
+		var activeCustomPointer = function() {
+ 			
+			 j(".custompointerinfo").each(function(){
+				 var id = j(this).html();
+				 j('#custompointer_'+id+'_selected div img').click(
+						 function(){
+					j(this).parent().remove();		 
+				 });
+				 var repeatable = j('#custompointer_'+id+'_repeatable').html() == 'true';
+				 var type = j('#custompointer_'+id+'_type').html();
+				 j("#searchboxcustompointer_"+id).autocomplete({
+					delay: 500,
+		            source: function( request, response ) {	
+		                j.ajax({
+		                    url: "searchCustomPointer.htm",
+		                    dataType: "json", 
+		                    data : {																			
+								"elementID" : id,								
+								"query":  request.term,
+								"type": type
+							},                  
+		                    success: function( data ) {
+		                        response( j.map( data.pointers, function( item ) {
+		                            return {
+		                                label: item.display,
+		                                identifier: item.identifyingValue
+		                            }
+		                        }));
+		                    }
+		                });
+		            },		            
+		            minLength: 2,
+		            select: function( event, ui ) {
+		            	if (ui == null || ui.item == null) return false;
+		            	updateSelectedCustomPointer( id, j('#custompointer_'+id+'_tot').html(), repeatable, 
+		                		ui.item.label, ui.item.identifier);
+		            	j('#searchboxcustompointer_'+id).val('');
+		            	return false;
+		            },
+		            open: function() {
+		                j( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+		            },
+		            close: function() {
+		                j( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+		            }
+		        });
+		});
+
 		}
 
 		-->
@@ -543,9 +784,9 @@
 		<fmt:message key="jsp.cris.detail.info.sourceid.none" var="i18nnone" />
 		
 	<div class="panel panel-default">
-	<div class="container">
+		<div class="row">
 		<c:if test="${admin}">
-		<div class="col-md-4">
+		<div class="col-md-6">
 			<div class="cris-edit-eperson">
 				<spring:bind path="epersonID">
 			<c:set var="inputValue">
@@ -559,19 +800,19 @@
 				key="jsp.layout.hku.label.eperson" /></b>				
 			 <input id="eperson" /></span>
 			 <div id="epersonDIV" class="jdyna-pointer-value">
-			 		<input name="epersonID" id="epersonID" type="hidden" value="${inputValue}"/>			 		
+			 		<input name="epersonID" id="epersonID" type="hidden" value="${inputValue}" size="60"/>			 		
 			 		<c:if test="${!empty inputValue}">
 					<script type="text/javascript">
 						activeEperson('${inputValue}');
 					</script>
 					</c:if>				
 			</div>
-			</div>
-			
 		</spring:bind>
 		</div>
+		</div>
 		</c:if>
-		<div class="col-md-4">	
+		<% if(!changeStatusAdmin) { %>
+		<div class="col-md-6">	
 		<div class="cris-edit-status">
 		<spring:bind path="status">
 			<c:set var="inputValue">
@@ -603,9 +844,11 @@
 		</spring:bind>
 		</div>
 		</div>
-		<div class="col-md-4">
-		<div class="cris-edit-record-info">
+		<% } %>
+		</div>
+		<div class="row">
 		<c:set var="disabled" value=" readonly='readonly'"/>
+		<div class="col-md-6">
 		<c:choose>
 		<c:when test="${admin}">
 			<dyna:text labelKey="jsp.cris.detail.info.sourceid" propertyPath="anagraficadto.sourceID" visibility="false"/>
@@ -618,9 +861,11 @@
 			<span class="cris-record-info-sourceref"><b><fmt:message key="jsp.cris.detail.info.sourceref" /></b> ${!empty anagraficadto.sourceRef?anagraficadto.sourceRef:i18nnone}</span>
 		</c:otherwise>
 		</c:choose>
-			<span class="cris-record-info-created"><b><fmt:message key="jsp.cris.detail.info.created" /></b> ${anagraficadto.timeStampCreated}</span>
-			<span class="cris-record-info-updated"><b><fmt:message key="jsp.cris.detail.info.updated" /></b> ${anagraficadto.timeStampModified}</span>
 		</div>
+		<div class="col-md-6">
+			<span class="cris-record-info-created"><b><fmt:message key="jsp.cris.detail.info.created" /></b> ${anagraficadto.timeStampCreated}</span>
+			<div class="dynaClear">&nbsp;</div>
+			<span class="cris-record-info-updated"><b><fmt:message key="jsp.cris.detail.info.updated" /></b> ${anagraficadto.timeStampModified}</span>
 		</div>
 	</div>
 </div>
@@ -630,15 +875,17 @@
 	<input type="hidden" id="newTabId" name="newTabId" />
 	
 	
-	<p style="color: red; text-decoration: underline; font-weight: bold; text-align: center;"><fmt:message key='jsp.rp.edit-tips'/></p>
-	<p style="color: red; text-decoration: underline; font-weight: bold; text-align: center;"><fmt:message key='jsp.rp.values.from.registry'/></p>
+	<p class="alert alert-info"><fmt:message key='jsp.rp.edit-tips'/></p>
 
 				<div id="tabs">
 		<ul>
 					<c:forEach items="${tabList}" var="area" varStatus="rowCounter">
 			<li id="bar-tab-${area.id}">
-				<a href="#tab-${area.id}"><img style="width: 16px;vertical-align: middle;" border="0" 
-					src="<%=request.getContextPath()%>/cris/researchertabimage/${area.id}" alt="icon">
+				<a href="#tab-${area.id}">
+				<c:if test="${!empty area.ext}">
+				<img style="width: 16px;vertical-align: middle;" border="0" 
+					src="<%=request.getContextPath()%>/cris/researchertabimage/${area.id}" alt="icon" />
+				</c:if>	
 				${area.title}</a>
 			</li>
 					</c:forEach>
@@ -691,6 +938,7 @@
 				
 				
 						<c:set var="holder" value="${holder}" scope="request"/>
+						<c:set var="extra" value="${extra}" scope="request"/>
 						<c:set var="isThereMetadataNoEditable" value="${isThereMetadataNoEditable}" scope="request"/>												
 						<c:import url="${urljspcustom}" />
 					
@@ -778,7 +1026,7 @@
 				
 <% } %>
 				</c:forEach>
-<br/>
+<div class="dynaClear">&nbsp;</div>
 <div class="jdyna-form-button">
 				<input id="submit_save" class="btn btn-primary" type="submit"
 					value="<fmt:message key="jsp.layout.hku.researcher.button.save"/>" />
@@ -789,7 +1037,22 @@
 </div>				
 				
 </form:form>
-</div>
 <div id="alert_eperson_dialog"></div>
 <div id="nested_edit_dialog">&nbsp;</div>
+<div id="classificationtree_modal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+		<div id="jstree_div"></div>         
+      </div>
+      <div class="modal-footer">
+        
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 </dspace:layout>

@@ -13,38 +13,32 @@
   -
   - Attributes:
   -    mydspace.user:    current user (EPerson)
-  -    workspace.items:  WorkspaceItem[] array for this user
-  -    workflow.items:   WorkflowItem[] array of submissions from this user in
+  -    workspace.items:  List<WorkspaceItem> array for this user
+  -    workflow.items:   List<WorkflowItem> array of submissions from this user in
   -                      workflow system
-  -    workflow.owned:   WorkflowItem[] array of tasks owned
-  -    workflow.pooled   WorkflowItem[] array of pooled tasks
+  -    workflow.owned:   List<WorkflowItem> array of tasks owned
+  -    workflow.pooled   List<WorkflowItem> array of pooled tasks
   --%>
 
 <%@ page contentType="text/html;charset=UTF-8" %>
 
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
-    prefix="fmt" %>
-
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
 <%@ page  import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
-
+<%@ page import="org.apache.commons.lang3.StringUtils"%>
+<%@ page import="org.dspace.core.ConfigurationManager"%>
 <%@ page import="org.dspace.app.webui.servlet.MyDSpaceServlet" %>
-<%@ page import="org.dspace.content.Collection" %>
-<%@ page import="org.dspace.content.DCDate" %>
-<%@ page import="org.dspace.content.Metadatum" %>
-<%@ page import="org.dspace.content.Item" %>
-<%@ page import="org.dspace.content.SupervisedItem" %>
 <%@ page import="org.dspace.content.WorkspaceItem" %>
 <%@ page import="org.dspace.core.Utils" %>
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="org.dspace.eperson.Group"   %>
-<%@ page import="org.dspace.workflow.WorkflowItem" %>
-<%@ page import="org.dspace.workflow.WorkflowManager" %>
+<%@ page import="org.dspace.workflowbasic.BasicWorkflowItem" %>
 <%@ page import="java.util.List" %>
 <%@page import="org.dspace.services.ConfigurationService"%>
 <%@page import="org.dspace.utils.DSpace"%>
 <%@page import="org.dspace.app.itemimport.BatchUpload"%>
+<%@ page import="org.dspace.workflowbasic.service.BasicWorkflowService" %>
 
 <%
     EPerson user = (EPerson) request.getAttribute("mydspace.user");
@@ -53,23 +47,24 @@
 	Boolean admin = (Boolean)request.getAttribute("is.admin");
 	boolean isAdmin = (admin == null ? false : admin.booleanValue());
 	
-    WorkspaceItem[] workspaceItems =
-        (WorkspaceItem[]) request.getAttribute("workspace.items");
 
-    WorkflowItem[] workflowItems =
-        (WorkflowItem[]) request.getAttribute("workflow.items");
+    List<WorkspaceItem> workspaceItems =
+        (List<WorkspaceItem>) request.getAttribute("workspace.items");
 
-    WorkflowItem[] owned =
-        (WorkflowItem[]) request.getAttribute("workflow.owned");
+    List<BasicWorkflowItem> workflowItems =
+        (List<BasicWorkflowItem>) request.getAttribute("workflow.items");
 
-    WorkflowItem[] pooled =
-        (WorkflowItem[]) request.getAttribute("workflow.pooled");
+    List<BasicWorkflowItem> owned =
+        (List<BasicWorkflowItem>) request.getAttribute("workflow.owned");
+
+    List<BasicWorkflowItem> pooled =
+        (List<BasicWorkflowItem>) request.getAttribute("workflow.pooled");
 	
-    Group [] groupMemberships =
-        (Group []) request.getAttribute("group.memberships");
+    List<Group> groupMemberships =
+        (List<Group>) request.getAttribute("group.memberships");
 
-    SupervisedItem[] supervisedItems =
-        (SupervisedItem[]) request.getAttribute("supervised.items");
+    List<WorkspaceItem> supervisedItems =
+        (List<WorkspaceItem>) request.getAttribute("supervised.items");
     
     List<String> exportsAvailable = (List<String>)request.getAttribute("export.archives");
     
@@ -80,7 +75,7 @@
     boolean displayGroupMembership = (displayMembership == null ? false : displayMembership.booleanValue());
     
     ConfigurationService configurationService = new DSpace().getConfigurationService();
-    boolean crisEnabled = configurationService.getPropertyAsType("cris.enabled", false);
+    boolean crisEnabled = ConfigurationManager.getBooleanProperty("cris", "mydspace.enabled", "enabled");
     boolean rpChangeStatusAdmin =  configurationService.getPropertyAsType("cris.rp.changestatus.admin", false);
 
     if (crisEnabled)
@@ -233,7 +228,7 @@
 		
 <%-- Task list:  Only display if the user has any tasks --%>
 <%
-    if (owned.length > 0)
+    if (owned.size() > 0)
     {
 %>
     <h3><fmt:message key="jsp.mydspace.main.heading2"/></h3>
@@ -257,35 +252,37 @@
         // easier reading.
         String row = "even";
 
-        for (int i = 0; i < owned.length; i++)
+        for (int i = 0; i < owned.size(); i++)
         {
-            Metadatum[] titleArray =
-                owned[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                                                  : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
-            EPerson submitter = owned[i].getItem().getSubmitter();
+            String title =
+                owned.get(i).getItem().getName();
+            if (StringUtils.isBlank(title)) {
+				title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");
+            }
+                                                  
+            EPerson submitter = owned.get(i).getItem().getSubmitter();
 %>
         <tr>
                 <td headers="t1" class="<%= row %>RowOddCol">
 <%
-            switch (owned[i].getState())
+            switch (owned.get(i).getState())
             {
 
             //There was once some code...
-            case WorkflowManager.WFSTATE_STEP1: %><fmt:message key="jsp.mydspace.main.sub1"/><% break;
-            case WorkflowManager.WFSTATE_STEP2: %><fmt:message key="jsp.mydspace.main.sub2"/><% break;
-            case WorkflowManager.WFSTATE_STEP3: %><fmt:message key="jsp.mydspace.main.sub3"/><% break;
+            case BasicWorkflowService.WFSTATE_STEP1: %><fmt:message key="jsp.mydspace.main.sub1"/><% break;
+            case BasicWorkflowService.WFSTATE_STEP2: %><fmt:message key="jsp.mydspace.main.sub2"/><% break;
+            case BasicWorkflowService.WFSTATE_STEP3: %><fmt:message key="jsp.mydspace.main.sub3"/><% break;
             }
 %>
                 </td>
                 <td headers="t2" class="<%= row %>RowEvenCol"><%= Utils.addEntities(title) %></td>
-                <td headers="t3" class="<%= row %>RowOddCol"><%= owned[i].getCollection().getMetadata("name") %></td>
+                <td headers="t3" class="<%= row %>RowOddCol"><%= owned.get(i).getCollection().getName() %></td>
                 <td headers="t4" class="<%= row %>RowEvenCol"><a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a></td>
                 <!-- <td headers="t5" class="<%= row %>RowOddCol"></td> -->
                 <td headers="t5" class="<%= row %>RowEvenCol">
                      <form action="<%= request.getContextPath() %>/mydspace" method="post">
                         <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>" />
-                        <input type="hidden" name="workflow_id" value="<%= owned[i].getID() %>" />  
+                        <input type="hidden" name="workflow_id" value="<%= owned.get(i).getID() %>" />  
                         <input class="btn btn-primary" type="submit" name="submit_perform" value="<fmt:message key="jsp.mydspace.main.perform.button"/>" />  
                         <input class="btn btn-default" type="submit" name="submit_return" value="<fmt:message key="jsp.mydspace.main.return.button"/>" />
                      </form> 
@@ -300,7 +297,7 @@
     }
 
     // Pooled tasks - only show if there are any
-    if (pooled.length > 0)
+    if (pooled.size() > 0)
     {
 %>
     <h3><fmt:message key="jsp.mydspace.main.heading3"/></h3>
@@ -324,32 +321,33 @@
         // easier reading.
         String row = "even";
 
-        for (int i = 0; i < pooled.length; i++)
+        for (int i = 0; i < pooled.size(); i++)
         {
-            Metadatum[] titleArray =
-                pooled[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
-            EPerson submitter = pooled[i].getItem().getSubmitter();
+            String title =
+                pooled.get(i).getItem().getName();
+            if (StringUtils.isBlank(title)) {
+            	title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");            	
+            }
+            EPerson submitter = pooled.get(i).getItem().getSubmitter();
 %>
         <tr>
                     <td headers="t6" class="<%= row %>RowOddCol">
 <%
-            switch (pooled[i].getState())
+            switch (pooled.get(i).getState())
             {
-            case WorkflowManager.WFSTATE_STEP1POOL: %><fmt:message key="jsp.mydspace.main.sub1"/><% break;
-            case WorkflowManager.WFSTATE_STEP2POOL: %><fmt:message key="jsp.mydspace.main.sub2"/><% break;
-            case WorkflowManager.WFSTATE_STEP3POOL: %><fmt:message key="jsp.mydspace.main.sub3"/><% break;
+            case BasicWorkflowService.WFSTATE_STEP1POOL: %><fmt:message key="jsp.mydspace.main.sub1"/><% break;
+            case BasicWorkflowService.WFSTATE_STEP2POOL: %><fmt:message key="jsp.mydspace.main.sub2"/><% break;
+            case BasicWorkflowService.WFSTATE_STEP3POOL: %><fmt:message key="jsp.mydspace.main.sub3"/><% break;
             }
 %>
                     </td>
                     <td headers="t7" class="<%= row %>RowEvenCol"><%= Utils.addEntities(title) %></td>
-                    <td headers="t8" class="<%= row %>RowOddCol"><%= pooled[i].getCollection().getMetadata("name") %></td>
+                    <td headers="t8" class="<%= row %>RowOddCol"><%= pooled.get(i).getCollection().getName() %></td>
                     <td headers="t9" class="<%= row %>RowEvenCol"><a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a></td>
                     <td class="<%= row %>RowOddCol">
                         <form action="<%= request.getContextPath() %>/mydspace" method="post">
                             <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>" />
-                            <input type="hidden" name="workflow_id" value="<%= pooled[i].getID() %>" />
+                            <input type="hidden" name="workflow_id" value="<%= pooled.get(i).getID() %>" />
                             <input class="btn btn-default" type="submit" name="submit_claim" value="<fmt:message key="jsp.mydspace.main.take.button"/>" />
                         </form> 
                     </td>
@@ -363,7 +361,7 @@
     }
 
     // Display workspace items (authoring or supervised), if any
-    if (workspaceItems.length > 0 || supervisedItems.length > 0)
+    if (workspaceItems.size() > 0 || supervisedItems.size() > 0)
     {
         // even or odd row:  Starts even since header row is odd (1)
         String row = "even";
@@ -382,7 +380,7 @@
             <th id="t13" class="oddRowOddCol">&nbsp;</th>
         </tr>
 <%
-        if (supervisedItems.length > 0 && workspaceItems.length > 0)
+        if (supervisedItems.size() > 0 && workspaceItems.size() > 0)
         {
 %>
         <tr>
@@ -394,18 +392,19 @@
 <%
         }
 
-        for (int i = 0; i < workspaceItems.length; i++)
+        for (int i = 0; i < workspaceItems.size(); i++)
         {
-            Metadatum[] titleArray =
-                workspaceItems[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
-            EPerson submitter = workspaceItems[i].getItem().getSubmitter();
+            String title =
+                workspaceItems.get(i).getItem().getName();
+            if (StringUtils.isBlank(title)) {
+            	title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled"); 
+            }
+            EPerson submitter = workspaceItems.get(i).getItem().getSubmitter();
 %>
         <tr>
             <td class="<%= row %>RowOddCol">
                 <form action="<%= request.getContextPath() %>/workspace" method="post">
-                    <input type="hidden" name="workspace_id" value="<%= workspaceItems[i].getID() %>"/>
+                    <input type="hidden" name="workspace_id" value="<%= workspaceItems.get(i).getID() %>"/>
                     <input class="btn btn-default" type="submit" name="submit_open" value="<fmt:message key="jsp.mydspace.general.open" />"/>
                 </form>
             </td>
@@ -413,11 +412,11 @@
                 <a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a>
             </td>
             <td headers="t11" class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
-            <td headers="t12" class="<%= row %>RowEvenCol"><%= workspaceItems[i].getCollection().getMetadata("name") %></td>
+            <td headers="t12" class="<%= row %>RowEvenCol"><%= workspaceItems.get(i).getCollection().getName() %></td>
             <td headers="t13" class="<%= row %>RowOddCol">
                 <form action="<%= request.getContextPath() %>/mydspace" method="post">
                     <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>"/>
-                    <input type="hidden" name="workspace_id" value="<%= workspaceItems[i].getID() %>"/>
+                    <input type="hidden" name="workspace_id" value="<%= workspaceItems.get(i).getID() %>"/>
                     <input class="btn btn-danger" type="submit" name="submit_delete" value="<fmt:message key="jsp.mydspace.general.remove" />"/>
                 </form> 
             </td>
@@ -429,7 +428,7 @@
 
 <%-- Start of the Supervisors workspace list --%>
 <%
-        if (supervisedItems.length > 0)
+        if (supervisedItems.size() > 0)
         {
 %>
         <tr>
@@ -440,19 +439,20 @@
 <%
         }
 
-        for (int i = 0; i < supervisedItems.length; i++)
+        for (int i = 0; i < supervisedItems.size(); i++)
         {
-            Metadatum[] titleArray =
-                supervisedItems[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
-            EPerson submitter = supervisedItems[i].getItem().getSubmitter();
+            String title =
+                supervisedItems.get(i).getItem().getName();
+            if (StringUtils.isBlank(title)) {
+            	title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled"); 
+            }
+            EPerson submitter = supervisedItems.get(i).getItem().getSubmitter();
 %>
 
         <tr>
             <td class="<%= row %>RowOddCol">
                 <form action="<%= request.getContextPath() %>/workspace" method="post">
-                    <input type="hidden" name="workspace_id" value="<%= supervisedItems[i].getID() %>"/>
+                    <input type="hidden" name="workspace_id" value="<%= supervisedItems.get(i).getID() %>"/>
                     <input class="btn btn-default" type="submit" name="submit_open" value="<fmt:message key="jsp.mydspace.general.open" />"/>
                 </form>
             </td>
@@ -460,11 +460,11 @@
                 <a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a>
             </td>
             <td class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
-            <td class="<%= row %>RowEvenCol"><%= supervisedItems[i].getCollection().getMetadata("name") %></td>
+            <td class="<%= row %>RowEvenCol"><%= supervisedItems.get(i).getCollection().getName() %></td>
             <td class="<%= row %>RowOddCol">
                 <form action="<%= request.getContextPath() %>/mydspace" method="post">
                     <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>"/>
-                    <input type="hidden" name="workspace_id" value="<%= supervisedItems[i].getID() %>"/>
+                    <input type="hidden" name="workspace_id" value="<%= supervisedItems.get(i).getID() %>"/>
                     <input class="btn btn-default" type="submit" name="submit_delete" value="<fmt:message key="jsp.mydspace.general.remove" />"/>
                 </form>  
             </td>
@@ -480,7 +480,7 @@
 
 <%
     // Display workflow items, if any
-    if (workflowItems.length > 0)
+    if (workflowItems.size() > 0)
     {
         // even or odd row:  Starts even since header row is odd (1)
         String row = "even";
@@ -493,20 +493,21 @@
             <th id="t15" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
         </tr>
 <%
-        for (int i = 0; i < workflowItems.length; i++)
+        for (int i = 0; i < workflowItems.size(); i++)
         {
-            Metadatum[] titleArray =
-                workflowItems[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            String title =
+                workflowItems.get(i).getItem().getName();
+            if (StringUtils.isBlank(title)) {
+            	title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled"); 
+            }
 %>
             <tr>
                 <td headers="t14" class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
                 <td headers="t15" class="<%= row %>RowEvenCol">
                    <form action="<%= request.getContextPath() %>/mydspace" method="post">
-                       <%= workflowItems[i].getCollection().getMetadata("name") %>
+                       <%= workflowItems.get(i).getCollection().getName() %>
                        <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>" />
-                       <input type="hidden" name="workflow_id" value="<%= workflowItems[i].getID() %>" />
+                       <input type="hidden" name="workflow_id" value="<%= workflowItems.get(i).getID() %>" />
                    </form>   
                 </td>
             </tr>
@@ -518,16 +519,16 @@
 <%
   }
 
-  if(displayGroupMembership && groupMemberships.length>0)
+  if(displayGroupMembership && groupMemberships.size()>0)
   {
 %>
     <h3><fmt:message key="jsp.mydspace.main.heading6"/></h3>
     <ul>
 <%
-    for(int i=0; i<groupMemberships.length; i++)
+    for(int i=0; i<groupMemberships.size(); i++)
     {
 %>
-    <li><%=groupMemberships[i].getName()%></li> 
+    <li><%=groupMemberships.get(i).getName()%></li> 
 <%    
     }
 %>
@@ -611,19 +612,19 @@
 	
 	<script>
 		function showMoreClicked(index){
-			$('#moreinfo_'+index).toggle( "slow", function() {
+			j('#moreinfo_'+index).toggle( "slow", function() {
 				// Animation complete.
 			  });
-			$('#a1_'+index).toggle();
-			$('#a2_'+index).toggle();
+			j('#a1_'+index).toggle();
+			j('#a2_'+index).toggle();
 		}
 		
 		function showItemsClicked(index){
-			$('#iteminfo_'+index).toggle( "slow", function() {
+			j('#iteminfo_'+index).toggle( "slow", function() {
 				// Animation complete.
 			  });
-			$('#a3_'+index).toggle();
-			$('#a4_'+index).toggle();
+			j('#a3_'+index).toggle();
+			j('#a4_'+index).toggle();
 		}
 	</script>
 	

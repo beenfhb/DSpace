@@ -7,8 +7,6 @@
  */
 package org.dspace.app.webui.cris.servlet;
 
-import flexjson.JSONSerializer;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,8 +23,10 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.json.JSONRequest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.utils.DSpace;
+
+import flexjson.JSONSerializer;
 
 public class JSONDeptNetworkServlet extends JSONRequest {
 	/** log4j category */
@@ -47,8 +47,8 @@ public class JSONDeptNetworkServlet extends JSONRequest {
 		
 		String connection = req.getParameter("connection");
 
-		NetworkPlugin plugin = (NetworkPlugin) PluginManager.getNamedPlugin(
-		        NetworkPlugin.CFG_MODULE, NetworkPlugin.class, connection);
+		NetworkPlugin plugin = (NetworkPlugin) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(
+		        NetworkPlugin.class, connection);
 		
 		
 		String showEXT = req.getParameter("showexternal");

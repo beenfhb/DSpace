@@ -7,11 +7,12 @@
  */
 package org.dspace.usage;
 
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.Context;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.Context;
 
 /**
  * Extends the standard usage event to contain search information

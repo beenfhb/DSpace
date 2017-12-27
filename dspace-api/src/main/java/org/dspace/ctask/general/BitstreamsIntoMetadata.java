@@ -7,6 +7,9 @@
  */
 package org.dspace.ctask.general;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -15,9 +18,6 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.curate.AbstractCurationTask;
 import org.dspace.curate.Curator;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * A curation job to take bitstream URLs and place them into metadata elements.
@@ -28,10 +28,10 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
 {
 
     // The status of this item
-    private int status = Curator.CURATE_UNSET;
+    protected int status = Curator.CURATE_UNSET;
 
     // The results of processing this
-    private List<String> results = null;
+    protected List<String> results = null;
 
     // The log4j logger for this class
     private static Logger log = Logger.getLogger(BitstreamsIntoMetadata.class);
@@ -57,7 +57,7 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
         {
             try {
                 Item item = (Item)dso;
-                item.clearMetadata("dc", "format", Item.ANY, Item.ANY);
+                itemService.clearMetadata(Curator.curationContext(), item, "dc", "format", Item.ANY, Item.ANY);
                 for (Bundle bundle : item.getBundles()) {
                     if ("ORIGINAL".equals(bundle.getName())) {
                         for (Bitstream bitstream : bundle.getBitstreams()) {
@@ -74,7 +74,7 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
                     }
 
                     if (changed) {
-                        item.update();
+                        itemService.update(Curator.curationContext(), item);
                         status = Curator.CURATE_SUCCESS;
                     }
                 }
@@ -102,7 +102,7 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
      *
      * @param message The message to log
      */
-    private void logDebugMessage(String message)
+    protected void logDebugMessage(String message)
     {
         if (log.isDebugEnabled())
         {
@@ -117,8 +117,8 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
      * @param bitstream The bitstream
      * @param type The type of bitstream
      */
-    private void addMetadata(Item item, Bitstream bitstream, String type) {
-        String value = bitstream.getFormat().getMIMEType() + "##";
+    protected void addMetadata(Item item, Bitstream bitstream, String type) throws SQLException {
+        String value = bitstream.getFormat(Curator.curationContext()).getMIMEType() + "##";
         value += bitstream.getName() + "##";
         value += bitstream.getSize() + "##";
         value += item.getHandle() + "##";
@@ -127,6 +127,6 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
         if (bitstream.getDescription() != null) {
             value += bitstream.getDescription();
         }
-        item.addMetadata("dc", "format", type, "en", value);
+        itemService.addMetadata(Curator.curationContext(), item, "dc", "format", type, "en", value);
     }
 }

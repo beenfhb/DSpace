@@ -14,8 +14,11 @@ import org.dspace.app.xmlui.wing.element.Body;
 import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.ReferenceSet;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -33,6 +36,7 @@ public class CollectionRecentSubmissions extends AbstractRecentSubmissionTransfo
     private static final Message T_head_recent_submissions =
             message("xmlui.ArtifactBrowser.CollectionViewer.head_recent_submissions");
 
+    protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     /**
      * Displays the recent submissions for this collection
@@ -70,13 +74,13 @@ public class CollectionRecentSubmissions extends AbstractRecentSubmissionTransfo
                     "collection-last-submitted", ReferenceSet.TYPE_SUMMARY_LIST,
                     null, "recent-submissions");
 
-            for (DSpaceObject resultObj : queryResults.getDspaceObjects()) {
+            for (BrowsableDSpaceObject resultObj : queryResults.getDspaceObjects()) {
                 if(resultObj != null){
                     lastSubmitted.addReference(resultObj);
                 }
             }
 
-            if (collection.countItems() > maxRecentSubmissions)
+            if (itemService.countItems(context, collection) > maxRecentSubmissions)
                 addViewMoreLink(lastSubmittedDiv, collection);
         }
     }

@@ -7,11 +7,11 @@
  */
 package org.dspace.app.webui.cris.controller;
 
-import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
-
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,18 +29,24 @@ import org.dspace.app.cris.model.jdyna.TabProject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
+import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
 
 /**
  * This SpringMVC controller is used to build the ResearcherPage details page.
@@ -57,7 +63,7 @@ public class ProjectDetailsController
 
     private CrisSubscribeService subscribeService;
 
-    
+    private List<ICrisHomeProcessor<Project>> processors;
     
     public ProjectDetailsController(Class<Project> anagraficaObjectClass,
             Class<ProjectPropertiesDefinition> classTP,
@@ -88,13 +94,19 @@ public class ProjectDetailsController
 
         Context context = UIUtil.obtainContext(request);
 
-        EPerson currentUser = context.getCurrentUser();
+        EPerson currUser = context.getCurrentUser();
+        if(currUser != null) {
+            model.put("isLoggedIn", new Boolean(true));    
+        }
+        else {
+            model.put("isLoggedIn", new Boolean(false));
+        }
         
         if ((grant.getStatus() == null || grant.getStatus().booleanValue() == false)
-                && !AuthorizeManager.isAdmin(context))
+                && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             
-            if (currentUser != null
+            if (currUser != null
                     || Authenticate.startAuthentication(context, request,
                             response))
             {
@@ -113,7 +125,7 @@ public class ProjectDetailsController
             return null;
         }
 
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             model.put("grant_page_menu", new Boolean(true));
         }
@@ -132,11 +144,39 @@ public class ProjectDetailsController
         
         if (subscribeService != null)
         {
-            boolean subscribed = subscribeService.isSubscribed(currentUser,
+            boolean subscribed = subscribeService.isSubscribed(currUser,
                     grant);
             model.put("subscribed", subscribed);
            
         }
+        
+        List<ICrisHomeProcessor<Project>> resultProcessors = new ArrayList<ICrisHomeProcessor<Project>>();
+        Map<String, Object> extraTotal = new HashMap<String, Object>();
+        Map<String, ItemMetricsDTO> metricsTotal = new HashMap<String, ItemMetricsDTO>();
+        List<String> metricsTypeTotal = new ArrayList<String>();
+        for (ICrisHomeProcessor processor : processors)
+        {
+            if (Project.class.isAssignableFrom(processor.getClazz()))
+            {
+                processor.process(context, request, response, grant);
+                Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
+                if(extra!=null && !extra.isEmpty()) {
+                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
+                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                    if(metrics!=null && !metrics.isEmpty()) {
+                        metricsTotal.putAll(metrics);
+                    }
+                    if(metricTypes!=null && !metricTypes.isEmpty()) {
+                        metricsTypeTotal.addAll(metricTypes);
+                    }
+                }
+            }
+        }
+        extraTotal.put("metricTypes", metricsTypeTotal);
+        extraTotal.put("metrics", metricsTotal);
+        request.setAttribute("extra", extraTotal);  
+        mvc.getModel().put("exportscitations",
+                ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options"));
         
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);
         new DSpace().getEventService().fireEvent(
@@ -157,19 +197,22 @@ public class ProjectDetailsController
             HttpServletResponse response) throws SQLException, Exception
     {
 
-        // check admin authorization
-        Boolean isAdmin = null; // anonymous access
+        Integer entityId = extractEntityId(request);
+        
+        if(entityId==null) {
+            return null;
+        }
         Context context = UIUtil.obtainContext(request);
 
-        if (AuthorizeManager.isAdmin(context))
-        {
-            isAdmin = true; // admin
+        List<TabProject> tabs = applicationService.getList(TabProject.class);
+        List<TabProject> authorizedTabs = new LinkedList<TabProject>();
+        
+        for(TabProject tab : tabs) {
+            if(CrisAuthorizeManager.authorize(context, applicationService, Project.class, ProjectPropertiesDefinition.class, entityId, tab)) {
+                authorizedTabs.add(tab);
+            }
         }
-
-        List<TabProject> tabs = applicationService.getTabsByVisibility(
-                TabProject.class, isAdmin);
-
-        return tabs;
+        return authorizedTabs;
     }
 
     @Override
@@ -252,5 +295,15 @@ public class ProjectDetailsController
     public void setSubscribeService(CrisSubscribeService rpSubscribeService)
     {
         this.subscribeService = rpSubscribeService;
+    }
+
+	public void setProcessors(List<ICrisHomeProcessor<Project>> processors) {
+		this.processors = processors;
+	}
+	
+    @Override
+    protected boolean authorize(HttpServletRequest request, BoxProject box) throws SQLException
+    {
+        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), Project.class, ProjectPropertiesDefinition.class, extractEntityId(request), box);
     }
 }

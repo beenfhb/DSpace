@@ -7,6 +7,7 @@
  */
 package org.dspace.app.webui.cris.components;
 
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,22 +16,27 @@ import java.util.MissingResourceException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.app.cris.model.ResearchObject;
+import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
-import org.dspace.discovery.DiscoverResult.FacetResult;
 import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.DiscoverResult.FacetResult;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
+import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.services.RequestService;
+import org.dspace.utils.DSpace;
 
-public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
+public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpaceObject>
         extends ASolrConfigurerComponent<T, ICrisBeanComponent> implements
         IFacetedQueryConfigurerComponent
 {
@@ -39,47 +45,55 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
     private static Logger log = Logger
             .getLogger(AFacetedQueryConfigurerComponent.class);
 
-        
+    private List<DiscoverySearchFilterFacet> facets;
+    
     @Override
-    protected List<String[]> addActiveTypeInRequest(HttpServletRequest request)
+    protected List<String[]> addActiveTypeInRequest(HttpServletRequest request, String currentType)
             throws Exception
     {
         ACrisObject cris = getCrisObject(request);
         Context c = UIUtil.obtainContext(request);
         List<String[]> subLinks = new ArrayList<String[]>();
 
-        DiscoverResult docs = search(c, cris, 0, 0, null, true);
+        DiscoverResult docs = search(c, request, currentType, cris, 0, 0, null, true);
         if (docs.getTotalSearchResults() > 0)
         {
-            for (String type : docs.getFacetResults().keySet())
+            for (String type : docs.getFacetQueryResults().keySet())
             {
-                Long size = docs.getFacetResults().get(type).get(0).getCount();
+                FacetResult facetResult = docs.getFacetQueryResults().get(type).get(0);
+                Long size = facetResult
+                        .getCount();
                 String message = "";
                 try
                 {
                     message = I18nUtil.getMessage(
                             "jsp.layout.dspace.detail.fieldset-legend.component."
-                            + type, c);
+                                    + type,
+                            c);
                 }
                 catch (MissingResourceException e)
                 {
-                    log.warn("Missing Resource: jsp.layout.dspace.detail.fieldset-legend.component." + type);
+                    log.warn(
+                            "Missing Resource: jsp.layout.dspace.detail.fieldset-legend.component."
+                                    + type);
                     message = I18nUtil.getMessage(
-                            "jsp.layout.dspace.detail.fieldset-legend.component.default"
-                            , c);
+                            "jsp.layout.dspace.detail.fieldset-legend.component.default",
+                            c);
                 }
-                
-                subLinks.add(new String[] {
-                        type,
+
+                subLinks.add(new String[] { type,
                         MessageFormat.format(message, size), "" + size });
             }
         }
-        request.setAttribute("activeTypes"
-                + getRelationConfiguration().getRelationName(), subLinks);
+
+        request.setAttribute(
+                "activeTypes" + getRelationConfiguration().getRelationName(),
+                subLinks);
+
         return subLinks;
     }
 
-    protected DiscoverResult search(Context context, ACrisObject cris, int start,
+    protected DiscoverResult search(Context context, HttpServletRequest request, String type, ACrisObject cris, int start,
             int rpp, String orderfield, boolean ascending)
             throws SearchServiceException
     {
@@ -89,16 +103,16 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
             start = 0;
         }
         String authority = cris.getCrisID();
-        String uuid = cris.getUuid();
+        String uuid = cris.getUuid().toString();
 
         String query = MessageFormat.format(getRelationConfiguration()
                 .getQuery(), authority, uuid);
 
-        DiscoverQuery solrQuery = new DiscoverQuery();
-        solrQuery.setFacetMinCount(1);
+        DiscoverQuery discoveryQuery = new DiscoverQuery();
+        discoveryQuery.setFacetMinCount(1);
         try
         {
-            solrQuery.addFilterQueries(getTypeFilterQuery());
+            discoveryQuery.addFilterQueries(getTypeFilterQuery());
         }
         catch (InstantiationException e)
         {
@@ -108,33 +122,79 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         {
             log.error(e.getMessage(), e);
         }
-        solrQuery.setQuery(query);
-        solrQuery.addSearchField("search.resourceid");
-        solrQuery.addSearchField("search.resourcetype");
-        solrQuery.setStart(start);
-        solrQuery.setMaxResults(rpp);
+        discoveryQuery.setQuery(query);
+        discoveryQuery.setStart(start);
+        discoveryQuery.setMaxResults(rpp);
         if (orderfield == null)
         {
             orderfield = "score";
         }
-        solrQuery.setSortField(orderfield, ascending ? SORT_ORDER.asc
+        discoveryQuery.setSortField(orderfield, ascending ? SORT_ORDER.asc
                 : SORT_ORDER.desc);
 
         for (ICrisBeanComponent facetComponent : getTypes().values())
         {
             String format = MessageFormat.format(
                     facetComponent.getFacetQuery(), authority, uuid);
-            solrQuery.addFacetQuery(format);
-            solrQuery.getNamedFacetQueries().put(format, facetComponent.getComponentIdentifier());
+            discoveryQuery.addFacetQuery("{!ex=dt key="+facetComponent.getComponentIdentifier()+"}"+format);
+            discoveryQuery.getNamedFacetQueries().put(facetComponent.getComponentIdentifier(), format);
         }
 
+        for (DiscoverySearchFilterFacet facet : getFacets()) {
+
+            discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+                    facet.getType(), facet.getFacetLimit(), facet.getSortOrder(), false));
+        }
+        
+        
+        List<String> userFilters = new ArrayList<String>();
+        if (request != null)
+        {
+            List<String[]> filters = DiscoverUtility.getFilters(request, getRelationConfiguration().getRelationName());
+            for (String[] f : filters)
+            {
+                try
+                {
+                    String newFilterQuery = SearchUtils.getSearchService()
+                            .toFilterQuery(context, f[0], f[1], f[2])
+                            .getFilterQuery();
+                    if (StringUtils.isNotBlank(newFilterQuery))
+                    {
+                        discoveryQuery.addFilterQueries("{!tag=dt}"+newFilterQuery);
+                        userFilters.add(("{!tag=dt}"+newFilterQuery));
+                    }
+                }
+                catch (SQLException e)
+                {
+                    log.error(
+                            LogManager.getHeader(context,
+                                    "Error in discovery while setting up user facet query",
+                                    "filter_field: " + f[0] + ",filter_type:"
+                                            + f[1] + ",filer_value:" + f[2]),
+                            e);
+                }
+
+            }
+
+        }
+        
         if(getCommonFilter()!=null) {            
             String format = MessageFormat.format(getCommonFilter(), getRelationConfiguration().getRelationName(),
                     cris.getUuid(), authority);
-            solrQuery.addFilterQueries(format);
+            discoveryQuery.addFilterQueries(format);
         }    
         
-        return getSearchService().search(context, solrQuery);
+        List<String> filters = getFilters(type);
+
+        if (filters != null)
+        {
+            for (String filter : filters)
+            {
+                discoveryQuery.addFilterQueries("{!tag=dt}"+MessageFormat.format(filter,
+                        authority, uuid));
+            }
+        }
+        return getSearchService().search(context, discoveryQuery);
     }
     
     
@@ -146,20 +206,36 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
                 .getAttribute("activeTypes"+getRelationConfiguration().getRelationName());
         if (subLinks == null)
         {
-            return addActiveTypeInRequest(request);
+            ACrisObject t = getCrisObject(request);
+            if(t!=null) {
+                return addActiveTypeInRequest(request, getType(request, t.getId()));    
+            }
+            else {
+                return addActiveTypeInRequest(request, getType(request, null));
+            }
+            
         }
         return subLinks;
     }
 
-    public long count(String type, Integer id)
+    public long count(HttpServletRequest request, String type, Integer id)
     {
         Context context = null;
 
         try
         {
-            context = new Context();
+            if(request == null) {
+                RequestService requestService = new DSpace().getServiceManager().getServiceByName(RequestService.class.getName(), RequestService.class);
+                if(requestService.getCurrentRequest()!=null) {
+                	request = requestService.getCurrentRequest().getHttpServletRequest();
+                	context = UIUtil.obtainContext(request);
+                }
+                else {
+                	context = new Context();
+                }
+            }            
             ACrisObject cris = getApplicationService().get(getTarget(), id);
-            List<FacetResult> facetresults = search(context, cris, 0, 0, null, true).getFacetResult(type);
+            List<FacetResult> facetresults = search(context, request, type, cris, 0, 0, null, true).getFacetQueryResult(type);
             if(facetresults.isEmpty()) {
                 return 0;    
             }
@@ -170,14 +246,20 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         {
             log.error(ex.getMessage(), ex);
         }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
         return -1;
+    }
+
+    public List<DiscoverySearchFilterFacet> getFacets()
+    {
+        if(this.facets == null) {
+            this.facets = new ArrayList<DiscoverySearchFilterFacet>();
+        }
+        return this.facets;
+    }
+
+    public void setFacets(List<DiscoverySearchFilterFacet> facets)
+    {
+        this.facets = facets;
     }
 
 

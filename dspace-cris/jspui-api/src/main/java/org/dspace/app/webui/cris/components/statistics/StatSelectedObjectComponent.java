@@ -9,6 +9,7 @@ package org.dspace.app.webui.cris.components.statistics;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,19 +21,20 @@ import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 
-public class StatSelectedObjectComponent<T extends DSpaceObject> extends
+public class StatSelectedObjectComponent<T extends BrowsableDSpaceObject> extends
         StatsComponent<T>
 {
 
     protected static String STATS_QUERY = "id:{0}";
 
     @Override
-    public TreeKeyMap query(String id, HttpSolrServer solrServer)
+    public TreeKeyMap query(String id, HttpSolrServer solrServer, Date startDate, Date endDate)
             throws Exception
     {
         statisticDatasBeans = new TreeKeyMap();
@@ -42,7 +44,7 @@ public class StatSelectedObjectComponent<T extends DSpaceObject> extends
             solrServer.setMaxRetries(0);
             SolrQuery solrQuery = new SolrQuery();
 
-            _prepareBasicQuery(solrQuery, StatComponentsService.getYearsQuery());
+            _prepareBasicQuery(solrQuery, StatComponentsService.getYearsQuery(),startDate,endDate);
 
             if (StatComponentsService.isExcludeBot())
             {
@@ -98,8 +100,8 @@ public class StatSelectedObjectComponent<T extends DSpaceObject> extends
     }
 
     @Override
-    public Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger,
-            DSpaceObject object, String dateType, String dateStart,
+    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger,
+    		BrowsableDSpaceObject object, String dateType, String dateStart,
             String dateEnd, int gap) throws SolrServerException
     {
         Map<String, ObjectCount[]> map = new HashMap<String, ObjectCount[]>();

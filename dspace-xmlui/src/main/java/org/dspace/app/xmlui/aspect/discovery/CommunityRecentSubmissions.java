@@ -18,8 +18,11 @@ import org.dspace.app.xmlui.wing.element.Body;
 import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.ReferenceSet;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.xml.sax.SAXException;
 
 /**
@@ -33,6 +36,8 @@ public class CommunityRecentSubmissions extends AbstractRecentSubmissionTransfor
 
     private static final Message T_head_recent_submissions =
             message("xmlui.ArtifactBrowser.CommunityViewer.head_recent_submissions");
+
+    protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     /**
      * Displays the recent submissions for this community
@@ -68,7 +73,7 @@ public class CommunityRecentSubmissions extends AbstractRecentSubmissionTransfor
                     "community-last-submitted", ReferenceSet.TYPE_SUMMARY_LIST,
                     null, "recent-submissions");
 
-            for (DSpaceObject resultObject : queryResults.getDspaceObjects()) {
+            for (BrowsableDSpaceObject resultObject : queryResults.getDspaceObjects()) {
                 if(resultObject != null){
                     lastSubmitted.addReference(resultObject);
                 }
@@ -76,7 +81,7 @@ public class CommunityRecentSubmissions extends AbstractRecentSubmissionTransfor
 
             Community community = (Community) dso;
 
-            if (community.countItems() > maxRecentSubmissions)
+            if (itemService.countItems(context, community) > maxRecentSubmissions)
                 addViewMoreLink(lastSubmittedDiv, dso);
         }
     }

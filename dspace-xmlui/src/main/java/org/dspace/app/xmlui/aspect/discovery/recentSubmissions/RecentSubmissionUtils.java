@@ -7,15 +7,20 @@
  */
 package org.dspace.app.xmlui.aspect.discovery.recentSubmissions;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.discovery.*;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
-
-import java.util.List;
 
 /**
  * Class containing utility methods used to render recent submissions
@@ -29,7 +34,10 @@ public class RecentSubmissionUtils {
     /**
      * Retrieves the recent submitted items of the given scope
      *
+     * @param context session context.
      * @param dso the DSpace object can either be null (indicating home page), a collection or a community
+     * @param offset start here in the list.
+     * @return result.
      */
     public static DiscoverResult getRecentlySubmittedItems(Context context, DSpaceObject dso, int offset) {
         try {
@@ -53,7 +61,7 @@ public class RecentSubmissionUtils {
                     );
                 }
                 SearchService service = SearchUtils.getSearchService();
-                return service.search(context, dso, queryArgs);
+                return service.search(context, (BrowsableDSpaceObject)dso, queryArgs);
             }else{
                 //No configuration, no results
                 return null;
@@ -73,7 +81,7 @@ public class RecentSubmissionUtils {
     }
 
     public static DiscoveryConfiguration getDiscoveryConfiguration(DSpaceObject dso) {
-        return SearchUtils.getDiscoveryConfiguration(dso);
+        return SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
     }
 
 }

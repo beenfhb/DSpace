@@ -7,8 +7,12 @@
  */
 package org.dspace.app.webui.components;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.dspace.content.Item;
+import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.discovery.IGlobalSearchResult;
+import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 
 
 /**
@@ -21,17 +25,17 @@ import org.dspace.content.Item;
 public class RecentSubmissions
 {
 	/** The set of items being represented */
-	private Item[] items;
-	
+	private List<BrowsableDSpaceObject> items;
+	private DiscoveryViewConfiguration configuration;
 	/**
 	 * Construct a new RecentSubmissions object to represent the passed
 	 * array of items
 	 * 
 	 * @param items
 	 */
-	public RecentSubmissions(Item[] items)
+	public RecentSubmissions(List<BrowsableDSpaceObject> items)
 	{
-		this.items = (Item[]) ArrayUtils.clone(items);
+		this.items = items;
 	}
 
 	/**
@@ -41,7 +45,7 @@ public class RecentSubmissions
 	 */
 	public int count()
 	{
-		return items.length;
+		return items.size();
 	}
 	
 	/**
@@ -49,9 +53,9 @@ public class RecentSubmissions
 	 * 
 	 * @return	an array of items
 	 */
-	public Item[] getRecentSubmissions()
+	public List<BrowsableDSpaceObject> getRecentSubmissions()
 	{
-		return (Item[])ArrayUtils.clone(items);
+		return items;
 	}
 	
 	/**
@@ -62,15 +66,25 @@ public class RecentSubmissions
 	 * @param i		the position of the item to retrieve
 	 * @return		the Item
 	 */
-	public Item getRecentSubmission(int i)
+	public IGlobalSearchResult getRecentSubmission(int i)
 	{
-		if (i < items.length)
+		if (i < items.size())
 		{
-			return items[i];
+			return items.get(i);
 		}
 		else
 		{
 			return null;
 		}
 	}
+
+    public DiscoveryViewConfiguration getConfiguration()
+    {
+        return configuration;
+    }
+
+    public void setConfiguration(DiscoveryViewConfiguration configuration)
+    {
+        this.configuration = configuration;
+    }
 }

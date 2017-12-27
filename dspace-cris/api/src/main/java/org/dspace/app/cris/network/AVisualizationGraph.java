@@ -53,7 +53,7 @@ public abstract class AVisualizationGraph implements NetworkPlugin
 
     private static final String FACET_SEARCH = "focus";
 
-    private static final String COLOR_PROPERTY = "network.connection.color";
+    private static final String COLOR_PROPERTY = "connection.color";
 
     private static final String COLOR_SUFFIX_NODE = "node";
 
@@ -83,12 +83,12 @@ public abstract class AVisualizationGraph implements NetworkPlugin
 
     protected Integer getLimitLevel(Integer level)
     {
-        String obj = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.connection."
+        String obj = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "connection."
                 + getConnectionName() + ".nodestoshoweachlevel." + level);
         if (obj == null)
         {
             return ConfigurationManager
-                    .getIntProperty(NetworkPlugin.CFG_MODULE, "network.connection.nodestoshoweachlevel.default") + 1;
+                    .getIntProperty(NetworkPlugin.CFG_MODULE, "connection.nodestoshoweachlevel.default") + 1;
         }
         else
         {
@@ -98,12 +98,12 @@ public abstract class AVisualizationGraph implements NetworkPlugin
     
     public Integer getCustomMaxDepth()
     {
-        String obj = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.connection."
+        String obj = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "connection."
                 + getConnectionName() + ".maxdepth");
         if (obj == null)
         {
             return ConfigurationManager
-                    .getIntProperty(NetworkPlugin.CFG_MODULE, "network.connection.maxdepth");
+                    .getIntProperty(NetworkPlugin.CFG_MODULE, "connection.maxdepth");
         }
         else
         {
@@ -596,9 +596,8 @@ public abstract class AVisualizationGraph implements NetworkPlugin
     protected String getDepartmentFromSOLR(String a_authority) throws SearchServiceException
     {
         SolrQuery solrQuery = new SolrQuery();
-        solrQuery.setQuery("search.resourceid:" +ResearcherPageUtils
-                .getRealPersistentIdentifier(a_authority, ResearcherPage.class) + " AND search.resourcetype:" + CrisConstants.RP_TYPE_ID);
-        solrQuery.setFields("rp_dept");        
+        solrQuery.setQuery("crisrp.this_authority:" + a_authority);
+        solrQuery.setFields("dept_authority");        
         solrQuery.setRows(1);
         QueryResponse rsp = getService().getSearcher().search(solrQuery);
         SolrDocumentList publications = rsp.getResults();
@@ -611,7 +610,7 @@ public abstract class AVisualizationGraph implements NetworkPlugin
             SolrDocument publication = iter.next();
 
             rp_dept = (String) publication
-                    .getFirstValue("rp_dept");
+                    .getFirstValue("dept_authority");
             break;
         }
         
@@ -621,9 +620,8 @@ public abstract class AVisualizationGraph implements NetworkPlugin
     protected String getStatusFromSOLR(String a_authority) throws SearchServiceException
     {
         SolrQuery solrQuery = new SolrQuery();
-        solrQuery.setQuery("search.resourceid:" +ResearcherPageUtils
-                .getRealPersistentIdentifier(a_authority, ResearcherPage.class) + " AND search.resourcetype:" + CrisConstants.RP_TYPE_ID);
-        solrQuery.setFields("rp_boolean_status");        
+        solrQuery.setQuery("crisrp.this_authority:" + a_authority);
+        solrQuery.setFields("disabled");        
         solrQuery.setRows(1);
         QueryResponse rsp = getService().getSearcher().search(solrQuery);
         SolrDocumentList publications = rsp.getResults();
@@ -636,7 +634,7 @@ public abstract class AVisualizationGraph implements NetworkPlugin
             SolrDocument publication = iter.next();
 
             rp_status = (String) publication
-                    .getFirstValue("rp_boolean_status");
+                    .getFirstValue("disabled");
             break;
         }
         

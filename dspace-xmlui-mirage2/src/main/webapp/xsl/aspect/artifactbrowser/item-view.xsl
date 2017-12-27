@@ -181,14 +181,20 @@
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
-                    <img alt="Thumbnail">
-                        <xsl:attribute name="src">
-                            <xsl:value-of select="$src"/>
-                        </xsl:attribute>
-                    </img>
+                    <!-- Checking if Thumbnail is restricted and if so, show a restricted image --> 
+                    <xsl:choose>
+                        <xsl:when test="contains($src,'isAllowed=n')"/>
+                        <xsl:otherwise>
+                            <img class="img-thumbnail" alt="Thumbnail">
+                                <xsl:attribute name="src">
+                                    <xsl:value-of select="$src"/>
+                                </xsl:attribute>
+                            </img>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
-                    <img alt="Thumbnail">
+                    <img class="img-thumbnail" alt="Thumbnail">
                         <xsl:attribute name="data-src">
                             <xsl:text>holder.js/100%x</xsl:text>
                             <xsl:value-of select="$thumbnail.maxheight"/>
@@ -326,7 +332,7 @@
     <xsl:template name="itemSummaryView-DIM-file-section">
         <xsl:choose>
             <xsl:when test="//mets:fileSec/mets:fileGrp[@USE='CONTENT' or @USE='ORIGINAL' or @USE='LICENSE']/mets:file">
-                <div class="item-page-field-wrapper table">
+                <div class="item-page-field-wrapper table word-break">
                     <h5>
                         <i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
                     </h5>
@@ -536,7 +542,7 @@
                         <xsl:choose>
                             <xsl:when test="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
                         mets:file[@GROUPID=current()/@GROUPID]">
-                                <img alt="Thumbnail">
+                                <img class="img-thumbnail" alt="Thumbnail">
                                     <xsl:attribute name="src">
                                         <xsl:value-of select="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
                                     mets:file[@GROUPID=current()/@GROUPID]/mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
@@ -544,7 +550,7 @@
                                 </img>
                             </xsl:when>
                             <xsl:otherwise>
-                                <img alt="Thumbnail">
+                                <img class="img-thumbnail" alt="Thumbnail">
                                     <xsl:attribute name="data-src">
                                         <xsl:text>holder.js/100%x</xsl:text>
                                         <xsl:value-of select="$thumbnail.maxheight"/>

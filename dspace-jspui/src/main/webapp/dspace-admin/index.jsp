@@ -36,18 +36,32 @@
 <%
     // Obtain a context so that the location bar can display log in status
     Context context = null;
+    
+    // Is the logged in user an admin or community admin or collection admin
+    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    boolean isAdmin = (admin == null ? false : admin.booleanValue());
+    
+    Boolean communityAdmin = (Boolean)request.getAttribute("is.communityAdmin");
+    boolean isCommunityAdmin = (communityAdmin == null ? false : communityAdmin.booleanValue());
+ 
+    Boolean collectionAdmin = (Boolean)request.getAttribute("is.collectionAdmin");
+    boolean isCollectionAdmin = (collectionAdmin == null ? false : collectionAdmin.booleanValue());
 
     try
     {
         context = UIUtil.obtainContext(request);
+        String naviAdmin = "admin";
+        if(!isAdmin && (isCommunityAdmin || isCollectionAdmin)){
+            naviAdmin = "community-or-collection-admin";
+        }
 %>
-<dspace:layout style="submission" locbar="link" navbar="admin" titlekey="jsp.administer">
+<dspace:layout style="submission" locbar="link" navbar="<%= naviAdmin %>" titlekey="jsp.administer">
 
     <%-- <h1>Administration Tools</h1> --%>
     <h1><fmt:message key="jsp.dspace-admin.index.heading"/></h1>
     
     <%-- <p>Please select an operation from the main menu bar.</p> --%>
-    <p><fmt:message key="jsp.dspace-admin.index.text"/></p>
+    <p class="blank-page"><fmt:message key="jsp.dspace-admin.index.text"/></p>
 </dspace:layout>
 <%
     }
@@ -63,9 +77,12 @@
         UIUtil.sendAlert(request, se);
 
         JSPManager.showInternalError(request, response);
-    }
-    finally {
-      context.abort();
+    } finally {
+        // we need to close the database connection and free the resources
+        if(context != null && context.isValid())
+        {
+            context.abort();
+        }
     }
 %>
 

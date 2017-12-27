@@ -8,49 +8,44 @@
 package org.dspace.app.webui.util;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.PageContext;
 
-import org.dspace.browse.BrowseItem;
-import org.dspace.content.Metadatum;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.discovery.IGlobalSearchResult;
 
 public interface IDisplayMetadataValueStrategy
 {
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem item,
-            boolean disableCrossLinks, boolean emph, PageContext pageContext)
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject item,
+            boolean disableCrossLinks, boolean emph)
             throws JspException;
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
-            boolean emph, PageContext pageContext) throws JspException;
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            boolean emph) throws JspException;
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem browseItem,
-            boolean disableCrossLinks, boolean emph, PageContext pageContext)
+            boolean b, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
+            boolean disableCrossLinks, boolean emph)
             throws JspException;
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
-            boolean emph, PageContext pageContext) throws JspException;
+            boolean b, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            boolean emph) throws JspException;
+
+    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, IGlobalSearchResult item,
+            boolean disableCrossLinks, boolean emph)
+            throws JspException;
     
-    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            List<String> metadataArray, IGlobalSearchResult item,
-            boolean disableCrossLinks, boolean emph, PageContext pageContext)
-            throws JspException;
-
-    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, IGlobalSearchResult item,
-            boolean disableCrossLinks, boolean emph, PageContext pageContext)
-            throws JspException;
 }

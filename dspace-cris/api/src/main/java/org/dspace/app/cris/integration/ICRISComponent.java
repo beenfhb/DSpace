@@ -7,11 +7,11 @@
  */
 package org.dspace.app.cris.integration;
 
-import it.cilea.osd.jdyna.components.IBeanSubComponent;
-import it.cilea.osd.jdyna.components.IComponent;
-
 import org.dspace.app.cris.configuration.RelationConfiguration;
 import org.dspace.app.cris.integration.statistics.IStatsDualComponent;
+
+import it.cilea.osd.jdyna.components.IBeanSubComponent;
+import it.cilea.osd.jdyna.components.IComponent;
 
 public interface ICRISComponent<IBC extends IBeanSubComponent> extends IComponent<IBC>, IStatsDualComponent
 {

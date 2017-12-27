@@ -38,7 +38,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
         @NamedQuery(name = "DynamicObjectType.findAll", query = "from DynamicObjectType order by id"),
         @NamedQuery(name = "DynamicObjectType.paginate.id.asc", query = "from DynamicObjectType order by id asc"),
         @NamedQuery(name = "DynamicObjectType.paginate.id.desc", query = "from DynamicObjectType order by id desc"),
-        @NamedQuery(name = "DynamicObjectType.uniqueByShortName", query = "from DynamicObjectType where shortName = ?")        
+        @NamedQuery(name = "DynamicObjectType.uniqueByShortName", query = "from DynamicObjectType where shortName = ?"),
+        @NamedQuery(name="DynamicObjectType.findMaskByShortName", query = "select dot.mask from DynamicObjectType dot where dot.shortName = ?" ),
+        @NamedQuery(name="DynamicObjectType.findMaskById", query = "select dot.mask from DynamicObjectType dot where dot.id = ?" ),
+        @NamedQuery(name="DynamicObjectType.findNestedMaskById", query = "select dot.typeNestedDefinitionMask from DynamicObjectType dot where dot.id = ?" )
 })        
 public class DynamicObjectType extends ATypeWithTypeNestedObjectSupport<DynamicPropertiesDefinition, DynamicTypeNestedObject, DynamicNestedPropertiesDefinition>
 {

@@ -68,7 +68,7 @@
 									<a target="_blank" href="<%=request.getContextPath()%>/cris/rp/${authoritytarget}">
 											<img title="A preview ${authoritytarget} picture"
 												src="researcherimage/${authoritytarget}"
-												alt="${authoritytarget} picture" name="picture" id="picture" /> </a>
+												alt="${authoritytarget} picture" name="picture" id="picture" onError="this.onerror=null;this.src='<%=request.getContextPath() %>/image/cris/photo_not_available.png'" /> </a>
 																			
 						</div>
 					<div class="otherminimized">
@@ -196,17 +196,19 @@ j(".deptvisualizationprofiletwice").click(function(){
 								"relation" : parameterId,
 								"with" : "${authoritytarget}"
 							},
-							success : function(data) {								
+							success : function(data) {
+								j("#log").dialog("close");
 								j('#relationfragmenttwice').modal("show");	
 								j("#relationfragmenttwicecontenttitle").html("${fullname} / ${researchertarget.fullName}");
 								j('#relationfragmenttwicecontent').html(data);
-								j("#log").dialog("close");
+								
 							},
 							error : function(data) {
+								j("#log").dialog("close");
 								j('#relationfragmenttwice').modal("hide");
 								j("#log").dialog("open");
 								Log.write(data.statusText);
-								j("#log").dialog("close");
+								
 							}
 						});
 

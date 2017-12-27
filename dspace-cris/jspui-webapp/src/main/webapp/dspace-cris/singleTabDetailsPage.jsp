@@ -13,13 +13,31 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://displaytag.sf.net" prefix="display"%>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@ page import="java.net.URL"%>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="java.util.Locale"%>
 
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 <%@ taglib uri="researchertags" prefix="researcher"%>
+<%
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
+	String currLocale = null;
+	if (sessionLocale != null) {
+		currLocale = sessionLocale.toString();
+	}
+%>
+<c:set var="currLocale"><%=currLocale %></c:set>
 
 	<div id="tab-${area.id}">
+		<div class="row">
 					<c:forEach items="${propertiesHolders}" var="holder">
+					<c:set var="extraCSS">
+						<c:choose>
+							<c:when test="${holder.priority % 10 == 2}">col-md-6</c:when>
+							<c:otherwise>col-md-12</c:otherwise>
+						</c:choose>
+					</c:set>
 					
 						<c:set
 							value="${researcher:isBoxHidden(entity,holder.shortName)}"
@@ -42,12 +60,12 @@
 							<%
 								if (fileURL == null) {
 							%>
-							<div class="panel-group" id="${holder.shortName}">
+							<div class="panel-group ${extraCSS}" id="${holder.shortName}">
   									<div class="panel panel-default">
     										<div class="panel-heading">
       												<h4 class="panel-title">
         												<a data-toggle="collapse" data-parent="#${holder.shortName}" href="#collapseOne${holder.shortName}">
-          													${holder.title}
+          													<spring:message code="${entity.class.simpleName}.box.${holder.shortName}.label" text="${holder.title}"></spring:message>
         												</a>
       												</h4>
     										</div>
@@ -56,8 +74,22 @@
 											      <c:set var="hideLabel">${fn:length(propertiesDefinitionsInHolder[holder.shortName]) le 1}</c:set>
 													<c:forEach
 														items="${propertiesDefinitionsInHolder[holder.shortName]}"
-														var="tipologiaDaVisualizzare" varStatus="status">
+														var="tipologiaDaVisualizzareNoI18n" varStatus="status">
+														<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
+														<%!public URL fileFieldURL;%>
 							
+														<c:set var="urljspcustomfield"
+															value="/dspace-cris/jdyna/custom/field/${tipologiaDaVisualizzare.shortName}.jsp" scope="request" />
+															
+														<%
+															String fileFieldPath = (String)pageContext.getRequest().getAttribute("urljspcustomfield");
+							
+																	fileFieldURL = pageContext.getServletContext().getResource(
+																			fileFieldPath);
+														%>
+														<%
+															if (fileFieldURL == null) {
+														%>
 														<c:if
 															test="${dyna:instanceOf(tipologiaDaVisualizzare,'it.cilea.osd.jdyna.model.ADecoratorTypeDefinition')}">
 															
@@ -85,6 +117,10 @@
 																hideLabel="${hideLabel}"
 																values="${anagraficaObject.anagrafica4view[tipologiaDaVisualizzare.shortName]}" />
 														</c:if>
+														<% } else { %>
+															<c:set var="tipologiaDaVisualizzare" value="${tipologiaDaVisualizzare}" scope="request" />
+															<c:import url="${urljspcustomfield}" />
+														<% } %>
 													</c:forEach>		
 										        </div>
 										  </div>
@@ -95,6 +131,7 @@
 							<%
 								} else {
 							%>
+							<c:set var="extraCSS" value="${extraCSS}" scope="request" />
 							<c:set var="holder" value="${holder}" scope="request" />							
 							<c:import url="${urljspcustom}" />
 
@@ -104,4 +141,5 @@
 
 						</c:if>
 					</c:forEach>
+			</div>
 	</div>

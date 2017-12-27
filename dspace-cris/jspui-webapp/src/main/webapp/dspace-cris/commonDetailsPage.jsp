@@ -13,6 +13,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://displaytag.sf.net" prefix="display"%>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 <%@ taglib uri="researchertags" prefix="researcher"%>
@@ -24,17 +25,24 @@
 							<c:when test="${rowCounter.count == 1}">${root}/cris/${specificPartPath}/${authority}?onlytab=true</c:when>
 							<c:otherwise>${root}/cris/${specificPartPath}/${authority}/${area.shortName}.html?onlytab=true</c:otherwise>
 						</c:choose></c:set>
-			<li id="bar-tab-${area.id}">
+						<li data-tabname="${area.shortName}" id="bar-tab-${area.id}">
 						<c:choose>
 							<c:when test="${area.id == tabId}">
-								<a href="#tab-${area.id}"><img style="width: 16px;vertical-align: middle;" border="0" 
-									src="<%=request.getContextPath()%>/cris/researchertabimage/${area.id}" alt="icon">
-								${area.title}</a>
+								<a href="#tab-${area.id}">
+								<c:if test="${!empty area.ext}">
+								<img style="width: 16px;vertical-align: middle;" border="0" 
+									src="<%=request.getContextPath()%>/cris/researchertabimage/${area.id}" alt="icon" />
+								</c:if>	
+								<spring:message code="${entity.class.simpleName}.tab.${area.shortName}.label" text="${area.title}"></spring:message></a>
 							</c:when>
 							<c:otherwise>
-									<a href="${tablink}"><img style="width: 16px;vertical-align: middle;" border="0"
+									<a href="${tablink}">
+									<c:if test="${!empty area.ext}">
+									<img style="width: 16px;vertical-align: middle;" border="0"
 										src="<%=request.getContextPath()%>/cris/researchertabimage/${area.id}"
-			    						alt="icon" />${area.title}</a>
+			    						alt="icon" />
+			    					</c:if>	
+			    					<spring:message code="${entity.class.simpleName}.tab.${area.shortName}.label" text="${area.title}"></spring:message></a>
 							</c:otherwise>
 						</c:choose></li>
 

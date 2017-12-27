@@ -10,6 +10,7 @@ package org.dspace.app.webui.cris.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +22,7 @@ import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.webui.cris.dto.ManageRelationDTO;
 import org.dspace.app.webui.cris.util.RelationPreferenceUtil;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -88,9 +89,9 @@ public class FormRelationManagementController extends BaseFormController
         return type;
     }
 
-    private int[] getIDsFromItemList(List<Item> items)
+    private UUID[] getIDsFromItemList(List<Item> items)
     {
-        int[] result = new int[items.size()];
+    	UUID[] result = new UUID[items.size()];
         int idx = 0;
         for (Item i : items)
         {
@@ -106,7 +107,8 @@ public class FormRelationManagementController extends BaseFormController
     {
         Context context = UIUtil.obtainContext(request);
         ACrisObject cris = getCRISObject(request);
-        AuthorizeManager.authorizeAction(context, cris, Constants.ADMIN, false);
+        //TODO manage with CrisAuthorizeManager
+        //AuthorizeServiceFactory.getInstance().getAuthorizeService().authorizeAction(context, cris, Constants.ADMIN, false);
         
         String relationType = getRelationType(request);
         Map<String, Object> data = new HashMap<String, Object>();
@@ -123,7 +125,7 @@ public class FormRelationManagementController extends BaseFormController
         data.put("cris", cris);
         data.put("confName", confName);
         data.put("relationType", relationType);
-        boolean admin = AuthorizeManager.isAdmin(context);
+        boolean admin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
         data.put("isSelectEnabled", conf.isActionEnabled(RelationPreference.SELECTED, admin));
         data.put("isHideEnabled", conf.isActionEnabled(RelationPreference.HIDED, admin));
         data.put("isUnlinkEnabled", conf.isActionEnabled(RelationPreference.UNLINKED, admin));

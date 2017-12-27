@@ -9,7 +9,6 @@ package org.dspace.sort;
 
 import org.apache.log4j.Logger;
 import org.dspace.text.filter.TextFilter;
-import org.dspace.sort.OrderFormatDelegate;
 
 /**
  * Helper class for creating order delegates.
@@ -55,6 +54,7 @@ public abstract class AbstractTextFilterOFD implements OrderFormatDelegate
 	 * @param	value	the string value
 	 * @param	language	the language to interpret in
 	 */
+	@Override
 	public String makeSortString(String value, String language)
 	{
 		if (filters == null)

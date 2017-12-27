@@ -370,17 +370,21 @@
      <autoCommit> 
        <maxDocs>10000</maxDocs> <!--Commit every 10.000 documents-->
        <maxTime>${solr.autoCommit.maxTime:10000}</maxTime> <!--Default commit every 10 seconds-->
-       <openSearcher>true</openSearcher> 
+       <openSearcher>false</openSearcher> 
      </autoCommit>
 
     <!-- softAutoCommit is like autoCommit except it causes a
          'soft' commit which only ensures that changes are visible
          but does not ensure that data is synced to disk.  This is
          faster and more near-realtime friendly than a hard commit.
+         
+         PLEASE NOTE: If your repository have high input load 
+         it could be useful to raise such parameter to 1, 5, 10 minutes;
+         Now setup softcommit to 15000ms = 15s
       -->
 
      <autoSoftCommit> 
-       <maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime> 
+       <maxTime>${solr.autoSoftCommit.maxTime:15000}</maxTime> 
      </autoSoftCommit>
 
     <!-- Update Related Event Listeners
@@ -644,6 +648,8 @@
       </arr>
     </listener>
 
+    <listener event="firstSearcher" 
+        class="org.dspace.solr.util.CrisMetricsUpdateListener"/>
     <!-- Use Cold Searcher
 
          If a search request comes in and there is no current
@@ -805,6 +811,8 @@
        of SearchComponents (see below) and supports distributed
        queries across multiple shards
     -->
+     <searchComponent name="crismetrics-extract" 
+      class="org.dspace.solr.handler.component.CrisMetricsExtractComponent"/>
   <requestHandler name="/select" class="solr.SearchHandler">
     <!-- default values for query parameters can be specified, these
          will be overridden by parameters in the request
@@ -816,6 +824,7 @@
      </lst>
       <arr name="last-components">
           <str>spellcheck</str>
+          <str>crismetrics-extract</str>
       </arr>
     <!-- In addition to defaults, "appends" params can be specified
          to identify values which should be appended to the list of
@@ -1048,7 +1057,7 @@
       <str name="uprefix">ignored_</str>
 
       <!-- capture link hrefs but ignore div attributes -->
-      <str name="captureAttr">false</str>
+      <str name="captureAttr">true</str>
       <!--<str name="fmap.a">links</str>-->
       <!--<str name="fmap.div">ignored_</str>-->
     </lst>

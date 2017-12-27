@@ -33,20 +33,20 @@ import org.dspace.app.cris.statistics.StatSubscriptionViewBean;
 import org.dspace.app.cris.statistics.SummaryStatBean;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 
 public class StatSubscribeService
 {
     private ApplicationService as;
 
-    private SolrLogger statsLogger;
+    private SolrLoggerService statsLogger;
     
     public StatSubscribeService(ApplicationService as)
     {
@@ -68,17 +68,17 @@ public class StatSubscribeService
         int type = -1;
         String identifier = null;
 
-        DSpaceObject dso = null;
+        BrowsableDSpaceObject dso = null;
         List<Integer> freqs = new ArrayList<Integer>();
         String objectName = null;
         for (StatSubscription statSub : statSubs)
         {
 
-            DSpaceObject currDSO;
+        	BrowsableDSpaceObject currDSO;
             if (statSub.getTypeDef() < 9)
             {
-                currDSO = HandleManager.resolveToObject(context,
-                        statSub.getUid());
+                currDSO = (BrowsableDSpaceObject)(HandleServiceFactory.getInstance().getHandleService().resolveToObject(context,
+                        statSub.getUid()));
             }
             else
             {
@@ -199,7 +199,6 @@ public class StatSubscribeService
         String dateStart = null;
         String dateEnd = null;
         int gap = 1;
-        context.setAutoCommit(false);
         for (int i = 0; i < num; i++)
         {
             switch (freq)
@@ -232,6 +231,12 @@ public class StatSubscribeService
                 dateStart = "-" + (num - i);
                 dateEnd = "-" + (num - 1 - i);
                 break;
+            
+            case StatSubscription.FREQUENCY_YEAR:
+                dateType = "YEAR";
+                dateStart = "-" + (num - i);
+                dateEnd = "-" + (num - 1 - i);
+                break; 
             default:
                 throw new IllegalArgumentException("Unknow frequency " + freq);
             }
@@ -277,6 +282,7 @@ public class StatSubscribeService
                     statsComponentsService = researcher.getOUStatsComponents();
                     break;
                 default:
+                    statsComponentsService = researcher.getDOStatsComponents();
                     break;
                 }
                 selectedObject.put(AStatComponentService._SELECTED_OBJECT, statsComponentsService.getSelectedObjectComponent().getStatsViewComponent().queryFacetDate(statsLogger, object, dateType, dateStart, dateEnd, gap));
@@ -291,7 +297,7 @@ public class StatSubscribeService
             else 
             {
                 
-                DSpaceObject dso = HandleManager.resolveToObject(context,
+            	BrowsableDSpaceObject dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context,
                         uuid);
                 if (dso == null)
                 {
@@ -355,7 +361,7 @@ public class StatSubscribeService
             String dateEnd, int gap,
             Map<String, Map<String, ObjectCount[]>> selectedObject,
             Map<String, Map<String, ObjectCount[]>> topObject,
-            DSpaceObject dso, StatComponentsService serviceItem)
+            BrowsableDSpaceObject dso, StatComponentsService serviceItem)
             throws SolrServerException
     {
         selectedObject.put(AStatComponentService._SELECTED_OBJECT, serviceItem.getSelectedObjectComponent().queryFacetDate(statsLogger, dso, dateType, dateStart, dateEnd, gap));
@@ -429,6 +435,11 @@ public class StatSubscribeService
         case StatSubscription.FREQUENCY_MONTHLY:
             dateformatString = "MMMM yyyy";
             break;
+
+        case StatSubscription.FREQUENCY_YEAR:
+            dateformatString = "yyyy";
+            break;
+            
         }
 
         // no so good, but we need to retrieve the date object from its string
@@ -456,12 +467,12 @@ public class StatSubscribeService
         statDataBean.setDate(date);
     }
 
-    public SolrLogger getStatsLogger()
+    public SolrLoggerService getStatsLogger()
     {
         return statsLogger;
     }
 
-    public void setStatsLogger(SolrLogger statsLogger)
+    public void setStatsLogger(SolrLoggerService statsLogger)
     {
         this.statsLogger = statsLogger;
     }

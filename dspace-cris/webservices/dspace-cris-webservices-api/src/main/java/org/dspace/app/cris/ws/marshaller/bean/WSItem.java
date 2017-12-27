@@ -13,7 +13,7 @@ import java.util.List;
 public class WSItem
 {
     private String handle;
-    private int itemID;    
+    private String itemID;    
     private ArrayList<String> community;
     private ArrayList<String> communityName;
     private ArrayList<String> communityHandle;
@@ -27,10 +27,10 @@ public class WSItem
     public void setHandle(String handle) {
         this.handle = handle;
     }
-    public int getItemID() {
+    public String getItemID() {
         return itemID;
     }
-    public void setItemID(int itemID) {
+    public void setItemID(String itemID) {
         this.itemID = itemID;
     }
  

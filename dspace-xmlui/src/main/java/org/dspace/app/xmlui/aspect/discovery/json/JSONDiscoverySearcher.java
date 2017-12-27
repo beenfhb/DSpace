@@ -18,12 +18,14 @@ import org.apache.cocoon.reading.AbstractReader;
 import org.apache.log4j.Logger;
 import org.dspace.app.xmlui.utils.ContextUtil;
 import org.dspace.app.xmlui.utils.HandleUtil;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.*;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
-import org.dspace.handle.HandleManager;
-import org.dspace.utils.DSpace;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -42,6 +44,7 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
 
     private static Logger log = Logger.getLogger(JSONDiscoverySearcher.class);
     private InputStream JSONStream;
+    protected HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
 
 
     /** The Cocoon response */
@@ -49,11 +52,7 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
 
     protected SearchService getSearchService()
     {
-        DSpace dspace = new DSpace();
-
-        org.dspace.kernel.ServiceManager manager = dspace.getServiceManager() ;
-
-        return manager.getServiceByName(SearchService.class.getName(),SearchService.class);
+        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(SearchService.class.getName(),SearchService.class);
     }
 
 
@@ -117,7 +116,7 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
 
         try {
             Context context = ContextUtil.obtainContext(objectModel);
-            JSONStream = getSearchService().searchJSON(context, queryArgs, getScope(context, objectModel), jsonWrf);
+            JSONStream = getSearchService().searchJSON(context, queryArgs, (BrowsableDSpaceObject)getScope(context, objectModel), jsonWrf);
         } catch (Exception e) {
             log.error("Error while retrieving JSON string for Discovery auto complete", e);
         }
@@ -134,8 +133,8 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
             {
                 out.write(buffer, 0, length);
             }
-            out.flush();
         }
+        out.flush();
     }
 
     /**
@@ -160,9 +159,17 @@ public class JSONDiscoverySearcher extends AbstractReader implements Recyclable 
         else
         {
             // Get the search scope from the location parameter
-            dso = HandleManager.resolveToObject(context, scopeString);
+            dso = handleService.resolveToObject(context, scopeString);
         }
 
         return dso;
     }
+
+    @Override
+    public void recycle() {
+        response = null;
+        JSONStream = null;
+        super.recycle();
+    }
+
 }

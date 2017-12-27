@@ -9,70 +9,64 @@ package org.dspace.app.webui.util;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.I18nUtil;
 
+public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy {
+	
+	@Override
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType, UUID colIdx,
+			UUID itemid, String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph)
+			throws JspException {
+		String metadataDisplay = "-";
+		boolean found = false;
 
-public class AbstractMetadataDisplayStrategy extends ASimpleDisplayStrategy
-{
-    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType,int itemid, int colIdx, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
-            PageContext pageContext)
-    {	
-        String metadataDisplay = "-";
-        boolean found = false;
-        
-        for (Metadatum descrMetadata : metadataArray) {
-        	if (StringUtils.startsWith(descrMetadata.qualifier, "abstract")) {
-        		found = true; 
-        		break;
-        	}
-        }
-        
-        //Assente di default 
-        try
-        {  
-            metadataDisplay = MessageFormat.format(I18nUtil.getMessage(
-                    "jsp.hasabstract.display-strategy.none", UIUtil
-                            .obtainContext(hrq)), hrq.getContextPath(), "");
-        }
-        catch (SQLException e)
-        {
-            // converto a runtime
-            throw new RuntimeException(e.getMessage(), e);
-        }
-        
-        if (found)
-        {
+		for (IMetadataValue descrMetadata : metadataArray) {
+			if (StringUtils.startsWith(descrMetadata.getQualifier(), "abstract")) {
+				found = true;
+				break;
+			}
+		}
 
-            try
-            {  
-                metadataDisplay = MessageFormat.format(I18nUtil.getMessage(
-                        "jsp.hasabstract.display-strategy.default", UIUtil
-                                .obtainContext(hrq)), hrq.getContextPath());
-               
-            }
-            catch (SQLException e)
-            {
-                // converto a runtime
-                throw new RuntimeException(e.getMessage(), e);
-            }
-        }
-        
-        return metadataDisplay;
-    }
+		// Assente di default
+		try {
+			metadataDisplay = MessageFormat.format(
+					I18nUtil.getMessage("jsp.hasabstract.display-strategy.none", UIUtil.obtainContext(hrq)),
+					hrq.getContextPath(), "");
+		} catch (SQLException e) {
+			// converto a runtime
+			throw new RuntimeException(e.getMessage(), e);
+		}
 
-    public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String string, int colIdx, String field,
-            Metadatum[] metadataArray, boolean disableCrossLinks, boolean emph,
-            PageContext pageContext)
-    {
-        return "nowrap=\"nowrap\" align=\"center\"";
-    }
+		if (found) {
+
+			try {
+				metadataDisplay = MessageFormat.format(
+						I18nUtil.getMessage("jsp.hasabstract.display-strategy.default", UIUtil.obtainContext(hrq)),
+						hrq.getContextPath());
+
+			} catch (SQLException e) {
+				// converto a runtime
+				throw new RuntimeException(e.getMessage(), e);
+			}
+		}
+
+		return metadataDisplay;
+	}
+
+	public String getExtraCssDisplay(HttpServletRequest hrq, int limit, boolean b, String string, UUID colIdx,
+			String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks, boolean emph,
+			PageContext pageContext) {
+		return "nowrap=\"nowrap\" align=\"center\"";
+	}
+
+
 }

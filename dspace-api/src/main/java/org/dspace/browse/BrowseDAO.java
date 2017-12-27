@@ -8,6 +8,7 @@
 package org.dspace.browse;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Interface for any class wishing to interact with the Browse storage layer for
@@ -41,7 +42,7 @@ public interface BrowseDAO
      * parameters you set.
      *
      * @return      the integer value of the number of results found
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public int doCountQuery() throws BrowseException;
 
@@ -52,7 +53,7 @@ public interface BrowseDAO
      * commonly used with a Distinct browse type.
      *
      * @return  List of Strings representing the single value query results
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public List<String[]> doValueQuery() throws BrowseException;
 
@@ -61,9 +62,9 @@ public interface BrowseDAO
      * representing the results of a full item browse.
      *
      * @return  List of BrowseItem objects
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
-    public List<BrowseItem> doQuery() throws BrowseException;
+    public List<BrowsableDSpaceObject> doQuery() throws BrowseException;
 
     /**
      * This executes a query which returns the value of the "highest" (max) value
@@ -73,7 +74,7 @@ public interface BrowseDAO
      * @param table     the table to query
      * @param itemID    the item id
      * @return          String representing the max value in the given column
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public String doMaxQuery(String column, String table, int itemID) throws BrowseException;
 
@@ -85,7 +86,7 @@ public interface BrowseDAO
      * @param value     the item id
      * @param isAscending browsing in ascending or descending order
      * @return          the offset into the table
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public int doOffsetQuery(String column, String value, boolean isAscending) throws BrowseException;
 
@@ -97,7 +98,7 @@ public interface BrowseDAO
      * @param value     the item id
      * @param isAscending browsing in ascending or descending order
      * @return          the offset into the table
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public int doDistinctOffsetQuery(String column, String value, boolean isAscending) throws BrowseException;
 
@@ -114,8 +115,8 @@ public interface BrowseDAO
     /**
      * Set whether the query should use an equals comparator when doing less than or
      * greater than comparisons.  That is, if true then comparisons will be made
-     * using the equivalent of "<=" and ">=", while if false it will use the
-     * equivalent of "<" and ">"
+     * using the equivalent of {@code <=} and {@code >=}, while if false it will use the
+     * equivalent of {@code <} and {@code >}
      *
      * @param equalsComparator  true to use, false to not.
      */
@@ -144,7 +145,7 @@ public interface BrowseDAO
      *
      * @return  the database id of the container, or -1 if none is set
      */
-    public int getContainerID();
+    public UUID getContainerID();
 
     /**
      * Set the database id of the container object.  This should be the id of a
@@ -153,7 +154,7 @@ public interface BrowseDAO
      *
      * @param containerID
      */
-    public void setContainerID(int containerID);
+    public void setContainerID(UUID containerID);
 
     /**
      * get the name of the field in which to look for the container id.  This is
@@ -186,7 +187,7 @@ public interface BrowseDAO
      * the browse.  This will either be the "sort_value" field or one of the
      * additional sort fields defined by configuration
      *
-     * param focusField     the name of the focus field
+     * @param focusField     the name of the focus field
      */
     public void setJumpToField(String focusField);
 

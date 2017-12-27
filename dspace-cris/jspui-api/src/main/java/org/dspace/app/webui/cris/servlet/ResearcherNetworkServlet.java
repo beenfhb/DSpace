@@ -30,7 +30,6 @@ import org.dspace.app.cris.network.ConstantNetwork;
 import org.dspace.app.cris.network.NetworkPlugin;
 import org.dspace.app.cris.network.VisualizationGraphSolrService;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.statistics.CrisSolrLogger;
 import org.dspace.app.cris.statistics.util.StatsConfig;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
@@ -38,7 +37,7 @@ import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
@@ -99,7 +98,7 @@ public class ResearcherNetworkServlet extends DSpaceServlet
         else
         {
             showALL = ConfigurationManager
-                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "network.connection.showexternal");
+                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "connection.showexternal");
         }
 
         String showSameDept = request.getParameter("showsamedept");
@@ -111,12 +110,12 @@ public class ResearcherNetworkServlet extends DSpaceServlet
         else
         {
             showALLDept = ConfigurationManager
-                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "network.connection.showsamedept");
+                    .getBooleanProperty(NetworkPlugin.CFG_MODULE, "connection.showsamedept");
         }
 
       
         String connection = ConfigurationManager
-                .getProperty(NetworkPlugin.CFG_MODULE, "network.connection");
+                .getProperty(NetworkPlugin.CFG_MODULE, "connection");
 
         String[] connections = connection.split(",");
         List<String> availableConnections = new LinkedList<String>();
@@ -133,8 +132,7 @@ public class ResearcherNetworkServlet extends DSpaceServlet
                 if (checkAvailableData(request, conn, authority))
                 {
                     availableConnections.add(conn);
-                    NetworkPlugin plugin = (NetworkPlugin) (PluginManager.getNamedPlugin(NetworkPlugin.CFG_MODULE,
-                            NetworkPlugin.class, conn));
+                    NetworkPlugin plugin = (NetworkPlugin) (CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(NetworkPlugin.class, conn));
                     colorsNodes.put(conn, plugin.getNodeCustomColor());
                     colorsEdges.put(conn, plugin.getEdgeCustomColor());
                     maxDepths.put(conn, plugin.getCustomMaxDepth());
@@ -154,7 +152,7 @@ public class ResearcherNetworkServlet extends DSpaceServlet
             max = Collections.max(maxDepths.values());
         }
         request.setAttribute("configMaxDepth",
-                ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.connection.maxdepth"));
+                ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "connection.maxdepth"));
         request.setAttribute("relations", connections);
         request.setAttribute("colorsNodes", colorsNodes);
         request.setAttribute("colorsEdges", colorsEdges);

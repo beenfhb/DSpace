@@ -7,15 +7,13 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.core.SingleTimeStampInfo;
-import it.cilea.osd.common.core.TimeStampInfo;
-import it.cilea.osd.jdyna.value.FileValue;
-
 import java.beans.PropertyEditor;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
@@ -41,9 +39,15 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.value.OUPointer;
 import org.dspace.app.cris.model.listener.RPListener;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+
+import it.cilea.osd.common.core.SingleTimeStampInfo;
+import it.cilea.osd.common.core.TimeStampInfo;
+import it.cilea.osd.jdyna.value.FileValue;
 
 /**
  * This class models the HKU Researcher Page concept. Almost all the field of
@@ -99,7 +103,7 @@ public class ResearcherPage extends
     private static final String NAME = "fullName";
 
 	@Column(unique = true, nullable = true)
-    private Integer epersonID;
+    private UUID epersonID;
 
     /** log4j logger */
     @Transient
@@ -141,8 +145,17 @@ public class ResearcherPage extends
     private String fullName;
 
     @Transient
-    private Integer oldEpersonID;
+    private UUID oldEpersonID;
 
+    @Transient
+    private String oldOrcidPublicationsPreference;
+    @Transient
+    private String oldOrcidProjectsPreference;
+    @Transient
+    private List<String> oldOrcidProfilePreference;
+    @Transient
+    private Map<String,List<String>> oldMapOrcidProfilePreference;
+    
     /**
      * Constructor method, create new ResearcherPage setting status to true.
      */
@@ -502,7 +515,7 @@ public class ResearcherPage extends
             context = new Context();
             if (epersonID != null)
             {
-                eperson = EPerson.find(context, epersonID);
+                eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context, epersonID);
             }
         }
         catch (SQLException e)
@@ -520,12 +533,12 @@ public class ResearcherPage extends
         return eperson;
     }
 
-    public Integer getEpersonID()
+    public UUID getEpersonID()
     {
         return epersonID;
     }
 
-    public void setEpersonID(Integer idEPerson)
+    public void setEpersonID(UUID idEPerson)
     {
         this.epersonID = idEPerson;
     }
@@ -565,9 +578,10 @@ public class ResearcherPage extends
         for (RPProperty property : this.getDynamicField().getAnagrafica4view()
                 .get(pdef_dept))
         {
+
             OUPointer pointer = (OUPointer) property.getValue();
             RestrictedFieldWithLock result = new RestrictedFieldWithLock();
-            result.setValue(pointer.getObject().getDisplayValue());
+            result.setValue(pointer.getObject().getName());
             result.setVisibility(property.getVisibility());
             result.setLock(property.getLockDef());
             result.setAuthority(pointer.getObject().getCrisID());
@@ -593,12 +607,12 @@ public class ResearcherPage extends
         return RPTypeNestedObject.class;
     }
 
-    public void setOldEpersonID(Integer oldEpersonID)
+    public void setOldEpersonID(UUID oldEpersonID)
     {
         this.oldEpersonID = oldEpersonID;
     }
 
-    public Integer getOldEpersonID()
+    public UUID getOldEpersonID()
     {
         return oldEpersonID;
     }
@@ -645,6 +659,68 @@ public class ResearcherPage extends
 	@Override
 	public String getMetadataFieldTitle() {
 		return NAME;
+	}
+
+	public String getOldOrcidPublicationsPreference() {
+		return oldOrcidPublicationsPreference;
+	}
+
+	public void setOldOrcidPublicationsPreference(String oldOrcidPublicationsPreference) {
+		this.oldOrcidPublicationsPreference = oldOrcidPublicationsPreference;
+	}
+
+	public String getOldOrcidProjectsPreference() {
+		return oldOrcidProjectsPreference;
+	}
+
+	public void setOldOrcidProjectsPreference(String oldOrcidProjectsPreference) {
+		this.oldOrcidProjectsPreference = oldOrcidProjectsPreference;
+	}
+
+	public List<String> getOldOrcidProfilePreference() {
+		if(this.oldOrcidProfilePreference == null) {
+			this.oldOrcidProfilePreference = new ArrayList<String>();
+		}
+		return oldOrcidProfilePreference;
+	}
+
+	public void setOldOrcidProfilePreference(List<String> oldOrcidProfilePreference) {
+		this.oldOrcidProfilePreference = oldOrcidProfilePreference;
+	}
+
+	public Map<String, List<String>> getOldMapOrcidProfilePreference() {
+		if(oldMapOrcidProfilePreference == null) {
+			oldMapOrcidProfilePreference = new HashMap<String, List<String>>();
+		}
+		return oldMapOrcidProfilePreference;
+	}
+
+	public void setOldMapOrcidProfilePreference(Map<String, List<String>> oldMapOrcidProfilePreference) {
+		this.oldMapOrcidProfilePreference = oldMapOrcidProfilePreference;
+	}
+
+    @Override
+    public Class<ResearcherPage> getCRISTargetClass()
+    {
+        return ResearcherPage.class;
+    }
+
+    @Override
+    public boolean isOwner(EPerson eperson)
+    {
+        return eperson != null && this.getEpersonID()!=null && (this.getEpersonID().equals(eperson.getID()));
+    }
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

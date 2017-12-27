@@ -7,17 +7,9 @@
  */
 package org.dspace.app.xmlui.aspect.general;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.SQLException;
-
 import org.apache.cocoon.ResourceNotFoundException;
-import org.apache.cocoon.caching.CacheableProcessingComponent;
-import org.apache.cocoon.environment.ObjectModelHelper;
-import org.apache.cocoon.environment.Request;
-import org.apache.cocoon.util.HashUtil;
-import org.apache.excalibur.source.SourceValidity;
-import org.apache.excalibur.source.impl.validity.NOPValidity;
+import org.apache.cocoon.environment.http.HttpEnvironment;
+import org.apache.commons.lang.reflect.FieldUtils;
 import org.dspace.app.xmlui.cocoon.AbstractDSpaceTransformer;
 import org.dspace.app.xmlui.utils.UIException;
 import org.dspace.app.xmlui.wing.Message;
@@ -27,9 +19,12 @@ import org.dspace.app.xmlui.wing.element.Body;
 import org.dspace.app.xmlui.wing.element.Division;
 import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.authorize.AuthorizeException;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
 
 /**
  * This special component checks to see if the body element is empty (has no sub elements) and if
@@ -38,9 +33,9 @@ import org.xml.sax.SAXException;
  * @author Scott Phillips
  * @author Kim Shepherd
  */
-public class PageNotFoundTransformer extends AbstractDSpaceTransformer implements CacheableProcessingComponent
+public class PageNotFoundTransformer extends AbstractDSpaceTransformer
 {
-    /** Language Strings */
+    /* Language Strings */
     private static final Message T_title =
         message("xmlui.PageNotFound.title");
     
@@ -56,36 +51,16 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
     private static final Message T_dspace_home =
         message("xmlui.general.dspace_home");
     
-    
     /** Where the body element is stored while we wait to see if it is empty */
     private SAXEvent bodyEvent;
     
     /** Have we determined that the body is empty, and hence a we should generate a page not found. */
     private boolean bodyEmpty;
     
-    /**
-     * Generate the unique caching key.
-     * This key must be unique inside the space of this component.
-     */
-    public Serializable getKey() 
-    {
-        Request request = ObjectModelHelper.getRequest(objectModel);
-        
-        return HashUtil.hash(request.getSitemapURI());
-    }
-
-    /**
-     * Generate the cache validity object.
-     * 
-     * The cache is always valid.
-     */
-    public SourceValidity getValidity() {
-        return NOPValidity.SHARED_INSTANCE;
-    }
-    
     
     /**
      * Receive notification of the beginning of a document.
+     * @throws org.xml.sax.SAXException passed through.
      */
     @Override
     public void startDocument() throws SAXException
@@ -98,6 +73,7 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
 
     /**
      * Process the SAX event.
+     * @throws org.xml.sax.SAXException passed through.
      * @see org.xml.sax.ContentHandler#startElement
      */
     @Override
@@ -126,6 +102,7 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
 
     /**
      * Process the SAX event.
+     * @throws org.xml.sax.SAXException passed through.
      * @see org.xml.sax.ContentHandler#endElement
      */
     @Override
@@ -148,14 +125,23 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
 
         super.endElement(namespaceURI, localName, qName);
     } 
-  
-    
-    /** What to add at the end of the body */
+
+    /** What to add at the end of the body.
+     *
+     * @throws org.xml.sax.SAXException passed through.
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
+     * @throws org.dspace.app.xmlui.utils.UIException passed through.
+     * @throws java.sql.SQLException passed through.
+     * @throws java.io.IOException passed through.
+     * @throws org.dspace.authorize.AuthorizeException passed through.
+     * @throws org.apache.cocoon.ResourceNotFoundException
+     *          unless redirecting or body is nonempty.
+     */
     @Override
     public void addBody(Body body) throws SAXException, WingException,
             UIException, SQLException, IOException, AuthorizeException, ResourceNotFoundException
     {
-        if (this.bodyEmpty)
+        if (!isRedirect() && this.bodyEmpty)
         {
             Division notFound = body.addDivision("page-not-found","primary");
             
@@ -165,16 +151,36 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
 
             notFound.addPara().addXref(contextPath + "/",T_go_home);
 
-            throw new ResourceNotFoundException("Page cannot be found");
-
-
+            HttpServletResponse response = (HttpServletResponse) objectModel.get(HttpEnvironment.HTTP_RESPONSE_OBJECT);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    /** What page metadata to add to the document */
+    private boolean isRedirect() {
+        final HttpServletResponse response = (HttpServletResponse) objectModel.get(HttpEnvironment.HTTP_RESPONSE_OBJECT);
+        try
+        {
+            return ((int) FieldUtils.readField(response, "statusCode", true)) == HttpServletResponse.SC_TEMPORARY_REDIRECT;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+    }
+
+    /**
+     * What page metadata to add to the document.
+     *
+     * @throws org.xml.sax.SAXException passed through.
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
+     * @throws org.dspace.app.xmlui.utils.UIException passed through.
+     * @throws java.sql.SQLException passed through.
+     * @throws java.io.IOException passed through.
+     * @throws org.dspace.authorize.AuthorizeException passed through.
+     */
     @Override
-    public void addPageMeta(PageMeta pageMeta) throws SAXException,
-            WingException, UIException, SQLException, IOException,
+    public void addPageMeta(PageMeta pageMeta)
+            throws SAXException, WingException, UIException, SQLException, IOException,
             AuthorizeException
     {
         if (this.bodyEmpty)
@@ -186,41 +192,11 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
             pageMeta.addTrailLink(contextPath + "/",T_dspace_home);
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     /**
      * Send the given recorded sax event.
+     * @param event the event.
+     * @throws org.xml.sax.SAXException passed through.
      */
     public void sendEvent(SAXEvent event) throws SAXException
     {
@@ -233,8 +209,7 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
             super.endElement(event.namespaceURI,event.localName,event.qName);
         }
     }
-    
-    
+
     /**
      * This private class remembers start and end element SAX events.
      */
@@ -275,5 +250,10 @@ public class PageNotFoundTransformer extends AbstractDSpaceTransformer implement
             return event;
         }
     }
-    
+
+    @Override
+    public void recycle() {
+        this.bodyEvent = null;
+        super.recycle();
+    }
 }

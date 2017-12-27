@@ -7,10 +7,12 @@
  */
 package org.dspace.app.webui.cris.dto;
 
-import org.dspace.content.DSpaceObject;
+import java.util.List;
+
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.sort.SortOption;
 
-public class ComponentInfoDTO<T extends DSpaceObject>
+public class ComponentInfoDTO<T extends BrowsableDSpaceObject>
 {
     private String type;
 
@@ -22,7 +24,7 @@ public class ComponentInfoDTO<T extends DSpaceObject>
 
     private SortOption so;
 
-    private T[] items;
+    private List<T> items;
 
     private int pagecurrent;
 
@@ -39,6 +41,8 @@ public class ComponentInfoDTO<T extends DSpaceObject>
 	private int searchTime;
 
 	private String relationName;
+	
+	private String browseType;
 
     private String buildCommonURL()
     {
@@ -110,12 +114,12 @@ public class ComponentInfoDTO<T extends DSpaceObject>
         this.so = so;
     }
 
-    public T[] getItems()
+    public List<T> getItems()
     {
         return items;
     }
 
-    public void setItems(T[] items)
+    public void setItems(List<T> items)
     {
         this.items = items;
     }
@@ -222,4 +226,14 @@ public class ComponentInfoDTO<T extends DSpaceObject>
 	public String getRelationName() {
 		return relationName;
 	}
+
+    public String getBrowseType()
+    {
+        return browseType;
+    }
+
+    public void setBrowseType(String browseType)
+    {
+        this.browseType = browseType;
+    }
 }

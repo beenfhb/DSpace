@@ -61,7 +61,7 @@
 										<a target="_blank" href="<%=request.getContextPath()%>/cris/rp/${authoritytarget}">
 											<img title="A preview ${authoritytarget} picture"
 												src="researcherimage/${authoritytarget}"
-												alt="${authoritytarget} picture" name="picture" id="picture" /> </a>
+												alt="${authoritytarget} picture" name="picture" id="picture" onError="this.onerror=null;this.src='<%=request.getContextPath() %>/image/cris/photo_not_available.png'" /> </a>
 						
 					</div>
 					<div class="rp-content">
@@ -119,8 +119,6 @@
 			<div class="target-separator"><fmt:message key="network.profilefragment.targetseparator.share"/></div>
 
 			<div id="target-common">
-
-				
 					<c:choose>
 						<c:when test="${depthOld==1 && typo=='dept'}">
 						
@@ -129,7 +127,7 @@
 							<div style="font-size: 1.2em;" class="rp-label"><fmt:message key="network.profilefragment.title.targetcommon"/></div>
 <c:choose>
 	<c:when test="${fn:length(relations) == 0}">
-		<div style="text-align: center;">Nothing in Common Yet!</div>
+								<div style="text-align: center;"><fmt:message key="network.nothing.in.common.yet" /></div>
 	</c:when>
 	<c:otherwise>
 										<c:forEach var="relation" items="${relations}">
@@ -146,7 +144,6 @@
 </c:choose>
 						</c:otherwise>
 					</c:choose>
-				
 			</div>
 
 		</c:otherwise>
@@ -176,17 +173,19 @@
 								"relation" : parameterId,
 								"with" : "${authoritytarget}"
 							},
-							success : function(data) {								
+							success : function(data) {
+								j("#log").dialog("close");
 								j('#relationfragment').modal("show");
 								j("#relationfragmentcontenttitle").html("${fullname} / ${researchertarget.fullName}");
 								j('#relationfragmentcontent').html(data);
-								j("#log").dialog("close");
+
 							},
 							error : function(data) {
+								j("#log").dialog("close");
 								j('#relationfragment').modal("hide");
 								j("#log").dialog("open");
 								Log.write(data.statusText);
-								j("#log").dialog("close");
+								
 							}
 						});
 

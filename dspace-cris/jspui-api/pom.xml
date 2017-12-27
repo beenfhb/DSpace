@@ -8,13 +8,13 @@
 	<parent>
 		<groupId>org.dspace</groupId>
 		<artifactId>dspace-cris</artifactId>
-		<version>CRIS-6.0.0-SNAPSHOT</version>
+		<version>CRIS-6.3.0-SNAPSHOT</version>
 	</parent>
 
    <!--Force UTF-8 encoding during build on all platforms-->
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <root.basedir>${basedir}/..</root.basedir>
+      <root.basedir>${basedir}/../..</root.basedir>
    </properties>
 
 	<dependencies>
@@ -38,13 +38,8 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
+			<artifactId>javax.servlet-api</artifactId>
 		</dependency>
 
 		<dependency>
@@ -54,9 +49,9 @@
 
 		<!-- JAX-RS: Java API for RESTful Web Services -->
 		<dependency>
-			<groupId>asm</groupId>
-			<artifactId>asm</artifactId>
-			<version>3.1</version>
+		    <groupId>org.ow2.asm</groupId>
+		    <artifactId>asm</artifactId>
+		    <version>4.1</version>
 		</dependency>
 
 		<!-- obtained from JEE5 Reference SDK -->
@@ -116,18 +111,23 @@
 
 		<dependency>
 			<groupId>org.dspace</groupId>
-			<artifactId>pubmed-lookup</artifactId>
+			<artifactId>metrics-lookup</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.dspace</groupId>
-			<artifactId>pubmed-lookup-web</artifactId>
+			<artifactId>metrics-lookup-web</artifactId>
 			<type>war</type>
 		</dependency>
 
 		<dependency>
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-web-api</artifactId>
-
+			<exclusions>
+				<exclusion>
+          			<groupId>struts-menu</groupId>
+          			<artifactId>struts-menu</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -139,7 +139,12 @@
 		<dependency>
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-webmvc-api</artifactId>
-
+			<exclusions>
+				<exclusion>
+          			<groupId>struts-menu</groupId>
+          			<artifactId>struts-menu</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jdyna</groupId>

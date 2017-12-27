@@ -7,24 +7,31 @@
  */
 package org.dspace.browse;
 
-import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import org.dspace.content.Metadatum;
+import javax.persistence.Transient;
+
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
-public class BrowseDSpaceObject extends BrowseItem
+public class BrowseDSpaceObject
 {
     private BrowsableDSpaceObject browseObject;
 
+    @Transient
+	public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
+    
     public BrowseDSpaceObject(Context context, BrowsableDSpaceObject browseObject)
     {
-        super(context, browseObject.getID(), browseObject.isArchived(), browseObject.isWithdrawn(), browseObject.isDiscoverable());
+        super();
         this.browseObject = browseObject;
+        this.extraInfo = browseObject.getExtraInfo();
     }
     
-    @Override
-    public Metadatum[] getMetadata(String schema, String element,
+    public List<IMetadataValue> getMetadata(String schema, String element,
             String qualifier, String lang)
     {
         return browseObject.getMetadata(schema, element, qualifier, lang);
@@ -40,4 +47,35 @@ public class BrowseDSpaceObject extends BrowseItem
         return browseObject;
     }
 
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+		return browseObject.getMetadataValueInDCFormat(mdString);
+	}
+
+	public String getTypeText() {
+		return browseObject.getTypeText();
+	}
+
+	public int getType() {
+		return browseObject.getType();
+	}
+
+	public String getName() {
+		return browseObject.getName();
+	}
+
+	public Map<String, Object> getExtraInfo() {
+		return extraInfo;
+	}
+	
+	public UUID getID() {
+		return browseObject.getID();
+	}
+	
+	public String getHandle() {
+		return browseObject.getHandle();
+	}
+	
+	public boolean isWithdrawn() {
+		return browseObject.isWithdrawn();
+	}
 }

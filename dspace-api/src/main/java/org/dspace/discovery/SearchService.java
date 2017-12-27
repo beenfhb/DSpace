@@ -7,16 +7,16 @@
  */
 package org.dspace.discovery;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
-
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
 
 /**
  * Search interface that discovery uses
@@ -40,7 +40,7 @@ public interface SearchService {
      * @param query
      *            the discovery query object
      * @return
-     * @throws SearchServiceException
+     * @throws SearchServiceException if search error
      */
     DiscoverResult search(Context context, DiscoverQuery query)
             throws SearchServiceException;
@@ -56,10 +56,9 @@ public interface SearchService {
      *            within this object)
      * @param query
      *            the discovery query object
-     * @return
-     * @throws SearchServiceException
+     * @throws SearchServiceException if search error
      */
-    DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query)
+    DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query)
             throws SearchServiceException;
 
     /**
@@ -73,7 +72,7 @@ public interface SearchService {
      *            use <code>true</code> to include in the results also withdrawn
      *            items that match the query
      * @return
-     * @throws SearchServiceException
+     * @throws SearchServiceException if search error
      */
     DiscoverResult search(Context context, DiscoverQuery query,
             boolean includeWithdrawn) throws SearchServiceException;
@@ -91,18 +90,17 @@ public interface SearchService {
      *            use <code>true</code> to include in the results also withdrawn
      *            items that match the query
      * 
-     * @return
-     * @throws SearchServiceException
+     * @throws SearchServiceException if search error
      */
-    DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn) throws SearchServiceException;
+    DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn) throws SearchServiceException;
 
     
     InputStream searchJSON(Context context, DiscoverQuery query, String jsonIdentifier) throws SearchServiceException;
 
-    InputStream searchJSON(Context context, DiscoverQuery query, DSpaceObject dso, String jsonIdentifier) throws SearchServiceException;
+    InputStream searchJSON(Context context, DiscoverQuery query, BrowsableDSpaceObject dso, String jsonIdentifier) throws SearchServiceException;
 
 
-    List<DSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset, int max, String... filterquery);
+    List<BrowsableDSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset, int max, String... filterquery);
 
 
     /**
@@ -111,11 +109,27 @@ public interface SearchService {
      * @param field the field of the filter query
      * @param value the filter query value
      * @return a filter query
-     * @throws SQLException ...
+     * @throws SQLException if database error
      */
     DiscoverFilterQuery toFilterQuery(Context context, String field, String operator, String value) throws SQLException;
 
-	List<Item> getRelatedItems(Context context, Item item, DiscoveryMoreLikeThisConfiguration moreLikeThisConfiguration);
+    List<Item> getRelatedItems(Context context, Item item, DiscoveryMoreLikeThisConfiguration moreLikeThisConfiguration);
+    
+    /**
+     * Method to create a  Query that includes all 
+     * communities and collections a user may administrate.
+     * If a user has the appropriate rights to administrate communities and/or
+     * collections we want to look up all contents of those communities and/or
+     * collections, ignoring the read policies of the items (e.g. to list all
+     * private items of communities/collections the user administrates). This
+     * method returns a query to filter for items that belong to those
+     * communities/collections only.
+     *
+     * @param context
+     * @return
+     * @throws SQLException
+     */
+    String createLocationQueryForAdministrableItems(Context context) throws SQLException;
 
     /**
      * Transforms the metadata field of the given sort configuration into the indexed field which we can then use in our solr queries
@@ -123,6 +137,13 @@ public interface SearchService {
      * @return the indexed field
      */
     String toSortFieldIndex(String metadataField, String type);
+
+    /**
+     * Utility method to escape any special characters in a user's query
+     * @param query
+     * @return query with any special characters escaped
+     */
+    String escapeQueryChars(String query);
 
     QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
 }

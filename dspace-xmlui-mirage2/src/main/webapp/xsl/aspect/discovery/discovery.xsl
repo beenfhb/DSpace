@@ -26,7 +26,7 @@
 
 <!--
     These templates are devoted to rendering the search results for discovery.
-    Since discovery used hit highlighting seperate templates are required !
+    Since discovery uses hit highlighting, separate templates are required !
 -->
 
 
@@ -335,6 +335,15 @@
                 </p>
             </div>
         </div>
+
+        <xsl:if test="dri:item[@id='aspect.discovery.SimpleSearch.item.did-you-mean']">
+            <div class="row">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <xsl:apply-templates select="dri:item[@id='aspect.discovery.SimpleSearch.item.did-you-mean']"/>
+                </div>
+            </div>
+        </xsl:if>
+
         <div class="row">
             <div class="col-sm-offset-3 col-sm-9" id="filters-overview-wrapper-squared"/>
         </div>
@@ -357,6 +366,9 @@
                 </p>
             </div>
         </div>
+        <xsl:if test="dri:item[@id='aspect.discovery.SimpleSearch.item.did-you-mean']">
+            <xsl:apply-templates select="dri:item[@id='aspect.discovery.SimpleSearch.item.did-you-mean']"/>
+        </xsl:if>
         <div id="filters-overview-wrapper-squared"/>
     </xsl:template>
 
@@ -431,9 +443,14 @@
                     }
                 </xsl:text>
                 <xsl:for-each select="dri:option">
-                    <xsl:text>window.DSpace.i18n.discovery.</xsl:text><xsl:value-of select="$filter_name"/>
-                    <xsl:text>.</xsl:text><xsl:value-of select="@returnValue"/><xsl:text>='</xsl:text><xsl:copy-of select="./*"/><xsl:text>';</xsl:text>
-                </xsl:for-each>
+                    <xsl:text>window.DSpace.i18n.discovery.</xsl:text>
+                    <xsl:value-of select="$filter_name"/>
+                    <xsl:text>['</xsl:text>
+                    <xsl:value-of select="@returnValue"/>
+                    <xsl:text>']='</xsl:text>
+                    <xsl:copy-of select="./*"/>
+                    <xsl:text>';</xsl:text>
+                 </xsl:for-each>
             </xsl:for-each>
         </script>
     </xsl:template>

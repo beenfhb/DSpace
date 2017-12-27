@@ -31,7 +31,13 @@
 	<bean id="baseService" class="it.cilea.osd.common.service.PersistenceService"
 		abstract="true">		
 		<property name="modelDaos">
-			<map>			
+			<map>
+				<entry key="org.dspace.app.cris.model.orcid.OrcidHistory">
+					<ref bean="orcidHistoryDao" />
+				</entry>
+				<entry key="org.dspace.app.cris.model.orcid.OrcidQueue">
+					<ref bean="orcidQueueDao" />
+				</entry>			
 				<entry key="org.dspace.app.cris.model.RelationPreference">
 					<ref bean="relationPreferenceDao" />
 				</entry>
@@ -206,6 +212,9 @@
 				<entry
 					key="org.dspace.app.cris.model.jdyna.EditTabOrganizationUnit">
 					<ref bean="ouEditTabDao" />
+				</entry>
+				<entry key="it.cilea.osd.jdyna.widget.WidgetBoolen">
+					<ref bean="widgetBooleanDao" />
 				</entry>						
 				<entry key="it.cilea.osd.jdyna.widget.WidgetTesto">
 					<ref bean="widgetTextDao" />
@@ -287,6 +296,9 @@
 				<entry key="org.dspace.app.cris.model.jdyna.DynamicNestedObject">
 					<ref bean="dynamicNestedObjectDao" />
 				</entry>
+				<entry key="org.dspace.app.cris.model.CrisDeduplication">
+					<ref bean="crisDeduplicationDao" />
+				</entry>				
 			</map>
 		</property>		
 	</bean>
@@ -299,8 +311,10 @@
 				<property name="applicationDao" ref="applicationDao" />
 				<property name="listenerOnPostUpdate">
 					<list>
+						<ref local="CRISIDListener" />
 						<ref local="crisIndexerListener" />
-						<ref local="nestedIndexerListener" />		
+						<ref local="nestedIndexerListener" />
+						<ref local="ORCIDListener" />								
 					</list>
 				</property>
 				<property name="listenerOnPostDelete">
@@ -311,7 +325,8 @@
 				</property>
 				<property name="listenerOnPreInsert">
 					<list>
-						<ref local="nestedPositionListener" />		
+						<ref local="nestedPositionListener" />
+						<ref local="UUIDListener" />		
 					</list>
 				</property>				
 			</bean>
@@ -328,7 +343,7 @@
 	
 	<bean id="statSubscribeService" class="org.dspace.app.cris.statistics.service.StatSubscribeService">			
 		<constructor-arg ref="applicationService" />
-		<property name="statsLogger" ref="org.dspace.statistics.SolrLogger"/>
+		<property name="statsLogger" ref="org.dspace.statistics.service.SolrLoggerService"/>
 	</bean>	
 
 	<bean id="CrisSubscribeService" class="org.dspace.app.cris.service.CrisSubscribeService">			
@@ -481,6 +496,22 @@
 		</property>
 	</bean>
 
+	<bean id="widgetBooleanDao" parent="abstractDao">
+		<property name="proxyInterfaces">
+			<value>
+				it.cilea.osd.jdyna.dao.WidgetBooleanDao
+			</value>
+		</property>
+		<property name="target">
+			<bean parent="abstractDaoTarget">
+				<constructor-arg>
+					<value>
+						it.cilea.osd.jdyna.widget.WidgetBoolean
+					</value>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
 
 	<bean id="widgetTextDao" parent="abstractDao">
 		<property name="proxyInterfaces">
@@ -704,6 +735,40 @@
 		</property>
 	</bean>
 	
+	<bean id="orcidQueueDao" parent="abstractDao">
+		<property name="proxyInterfaces">
+			<value>
+				org.dspace.app.cris.dao.OrcidQueueDao
+			</value>
+		</property>
+		<property name="target">
+			<bean parent="abstractDaoTarget">
+				<constructor-arg>
+					<value>
+						org.dspace.app.cris.model.orcid.OrcidQueue
+					</value>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="orcidHistoryDao" parent="abstractDao">
+		<property name="proxyInterfaces">
+			<value>
+				org.dspace.app.cris.dao.OrcidHistoryDao
+			</value>
+		</property>
+		<property name="target">
+			<bean parent="abstractDaoTarget">
+				<constructor-arg>
+					<value>
+						org.dspace.app.cris.model.orcid.OrcidHistory
+					</value>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+		
 	<bean id="nestedObjectDao" parent="abstractDao">
 		<property name="proxyInterfaces">
 			<value>
@@ -1511,6 +1576,23 @@
 			</bean>
 		</property>
 	</bean>
+
+	<bean id="crisDeduplicationDao" parent="abstractDao">
+		<property name="proxyInterfaces">
+			<value>
+				org.dspace.app.cris.dao.CrisDeduplicationDao
+			</value>
+		</property>
+		<property name="target">
+			<bean parent="abstractDaoTarget">
+				<constructor-arg>
+					<value>
+						org.dspace.app.cris.model.CrisDeduplication
+					</value>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>	
 	
 	<!--  resources  -->
 	<bean id="dspaceDatasource" class="org.dspace.app.cris.util.DSpaceDataSource">
@@ -1557,30 +1639,22 @@
 		<property name="sessionFactory" ref="sessionFactory" />
 		<property name="eventListeners">
 			<map>
-				<entry key="save-update">					
-					<ref local="UUIDListener" />											
-				</entry>
 				<entry key="pre-insert">		
-					<list>		
-						<ref local="RPListener" />	
-						<ref local="CRISIDListener" />
-					</list>
+					<ref local="RPListener" />	
 				</entry>				
-				<entry key="pre-update">
-					<list>		
-						<ref local="RPListener" />	
-						<ref local="CRISIDListener" />
-					</list>					
+				<entry key="pre-update">					
+					<ref local="RPListener" />											
 				</entry>				
 				<entry key="post-load">
 					<list>
-					<ref local="RPListener" />
-						<ref local="rpResourcePolicyListener" />																	
+						<ref local="RPListener" />
+						<ref local="rpResourcePolicyListener" />
+						<ref local="ORCIDListener" />																							
 					</list>
 				</entry>
 				<entry key="post-insert">
 					<list>
-						<ref local="rpResourcePolicyListener" />											
+						<ref local="rpResourcePolicyListener" />
 					</list>
 				</entry>
 				<entry key="post-update">	
@@ -1620,6 +1694,10 @@
 	<bean id="UUIDListener" class="org.dspace.app.cris.model.listener.UUIDListener"/>
 	
 	<bean id="CRISIDListener" class="org.dspace.app.cris.model.listener.CrisIDListener"/>
+	
+	<bean id="ORCIDListener" class="org.dspace.app.cris.model.listener.OrcidQueueListener">
+		<property name="orcidPreferencesUtils" ref="orcidPreferencesUtils" />	
+	</bean>
 	
 	<bean id="nestedPositionListener" class="org.dspace.app.cris.model.listener.NestedPositionListener"/>
 

@@ -8,8 +8,10 @@
 package org.dspace.app.webui.cris.components.statistics;
 
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -32,9 +34,10 @@ import org.dspace.app.cris.statistics.bean.MapPointBean;
 import org.dspace.app.cris.statistics.bean.PieStatisticBean;
 import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 
-public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
+public abstract class ASolrStatsConfigurerComponent<T extends BrowsableDSpaceObject>
 {
 
     /** log4j logger */
@@ -216,7 +219,7 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
                         if (StringUtils.isEmpty(name))
                             name = "Unknown";
                         // if (i<limit && (Integer)result.getVal(i)>0){
-                        if (i < limit && !name.equals("Unknown"))
+                        if (i < limit && !(name.startsWith("Unknown") || (key3.equals(_COUNTRY_CODE) && name.equals("O1"))))
                         {
                             limitedData.add(new StatisticDatasBeanRow(name,
                                     result.getVal(i)));
@@ -290,9 +293,38 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
         }
         return totalResolutBean;
     }
+    
+    protected BarrChartStatisticDatasBean generateAllMonthsUpload(String key1,
+            String key2, String key3)
+    {
+        BarrChartStatisticDatasBean totalResolutBean = new BarrChartStatisticDatasBean(
+                key1, key2, key3);
+        totalResolutBean.setName(key2);
+        totalResolutBean.setHits(1);
+        try
+        {
+            FacetField times = solrResponse.getFacetDate("dc.date.accessioned_dt");
+            String[][] data = new String[times.getValues().size()][2];
+            for (int i = 0; i < times.getValues().size(); i++)
+            {
+                data[i][0] = times.getValues().get(i).getName();
+                data[i][1] = String
+                        .valueOf(times.getValues().get(i).getCount());
+            }
+            totalResolutBean.setDataTable(data);
+        }
+        catch (Exception e)
+        {
+            log.warn(e.getMessage());
+            totalResolutBean
+                    .setDataTable(new String[][] { new String[] { _NotAvailable } });
+        }
+        return totalResolutBean;
+    }    
 
     protected void buildTopResultModules(Integer type)
     {
+        //String key2 =  Constants.typeText[type].toLowerCase();
         String key2 = CrisConstants.getEntityTypeText(type);
         buildTopTimeBasedResult(key2);
         buildTopGeoBasedResult(key2);
@@ -351,6 +383,19 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
         statisticDatasBeans.addValue(TOP, key2, _ALL_MONTHS,
                 generateAllMonthsVeiw(TOP, key2, _ALL_MONTHS));
     }
+    
+    protected void buildTopTimeUploadBasedResult(String key2)
+    {
+        statisticDatasBeans.addValue(TOP, key2, _TOTAL,
+                generateTotalView(TOP, key2, _TOTAL));
+        statisticDatasBeans.addValue(TOP, key2, _LAST_MONTH,
+                generateLastMonthUpload(TOP, key2));
+        //statisticDatasBeans.addValue(TOP, key2, _LAST_YEAR,
+          //      generateLastFiscalYearView(TOP, key2));
+        // statisticDatasBeans.addValue(TIME_VIEW, _FISCAL_YEAR_MONTHS,);
+        statisticDatasBeans.addValue(TOP, key2, _ALL_MONTHS,
+                generateAllMonthsUpload(TOP, key2, _ALL_MONTHS));
+    }    
 
     private Object generateLastFiscalYearView(String key1, String key2)
     {
@@ -387,6 +432,24 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
 
         return totalResolutBean;
     }
+    
+    private Object generateLastMonthUpload(String key1, String key2)
+    {
+        BarrChartStatisticDatasBean totalResolutBean = new BarrChartStatisticDatasBean(
+                key1, key2, _LAST_MONTH);
+        totalResolutBean.setName(key2);
+        totalResolutBean.setHits(1);
+        List<Count> counts = solrResponse.getFacetDate("dc.date.accessioned_dt").getValues();
+        if (counts != null && counts.size() > 0)
+            totalResolutBean
+                    .setDataTable(new String[][] { new String[] { String
+                            .valueOf(counts.get(counts.size() - 1).getCount()) } });
+        else
+            totalResolutBean
+                    .setDataTable(new String[][] { new String[] { _NotAvailable } });
+
+        return totalResolutBean;
+    }    
 
     protected void buildPageResultModules(String key1)
     {
@@ -447,9 +510,9 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
                 generateAllMonthsVeiw(key1, TIME_VIEW, _ALL_MONTHS));
     }
 
-    protected void _prepareBasicQuery(SolrQuery solrQuery, Integer yearsQuery)
+    protected void _prepareBasicQuery(SolrQuery solrQuery, Integer yearsQuery,Date startDate, Date endDate)
     {
-        _addBasicConfiguration(solrQuery, yearsQuery);
+        _addBasicConfiguration(solrQuery, yearsQuery, startDate, endDate);
         solrQuery.addFacetField(_CONTINENT, _COUNTRY_CODE, _CITY, ID,
                 _LOCATION, _FISCALYEAR, _SOLARYEAR);
         solrQuery.setFacetMissing(true);
@@ -470,8 +533,27 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
     }
 
     protected void _addBasicConfiguration(SolrQuery solrQuery,
-            Integer yearsQuery)
+            Integer yearsQuery, Date startDate, Date endDate)
     {
+    	if (startDate != null || endDate != null) {
+    		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    		String fq = "time:[";
+    		if (startDate != null) {
+    			fq += sdf.format(startDate);
+    		}
+    		else {
+    			fq += "*";
+    		}
+    		fq += " TO ";
+    		if (endDate != null) {
+    			fq += sdf.format(endDate);
+    		}
+    		else {
+    			fq += "*";
+    		}
+    		fq += "]";
+    		solrQuery.addFilterQuery(fq);
+    	}    	
         solrQuery.setRows(0);
         solrQuery.setFacet(true);
         solrQuery.set("facet.date", "time");
@@ -503,7 +585,7 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
 
     public PieStatisticBean generateCategoryView(SolrServer server,
             String key1, String key2, String key3, Integer hitsNumber,
-            String query, Map<String, String> subQueries, String id)
+            String query, Map<String, String> subQueries, String id, String... filters)
     {
         PieStatisticBean pieStatisticBean = new PieStatisticBean(key1, key2,
                 key3);
@@ -526,6 +608,10 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
                     solrQuery.setQuery(q);
                     if (StringUtils.isEmpty(name))
                         name = "Unknown";
+
+                    if(filters != null) {
+                        solrQuery.addFilterQuery(filters);
+                    }
 
                     int count = new Long(server.query(solrQuery).getResults().getNumFound()).intValue();
                     limitedData.add(new StatisticDatasBeanRow(name, count));

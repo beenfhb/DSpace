@@ -9,6 +9,7 @@ package org.dspace.app.cris.network;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,11 +72,11 @@ public abstract class AVisualizationGraphModeTwo extends AVisualizationGraph
                 internal: for (Count relation : relations.getValues())
                 {
 
-                    log.debug("" + counter + " works on " + i + " of "
+                    log.debug("" + counter + " works on " + i+1 + " of "
                             + relations.getValueCount());
                     System.out.println(getConnectionName() + " - " + counter
                             + " of " + facets.getValueCount() + " works on "
-                            + i + " of " + relations.getValueCount());
+                            + i+1 + " of " + relations.getValueCount());
                     String aaa = relation.getName();
                     String[] split = aaa.split("\\|\\|\\|");
 
@@ -104,7 +105,12 @@ public abstract class AVisualizationGraphModeTwo extends AVisualizationGraph
                             .size(); j++)
                     {
                         List<String> values = new LinkedList<String>();
-                        values.add(facetValue);
+                        try { 
+                            values.addAll(transform(facetValue));
+                        }
+                        catch(Exception ex) {
+                            continue external;
+                        }
 
                         String bbb = relations.getValues().get(j).getName();
                         split = bbb.split("\\|\\|\\|");
@@ -171,7 +177,12 @@ public abstract class AVisualizationGraphModeTwo extends AVisualizationGraph
     }
 
 
-
+    protected List<String> transform(String values)
+    {
+        List result = new ArrayList<String>();
+        result.add(values);
+        return result;
+    }
 
     protected String getJoin()
     {
@@ -189,28 +200,25 @@ public abstract class AVisualizationGraphModeTwo extends AVisualizationGraph
     private Integer indexNode(List<String[]> discardedNode,
             Integer importedNodes, List<VisualizationGraphNode> result)
     {
-        for (VisualizationGraphNode node : result)
+        try
         {
-            try
-            {
-                getIndexer().index(node); // index node
-                importedNodes++;
-            }
-            catch (SolrServerException e)
-            {
-                log.error(e.getMessage(), e);
-                discardedNode.add(new String[] { getConnectionName() });
-            }
-            catch (IOException e)
-            {
-                log.error(e.getMessage(), e);
-                discardedNode.add(new String[] { getConnectionName() });
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                log.error(e.getMessage(), e);
-                discardedNode.add(new String[] { getConnectionName() });
-            }
+            getIndexer().index(result); // index node
+            importedNodes = result.size();
+        }
+        catch (SolrServerException e)
+        {
+            log.error(e.getMessage(), e);
+            discardedNode.add(new String[] { getConnectionName() });
+        }
+        catch (IOException e)
+        {
+            log.error(e.getMessage(), e);
+            discardedNode.add(new String[] { getConnectionName() });
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            log.error(e.getMessage(), e);
+            discardedNode.add(new String[] { getConnectionName() });
         }
         return importedNodes;
     }
@@ -228,12 +236,12 @@ public abstract class AVisualizationGraphModeTwo extends AVisualizationGraph
     public int getFacetLimit()
     {
         int result = ConfigurationManager
-                .getIntProperty(NetworkPlugin.CFG_MODULE, "network.connection.loader.limitnode."
+                .getIntProperty(NetworkPlugin.CFG_MODULE, "connection.loader.limitnode."
                         + getType());
         if (result == 0)
         {
             result = ConfigurationManager
-                    .getIntProperty(NetworkPlugin.CFG_MODULE, "network.connection.loader.limitnode.default");
+                    .getIntProperty(NetworkPlugin.CFG_MODULE, "connection.loader.limitnode.default");
         }
         return result;
     }

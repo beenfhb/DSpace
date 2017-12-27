@@ -11,10 +11,12 @@
   - Show a user's subscriptions and allow them to be modified
   -
   - Attributes:
-  -   subscriptions  - Collection[] - collections user is subscribed to
-  -   updated        - Boolean - if true, subscriptions have just been updated
+  -   avail          - List<Collection> - collections available to this user for subscription.
+  -   subscriptions  - List<Subscription> - collections user is subscribed to.
+  -   updated        - Boolean - if true, subscriptions have just been updated.
   --%>
 
+<%@page import="org.dspace.app.webui.util.UIUtil"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
@@ -25,6 +27,8 @@
 
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 
+<%@ page import="org.dspace.core.Context" %>
+<%@ page import="org.dspace.eperson.Subscription" %>
 <%@ page import="org.dspace.content.Community" %>
 <%@ page import="org.dspace.content.Collection" %>
 <%@ page import="org.dspace.app.util.CollectionDropDown" %>
@@ -36,27 +40,32 @@
 
 
 <%
-    Collection[] availableSubscriptions =
-        (Collection[]) request.getAttribute("availableSubscriptions");
-    Collection[] subscriptions =
-        (Collection[]) request.getAttribute("subscriptions");
+    List<Collection> availableSubscriptions =
+        (List<Collection>) request.getAttribute("availableSubscriptions");
+    List<Subscription> subscriptions =
+        (List<Subscription>) request.getAttribute("subscriptions");
     boolean updated =
         ((Boolean) request.getAttribute("updated")).booleanValue();
-    Community[] commSubscriptions = (Community[]) request
+    List<Subscription> commSubscriptions = (List<Subscription>) request
    		 .getAttribute("comm_subscriptions");
 
     List<ACrisObject> rpSubscriptions = (List<ACrisObject>) request
    	 	.getAttribute("crisobject_subscriptions");
+    
+    Context context = UIUtil.obtainContext(request);
 %>
 <dspace:layout style="submission" locbar="link"
                parentlink="/mydspace"
                parenttitlekey="jsp.mydspace"
                titlekey="jsp.mydspace.subscriptions.title">
 
-                <%-- <h1>Your Subscriptions</h1> --%>
-<h1><fmt:message key="jsp.mydspace.subscriptions.title"/>
-	<dspace:popup page="<%= LocaleSupport.getLocalizedMessage(pageContext, \"help.index\") +\"#subscribe\" %>"><fmt:message key="jsp.help"/></dspace:popup>
-</h1>
+    <%-- <h1>Your Subscriptions</h1> --%>
+    <h1>
+        <fmt:message key="jsp.mydspace.subscriptions.title"/>
+        <dspace:popup page='<%= LocaleSupport.getLocalizedMessage(pageContext, "help.index") +"#subscribe" %>'>
+            <fmt:message key="jsp.help"/>
+        </dspace:popup>
+    </h1>
 <%
     if (updated)
     {
@@ -83,27 +92,37 @@
         <form class="form-group" action="<%= request.getContextPath() %>/subscribe" method="post">
         	<div class="col-md-6">
             <select id="available-subscriptions" class="form-control" name="collection">
-                <option value="-1"><fmt:message key="jsp.mydspace.subscriptions.select_collection" /></option>
+                <option value="-1">
+                    <fmt:message key="jsp.mydspace.subscriptions.select_collection" />
+                </option>
 <%
     if (availableSubscriptions!=null)
-		for (int i = 0; i < availableSubscriptions.length; i++)
+		for (int i = 0; i < availableSubscriptions.size(); i++)
 	    {
 %>
-                <option value="<%= availableSubscriptions[i].getID() %>"><%= CollectionDropDown.collectionPath(availableSubscriptions[i], 0) %></option>
+                <option value="<%= availableSubscriptions.get(i).getID() %>">
+                    <%= CollectionDropDown.collectionPath(context, availableSubscriptions.get(i), 0) %>
+                </option>
 <%
-   		}
+}
 %>
             </select>
-            </div>
-            <input class="btn btn-success" type="submit" name="submit_subscribe" value="<fmt:message key="jsp.collection-home.subscribe"/>" />
- 			<input class="btn btn-danger" type="submit" name="submit_clear" value="<fmt:message key="jsp.mydspace.subscriptions.remove.button"/>" />
+        </div>
+        <input class="btn btn-success"
+               type="submit"
+               name="submit_subscribe"
+               value="<fmt:message key="jsp.collection-home.subscribe"/>" />
+        <input class="btn btn-danger"
+               type="submit"
+               name="submit_clear"
+               value="<fmt:message key="jsp.mydspace.subscriptions.remove.button"/>" />
 	</form>
 -->
 <h3 class="mydspace-subscriptions"><fmt:message key="jsp.mydspace.subscriptions.community-head"/></h3>
 <p><fmt:message key="jsp.mydspace.subscriptions.info2-community"/></p>
 <%
 if (commSubscriptions!=null)
-	if (commSubscriptions.length > 0)
+	if (commSubscriptions.size() > 0)
 	{
 %>
 <p><fmt:message key="jsp.mydspace.subscriptions.info3-community"/></p>
@@ -118,27 +137,30 @@ if (commSubscriptions!=null)
 <%
 String row = "odd";
 
-    for (int i = 0; i < commSubscriptions.length; i++)
+    for (Subscription commSubscription : commSubscriptions)
     {
+    	
+    	if(commSubscription.getCommunity()!=null) {
 %>
         <tr>
             <%--
               -  HACK: form shouldn't open here, but IE adds a carraige
               -  return where </form> is placed, breaking our nice layout.
               --%>
-             <td class="<%=row%>RowOddCol"><%=commSubscriptions[i].getMetadata("name")%></td>
+             <td class="<%=row%>RowOddCol"><%=commSubscription.getCommunity().getMetadata("name")%></td>
              <td class="<%=row%>RowEvenCol">
-                  <a href="<%=request.getContextPath()%>/handle/<%=commSubscriptions[i].getHandle()%>"><%=commSubscriptions[i].getHandle()%></a>
+                  <a href="<%=request.getContextPath()%>/handle/<%=commSubscription.getCommunity().getHandle()%>"><%=commSubscription.getCommunity().getHandle()%></a>
              </td>
              <td class="<%=row%>RowOddCol">
                 <form method="post" action=""> 
-                    <input type="hidden" name="community" value="<%=commSubscriptions[i].getID()%>" />
+                    <input type="hidden" name="community" value="<%=commSubscription.getCommunity().getID()%>" />
 		<input type="submit" class="btn btn-warning" name="submit_unsubscribe" value="<fmt:message key="jsp.mydspace.subscriptions.unsub.button"/>" />
                 </form>
              </td>
         </tr>
 <%
-row = (row.equals("even") ? "odd" : "even");
+    	}
+	row = (row.equals("even") ? "odd" : "even");
     }
 %>
    <tr>
@@ -164,7 +186,7 @@ else
 <h3 class="mydspace-subscriptions"><fmt:message key="jsp.mydspace.subscriptions.collection-head"/></h3>        
 <p><fmt:message key="jsp.mydspace.subscriptions.info2"/></p>
 <%
-    if (subscriptions.length > 0)
+    if (subscriptions.size() > 0)
     {
 %>
 	<p><fmt:message key="jsp.mydspace.subscriptions.info3"/></p>
@@ -173,26 +195,35 @@ else
 <%
         String row = "odd";
 
-        for (int i = 0; i < subscriptions.length; i++)
+        for (Subscription subscription : subscriptions)
         {
+
+        	if(subscription.getCollection()!=null) {
 %>
+
             <tr>
                 <%--
                   -  HACK: form shouldn't open here, but IE adds a carraige
                   -  return where </form> is placed, breaking our nice layout.
                   --%>
-
+			
                  <td class="<%= row %>RowOddCol">
-                      <a href="<%= request.getContextPath() %>/handle/<%= subscriptions[i].getHandle() %>"><%= CollectionDropDown.collectionPath(subscriptions[i],0) %></a>
+                      <a href="<%= request.getContextPath() %>/handle/<%= subscription.getCollection().getHandle() %>">
+                          <%= CollectionDropDown.collectionPath(context, subscription.getCollection(),0) %>
+                      </a>
                  </td>
                  <td class="<%= row %>RowEvenCol">
                     <form method="post" action=""> 
-                        <input type="hidden" name="collection" value="<%= subscriptions[i].getID() %>" />
-			<input class="btn btn-warning" type="submit" name="submit_unsubscribe" value="<fmt:message key="jsp.mydspace.subscriptions.unsub.button"/>" />
+                        <input type="hidden" name="collection" value="<%= subscription.getCollection().getID() %>" />
+                        <input class="btn btn-warning"
+                               type="submit"
+                               name="submit_unsubscribe"
+                               value="<fmt:message key="jsp.mydspace.subscriptions.unsub.button"/>" />
                     </form>
                  </td>
             </tr>
 <%
+        	}
             row = (row.equals("even") ? "odd" : "even" );
         }
 %>
@@ -213,7 +244,7 @@ else
 <h3 class="mydspace-subscriptions"><fmt:message key="jsp.mydspace.subscriptions.rp-head"/></h3>
 <p><fmt:message key="jsp.mydspace.subscriptions.info2-rp"/></p>
 <%
-if (rpSubscriptions.size() > 0)
+if (rpSubscriptions!=null && rpSubscriptions.size() > 0)
 {
 %>
 <p><fmt:message key="jsp.mydspace.subscriptions.info3-rp"/></p>

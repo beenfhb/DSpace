@@ -8,6 +8,10 @@
 package org.dspace.checker;
 
 
+import java.sql.SQLException;
+
+import org.dspace.content.Bitstream;
+
 /**
  * <p>
  * BitstreamDispatchers are strategy objects that hand bitstream ids out to
@@ -46,7 +50,8 @@ public interface BitstreamDispatcher
      * 
      * @return the next bitstream id, or BitstreamDispatcher.SENTINEL if there
      *         isn't another value
+     * @throws SQLException if database error
      * 
      */
-    public int next();
+    public Bitstream next() throws SQLException;
 }

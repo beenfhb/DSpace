@@ -26,7 +26,7 @@ public abstract class AVisualizationGraphModeThree extends AVisualizationGraph
     // paginate each 100)
     private static boolean NOT_PAGINATION = ConfigurationManager
             .getBooleanProperty(NetworkPlugin.CFG_MODULE, 
-                    "network.connection.loader.heavyload.modethree", true);
+                    "connection.loader.heavyload.modethree", true);
 
     @Override
     public List<VisualizationGraphNode> load(List<String[]> discardedNode,
@@ -80,12 +80,12 @@ public abstract class AVisualizationGraphModeThree extends AVisualizationGraph
 
                 result = new ArrayList<VisualizationGraphNode>();
 
-                Integer pubId = null;
+                String pubId = null;
                 try
                 {
                     SolrDocument publication = iter.next();
 
-                    pubId = (Integer) publication
+                    pubId = (String) publication
                             .getFieldValue("search.resourceid");
 
                     Object obj = publication
@@ -265,28 +265,25 @@ public abstract class AVisualizationGraphModeThree extends AVisualizationGraph
     private Integer indexNode(List<String[]> discardedNode,
             Integer importedNodes, List<VisualizationGraphNode> result)
     {
-        for (VisualizationGraphNode node : result)
+        try
         {
-            try
-            {
-                getIndexer().index(node); // index node
-                importedNodes++;
-            }
-            catch (SolrServerException e)
-            {
-                log.error(e.getMessage(), e);
-                discardedNode.add(new String[] { getConnectionName() });
-            }
-            catch (IOException e)
-            {
-                log.error(e.getMessage(), e);
-                discardedNode.add(new String[] { getConnectionName() });
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                log.error(e.getMessage(), e);
-                discardedNode.add(new String[] { getConnectionName() });
-            }
+            getIndexer().index(result); // index node
+            importedNodes = result.size();
+        }
+        catch (SolrServerException e)
+        {
+            log.error(e.getMessage(), e);
+            discardedNode.add(new String[] { getConnectionName() });
+        }
+        catch (IOException e)
+        {
+            log.error(e.getMessage(), e);
+            discardedNode.add(new String[] { getConnectionName() });
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            log.error(e.getMessage(), e);
+            discardedNode.add(new String[] { getConnectionName() });
         }
         return importedNodes;
     }

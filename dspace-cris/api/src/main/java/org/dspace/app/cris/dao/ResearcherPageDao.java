@@ -9,6 +9,7 @@ package org.dspace.app.cris.dao;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.RPProperty;
@@ -65,7 +66,7 @@ public interface ResearcherPageDao extends CrisObjectDao<ResearcherPage>
 
     public List<Integer> findAllResearcherPageID();
 
-    public ResearcherPage uniqueByEPersonId(Integer id);
+    public ResearcherPage uniqueByEPersonId(UUID id);
 
     public Integer idFindMax();
 }

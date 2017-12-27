@@ -18,15 +18,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
-import org.dspace.sort.SortOption;
-import org.dspace.sort.SortException;
-import org.dspace.utils.DSpace;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.core.ConfigurationManager;
@@ -34,6 +30,10 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.Utils;
 import org.dspace.discovery.configuration.TagCloudConfiguration;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
+import org.dspace.utils.DSpace;
 
 /**
  * Servlet for browsing through indices, as they are defined in
@@ -115,6 +115,9 @@ public abstract class AbstractBrowserServlet extends DSpaceServlet
             int focus = UIUtil.getIntParameter(request, "focus");
             int offset = UIUtil.getIntParameter(request, "offset");
             int resultsperpage = UIUtil.getIntParameter(request, "rpp");
+            if (resultsperpage == -1) {
+            	resultsperpage = ConfigurationManager.getIntProperty("browse."+type+".rpp", -1);
+            }
             int sortBy = UIUtil.getIntParameter(request, "sort_by");
             int etAl = UIUtil.getIntParameter(request, "etal");
 
@@ -277,6 +280,7 @@ public abstract class AbstractBrowserServlet extends DSpaceServlet
 
             // set up a BrowseScope and start loading the values into it
             BrowserScope scope = new BrowserScope(context);
+            scope.setUserLocale(context.getCurrentLocale().getLanguage());
             scope.setBrowseIndex(bi);
             scope.setOrder(order);
             scope.setFilterValue(value != null?value:authority);
@@ -334,13 +338,26 @@ public abstract class AbstractBrowserServlet extends DSpaceServlet
         {
             BrowseIndex bi = scope.getBrowseIndex();
 
+            boolean isMultilanguage = new DSpace()
+            .getConfigurationService()
+            .getPropertyAsType(
+                    "discovery.browse.authority.multilanguage."
+                            + bi.getName(),
+                    new DSpace()
+                            .getConfigurationService()
+                            .getPropertyAsType(
+                                    "discovery.browse.authority.multilanguage",
+                                    new Boolean(false)),
+                    false);
             // now start up a browse engine and get it to do the work for us
-            BrowseEngine be = new BrowseEngine(context);
+            BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
+                    scope.getUserLocale():null);
+            
             BrowseInfo binfo = be.browse(scope);
             
             request.setAttribute("browse.info", binfo);
 
-            if (AuthorizeManager.isAdmin(context))
+            if (authorizeService.isAdmin(context))
             {
                 // Set a variable to create admin buttons
                 request.setAttribute("admin_button", Boolean.TRUE);
@@ -351,7 +368,7 @@ public abstract class AbstractBrowserServlet extends DSpaceServlet
                 if (bi.isMetadataIndex() && !scope.isSecondLevel())
                 {
                 	if (bi.isTagCloudEnabled()){
-                		TagCloudConfiguration tagCloudConfiguration = new DSpace().getServiceManager().getServiceByName("browseTagCloudConfiguration", TagCloudConfiguration.class);
+                		TagCloudConfiguration tagCloudConfiguration = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("browseTagCloudConfiguration", TagCloudConfiguration.class);
                 		if (tagCloudConfiguration == null){
                 			tagCloudConfiguration = new TagCloudConfiguration();
                 		}

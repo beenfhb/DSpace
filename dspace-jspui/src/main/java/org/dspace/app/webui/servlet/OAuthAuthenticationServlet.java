@@ -17,17 +17,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.jstl.core.Config;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest.AuthenticationRequestBuilder;
 import org.apache.oltu.oauth2.client.response.OAuthAuthzResponse;
 import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
-import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
+import org.dspace.authenticate.factory.AuthenticateServiceFactory;
+import org.dspace.authority.orcid.OrcidAccessToken;
+import org.dspace.authority.orcid.OrcidService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -46,11 +50,12 @@ import org.dspace.core.LogManager;
  * 
  * Example use:
  * 
- * <map:match pattern="oauth-login"> <map:act type="OAuthAuthenticateAction">
- * <!-- Loggin succeeded, request will be forwarded. --> <map:serialize
- * type="xml"/> </map:act> <!-- Login failed, try again. Show them static
- * content from xml file --> <map:transform type="FailedAuthentication" />
- * <map:serialize type="xml"/> </map:match>
+ * <map:match pattern="oauth-login"> <map:act type="OAuthAuthenticateAction"> <!
+ * -- Loggin succeeded, request will be forwarded. -->
+ * <map:serialize type="xml"/> </map:act> <!-- Login failed, try again. Show
+ * them static content from xml file -->
+ * <map:transform type="FailedAuthentication" /> <map:serialize type="xml"/>
+ * </map:match>
  *
  * @author Mark Diggory, Lantian Gai
  */
@@ -93,15 +98,27 @@ public class OAuthAuthenticationServlet extends DSpaceServlet {
 
 			if (oar == null || oar.getCode() == null) {
 				// Step 1. there is no code and we need to request one.
-				OAuthClientRequest oAuthClientRequest = OAuthClientRequest
+				AuthenticationRequestBuilder builder = OAuthClientRequest
 						.authorizationLocation(
 								ConfigurationManager.getProperty("authentication-oauth", "application-authorize-url"))
 						.setClientId(ConfigurationManager.getProperty("authentication-oauth", "application-client-id"))
 						.setRedirectURI(
 								ConfigurationManager.getProperty("authentication-oauth", "application-redirect-uri"))
 						.setResponseType("code")
-						.setScope(ConfigurationManager.getProperty("authentication-oauth", "application-client-scope"))
-						.buildQueryMessage();
+						.setScope(ConfigurationManager.getProperty("authentication-oauth", "application-client-scope"));
+
+				String showLogin = request.getParameter("show-login");
+				if (StringUtils.isNotBlank(showLogin)) {
+					boolean showLoginB = Boolean.parseBoolean(showLogin);
+					builder.setParameter("email", context.getCurrentUser().getEmail());
+					if (showLoginB) {
+						builder.setParameter("show_login", "true");
+					} else {
+						builder.setParameter("family_names", context.getCurrentUser().getLastName());
+						builder.setParameter("given_names", context.getCurrentUser().getFirstName());
+					}
+				}
+				OAuthClientRequest oAuthClientRequest = builder.buildQueryMessage();
 
 				// Issue a Redirect to the OAuth site to request authorization
 				// code.
@@ -126,26 +143,40 @@ public class OAuthAuthenticationServlet extends DSpaceServlet {
 				// create OAuth client that uses custom http client under the
 				// hood
 				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+				try {
+					OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(oAuthClientRequest,
+							OAuthJSONAccessTokenResponse.class);
 
-				OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(oAuthClientRequest,
-						OAuthJSONAccessTokenResponse.class);
+					// Step 2.b. Retrieve the access and expiration Tokens.
+					request.setAttribute("orcid", oAuthResponse.getParam("orcid"));
+					request.setAttribute("access_token", oAuthResponse.getAccessToken());
+					request.setAttribute("expires_in", oAuthResponse.getExpiresIn());
+					request.setAttribute("token_type", oAuthResponse.getParam("token_type"));
+					request.setAttribute("scope", oAuthResponse.getScope());
+					request.setAttribute("refresh_token", oAuthResponse.getRefreshToken());
+					request.setAttribute("oauthResponse", oAuthResponse);
+					log.info("Retrieved oauthResponse from apache.oltu");
+				} catch (Exception ex) {
+					//WARN in particular condition the accesstoken method fails and we can retrieve the access token using jersey directly
+					OrcidService orcidService = OrcidService.getOrcid();
+					OrcidAccessToken oAuthResponse = orcidService.getAuthorizationAccessToken(oar.getCode());
 
-				// Step 2.b. Retrieve the access and expiration Tokens.
-				request.setAttribute("orcid", oAuthResponse.getParam("orcid"));
-				request.setAttribute("access_token", oAuthResponse.getAccessToken());
-				request.setAttribute("expires_in", oAuthResponse.getExpiresIn());
-				request.setAttribute("token_type", oAuthResponse.getParam("token_type"));
-				request.setAttribute("scope", oAuthResponse.getScope());
-				request.setAttribute("refresh_token", oAuthResponse.getRefreshToken());
-				request.setAttribute("oauthResponse", oAuthResponse);
-
+					request.setAttribute("orcid", oAuthResponse.getOrcid());
+					request.setAttribute("access_token", oAuthResponse.getAccess_token());
+					request.setAttribute("expires_in", oAuthResponse.getExpires_in());
+					request.setAttribute("token_type", oAuthResponse.getToken_type());
+					request.setAttribute("scope", oAuthResponse.getScope());
+					request.setAttribute("refresh_token", oAuthResponse.getRefresh_token());
+					request.setAttribute("oauthResponse", oAuthResponse);
+					log.info("Retrieved oauthResponse from jersey");
+				}
 			}
 		} catch (Exception e) {
 			throw new ServletException("Unable to preform authentication: " + e.getMessage(), e);
 		}
 
 		// Locate the eperson
-		int status = AuthenticationManager.authenticate(context, null, null, null, request);
+		int status = AuthenticateServiceFactory.getInstance().getAuthenticationService().authenticate(context, null, null, null, request);
 
 		String jsp = null;
 		if (status == AuthenticationMethod.SUCCESS) {

@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.model;
 
+import java.util.UUID;
+
 import it.cilea.osd.common.core.HasTimeStampInfo;
 import it.cilea.osd.common.model.Identifiable;
 import it.cilea.osd.jdyna.model.AnagraficaSupport;
@@ -19,7 +21,7 @@ public interface ICrisObject<P extends Property<TP>, TP extends PropertiesDefini
 {
     
     public int getType();    
-    public int getID();     
+    public UUID getID();     
     public String getPublicPath();
     public SourceReference getSourceReference();
 }

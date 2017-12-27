@@ -25,8 +25,13 @@ import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.List;
 import org.dspace.app.xmlui.wing.element.Options;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.AuthorizeServiceImpl;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.xml.sax.SAXException;
 
 /**
@@ -44,8 +49,8 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
     /** Cached validity object */
 	private SourceValidity validity;
 
-	/** exports available for download */
-	java.util.List<String> availableExports = null;
+    protected AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+    protected GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
 	 /**
      * Generate the unique cache key.
@@ -73,15 +78,6 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
             return HashUtil.hash("anonymous");
         }
 
-        if (availableExports != null && availableExports.size()>0) {
-            StringBuilder key = new StringBuilder(context.getCurrentUser().getEmail());
-            for(String fileName : availableExports){
-                key.append(":").append(fileName);
-            }
-
-            return HashUtil.hash(key.toString());
-        }
-
         return HashUtil.hash(context.getCurrentUser().getEmail());
     }
 
@@ -101,12 +97,12 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
 		        try {
 		            DSpaceValidity validity = new DSpaceValidity();
 
-		            validity.add(eperson);
+		            validity.add(context, (BrowsableDSpaceObject)eperson);
 
-		            Group[] groups = Group.allMemberGroups(context, eperson);
+		            java.util.Set<Group> groups = groupService.allMemberGroupsSet(context, eperson);
 		            for (Group group : groups)
 		            {
-		            	validity.add(group);
+		            	validity.add(context, (BrowsableDSpaceObject)group);
 		            }
 
 		            this.validity = validity.complete();
@@ -135,7 +131,7 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
         List admin = options.addList("administrative");
 
         //Check if a system administrator
-        boolean isSystemAdmin = AuthorizeManager.isAdmin(this.context);
+        boolean isSystemAdmin = authorizeService.isAdmin(this.context);
 
 
         // System Administrator options!

@@ -7,17 +7,6 @@
  */
 package org.dspace.app.cris.discovery;
 
-import it.cilea.osd.common.core.HasTimeStampInfo;
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.AValue;
-import it.cilea.osd.jdyna.model.AnagraficaSupport;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-import it.cilea.osd.jdyna.value.DateValue;
-import it.cilea.osd.jdyna.value.PointerValue;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -27,11 +16,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.integration.CrisEnhancer;
@@ -70,9 +61,8 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
@@ -80,18 +70,25 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.SolrServiceImpl;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
-import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightingConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
-import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
-import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
-import org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration;
 import org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration;
 import org.dspace.utils.DSpace;
+
+import it.cilea.osd.common.core.HasTimeStampInfo;
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.AValue;
+import it.cilea.osd.jdyna.model.AnagraficaSupport;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.DateValue;
+import it.cilea.osd.jdyna.value.PointerValue;
 
 public class CrisSearchService extends SolrServiceImpl
 {
@@ -106,18 +103,17 @@ public class CrisSearchService extends SolrServiceImpl
     }
 
     @Override
-    public void indexContent(Context context, DSpaceObject dso, boolean force)
+    public void indexContent(Context context, BrowsableDSpaceObject dso, boolean force)
             throws SQLException
     {
-        if (dso != null && dso.getType() >= CrisConstants.CRIS_TYPE_ID_START)
+    	if (dso == null) return;
+        if (dso.getType() >= CrisConstants.CRIS_TYPE_ID_START)
         {
             indexCrisObject((ACrisObject) dso, force);
         }
         else
         {
 			if (dso.getType() == Constants.ITEM) {
-				super.indexContent(context, ((Item) dso).getWrapper(), force);
-			} else {
 				super.indexContent(context, dso, force);
 			}
         }
@@ -169,38 +165,24 @@ public class CrisSearchService extends SolrServiceImpl
     }
 
     @Override
-    public DSpaceObject findDSpaceObject(Context context, SolrDocument doc)
+    public BrowsableDSpaceObject findDSpaceObject(Context context, SolrDocument doc)
             throws SQLException
     {
         Integer type = (Integer) doc.getFirstValue("search.resourcetype");
         if (type != null && type >= CrisConstants.CRIS_TYPE_ID_START)
         {
-            Integer id = (Integer) doc.getFirstValue("search.resourceid");
-
-            if (type > CrisConstants.CRIS_DYNAMIC_TYPE_ID_START)
+            String uuid = (String) doc.getFirstValue("search.resourceid");
+            ACrisObject o = getApplicationService().getEntityByUUID(uuid);
+            
+            if (o != null)
             {
-                return getApplicationService()
-                .get(ResearchObject.class, id);
-            }
-            else
-            {
-                switch (type)
-                {
-                case CrisConstants.RP_TYPE_ID:
-                    return getApplicationService()
-                            .get(ResearcherPage.class, id);
-
-                case CrisConstants.PROJECT_TYPE_ID:
-                    return getApplicationService().get(Project.class, id);
-
-                case CrisConstants.OU_TYPE_ID:
-                    return getApplicationService().get(OrganizationUnit.class,
-                            id);
-
-                default:
-                    return null;
+            	for (String f : doc.getFieldNames()) {
+            		Map<String, Object> map = o.getExtraInfo();
+            		Object firstValue = doc.getFirstValue(f);
+					map.put(f, firstValue);
                 }
             }
+            return o;
         }
         else
         {
@@ -219,15 +201,19 @@ public class CrisSearchService extends SolrServiceImpl
         log.debug("Building Cris: " + dso.getUuid());
 
         String schema = "cris" + dso.getPublicPath();
-        String uuid = dso.getUuid();
+        String uuid = dso.getUuid().toString();
         Boolean status = dso.getStatus();
         String sourceref = dso.getSourceRef();
         String sourceid = dso.getSourceID();
+        String crisID = ResearcherPageUtils.getPersistentIdentifier(dso);
         if(StringUtils.isNotBlank(sourceref)) {
         	doc.addField("cris-sourceref", sourceref);
         }
         if(StringUtils.isNotBlank(sourceid)) {
         	doc.addField("cris-sourceid", sourceid);
+        }
+        if(StringUtils.isNotBlank(crisID)) {
+            doc.addField("cris-id", crisID);
         }
         commonIndexerHeader(status, uuid, doc);
 
@@ -247,8 +233,8 @@ public class CrisSearchService extends SolrServiceImpl
                 toProjectionFields, sortFields, hitHighlightingFields);
 
         // add the special crisXX.this metadata
-            indexProperty(doc, dso.getUuid(), schema + ".this", dso.getName(),
-                    ResearcherPageUtils.getPersistentIdentifier(dso),
+        indexProperty(doc, uuid, schema + ".this", dso.getName(),
+                    crisID,
                     toIgnoreFields, searchFilters, toProjectionFields,
                     sortFields, sortFieldsAdded, hitHighlightingFields,
                     moreLikeThisFields);
@@ -272,7 +258,7 @@ public class CrisSearchService extends SolrServiceImpl
                         CrisServiceIndexPlugin.class);
         for (CrisServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(dso, doc);
+            solrServiceIndexPlugin.additionalIndex(dso, doc, searchFilters);
         }
 
         // write the index and close the inputstreamreaders
@@ -348,7 +334,8 @@ public class CrisSearchService extends SolrServiceImpl
         if (value instanceof DateValue)
         {
             // TODO: make this date format configurable !
-            svalue = DateFormatUtils.formatUTC(((DateValue) value).getObject(),
+            // WARN: please note that the date in cris objects are assumed to be in UTC format 
+            svalue = DateFormatUtils.format(((DateValue) value).getObject(),
                     "yyyy-MM-dd");
         }
 
@@ -600,7 +587,7 @@ public class CrisSearchService extends SolrServiceImpl
     	long tot = getApplicationService().count(classCrisObject);
     	final int MAX_RESULT = 10;
     	long numpages = (tot / MAX_RESULT) + 1;
-        for (int page = 0; page < numpages; page++)
+        for (int page = 1; page <= numpages; page++)
         {
 			List<T> rpObjects = getApplicationService().getPaginateList(
 					classCrisObject, "id", false, page, MAX_RESULT);
@@ -677,7 +664,7 @@ public class CrisSearchService extends SolrServiceImpl
                         CrisServiceIndexPlugin.class);
         for (CrisServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(dso, doc);
+            solrServiceIndexPlugin.additionalIndex(dso, doc, null);
         }
         
         log.debug("  Added Metadata");
@@ -714,7 +701,7 @@ public class CrisSearchService extends SolrServiceImpl
         doc.addField("disabled", disabled);
         doc.addField("discoverable", !disabled);// item.isDiscoverable());
         
-        doc.addField("read", "g0");        
+//        doc.addField("read", "g0");        
         doc.addField("cris-uuid", uuid);
     }
 
@@ -850,10 +837,23 @@ public class CrisSearchService extends SolrServiceImpl
 
             DiscoveryConfiguration crisConfiguration = SearchUtils
                     .getDiscoveryConfigurationByName(confName);
-            if (crisConfiguration != null && crisConfiguration.getId().equals(confName))
+            if (crisConfiguration != null)
             {
                 discoveryConfigurations.add(crisConfiguration);
             }
+            
+            List<String> listExtraConfiguration = SearchUtils.getConfigurationService().getExtraConfigurationMapping().get(confName);
+            if (listExtraConfiguration != null) {
+                for (String eConf : listExtraConfiguration) {
+                    DiscoveryConfiguration extraCrisConfiguration = SearchUtils
+                            .getDiscoveryConfigurationByName(eConf);
+                    if (extraCrisConfiguration != null)
+                    {
+                        discoveryConfigurations.add(extraCrisConfiguration);
+                    }
+                }
+            }
+            
             for (DiscoveryConfiguration discoveryConfiguration : discoveryConfigurations)
             {
                 for (int i = 0; i < discoveryConfiguration.getSearchFilters()
@@ -975,31 +975,26 @@ public class CrisSearchService extends SolrServiceImpl
        }
         
         
-        public void updateIndex(Context context, List<Integer> ids, boolean force, int type) {
+        public void updateIndex(Context context, List<UUID> ids, boolean force, int type) {
             if (type >= CrisConstants.CRIS_TYPE_ID_START)
             {
-                for (Integer id : ids)
+                for (UUID id : ids)
                 {
-                    if (type >= CrisConstants.CRIS_DYNAMIC_TYPE_ID_START) {
-                        indexCrisObject(getApplicationService().get(ResearchObject.class, id), force);
-                    }                    
-                    else if (CrisConstants.RP_TYPE_ID == type)
-                    {
-                        indexCrisObject(getApplicationService().get(ResearcherPage.class, id), force);
-                    }
-                    else if (CrisConstants.PROJECT_TYPE_ID == type)
-                    {
-                        indexCrisObject(getApplicationService().get(Project.class, id), force);
-                    }
-                    else if (CrisConstants.OU_TYPE_ID == type)
-                    {
-                        indexCrisObject(getApplicationService().get(OrganizationUnit.class, id), force);
-                    }
+                    indexCrisObject(getApplicationService().getEntityByUUID(id.toString()), force);
                 }
             }
             else
             {
                 super.updateIndex(context, ids, force, type);
             }
+        }
+
+        public void renewMetricsCache() throws SearchServiceException
+        {            
+            SolrQuery solrQuery = new SolrQuery()
+                    .setQuery("*:*");
+            // Only return obj identifier fields in result doc
+            solrQuery.setFields("clearcache-crismetrics");            
+            search(solrQuery);
         }
 }

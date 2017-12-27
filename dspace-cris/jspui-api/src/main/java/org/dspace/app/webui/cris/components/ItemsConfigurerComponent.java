@@ -7,19 +7,20 @@
  */
 package org.dspace.app.webui.cris.components;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.statistics.IStatsComponent;
 import org.dspace.app.webui.cris.components.statistics.CrisStatBitstreamTopObjectComponent;
 import org.dspace.app.webui.cris.components.statistics.CrisStatTopObjectComponent;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 
 public class ItemsConfigurerComponent extends
-        AFacetedQueryConfigurerComponent<Item>
+        AFacetedQueryConfigurerComponent<BrowsableDSpaceObject>
 {
 
     /** log4j logger */
@@ -27,19 +28,12 @@ public class ItemsConfigurerComponent extends
             .getLogger(ItemsConfigurerComponent.class);
 
     @Override
-    public Item[] getObjectFromSolrResult(DiscoverResult docs, Context context)
-            throws Exception
+    public List<BrowsableDSpaceObject> getObjectFromSolrResult(DiscoverResult docs,
+            Context context) throws Exception
     {
-        Item[] result = new Item[docs.getDspaceObjects().size()];
-        int i = 0;
-        for (DSpaceObject obj : docs.getDspaceObjects())
-        {
-            result[i] = (Item) obj;
-            i++;
-        }
-        return result;
+    	return docs.getDspaceObjects();
     }
-
+    
     @Override
     public IStatsComponent getStatsDownloadComponent()
     {

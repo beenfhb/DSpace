@@ -60,7 +60,7 @@ public class WSServicesPublications extends AWSServices<WSItem>
     {
         WSItem item = new WSItem();
         item.setHandle((String) sd.getFieldValue("handle"));
-        item.setItemID((Integer) sd.getFieldValue("search.resourceid"));
+        item.setItemID((String) sd.getFieldValue("search.resourceid"));
 
         item.setCollection((ArrayList) sd
                 .getFieldValues(CrisWebservicesExtraIndexPlugin.FIELDNAME_COLLECTIONS));

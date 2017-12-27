@@ -7,6 +7,8 @@
  */
 package org.dspace.app.webui.util;
 
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -16,7 +18,7 @@ public class AbstractDisplayStrategy extends AUniformDisplayStrategy
     /** log4j category */
     private static Logger log = Logger.getLogger(AbstractDisplayStrategy.class);
 
-    protected String getDisplayForValue(HttpServletRequest hrq, String value, int itemid)
+    protected String getDisplayForValue(HttpServletRequest hrq, String value, UUID itemid)
     {
         if (value != null) 
         {

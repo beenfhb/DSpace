@@ -12,21 +12,32 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+import org.dspace.app.bulkedit.DSpaceCSV;
+import org.dspace.app.bulkedit.MetadataExport;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.app.bulkedit.MetadataExport;
-import org.dspace.app.bulkedit.DSpaceCSV;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.browse.*;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseDSpaceObject;
+import org.dspace.browse.BrowseEngine;
+import org.dspace.browse.BrowseException;
+import org.dspace.browse.BrowseIndex;
+import org.dspace.browse.BrowseInfo;
+import org.dspace.browse.BrowserScope;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.content.ItemIterator;
-import org.apache.log4j.Logger;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Servlet for browsing through indices, as they are defined in 
@@ -54,6 +65,10 @@ public class BrowserServlet extends AbstractBrowserServlet
     /** log4j category */
     private static Logger log = Logger.getLogger(AbstractBrowserServlet.class);
 
+    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
+    private MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+    
     /**
      * Do the usual DSpace GET method.  You will notice that browse does not currently
      * respond to POST requests.
@@ -163,7 +178,29 @@ public class BrowserServlet extends AbstractBrowserServlet
             throws ServletException, IOException, SQLException,
             AuthorizeException
     {
-        
+    	BrowseInfo bInfo = (BrowseInfo) request.getAttribute("browse.info");
+
+		if (bInfo != null) {
+			if (bInfo.hasAuthority()) {
+				String humanValue = bInfo.getAuthority();				
+				List<String> authorities = mam.getAuthorityMetadata();
+				String[] browseMetadata = bInfo.getBrowseIndex().getMetadata().split(",");
+				for (String auth : authorities) {
+					if (match(auth, browseMetadata)) {
+                        String language = null;
+                        Locale sessionLocale = UIUtil.getSessionLocale(request);
+                        if (sessionLocale != null)
+                        {
+                            language = sessionLocale.getLanguage();
+                        }
+						humanValue = cam.getLabel(auth.replaceAll("\\.", "_"), bInfo.getAuthority(), language);
+						break;
+					}
+				}
+				request.setAttribute("humanValue", humanValue);
+			}
+		}
+		
         JSPManager.showJSP(request, response, "/browse/full.jsp");
     }
 
@@ -190,16 +227,27 @@ public class BrowserServlet extends AbstractBrowserServlet
             scope.setOffset(0);
             scope.setResultsPerPage(Integer.MAX_VALUE);
 
+            BrowseIndex bidx = scope.getBrowseIndex();
             // Export a browse view
-            BrowseEngine be = new BrowseEngine(context);
-            BrowseInfo binfo = be.browse(scope);
-            List<Integer> iids = new ArrayList<Integer>();
-            for (BrowseItem bi : binfo.getBrowseItemResults())
-            {
-                iids.add(bi.getID());
+            boolean isMultilanguage = configurationService
+            .getPropertyAsType(
+                    "discovery.browse.authority.multilanguage."
+                            + bidx.getName(),
+                    configurationService
+                            .getPropertyAsType(
+                                    "discovery.browse.authority.multilanguage",
+                                    new Boolean(false)),
+                    false);
+            // now start up a browse engine and get it to do the work for us
+            BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
+                    scope.getUserLocale():null);
+            BrowseInfo binfo = be.browse(scope);			
+            List<BrowseDSpaceObject> iterator = new ArrayList<>();
+            for(BrowsableDSpaceObject browseObject : binfo.getBrowseItemResults()) {
+            	BrowseDSpaceObject bdo = new BrowseDSpaceObject(context, browseObject);
+            	iterator.add(bdo);
             }
-            ItemIterator ii = new ItemIterator(context, iids);
-            MetadataExport exporter = new MetadataExport(context, ii, false);
+			MetadataExport exporter = new MetadataExport(context, iterator.iterator(), false);
 
             // Perform the export
             DSpaceCSV csv = exporter.export();
@@ -220,4 +268,18 @@ public class BrowserServlet extends AbstractBrowserServlet
             JSPManager.showIntegrityError(request, response);
         }
     }
+    
+    private boolean match(String auth, String[] browseMetadata) {
+		for (String md : browseMetadata) {
+			if (md.endsWith("*")) {
+				if (auth.startsWith(md.substring(0, md.length() - 2)))
+					return true;
+			} else {
+				if (md.equals(auth))
+					return true;
+			}
+		}
+		return false;
+	}
+
 }

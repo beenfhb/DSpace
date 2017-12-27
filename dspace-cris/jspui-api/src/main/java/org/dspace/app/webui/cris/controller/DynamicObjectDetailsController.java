@@ -7,12 +7,11 @@
  */
 package org.dspace.app.webui.cris.controller;
 
-import it.cilea.osd.jdyna.web.Utils;
-import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
-
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,18 +29,25 @@ import org.dspace.app.cris.model.jdyna.TabDynamicObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
+import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.web.Utils;
+import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
 
 /**
  * This SpringMVC controller is used to build the ResearcherPage details page.
@@ -56,6 +62,8 @@ public class DynamicObjectDetailsController
         SimpleDynaController<DynamicProperty, DynamicPropertiesDefinition, BoxDynamicObject, TabDynamicObject>
 {
     private CrisSubscribeService subscribeService;
+    
+    private List<ICrisHomeProcessor<ResearchObject>> processors;
 
     public DynamicObjectDetailsController(Class<ResearchObject> anagraficaObjectClass,
             Class<DynamicPropertiesDefinition> classTP,
@@ -86,12 +94,20 @@ public class DynamicObjectDetailsController
         }
 
         Context context = UIUtil.obtainContext(request);
-        EPerson currentUser = context.getCurrentUser();
+        
+        EPerson currUser = context.getCurrentUser();
+        if(currUser != null) {
+            model.put("isLoggedIn", new Boolean(true));    
+        }
+        else {
+            model.put("isLoggedIn", new Boolean(false));
+        }
+        
         if ((dyn.getStatus() == null || dyn.getStatus().booleanValue() == false)
-                && !AuthorizeManager.isAdmin(context))
+                && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             
-            if (currentUser != null
+            if (currUser != null
                     || Authenticate.startAuthentication(context, request,
                             response))
             {
@@ -110,7 +126,7 @@ public class DynamicObjectDetailsController
             return null;
         }
 
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             model.put("do_page_menu", new Boolean(true));
         }
@@ -121,18 +137,46 @@ public class DynamicObjectDetailsController
         {
             mvc = super.handleDetails(request, response);
         }
-        catch (RuntimeException e)
+        catch (Exception e)
         {
-            return null;
+            throw new RuntimeException(e);
         }
         
         
         if (subscribeService != null)
         {
-            boolean subscribed = subscribeService.isSubscribed(currentUser,
+            boolean subscribed = subscribeService.isSubscribed(currUser,
                     dyn);
             model.put("subscribed", subscribed);            
         }
+        
+        List<ICrisHomeProcessor<ResearchObject>> resultProcessors = new ArrayList<ICrisHomeProcessor<ResearchObject>>();
+        Map<String, Object> extraTotal = new HashMap<String, Object>();
+        Map<String, ItemMetricsDTO> metricsTotal = new HashMap<String, ItemMetricsDTO>();
+        List<String> metricsTypeTotal = new ArrayList<String>();
+        for (ICrisHomeProcessor processor : processors)
+        {
+            if (ResearchObject.class.isAssignableFrom(processor.getClazz()))
+            {
+                processor.process(context, request, response, dyn);
+                Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
+                if(extra!=null && !extra.isEmpty()) {
+                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
+                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                    if(metrics!=null && !metrics.isEmpty()) {
+                        metricsTotal.putAll(metrics);
+                    }
+                    if(metricTypes!=null && !metricTypes.isEmpty()) {
+                        metricsTypeTotal.addAll(metricTypes);
+                    }
+                }
+            }
+        }
+        extraTotal.put("metricTypes", metricsTypeTotal);
+        extraTotal.put("metrics", metricsTotal);
+        request.setAttribute("extra", extraTotal);  
+        mvc.getModel().put("exportscitations",
+                ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options"));
         
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);
         new DSpace().getEventService().fireEvent(
@@ -152,20 +196,24 @@ public class DynamicObjectDetailsController
             HttpServletRequest request, Map<String, Object> model,
             HttpServletResponse response) throws SQLException, Exception
     {
-
-        // check admin authorization
-        Boolean isAdmin = null; // anonymous access
+       
+        Integer entityId = extractEntityId(request);
+        
+        if(entityId==null) {
+            return null;
+        }
         Context context = UIUtil.obtainContext(request);
 
-        if (AuthorizeManager.isAdmin(context))
-        {
-            isAdmin = true; // admin
+        List<TabDynamicObject> tabs = applicationService.findTabByType(tabClass, extractDynamicObject(request).getTypo());
+        List<TabDynamicObject> authorizedTabs = new LinkedList<TabDynamicObject>();
+        
+        for(TabDynamicObject tab : tabs) {
+            if(CrisAuthorizeManager.authorize(context, applicationService, ResearchObject.class, DynamicPropertiesDefinition.class, entityId, tab)) {
+                authorizedTabs.add(tab);
+            }
         }
-
-        List<TabDynamicObject> tabs = applicationService.getTabsByVisibilityAndTypo(
-                TabDynamicObject.class, isAdmin, extractDynamicObject(request).getTypo());
-
-        return tabs;
+        return authorizedTabs;
+        
     }
 
     @Override
@@ -248,5 +296,15 @@ public class DynamicObjectDetailsController
     public void setSubscribeService(CrisSubscribeService rpSubscribeService)
     {
         this.subscribeService = rpSubscribeService;
+    }
+    
+    public void setProcessors(List<ICrisHomeProcessor<ResearchObject>> processors) {
+		this.processors = processors;
+	}
+    
+    @Override
+    protected boolean authorize(HttpServletRequest request, BoxDynamicObject box) throws SQLException
+    {
+        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearchObject.class, DynamicPropertiesDefinition.class, extractEntityId(request), box);
     }
 }

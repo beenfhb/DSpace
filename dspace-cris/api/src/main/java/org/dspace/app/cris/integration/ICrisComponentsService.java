@@ -7,10 +7,10 @@
  */
 package org.dspace.app.cris.integration;
 
+import java.util.Map;
+
 import it.cilea.osd.jdyna.components.IBeanSubComponent;
 import it.cilea.osd.jdyna.components.IComponent;
-
-import java.util.Map;
 
 public interface ICrisComponentsService<IBC extends IBeanSubComponent>
 {

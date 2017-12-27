@@ -8,19 +8,20 @@
 package org.dspace.app.cris.integration;
 
 
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.dto.CrisAnagraficaObjectDTO;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Collection;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.ChoiceAuthorityDetails;
@@ -32,6 +33,8 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
+
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 /**
  * This class is the main point of integration beetween the Projects and DSpace.
@@ -102,16 +105,14 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
      * 
      * @return a Choices of RPs where a name form match the query string
      */
-    public Choices getMatches(String field, String query, int collection,
+    public Choices getMatches(String field, String query, Collection collection,
             int start, int limit, String locale)
     {
         try
         {
             init();
-            if (query != null && query.length() > 2)
+            if (query == null || query.length() > 2)
             {
-                String luceneQuery = ClientUtils.escapeQueryChars(query.toLowerCase()) + "*";
-                luceneQuery = luceneQuery.replaceAll("\\\\ "," ");
                 DiscoverQuery discoverQuery = new DiscoverQuery();
                 discoverQuery.setDSpaceObjectFilter(getCRISTargetTypeID());
                 String filter = configurationService.getProperty("cris."
@@ -131,14 +132,21 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
                         discoverQuery.addFilterQueries(MessageFormat.format(filter,  field.substring(field.lastIndexOf("_") + 1)));
                     }
                 }
-                discoverQuery
-                        .setQuery("{!lucene q.op=AND df=crisauthoritylookup}("
-                                + luceneQuery
-                                + ") OR (\""
-                                + luceneQuery.substring(0,
-                                        luceneQuery.length() - 1) + "\")");
-                
-                discoverQuery.setMaxResults(50);
+                if (query == null) {
+                	discoverQuery.setQuery("*:*");
+                	discoverQuery.setMaxResults(500);
+                }
+                else {
+                	String luceneQuery = ClientUtils.escapeQueryChars(query.toLowerCase()) + "*";
+	                luceneQuery = luceneQuery.replaceAll("\\\\ "," ");
+	                discoverQuery
+	                        .setQuery("{!lucene q.op=AND df=crisauthoritylookup}("
+	                                + luceneQuery
+	                                + ") OR (\""
+	                                + luceneQuery.substring(0,
+	                                        luceneQuery.length() - 1) + "\")");
+	                discoverQuery.setMaxResults(50);
+                }
                 discoverQuery.setSortField("crisauthoritylookup_sort", SORT_ORDER.asc);
                 
                 DiscoverResult result = searchService.search(null,
@@ -146,7 +154,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
 
                 List<Choice> choiceList = new ArrayList<Choice>();
 
-                for (DSpaceObject dso : result.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
                 {
                     T cris = (T) dso;
                     choiceList.add(new Choice(ResearcherPageUtils
@@ -185,14 +193,100 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
      * only, interactive submission will use the
      * {@link CRISAuthority#getMatches(String, String, int, int, int, String)}.
      * 
+     * The confidence value of the returned Choices will be
+     * {@link Choices#CF_UNCERTAIN} if there is only an object that match with the
+     * lookup string or {@link Choices#CF_AMBIGUOUS} if there are more objects.
+     * 
      * {@link ChoiceAuthority#getMatches(String, String, int, int, int, String)}
+     * 
+     * @param field
+     *            (not used by this Authority)
+     * @param text
+     *            the lookup string
+     * @param collection
+     *            (not used by this Authority)
+     * @param locale
+     *            (not used by this Authority)
+     *            
+     * @return a Choices of CrisObject that have an exact string match between a name
+     *         forms and the text lookup string
      * 
      * @return an empty Choices
      */
-    public Choices getBestMatch(String field, String text, int collection,
+    public Choices getBestMatch(String field, String text, Collection collection,
             String locale)
     {
-        return new Choices(false);
+        try
+        {
+            init();
+            List<Choice> choiceList = new ArrayList<Choice>();
+            int totalResult = 0;
+            if (text != null && text.length() > 2)
+            {
+                text = text.replaceAll("\\.", "");
+                DiscoverQuery discoverQuery = new DiscoverQuery();
+                discoverQuery.setDSpaceObjectFilter(getCRISTargetTypeID());
+                String filter = configurationService.getProperty("cris."
+                        + getPluginName() + ((field!=null && !field.isEmpty())?"." + field:"") + ".filter");
+                if (filter != null)
+                {
+                    discoverQuery.addFilterQueries(filter);
+                }
+                else {
+                    if(field.contains("_authority_") && getPluginName().equals(DOAuthority.class.getSimpleName())) {
+                        filter = configurationService.getProperty("cris."
+                                + getPluginName()
+                                + ".dc_authority_default.filter");
+                        if(filter==null) {
+                            throw new RuntimeException("You have to define a default dc_authority_default filter");
+                        }
+                        discoverQuery.addFilterQueries(MessageFormat.format(filter,  field.substring(field.lastIndexOf("_") + 1)));
+                    }
+                }
+
+                discoverQuery
+                        .setQuery("{!lucene q.op=AND df=crisauthoritylookup}\""
+                                + ClientUtils.escapeQueryChars(text.trim())
+                                + "\"");
+                discoverQuery.setMaxResults(50);
+                DiscoverResult result = searchService.search(null,
+                        discoverQuery, true);
+                totalResult = (int) result.getTotalSearchResults();
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
+                {
+                    T cris = (T) dso;
+                    choiceList.add(new Choice(ResearcherPageUtils
+                            .getPersistentIdentifier(cris), cris.getName(),
+                            getDisplayEntry(cris)));
+                }
+            }
+
+            Choice[] results = new Choice[choiceList.size()];
+            if (choiceList.size() > 0)
+            {
+                results = choiceList.toArray(results);
+
+                if (totalResult == 1)
+                {
+                    return new Choices(results, 0, totalResult,
+                            Choices.CF_UNCERTAIN, false, 0);
+                }
+                else
+                {
+                    return new Choices(results, 0, totalResult,
+                            Choices.CF_AMBIGUOUS, false, 0);
+                }
+            }
+            else
+            {
+                return new Choices(false);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("Error quering the CRISAuthority - " + e.getMessage(), e);
+            return new Choices(true);
+        }
     }
 
     /**
@@ -200,8 +294,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
      * 
      * @param key
      *            the identifier (i.e. 00024)
-     * @param locale
-     *            (not used by this Authority)
+     * @param locale     *            
      * 
      * @return the rp fullname
      */
@@ -218,6 +311,25 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
         T cris = applicationService.get(getCRISTargetClass(), id);
         if (cris != null)
         {
+
+            boolean isMultilanguage = new DSpace()
+                    .getConfigurationService().getPropertyAsType(
+                            "discovery.authority.multilanguage." + field,
+                            false);
+
+            if (isMultilanguage)
+            {
+                if (StringUtils.isNotBlank(locale))
+                {
+                    String metadata = cris
+                            .getMetadataFieldName(new Locale(locale));
+                    String value = cris.getMetadata(metadata);
+                    if (StringUtils.isNotBlank(value))
+                    {
+                        return value;
+                    }
+                }
+            }
             return cris.getName();
         }
         return null;

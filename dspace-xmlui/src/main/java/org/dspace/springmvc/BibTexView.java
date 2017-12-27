@@ -8,16 +8,6 @@
 package org.dspace.springmvc;
 
 
-import org.dspace.content.Metadatum;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.View;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -25,6 +15,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.View;
 
 /**
  * @author Fabio Bolognesi (fabio at atmire dot com)
@@ -38,6 +42,9 @@ public class BibTexView implements View {
     private static final String EOL = "\r\n";
 
     private String resourceIdentifier=null;
+    
+    protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    
 
     public String getContentType() {
 
@@ -131,9 +138,9 @@ public class BibTexView implements View {
 
     private String getMetadataValue(Item item, String metadatafield)
     {
-        for (Metadatum value : item.getMetadataByMetadataString(metadatafield))
+        for (IMetadataValue value : itemService.getMetadataByMetadataString(item, metadatafield))
         {
-            return value.value;
+            return value.getValue();
         }
         return null;
     }
@@ -143,35 +150,35 @@ public class BibTexView implements View {
     {
         ArrayList<String> authors = new ArrayList<String>();
 
-        authors.addAll(getAuthors(aItem.getMetadataByMetadataString("dc.contributor.author")));
-        authors.addAll(getAuthors(aItem.getMetadataByMetadataString("dc.creator")));
-        authors.addAll(getAuthors(aItem.getMetadataByMetadataString("dc.contributor")));
+        authors.addAll(getAuthors(itemService.getMetadataByMetadataString(aItem, "dc.contributor.author")));
+        authors.addAll(getAuthors(itemService.getMetadataByMetadataString(aItem, "dc.creator")));
+        authors.addAll(getAuthors(itemService.getMetadataByMetadataString(aItem, "dc.contributor")));
 
         return authors.toArray(new String[authors.size()]);
     }
 
     private String getYear(Item aItem)
     {
-        for (Metadatum date : aItem.getMetadataByMetadataString("dc.date.issued"))
+        for (IMetadataValue date : itemService.getMetadataByMetadataString(aItem, "dc.date.issued"))
         {
-            return date.value.substring(0, 4);
+            return date.getValue().substring(0, 4);
         }
 
         return null;
     }
 
-    private List<String> getAuthors(Metadatum[] aMetadata)
+    private List<String> getAuthors(List<IMetadataValue> aMetadata)
     {
         ArrayList<String> authors = new ArrayList<String>();
         StringTokenizer tokenizer;
 
-        for (Metadatum metadata : aMetadata)
+        for (IMetadataValue metadata : aMetadata)
         {
             StringBuilder builder = new StringBuilder();
 
-            if (metadata.value.indexOf(",") != -1)
+            if (metadata.getValue().indexOf(",") != -1)
             {
-                String[] parts = metadata.value.split(",");
+                String[] parts = metadata.getValue().split(",");
 
                 if (parts.length > 1)
                 {
@@ -185,7 +192,7 @@ public class BibTexView implements View {
                 }
                 else
                 {
-                    builder.append(metadata.value);
+                    builder.append(metadata.getValue());
                 }
 
                 authors.add(builder.toString());
@@ -193,7 +200,7 @@ public class BibTexView implements View {
             // Now the minority case (as we've cleaned up data and input method)
             else
             {
-                String[] parts = metadata.value.split("\\s+|\\.");
+                String[] parts = metadata.getValue().split("\\s+|\\.");
                 String name = parts[parts.length - 1].replace("\\s+|\\.", "");
 
                 builder.append(name).append(" ");

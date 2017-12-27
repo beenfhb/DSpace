@@ -7,11 +7,16 @@
  */
 package org.dspace.app.cris.model.jdyna;
 
+import it.cilea.osd.common.service.IPersistenceService;
+import it.cilea.osd.jdyna.web.ITabService;
 import it.cilea.osd.jdyna.web.TypedAbstractEditTab;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -42,7 +47,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
         @NamedQuery(name = "EditTabDynamicObject.findTabByType", query = "from EditTabDynamicObject where typeDef = ?"),
         @NamedQuery(name = "EditTabDynamicObject.findByAdminAndTypoDef", query = "from EditTabDynamicObject tab where ((visibility = 1 or visibility = 2 or visibility = 3) and typeDef = ?) order by priority"),
         @NamedQuery(name = "EditTabDynamicObject.findByOwnerAndTypoDef", query = "from EditTabDynamicObject tab where ((visibility = 0 or visibility = 2 or visibility = 3) and typeDef = ?) order by priority"),
-        @NamedQuery(name = "EditTabDynamicObject.findByAnonimousAndTypoDef", query = "from EditTabDynamicObject tab where (visibility = 3 and typeDef = ?) order by priority")        
+        @NamedQuery(name = "EditTabDynamicObject.findByAnonimousAndTypoDef", query = "from EditTabDynamicObject tab where (visibility = 3 and typeDef = ?) order by priority"),
+        @NamedQuery(name = "EditTabDynamicObject.findAuthorizedGroupById", query = "select tab.authorizedGroup from EditTabDynamicObject tab where tab.id = ?"),
+        @NamedQuery(name = "EditTabDynamicObject.findAuthorizedGroupByShortname", query = "select tab.authorizedGroup from EditTabDynamicObject tab where tab.shortName = ?"),
+        @NamedQuery(name = "EditTabDynamicObject.findAuthorizedSingleById", query = "select tab.authorizedSingle from EditTabDynamicObject tab where tab.id = ?"),
+        @NamedQuery(name = "EditTabDynamicObject.findAuthorizedSingleByShortname", query = "select tab.authorizedSingle  from EditTabDynamicObject tab where tab.shortName = ?")
 })
 @Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class EditTabDynamicObject extends
@@ -62,6 +71,22 @@ public class EditTabDynamicObject extends
 	@ManyToOne
 	private DynamicObjectType typeDef;
 	
+	@ManyToMany
+	@JoinTable(
+          name="cris_do_etab2policysingle",
+          joinColumns=@JoinColumn(name="etab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<DynamicPropertiesDefinition> authorizedSingle;
+    
+	@ManyToMany
+	@JoinTable(
+          name="cris_do_etab2policygroup",
+          joinColumns=@JoinColumn(name="etab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<DynamicPropertiesDefinition> authorizedGroup;
+    
 	public EditTabDynamicObject() {
 		this.visibility = VisibilityTabConstant.ADMIN;
 	}
@@ -107,5 +132,31 @@ public class EditTabDynamicObject extends
     public void setTypeDef(DynamicObjectType typeDef)
     {
         this.typeDef = typeDef;
+    }
+    
+    public List<DynamicPropertiesDefinition> getAuthorizedSingle()
+    {
+        if(this.authorizedSingle==null) {
+            this.authorizedSingle = new ArrayList<DynamicPropertiesDefinition>();
+        }
+        return authorizedSingle;
+    }
+
+    public void setAuthorizedSingle(List<DynamicPropertiesDefinition> authorizedSingle)
+    {
+        this.authorizedSingle = authorizedSingle; 
+    }
+
+    public List<DynamicPropertiesDefinition> getAuthorizedGroup()
+    {
+        if(this.authorizedGroup==null) {
+            this.authorizedGroup = new ArrayList<DynamicPropertiesDefinition>();
+        }
+        return authorizedGroup;
+    }
+
+    public void setAuthorizedGroup(List<DynamicPropertiesDefinition> authorizedGroup)
+    {
+        this.authorizedGroup = authorizedGroup;
     }
 }

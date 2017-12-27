@@ -9,7 +9,6 @@ package org.dspace.submit;
 
 import java.io.IOException;
 import java.sql.SQLException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +19,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.app.util.SubmissionInfo;
+import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Abstract processing class for DSpace Submission Steps. This defines the base
@@ -97,8 +108,16 @@ public abstract class AbstractProcessingStep
     private Map<Integer, String> errorMessages = null;
 
     private static final String ERROR_FIELDS_ATTRIBUTE = "dspace.submit.error_fields";
-    
+    private static final String ERROR_VALIDATION_FIELDS_ATTRIBUTE = "dspace.submit.error_validation_fields";
 
+    protected AuthorizeService authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+    protected BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    protected BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
+    protected CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
+    protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    protected MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
+    protected ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    
     /**
      * Do any processing of the information input by the user, and/or perform
      * step processing (if no user interaction required)
@@ -144,7 +163,10 @@ public abstract class AbstractProcessingStep
     {
         return (List<String>) request.getAttribute(ERROR_FIELDS_ATTRIBUTE);
     }
-    
+    public static final List<String> getValidationErrorFields(HttpServletRequest request)
+    {
+        return (List<String>) request.getAttribute(ERROR_VALIDATION_FIELDS_ATTRIBUTE);
+    }    
     /**
      * Sets the list of all UI fields which had errors that occurred during the
      * step processing. This list is for usage in generating the appropriate
@@ -170,7 +192,17 @@ public abstract class AbstractProcessingStep
             request.setAttribute(ERROR_FIELDS_ATTRIBUTE, errorFields);
         }
     }
-
+    private static final void setValidationErrorFields(HttpServletRequest request, List<String> errorFields)
+    {
+        if(errorFields==null)
+        {
+            request.removeAttribute(ERROR_VALIDATION_FIELDS_ATTRIBUTE);
+        }
+        else
+        {
+            request.setAttribute(ERROR_VALIDATION_FIELDS_ATTRIBUTE, errorFields);
+        }
+    }
     /**
      * Add a single UI field to the list of all error fields (which can
      * later be retrieved using getErrorFields())
@@ -198,7 +230,23 @@ public abstract class AbstractProcessingStep
         //save updated list
         setErrorFields(request, errorFields);
     }
+    
+    protected static final void addValidationErrorField(HttpServletRequest request, String fieldName)
+    {
+        //get current list
+        List<String> errorFields = getValidationErrorFields(request);
+        
+        if (errorFields == null)
+        {
+            errorFields = new ArrayList<String>();
+        }
 
+        //add this field
+        errorFields.add(fieldName);
+        
+        //save updated list
+        setValidationErrorFields(request, errorFields);
+    }
     /**
      * Clears the list of all fields that errored out during the previous step's
      * processing.
@@ -217,7 +265,16 @@ public abstract class AbstractProcessingStep
             setErrorFields(request, null);
         }
     }
-
+    protected static final void clearValidationErrorFields(HttpServletRequest request)
+    {
+        //get current list
+        List<String> errorFields = getValidationErrorFields(request);
+        
+        if (errorFields != null)
+        {
+            setValidationErrorFields(request, null);
+        }
+    }
     /**
      * Return the text of an error message based on the passed in error flag.
      * These error messages are used for non-interactive steps (so that they can
@@ -360,5 +417,48 @@ public abstract class AbstractProcessingStep
         // set info to request
         request.setAttribute("submission.page", Integer.valueOf(pageNumber));
     }
+    
+    /**
+     * Get the configuration of the current step from parameters in the request, 
+     * along with the current SubmissionInfo object. 
+     * If there is a problem, <code>null</code> is returned.
+     * 
+     * @param request
+     *            HTTP request
+     * @param si
+     *            The current SubmissionInfo object
+     * 
+     * @return the current SubmissionStepConfig
+     */
+    public static SubmissionStepConfig getCurrentStepConfig(
+            HttpServletRequest request, SubmissionInfo si)
+    {
+        int stepNum = -1;
+        SubmissionStepConfig step = (SubmissionStepConfig) request
+                .getAttribute("step");
 
+        if (step == null)
+        {
+            // try and get it as a parameter
+            stepNum = Util.getIntParameter(request, "step");
+
+            // if something is wrong, return null
+            if (stepNum < 0 || si == null || si.getSubmissionConfig() == null)
+            {
+                return null;
+            }
+            else
+            {
+                return si.getSubmissionConfig().getStep(stepNum);
+            }
+        }
+        else
+        {
+            return step;
+        }
+    }
+    
+    public String getHeading(HttpServletRequest request, SubmissionInfo subInfo, int pageNumber, String heading) {
+		return heading;
+	}
 }

@@ -7,12 +7,11 @@
  */
 package org.dspace.app.webui.cris.controller;
 
-import it.cilea.osd.jdyna.components.IBeanSubComponent;
-import it.cilea.osd.jdyna.components.IComponent;
-import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
-
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,22 +31,29 @@ import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
+import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.components.IBeanSubComponent;
+import it.cilea.osd.jdyna.components.IComponent;
+import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
 
 /**
  * This SpringMVC controller is used to build the ResearcherPage details page.
@@ -76,7 +82,9 @@ public class ResearcherPageDetailsController
             .getLogger(ResearcherPageDetailsController.class);
 
     private CrisSubscribeService subscribeService;
-
+    
+    private List<ICrisHomeProcessor<ResearcherPage>> processors;
+    
     public void setSubscribeService(CrisSubscribeService rpSubscribeService)
     {
         this.subscribeService = rpSubscribeService;
@@ -118,12 +126,28 @@ public class ResearcherPageDetailsController
 
         Context context = UIUtil.obtainContext(request);
         EPerson currUser = context.getCurrentUser();
+        if(currUser != null) {
+            model.put("isLoggedIn", new Boolean(true));
+            ResearcherPage rp = ((ApplicationService) applicationService).getResearcherPageByEPersonId(currUser.getID());
+        	model.put("userID", currUser.getID());
+            if(rp!=null){
+            	model.put("userHasRP", new Boolean(true));
 
-        boolean isAdmin = AuthorizeManager.isAdmin(context);
+            }else
+            {
+            	model.put("userHasRP", new Boolean(false));
+            }
+        }
+        else {
+            model.put("isLoggedIn", new Boolean(false));
+        }
+        
+        boolean isAdmin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
       
+        
         if (isAdmin
                 || (currUser != null && (researcher.getEpersonID() != null && currUser
-                        .getID() == researcher.getEpersonID())))
+                        .getID().equals(researcher.getEpersonID()))))
         {
             model.put("researcher_page_menu", new Boolean(true));
             model.put("authority_key",
@@ -169,7 +193,7 @@ public class ResearcherPageDetailsController
             boolean subscribed = subscribeService.isSubscribed(currUser,
                     researcher);
             model.put("subscribed", subscribed);
-            EPerson eperson = EPerson.findByNetid(context, researcher.getSourceID());
+            EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context, researcher.getEpersonID());
             if (eperson != null) {
             	model.put("subscriptions", subscribeService.getSubscriptions(eperson));
             }
@@ -188,13 +212,40 @@ public class ResearcherPageDetailsController
         }
 
         mvc.getModel().putAll(model);
+        
+        List<ICrisHomeProcessor<ResearcherPage>> resultProcessors = new ArrayList<ICrisHomeProcessor<ResearcherPage>>();
+        Map<String, Object> extraTotal = new HashMap<String, Object>();
+        Map<String, ItemMetricsDTO> metricsTotal = new HashMap<String, ItemMetricsDTO>();
+        List<String> metricsTypeTotal = new ArrayList<String>();
+        for (ICrisHomeProcessor processor : processors)
+        {
+            if (ResearcherPage.class.isAssignableFrom(processor.getClazz()))
+            {
+                processor.process(context, request, response, researcher);
+                Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
+                if(extra!=null && !extra.isEmpty()) {
+                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
+                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                    if(metrics!=null && !metrics.isEmpty()) {
+                        metricsTotal.putAll(metrics);
+                    }
+                    if(metricTypes!=null && !metricTypes.isEmpty()) {
+                        metricsTypeTotal.addAll(metricTypes);
+                    }
+                }
+            }
+        }
+        extraTotal.put("metricTypes", metricsTypeTotal);
+        extraTotal.put("metrics", metricsTotal);
+        request.setAttribute("extra", extraTotal);  
+        
         mvc.getModel().put("researcher", researcher);
         mvc.getModel().put("exportscitations",
-                ConfigurationManager.getProperty("exportcitation.options"));
+                ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options"));
         mvc.getModel()
                 .put("showStatsOnlyAdmin",
                         ConfigurationManager
-                                .getBooleanProperty(SolrLogger.CFG_STAT_MODULE,"authorization.admin"));
+                                .getBooleanProperty("authorization.admin"));
         
         
         // Fire usage event.
@@ -218,32 +269,21 @@ public class ResearcherPageDetailsController
             HttpServletResponse response) throws Exception
     {
         Integer researcherId = extractEntityId(request);
-        ResearcherPage researcher = null;
-        try
-        {
-            researcher = ((ApplicationService) applicationService).get(
-                    ResearcherPage.class, researcherId);
-        }
-        catch (NumberFormatException e)
-        {
+        
+        if(researcherId==null) {
             return null;
         }
-        // check admin authorization
-        Boolean isAdmin = null; // anonymous access
         Context context = UIUtil.obtainContext(request);
-        EPerson currUser = context.getCurrentUser();
-        if (AuthorizeManager.isAdmin(context))
-        {
-            isAdmin = true; // admin
-        }
-        else if ((currUser != null && researcher.getId() == currUser.getID()))
-        {
-            isAdmin = false; // owner
-        }
-        List<TabResearcherPage> tabs = applicationService.getTabsByVisibility(
-                TabResearcherPage.class, isAdmin);
-        return tabs;
 
+        List<TabResearcherPage> tabs = applicationService.getList(TabResearcherPage.class);
+        List<TabResearcherPage> authorizedTabs = new LinkedList<TabResearcherPage>();
+        
+        for(TabResearcherPage tab : tabs) {
+            if(CrisAuthorizeManager.authorize(context, applicationService, ResearcherPage.class, RPPropertiesDefinition.class, researcherId, tab)) {
+                authorizedTabs.add(tab);
+            }
+        }
+        return authorizedTabs;
     }
 
     @Override
@@ -335,6 +375,17 @@ public class ResearcherPageDetailsController
     protected Integer getRealPersistentIdentifier(String persistentIdentifier)
     {
         return ResearcherPageUtils.getRealPersistentIdentifier(persistentIdentifier, ResearcherPage.class);
+    }
+
+    public void setProcessors(List<ICrisHomeProcessor<ResearcherPage>> processors)
+    {
+        this.processors = processors;
+    }
+
+    @Override
+    protected boolean authorize(HttpServletRequest request, BoxResearcherPage box) throws SQLException
+    {
+        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearcherPage.class, RPPropertiesDefinition.class, extractEntityId(request), box);        
     }
 
 }

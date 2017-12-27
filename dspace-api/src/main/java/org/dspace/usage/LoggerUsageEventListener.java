@@ -8,8 +8,8 @@
 package org.dspace.usage;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.core.Constants;
 import org.dspace.core.LogManager;
 import org.dspace.services.model.Event;
@@ -26,6 +26,7 @@ public class LoggerUsageEventListener extends AbstractUsageEventListener{
     private static Logger log = Logger
             .getLogger(LoggerUsageEventListener.class);
     
+	@Override
 	public void receiveEvent(Event event) {
 		
         //Search events are already logged
@@ -43,7 +44,7 @@ public class LoggerUsageEventListener extends AbstractUsageEventListener{
 		}
 	}
 
-	private static String formatAction(Action action, DSpaceObject object)
+	private static String formatAction(Action action, UsageEventEntity object)
 	{
 		try
 		{
@@ -57,7 +58,7 @@ public class LoggerUsageEventListener extends AbstractUsageEventListener{
 		
 	}
 	
-	private static String formatMessage(DSpaceObject object)
+	private static String formatMessage(UsageEventEntity object)
 	{
 		try
 		{

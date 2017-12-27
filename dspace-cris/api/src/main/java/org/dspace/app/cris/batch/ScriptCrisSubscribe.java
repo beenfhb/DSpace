@@ -53,6 +53,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.mail.MessagingException;
 
@@ -76,8 +77,9 @@ import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -86,8 +88,10 @@ import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Subscribe;
-import org.dspace.handle.HandleManager;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.handle.factory.HandleServiceFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Class defining methods for sending new item e-mail alerts to users. Based on
@@ -155,7 +159,7 @@ public class ScriptCrisSubscribe
                     }
                 }
 
-                currentEPerson = EPerson.find(context,
+                currentEPerson = EPersonServiceFactory.getInstance().getEPersonService().find(context,
                         rpSubscription.getEpersonID());
                 rpkeys = new ArrayList<String>();
             }
@@ -228,14 +232,14 @@ public class ScriptCrisSubscribe
                     "eperson.subscription.onlynew", false))
             {
                 // get only the items archived yesterday
-                query.setQuery("dateaccessioned:(NOW/DAY-1DAY)");
+				query.setQuery("dateaccessioned_dt:[NOW/DAY-1DAY TO NOW/DAY]");
             }
             else
             {
                 // get all item modified yesterday but not published the day
                 // before
                 // and all the item modified today and archived yesterday
-                query.setQuery("(item.lastmodified:(NOW/DAY-1DAY) AND dateaccessioned:(NOW/DAY-1DAY)) OR ((item.lastmodified:(NOW/DAY) AND dateaccessioned:(NOW/DAY-1DAY)))");
+				query.setQuery("(itemLastModified_dt:[NOW/DAY-1DAY TO NOW/DAY] AND dateaccessioned_dt:[NOW/DAY-1DAY TO NOW/DAY]) OR ((itemLastModified_dt:[NOW/DAY TO NOW] AND dateaccessioned_dt:[NOW/DAY-1DAY TO NOW/DAY]))");
             }
 
             QueryResponse qResponse = searchService.search(query);
@@ -265,19 +269,19 @@ public class ScriptCrisSubscribe
                 for (SolrDocument solrDoc : results)
 
                 {
-                    Item item = Item.find(context, (Integer) solrDoc
-                            .getFieldValue("search.resourceid"));
+                    Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString((String) solrDoc
+                            .getFieldValue("search.resourceid")));
 
-                    Metadatum[] titles = item.getDC("title", null, Item.ANY);
+                    List<IMetadataValue> titles = item.getMetadata("title", null, Item.ANY, Item.ANY);
                     emailText
                             .append("      ")
                             .append(I18nUtil.getMessage(
                                     "org.dspace.eperson.Subscribe.title",
                                     supportedLocale)).append(" ");
 
-                    if (titles.length > 0)
+                    if (titles.size() > 0)
                     {
-                        emailText.append(titles[0].value);
+                        emailText.append(titles.get(0).getValue());
                     }
                     else
                     {
@@ -286,22 +290,22 @@ public class ScriptCrisSubscribe
                                 supportedLocale));
                     }
 
-                    Metadatum[] authors = item.getDC("contributor", Item.ANY,
-                            Item.ANY);
+                    List<IMetadataValue> authors = item.getMetadata("contributor", Item.ANY,
+                            Item.ANY, Item.ANY);
 
-                    if (authors.length > 0)
+                    if (authors.size() > 0)
                     {
                         emailText
                                 .append("\n    ")
                                 .append(I18nUtil.getMessage(
                                         "org.dspace.eperson.Subscribe.authors",
                                         supportedLocale)).append(" ")
-                                .append(authors[0].value);
+                                .append(authors.get(0).getValue());
 
-                        for (int k = 1; k < authors.length; k++)
+                        for (int k = 1; k < authors.size(); k++)
                         {
                             emailText.append("\n             ").append(
-                                    authors[k].value);
+                                    authors.get(k).getValue());
                         }
                     }
 
@@ -311,9 +315,8 @@ public class ScriptCrisSubscribe
                                     "org.dspace.eperson.Subscribe.id",
                                     supportedLocale))
                             .append(" ")
-                            .append(HandleManager.getCanonicalForm(item
+                            .append(HandleServiceFactory.getInstance().getHandleService().getCanonicalForm(item
                                     .getHandle())).append("\n\n");
-                    context.removeCached(item, item.getID());
                 }
             }
         }

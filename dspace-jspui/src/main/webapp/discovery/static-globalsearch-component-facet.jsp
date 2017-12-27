@@ -88,6 +88,8 @@
 <%
 
 	String facetGlobalName = (String) request.getAttribute("facetGlobalName");
+	List<DiscoverySearchFilterFacet> facetsGlobalConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsGlobalConfig");
+	Map<String, List<FacetResult>> mapGlobalFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.global.fresults");
 	
 	Map<String, String> mapFacetFirstLevel = (Map<String, String>) request.getAttribute("facetGlobalFirstLevel");
 	Map<String, String> mapFacetSecondLevel = (Map<String, String>) request.getAttribute("facetGlobalSecondLevel");
@@ -97,25 +99,25 @@
 		
 <hr/>
 <div class="row">
-<form id="searchglobalprocessor" name="searchglobalprocessor" class="col-md-10 col-md-offset-1" action="/jspui/simple-search" method="get">
+<form id="searchglobalprocessor" name="searchglobalprocessor" class="col-md-10 col-md-offset-1" action="<%= request.getContextPath() %>/simple-search" method="get">
 <div class="input-group">
     <input type="text" class="form-control" name="query" placeholder="Search term...">
     <span class="input-group-btn">
-        <button class="btn btn-primary" type="submit">Search <span class="fa fa-search"></span></button>
+        <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
     </span>    
     <div class="input-group-btn search-panel">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-        	<span id="search_concept">All</span> <span class="caret"></span>
+        	<span id="search_concept">All</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b><span class="caret"></b>
         </button>
         <ul class="dropdown-menu menu-global-processor" role="menu">
         
         <%
-		if(facetsConf!=null) {
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+		if(facetsGlobalConf!=null) {
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();
 		    	if(f.equals(facetGlobalName)) {
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	
 		    	if(facet!=null) {
 				  	for (FacetResult fvalue : facet)
@@ -124,8 +126,7 @@
 
 					<li class="menu-global-processor">
 						<a href="#"
-						title="<%=fvalue.getDisplayedValue()%>"><%=StringUtils.abbreviate(fvalue.getDisplayedValue(), 36)%><span class="badge"><%=fvalue.getCount()%></span></a></li>
-
+						title="<%=fvalue.getAuthorityKey()%>"><span class="badge pull-right"><%=fvalue.getCount()%></span> <%=StringUtils.abbreviate(fvalue.getDisplayedValue(), 36)%> &nbsp;&nbsp;&nbsp; <span class="badge invisible"><%=fvalue.getCount()%></span> </a></li>
 					<%
 			    	}
 		    	}	    		    
@@ -138,7 +139,8 @@
         </ul>
     </div>
     <input type="hidden" name="location" value="global" id="search_param">         
-
+</div>
+</form>
 </div>
 <hr/>
 
@@ -147,11 +149,11 @@
 	long totGroupLeft = 0;
 		long totGroupCenter = 0;
 		long totGroupRight = 0;
-		if (facetsConf != null) {
-			for (DiscoverySearchFilterFacet facetConf : facetsConf) {
+		if (facetsGlobalConf != null) {
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf) {
 				String f = facetConf.getIndexFieldName();
 				if(f.equals(facetGlobalName)) {
-					List<FacetResult> facet = mapFacetes.get(f);
+					List<FacetResult> facet = mapGlobalFacetes.get(f);
 					if(facet!=null) {						
 						for (FacetResult ft : facet) {
 							if(mapFacetFirstLevel.containsKey(ft.getAuthorityKey())) {
@@ -207,11 +209,11 @@
 <div id="group-left-info-popover-content" class="hide">
 	<ul class="list-group">
         <%
-		if(facetsConf!=null) {
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+		if(facetsGlobalConf!=null) {
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();   	
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	if(facet!=null) {
 				    for (FacetResult fvalue : facet)
 			    	{ 
@@ -231,7 +233,7 @@
 		
 		%>
 		<%
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();   
 		    	if(mapFacetSecondLevel.containsKey(f)) {
@@ -239,7 +241,7 @@
 		    			%>
 		    			<li role="presentation" class="dropdown-header"><fmt:message key="jsp.home.group.dropdown.header.secondlevel"/></li>
 		    			<%
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	if(facet!=null) {
 				    for (FacetResult fvalue : facet)
 			    	{ 
@@ -266,11 +268,11 @@
 <div id="group-center-info-popover-content" class="hide">
 	<ul class="list-group">
         <%
-		if(facetsConf!=null) {
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+		if(facetsGlobalConf!=null) {
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	if(facet!=null) {
 				    for (FacetResult fvalue : facet)
 			    	{ 
@@ -290,7 +292,7 @@
 		
 		%>
 		<%
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();   
 		    	if(mapFacetSecondLevel.containsKey(f)) {
@@ -298,7 +300,7 @@
 		    			%>
 		    			<li role="presentation" class="dropdown-header"><fmt:message key="jsp.home.group.dropdown.header.secondlevel"/></li>
 		    			<%
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	if(facet!=null) {
 				    for (FacetResult fvalue : facet)
 			    	{ 
@@ -325,11 +327,11 @@
 <div id="group-right-info-popover-content" class="hide">
 	<ul class="list-group">
         <%
-		if(facetsConf!=null) {
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+		if(facetsGlobalConf!=null) {
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	if(facet!=null) {
 				    for (FacetResult fvalue : facet)
 			    	{ 
@@ -350,7 +352,7 @@
 		
 		%>
 				<%
-			for (DiscoverySearchFilterFacet facetConf : facetsConf)
+			for (DiscoverySearchFilterFacet facetConf : facetsGlobalConf)
 			{
 		    	String f = facetConf.getIndexFieldName();   
 		    	if(mapFacetSecondLevel.containsKey(f)) {
@@ -358,7 +360,7 @@
 		    			%>
 		    			<li role="presentation" class="dropdown-header"><fmt:message key="jsp.home.group.dropdown.header.secondlevel"/></li>
 		    			<%
-		    	List<FacetResult> facet = mapFacetes.get(f);
+		    	List<FacetResult> facet = mapGlobalFacetes.get(f);
 		    	if(facet!=null) {
 				    for (FacetResult fvalue : facet)
 			    	{ 
@@ -380,6 +382,3 @@
 		%>
 		</ul>
 </div>		
-
-</form>
-</div>

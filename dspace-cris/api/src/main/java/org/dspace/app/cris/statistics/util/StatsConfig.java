@@ -10,7 +10,7 @@ package org.dspace.app.cris.statistics.util;
 import javax.persistence.Transient;
 
 import org.dspace.core.ConfigurationManager;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.SolrLoggerServiceImpl;
 
 public class StatsConfig {
     
@@ -27,7 +27,7 @@ public class StatsConfig {
 	
 	public String getStatisticsCore() {
 	    if(statisticsCore==null) {
-	        statisticsCore = ConfigurationManager.getProperty(SolrLogger.CFG_STAT_MODULE, "server");
+	        statisticsCore = ConfigurationManager.getProperty(SolrLoggerServiceImpl.CFG_STAT_MODULE + ".server");
 	    }
 		return statisticsCore;
 	}

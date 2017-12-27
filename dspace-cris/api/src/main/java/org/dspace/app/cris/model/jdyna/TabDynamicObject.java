@@ -7,11 +7,16 @@
  */
 package org.dspace.app.cris.model.jdyna;
 
+import it.cilea.osd.common.service.IPersistenceService;
+import it.cilea.osd.jdyna.web.ITabService;
 import it.cilea.osd.jdyna.web.TypedAbstractTab;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -32,13 +37,18 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
         @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findTabsByHolder", query = "from TabDynamicObject tab where :par0 in elements(tab.mask)", cacheable=true),
         @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.uniqueTabByShortName", query = "from TabDynamicObject tab where shortName = ?", cacheable=true),
 		@org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByAccessLevel", query = "from TabDynamicObject tab where visibility = ? order by priority", cacheable=true),
+		@org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByTypeAndAccessLevel", query = "from TabDynamicObject tab where typeDef = ? and visibility = ? order by priority", cacheable=true),
 		@org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByAdmin", query = "from TabDynamicObject tab where visibility = 1 or visibility = 2 or visibility = 3 order by priority", cacheable=true),
 		@org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByOwner", query = "from TabDynamicObject tab where visibility = 0 or visibility = 2 or visibility = 3 order by priority", cacheable=true),
 		@org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByAnonimous", query = "from TabDynamicObject tab where visibility = 3 order by priority", cacheable=true),
 		@org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findTabByType", query = "from TabDynamicObject where typeDef = ?", cacheable=true),
         @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByAdminAndTypoDef", query = "from TabDynamicObject tab where ((visibility = 1 or visibility = 2 or visibility = 3) and typeDef = ?) order by priority", cacheable=true),
         @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByOwnerAndTypoDef", query = "from TabDynamicObject tab where ((visibility = 0 or visibility = 2 or visibility = 3) and typeDef = ?) order by priority", cacheable=true),                                                      
-        @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByAnonimousAndTypoDef", query = "from TabDynamicObject tab where (visibility = 3 and typeDef = ?) order by priority", cacheable=true)
+        @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findByAnonimousAndTypoDef", query = "from TabDynamicObject tab where (visibility = 3 and typeDef = ?) order by priority", cacheable=true),
+        @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findAuthorizedGroupById", query = "select tab.authorizedGroup from TabDynamicObject tab where tab.id = ?"),
+        @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findAuthorizedGroupByShortname", query = "select tab.authorizedGroup from TabDynamicObject tab where tab.shortName = ?"),
+        @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findAuthorizedSingleById", query = "select tab.authorizedSingle from TabDynamicObject tab where tab.id = ?"),
+        @org.hibernate.annotations.NamedQuery(name = "TabDynamicObject.findAuthorizedSingleByShortname", query = "select tab.authorizedSingle  from TabDynamicObject tab where tab.shortName = ?")
 		
 })
 public class TabDynamicObject extends TypedAbstractTab<BoxDynamicObject, DynamicObjectType, DynamicPropertiesDefinition> {
@@ -50,7 +60,23 @@ public class TabDynamicObject extends TypedAbstractTab<BoxDynamicObject, Dynamic
             inverseJoinColumns = { @JoinColumn(name = "cris_do_box_id") })
 	@Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 	private List<BoxDynamicObject> mask;
-	
+
+	@ManyToMany
+    @JoinTable(
+          name="cris_do_tab2policysingle",
+          joinColumns=@JoinColumn(name="tab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<DynamicPropertiesDefinition> authorizedSingle;
+    
+    @ManyToMany
+    @JoinTable(
+          name="cris_do_tab2policygroup",
+          joinColumns=@JoinColumn(name="tab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<DynamicPropertiesDefinition> authorizedGroup;
+    
 	@ManyToOne
 	private DynamicObjectType typeDef;
 	
@@ -88,5 +114,30 @@ public class TabDynamicObject extends TypedAbstractTab<BoxDynamicObject, Dynamic
         this.typeDef = typeDef;
     }
     
-   
+    public List<DynamicPropertiesDefinition> getAuthorizedSingle()
+    {
+        if(this.authorizedSingle==null) {
+            this.authorizedSingle = new ArrayList<DynamicPropertiesDefinition>();
+        }
+        return authorizedSingle;
+    }
+
+    public void setAuthorizedSingle(List<DynamicPropertiesDefinition> authorizedSingle)
+    {
+        this.authorizedSingle = authorizedSingle; 
+    }
+
+    public List<DynamicPropertiesDefinition> getAuthorizedGroup()
+    {
+        if(this.authorizedGroup==null) {
+            this.authorizedGroup = new ArrayList<DynamicPropertiesDefinition>();
+        }
+        return authorizedGroup;
+    }
+
+    public void setAuthorizedGroup(List<DynamicPropertiesDefinition> authorizedGroup)
+    {
+        this.authorizedGroup = authorizedGroup;
+    }
+    
 }

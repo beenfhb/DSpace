@@ -7,31 +7,25 @@
  */
 package org.dspace.app.cris.service;
 
-import it.cilea.osd.common.model.Identifiable;
-import it.cilea.osd.jdyna.dao.ContainableDao;
-import it.cilea.osd.jdyna.dao.PropertyHolderDao;
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.Containable;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.web.IPropertyHolder;
-import it.cilea.osd.jdyna.web.Tab;
-
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
-
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.batch.ImportCRISDataModelConfiguration;
+import org.dspace.app.cris.dao.CrisDeduplicationDao;
 import org.dspace.app.cris.dao.CrisObjectDao;
 import org.dspace.app.cris.dao.CrisSubscriptionDao;
 import org.dspace.app.cris.dao.DynamicObjectDao;
+import org.dspace.app.cris.dao.DynamicObjectTypeDao;
+import org.dspace.app.cris.dao.OrcidHistoryDao;
+import org.dspace.app.cris.dao.OrcidQueueDao;
 import org.dspace.app.cris.dao.OrganizationUnitDao;
 import org.dspace.app.cris.dao.ProjectDao;
 import org.dspace.app.cris.dao.RelationPreferenceDao;
@@ -39,6 +33,7 @@ import org.dspace.app.cris.dao.ResearcherPageDao;
 import org.dspace.app.cris.dao.StatSubscriptionDao;
 import org.dspace.app.cris.dao.UserWSDao;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisDeduplication;
 import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
@@ -47,12 +42,23 @@ import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.StatSubscription;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
+import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.RPProperty;
+import org.dspace.app.cris.model.orcid.OrcidHistory;
+import org.dspace.app.cris.model.orcid.OrcidQueue;
 import org.dspace.app.cris.model.ws.User;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.services.ConfigurationService;
+import org.dspace.storage.rdbms.DatabaseUtils;
 import org.hibernate.Session;
+
+import it.cilea.osd.common.core.SingleTimeStampInfo;
+import it.cilea.osd.common.model.Identifiable;
+import jxl.read.biff.BiffException;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 
 /**
  * This class provide access to the RP database service layer. Every methods
@@ -78,6 +84,10 @@ public class ApplicationService extends ExtendedTabService
 
     private UserWSDao userWSDao;
 
+    private OrcidQueueDao orcidQueueDao;
+    
+    private OrcidHistoryDao orcidHistoryDao;
+    
     private ConfigurationService configurationService;
     
     private CacheManager cacheManager;
@@ -95,6 +105,7 @@ public class ApplicationService extends ExtendedTabService
      */
     public void init()
     {
+    	super.init();
         researcherPageDao = (ResearcherPageDao) getDaoByModel(ResearcherPage.class);
         projectDao = (ProjectDao) getDaoByModel(Project.class);
         organizationUnitDao = (OrganizationUnitDao) getDaoByModel(OrganizationUnit.class);
@@ -103,6 +114,8 @@ public class ApplicationService extends ExtendedTabService
         userWSDao = (UserWSDao) getDaoByModel(User.class);
         relationPreferenceDao = (RelationPreferenceDao) getDaoByModel(RelationPreference.class);
         researchDao = (DynamicObjectDao) getDaoByModel(ResearchObject.class);
+        orcidQueueDao = (OrcidQueueDao) getDaoByModel(OrcidQueue.class);
+        orcidHistoryDao = (OrcidHistoryDao) getDaoByModel(OrcidHistory.class);
         
 		if (configurationService.getPropertyAsType("cris.applicationServiceCache.enabled", true, true)
         		&& cache == null)
@@ -204,33 +217,33 @@ public class ApplicationService extends ExtendedTabService
         return crisSubscriptionDao.countByUUID(uuid);
     }
 
-    public List<String> getCrisSubscriptionsByEPersonID(int eid)
+    public List<String> getCrisSubscriptionsByEPersonID(UUID eid)
     {
         return crisSubscriptionDao.findUUIDByEpersonID(eid);
     }
 
-    public CrisSubscription getCrisStatSubscriptionByEPersonIDAndUUID(int eid, String uuid)
+    public CrisSubscription getCrisStatSubscriptionByEPersonIDAndUUID(UUID eid, String uuid)
     {
         return crisSubscriptionDao.uniqueByEpersonIDandUUID(eid, uuid);
     }
     
 
-    public boolean isSubscribed(int epersonID, String uuid)
+    public boolean isSubscribed(UUID epersonID, String uuid)
     {
         return crisSubscriptionDao.uniqueByEpersonIDandUUID(epersonID, uuid) != null;
     }
 
-    public CrisSubscription getSubscription(int epersonID, String uuid)
+    public CrisSubscription getSubscription(UUID epersonID, String uuid)
     {
         return crisSubscriptionDao.uniqueByEpersonIDandUUID(epersonID, uuid);
     }
 
-    public void deleteSubscriptionByEPersonID(int id)
+    public void deleteSubscriptionByEPersonID(UUID id)
     {
         crisSubscriptionDao.deleteByEpersonID(id);
     }
 
-    public long countByEpersonIDandUUID(int epersonID, String uuid,
+    public long countByEpersonIDandUUID(UUID epersonID, String uuid,
             Class<CrisSubscription> className)
     {
         CrisSubscriptionDao dao = (CrisSubscriptionDao) getDaoByModel(className);
@@ -538,12 +551,12 @@ public class ApplicationService extends ExtendedTabService
         return statSubscriptionDao.findByFreq(freq);
     }
 
-    public List<StatSubscription> getAllStatSubscriptionByEPersonID(int eid)
+    public List<StatSubscription> getAllStatSubscriptionByEPersonID(UUID eid)
     {
         return statSubscriptionDao.findByEPersonID(eid);
     }
 
-    public List<StatSubscription> getStatSubscriptionByEPersonIDAndUID(int id,
+    public List<StatSubscription> getStatSubscriptionByEPersonIDAndUID(UUID id,
             String uid)
     {
         return statSubscriptionDao.findByEPersonIDandUID(id, uid);
@@ -554,7 +567,7 @@ public class ApplicationService extends ExtendedTabService
         return statSubscriptionDao.findByFreqAndType(freq, type);
     }
 
-    public void deleteStatSubscriptionsByEPersonID(int id)
+    public void deleteStatSubscriptionsByEPersonID(UUID id)
     {
         statSubscriptionDao.deleteByEPersonID(id);
     }
@@ -565,13 +578,13 @@ public class ApplicationService extends ExtendedTabService
         return applicationDao.getList(model, ids);
     }
 
-    public ResearcherPage getResearcherPageByEPersonId(Integer id)
+    public ResearcherPage getResearcherPageByEPersonId(UUID id)
     {
 		if (cacheRpByEPerson != null) {
-			Element element = cacheRpByEPerson.get(id);
+			Element element = cacheRpByEPerson.getQuiet(id);
 			if (element != null) {
 				ResearcherPage rp = (ResearcherPage) element.getValue();
-				if (!isExpiredCache(ResearcherPage.class, element, id, rp)) {
+				if (!isExpiredCache(ResearcherPage.class, element, rp.getId(), rp)) {
 					return rp;
 				}
 				else if (rp != null) {
@@ -607,15 +620,22 @@ public class ApplicationService extends ExtendedTabService
             Class<T> className)
     {        
 		if (cacheByCrisID != null) {
-			Element element = cacheByCrisID.get(crisID);
+			Element element = cacheByCrisID.getQuiet(crisID);
 			if (element != null) {
 				T crisObject = (T) element.getValue();
-				if (!isExpiredCache(className, element, crisObject.getId(), crisObject)) {
-					return crisObject;
-				}
-				else if (crisObject != null) {
-					return get(className, crisObject.getId(), false);
-				}
+                //the element retrieved by cache is consistent with the className passed as parameter? (add safety check)
+                if(className.isAssignableFrom(crisObject.getClass())) {
+    				if (!isExpiredCache(className, element, crisObject.getId(), crisObject)) {
+    					return crisObject;
+    				}
+    				else if (crisObject != null) {
+    					return get(className, crisObject.getId(), false);
+    				}
+                }
+                else {
+                    //return null because the caller method working on different class object e.g. I searching for a Journal but the primary logic in the caller method see first in ResearcherPage table  
+                    return null;
+                }
 			}
 		}
 
@@ -627,18 +647,43 @@ public class ApplicationService extends ExtendedTabService
 		return object;
     }
   
+    public <T extends ACrisObject> T getEntityByCrisId(String crisID)
+    {        
+        T dso = (T)getEntityByCrisId(crisID, ResearcherPage.class);
+        if (dso == null) {
+            dso = (T)getEntityByCrisId(crisID, OrganizationUnit.class);
+            if (dso == null) {
+                dso = (T)getEntityByCrisId(crisID, Project.class);
+                if (dso == null) {
+                    dso = (T)getEntityByCrisId(crisID, ResearchObject.class);
+                }
+            }
+        }
+        return dso;
+    }
+    
     public <T extends ACrisObject> T getEntityBySourceId(String sourceRef, String sourceID,
             Class<T> className)
     {
 		if (cacheBySource != null) {
-			Element element = cacheBySource.get(sourceRef + "-" + sourceID);
+			Element element = cacheBySource.getQuiet(sourceRef + "-" + sourceID);
 			if (element != null) {
 				T crisObject = (T) element.getValue();
-				if (!isExpiredCache(className, element, crisObject.getId(), crisObject)) {
-					return crisObject;
+				//the element retrieved by cache is consistent with the className passed as parameter? (add safety check)
+				if(className.isAssignableFrom(crisObject.getClass())) {
+                    if (!isExpiredCache(className, element, crisObject.getId(),
+                            crisObject))
+                    {
+                        return crisObject;
+                    }
+                    else if (crisObject != null)
+                    {
+                        return get(className, crisObject.getId(), false);
+                    }
 				}
-				else if (crisObject != null) {
-					return get(className, crisObject.getId(), false);
+				else {
+				    //return null because the caller method working on different class object e.g. I searching for a Journal but the primary logic in the caller method see first in ResearcherPage table  
+				    return null;
 				}
 			}
 		}
@@ -653,7 +698,7 @@ public class ApplicationService extends ExtendedTabService
     public ACrisObject getEntityByUUID(String uuid)
     {
 		if (cacheByUUID != null) {
-			Element element = cacheByUUID.get(uuid);
+			Element element = cacheByUUID.getQuiet(uuid);
 			if (element != null) {
 				ACrisObject crisObject = (ACrisObject) element.getValue();
 				if (!isExpiredCache(crisObject.getClass(), element, crisObject.getId(), crisObject)) {
@@ -682,6 +727,25 @@ public class ApplicationService extends ExtendedTabService
         return obj;
     }
 
+    public <T extends ACrisObject> T getEntityByUUID(String uuid, Class<T> className)
+    {
+		if (cacheByUUID != null) {
+			Element element = cacheByUUID.getQuiet(uuid);
+			if (element != null) {
+				T crisObject = (T) element.getValue();
+				if (!isExpiredCache(crisObject.getClass(), element, crisObject.getId(), crisObject)) {
+					return crisObject;
+				}
+			}
+		}    	
+        CrisObjectDao<T> dao = (CrisObjectDao<T>) getDaoByModel(className);
+		T object = dao.uniqueByUUID(uuid);
+		if (object != null) {
+			putToCache(className, object, object.getId());
+		}
+		return object;
+    }
+    
     public User getUserWSByUsernameAndPassword(String username,
             String password)
     {
@@ -714,7 +778,7 @@ public class ApplicationService extends ExtendedTabService
         return researcherPageDao.findAllResearcherPageID();
     }
 
-    public List<RelationPreference> findRelationsPreferencesForItemID(int itemID)
+    public List<RelationPreference> findRelationsPreferencesForItemID(UUID itemID)
     {
         return relationPreferenceDao.findByTargetItemID(itemID);
     }
@@ -747,7 +811,7 @@ public class ApplicationService extends ExtendedTabService
     }
 
     public RelationPreference getRelationPreferenceForUUIDItemID(String UUID,
-            int itemID, String relationType)
+            UUID itemID, String relationType)
     {
         return relationPreferenceDao.uniqueByUUIDItemID(UUID, itemID,
                 relationType);
@@ -785,14 +849,25 @@ public class ApplicationService extends ExtendedTabService
 	private <T extends ACrisObject> boolean isExpiredCache(Class<T> model, Element element, Integer objectId,
 			ACrisObject rp) {
 		Date now = new Date();
-		boolean result = rp == null
-				|| (rp.getTimeStampInfo().getTimestampLastModified() != null
-				&& (now.getTime() - element.getLastAccessTime() > 1000 && !rp.getTimeStampInfo()
-						.getTimestampLastModified().getTimestamp().equals(uniqueLastModifiedTimeStamp(model, objectId))));
-		if (!result) {
-			element.updateAccessStatistics();
+		if (rp == null) {
+			return true;
 		}
-		return result;
+		SingleTimeStampInfo timestampLastModified = rp.getTimeStampInfo().getTimestampLastModified();
+		long lastModCache = timestampLastModified != null?timestampLastModified.getTimestamp().getTime():-1;
+		
+		if ( now.getTime() - element.getLastAccessTime() > 1000) {
+			Date uniqueLastModifiedTimeStamp = uniqueLastModifiedTimeStamp(model, objectId);
+			long lastModDb = uniqueLastModifiedTimeStamp != null? uniqueLastModifiedTimeStamp.getTime():-1;
+			if (lastModCache == lastModDb) {
+				element.updateAccessStatistics();
+				return false;
+			}
+			else {
+				return true;
+			}
+		}
+		element.updateAccessStatistics();
+		return false;
 	}
 
 	@Override
@@ -827,6 +902,10 @@ public class ApplicationService extends ExtendedTabService
         try
         {
         	cache.removeAll();
+			cacheRpByEPerson.removeAll();
+			cacheBySource.removeAll();
+			cacheByCrisID.removeAll();
+			cacheByUUID.removeAll();
         }
         catch (Exception ex)
         {
@@ -852,7 +931,7 @@ public class ApplicationService extends ExtendedTabService
             }
         }
 		if (cacheRpByEPerson != null && object instanceof ResearcherPage) {
-			Integer eid = ((ResearcherPage) object).getEpersonID();
+			UUID eid = ((ResearcherPage) object).getEpersonID();
 			if (eid != null) {
 				cacheRpByEPerson.put(new Element(eid, object));
 			}
@@ -909,5 +988,124 @@ public class ApplicationService extends ExtendedTabService
         return researchDao.paginateByType(typo, sort, inverse, (page - 1)
                 * maxResults, maxResults);
     }
+  
+    public List<ResearchObject> getResearchObjectByShortNameType(String shortName) {
+    	return researchDao.findByShortNameType(shortName);
+    }
     
-} 
+    public List<ResearchObject> getResearchObjectByIDType(Integer id) {
+        return researchDao.findByIDType(id);
+    }
+    
+    @Override
+    public <P, PK extends Serializable> void delete(Class<P> model, PK pkey) {    	
+    	super.delete(model, pkey);
+    	clearCache();
+    }
+
+	public List<OrcidQueue> findOrcidQueueByResearcherId(String crisId) {
+		return orcidQueueDao.findOrcidQueueByOwner(crisId);
+	}
+	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwnerId(UUID entityID, Integer typeId, String ownerId) {
+		return orcidQueueDao.uniqueOrcidQueueByEntityIdAndTypeIdAndOwner(entityID, typeId, ownerId);
+	}
+
+	public List<OrcidHistory> findOrcidHistoryByEntityIdAndTypeId(UUID entityId, Integer typeId) {	
+		return orcidHistoryDao.findOrcidHistoryByEntityIdAndTypeId(entityId, typeId);
+	}
+	
+	public List<OrcidHistory> findOrcidHistoryByOrcidAndTypeId(String orcid, Integer typeId) {	
+		return orcidHistoryDao.findOrcidHistoryByOrcidAndTypeId(orcid, typeId);
+	}
+	
+    public List<OrcidHistory> findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(String orcid, String entityUUID, Integer typeId) {  
+        return orcidHistoryDao.findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(orcid, entityUUID, typeId);
+    }
+	
+	public void deleteOrcidQueueByOwnerAndTypeId(String crisID, int typeId) {
+		orcidQueueDao.deleteByOwnerAndTypeId(crisID, typeId);
+	}
+	
+	public void deleteOrcidQueueByOwnerAndUuid(String crisID, String uuId) {
+		orcidQueueDao.deleteByOwnerAndUuid(crisID, uuId);
+	}
+
+	public List<OrcidHistory> findOrcidHistoryByOwnerAndSuccess(String crisID) {
+		return orcidHistoryDao.findOrcidHistoryInSuccessByOwner(crisID);
+	}
+
+	public List<OrcidHistory> findOrcidHistoryInSuccessByOwnerAndType(String crisID, int type) {
+		return orcidHistoryDao.findOrcidHistoryInSuccessByOwnerAndTypeId(crisID, type);
+	}
+	
+	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(String crisID, String uuid, int typeID) {
+		return orcidHistoryDao.uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(crisID, UUID.fromString(uuid), typeID);
+	}
+	
+	public OrcidHistory uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(String crisID, String orcid, int typeID) {
+		return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(crisID, orcid, typeID);
+	}
+
+    public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
+            String crisID, String entityUUID, int typeID)
+    {
+        return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
+                crisID, entityUUID, typeID);
+    }
+
+    public List<DynamicTypeNestedObject> findNestedMaskById(Class<DynamicObjectType> clazz, Integer id)
+    {
+        DynamicObjectTypeDao dao = (DynamicObjectTypeDao)getDaoByModel(clazz);
+        return dao.findNestedMaskById(id);
+    }
+
+	public List<CrisDeduplication> getCrisDeduplicationByFirstAndSecond(String firstID, String secondID) {
+		CrisDeduplicationDao dao = (CrisDeduplicationDao)getDaoByModel(CrisDeduplication.class);
+		return dao.findByFirstAndSecond(firstID, secondID);
+	}
+	
+	public CrisDeduplication uniqueCrisDeduplicationByFirstAndSecond(String firstID, String secondID) {
+		CrisDeduplicationDao dao = (CrisDeduplicationDao)getDaoByModel(CrisDeduplication.class);
+		return dao.uniqueByFirstAndSecond(firstID, secondID);
+	}
+    
+    public static synchronized void checkRebuildCrisConfiguration()
+    {
+        // We only do something if the reindexDiscovery flag has been triggered
+        if(DatabaseUtils.getRebuildCrisConfiguration())
+        {
+            // Kick off a custom thread to perform the reindexing in Discovery
+            // (See ReindexerThread nested class below)
+            ConfigurationThread go = new ConfigurationThread();
+            go.start();
+        }
+    }
+    
+	private static class ConfigurationThread extends Thread {
+
+		/**
+		 * Actually perform Rebuild Cris Configuration.
+		 */
+		@Override
+		public void run() {
+			if (DatabaseUtils.getRebuildCrisConfiguration()) {
+				try {
+					log.info("Post database migration, rebuild cris configuration");
+					String file = ConfigurationManager.getProperty("dspace.dir") + File.separator + "etc"
+							+ File.separator + "configuration-tool-demo.xls";
+					String[] args = new String[] { "-f", file };
+					ImportCRISDataModelConfiguration.main(args);
+					log.info("Rebuild CRIS Configuration is complete");
+				} catch (SQLException | IOException | BiffException | InstantiationException | IllegalAccessException
+						| ParseException e) {
+					log.error("Error attempting to Rebuild CRIS Configuration", e);
+				} finally {
+					// Reset our flag. Job is done or it threw an error,
+					// Either way, we shouldn't try again.
+					DatabaseUtils.setRebuildCrisConfiguration(false);
+
+				}
+			}
+		}
+	}
+}

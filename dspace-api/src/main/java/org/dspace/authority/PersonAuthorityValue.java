@@ -7,15 +7,15 @@
  */
 package org.dspace.authority;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrInputDocument;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
 
 /**
  *
@@ -203,7 +203,7 @@ public class PersonAuthorityValue extends AuthorityValue {
 
     @Override
     public String generateString() {
-        return AuthorityValueGenerator.GENERATE + getAuthorityType() + AuthorityValueGenerator.SPLIT + getName();
+        return AuthorityValueServiceImpl.GENERATE + getAuthorityType() + AuthorityValueServiceImpl.SPLIT + getName();
         // the part after "AuthorityValueGenerator.GENERATE + getAuthorityType() + AuthorityValueGenerator.SPLIT" is the value of the "info" parameter in public AuthorityValue newInstance(String info)
     }
 
@@ -225,6 +225,7 @@ public class PersonAuthorityValue extends AuthorityValue {
                 "} " + super.toString();
     }
 
+    @Override
     public boolean hasTheSameInformationAs(Object o) {
         if (this == o) {
             return true;

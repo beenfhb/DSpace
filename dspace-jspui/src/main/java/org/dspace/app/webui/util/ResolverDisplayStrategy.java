@@ -11,12 +11,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Utils;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class ResolverDisplayStrategy extends AUniformDisplayStrategy
 {
@@ -30,6 +33,9 @@ public class ResolverDisplayStrategy extends AUniformDisplayStrategy
 
     private static final String DOI_DEFAULT_BASEURL = "http://dx.doi.org/";
     
+    private final transient ConfigurationService configurationService
+    = DSpaceServicesFactory.getInstance().getConfigurationService();
+    
     private void init()
     {
         if (urn2baseurl != null)
@@ -41,10 +47,10 @@ public class ResolverDisplayStrategy extends AUniformDisplayStrategy
             {
                 urn2baseurl = new HashMap<String, String>();
                 String urn;
-                for (int i = 1; null != (urn = ConfigurationManager.getProperty("webui.resolver."+i+".urn")); i++){
-                    String baseurl = ConfigurationManager.getProperty("webui.resolver."+i+".baseurl"); 
+                for (int i = 1; null != (urn = configurationService.getProperty("webui.resolver."+i+".urn")); i++){
+                    String baseurl = configurationService.getProperty("webui.resolver."+i+".baseurl"); 
                     if (baseurl != null){
-                    urn2baseurl.put(ConfigurationManager
+                    urn2baseurl.put(configurationService
                             .getProperty("webui.resolver."+i+".urn"),
                             baseurl);
                     } else {
@@ -68,7 +74,7 @@ public class ResolverDisplayStrategy extends AUniformDisplayStrategy
         }
     }
 
-    protected String getDisplayForValue(HttpServletRequest hrq, String value, int itemid)
+    protected String getDisplayForValue(HttpServletRequest hrq, String value, UUID itemid)
     {
         init();
         String url = null;

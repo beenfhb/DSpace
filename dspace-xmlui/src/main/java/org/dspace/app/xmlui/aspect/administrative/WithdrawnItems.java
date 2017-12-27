@@ -39,19 +39,16 @@ import org.dspace.app.xmlui.wing.element.Row;
 import org.dspace.app.xmlui.wing.element.Select;
 import org.dspace.app.xmlui.wing.element.Table;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
-import org.dspace.browse.BrowseItem;
 import org.dspace.browse.BrowserScope;
+import org.dspace.content.*;
 import org.dspace.sort.SortOption;
 import org.dspace.sort.SortException;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
-import org.dspace.content.DCDate;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.core.Context;
 import org.xml.sax.SAXException;
 
@@ -185,7 +182,7 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
 
                 if (dso != null)
                 {
-                    newValidity.add(dso);
+                    newValidity.add(context, (BrowsableDSpaceObject)dso);
                 }
 
                 BrowseInfo info = getBrowseInfo();
@@ -193,9 +190,9 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
                 newValidity.add("start:"+info.getStart());
 
                     // Add the browse items to the validity
-                    for (BrowseItem item : (java.util.List<BrowseItem>) info.getResults())
+                    for (Object item : info.getResults())
                     {
-                        newValidity.add(item);
+                        newValidity.add(context, (BrowsableDSpaceObject)item);
                     }
 
                 validity = newValidity.complete();
@@ -223,8 +220,6 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
         BrowseInfo info = getBrowseInfo();
 
         pageMeta.addMetadata("title").addContent(getTitleMessage(info));
-
-        DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
 
         pageMeta.addTrailLink(contextPath + "/", T_dspace_home);
 
@@ -271,9 +266,9 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
 	        ReferenceSet referenceSet = results.addReferenceSet("browse-by-" + type, ReferenceSet.TYPE_SUMMARY_LIST, type, null);
 
 	        // Add the items to the browse results
-	        for (BrowseItem item : (java.util.List<BrowseItem>) info.getResults())
+	        for (Object item : info.getResults())
 	        {
-		        referenceSet.addReference(item);
+		        referenceSet.addReference((BrowsableDSpaceObject)item);
 	        }
         }
         else
@@ -571,7 +566,7 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
         params.etAl = RequestUtils.getIntParameter(request, BrowseParams.ETAL);
 
         params.scope = new BrowserScope(context);
-
+        params.scope.setUserLocale(context.getCurrentLocale().getLanguage());
         // Are we in a community or collection?
         DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
         if (dso instanceof Community)
@@ -697,14 +692,14 @@ public class WithdrawnItems extends AbstractDSpaceTransformer implements
 	    try
         {
             // Create a new browse engine, and perform the browse
-            BrowseEngine be = new BrowseEngine(context);
+	        BrowseEngine be = new BrowseEngine(context, params.scope.getUserLocale());
             this.browseInfo = be.browse(params.scope);
 
             // figure out the setting for author list truncation
             if (params.etAl < 0)
             {
                 // there is no limit, or the UI says to use the default
-                int etAl = ConfigurationManager.getIntProperty("webui.browse.author-limit");
+                int etAl = DSpaceServicesFactory.getInstance().getConfigurationService().getIntProperty("webui.browse.author-limit");
                 if (etAl != 0)
                 {
                     this.browseInfo.setEtAl(etAl);

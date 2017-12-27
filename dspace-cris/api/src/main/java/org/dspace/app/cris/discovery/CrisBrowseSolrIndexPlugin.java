@@ -7,6 +7,27 @@
  */
 package org.dspace.app.cris.discovery;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.solr.common.SolrInputDocument;
+import org.dspace.app.cris.integration.CrisEnhancer;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
+import org.dspace.browse.BrowseException;
+import org.dspace.browse.BrowseIndex;
+import org.dspace.discovery.SolrServiceImpl;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
+import org.dspace.sort.OrderFormat;
+import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
+import org.dspace.utils.DSpace;
+
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedProperty;
 import it.cilea.osd.jdyna.model.ATypeNestedObject;
@@ -14,24 +35,6 @@ import it.cilea.osd.jdyna.model.AValue;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
 import it.cilea.osd.jdyna.value.PointerValue;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.solr.common.SolrInputDocument;
-import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
-import org.dspace.browse.BrowseException;
-import org.dspace.browse.BrowseIndex;
-import org.dspace.discovery.SolrServiceImpl;
-import org.dspace.sort.OrderFormat;
-import org.dspace.sort.SortException;
-import org.dspace.sort.SortOption;
-import org.dspace.utils.DSpace;
 
 public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 {
@@ -58,12 +61,16 @@ public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 
     @Override
     public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-            ACrisObject<P, TP, NP, NTP, ACNO, ATNO> dso, SolrInputDocument doc)
+            ACrisObject<P, TP, NP, NTP, ACNO, ATNO> dso, SolrInputDocument doc, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
         if (!(dso instanceof ACrisObject))
         {
             return;
         }
+        
+        List<CrisEnhancer> crisEnhancers = new DSpace().getServiceManager()
+                .getServicesByType(CrisEnhancer.class);
+        
         ACrisObject<P, TP, NP, NTP, ACNO, ATNO> item = dso;
 
         // faceting for metadata browsing. It is different than search facet
@@ -115,6 +122,24 @@ public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 
                         List<P> proprieties = item.getAnagrafica4view().get(
                                 md[1]);
+                        
+                        // add support for enhanced property in the browse
+                        if ((proprieties == null || proprieties.size() == 0) 
+                        		&& StringUtils.isNotEmpty(md[2])) {
+                        	// check if it is an enhanced property
+                            for (CrisEnhancer cEnh : crisEnhancers)
+                            {
+                                if (cEnh.getClazz().isAssignableFrom(dso.getClass()))
+                                {
+                                	if (StringUtils.equals(cEnh.getAlias(), md[1])) {
+                                		proprieties = cEnh.getProperties(dso, md[2]);
+                                		// clean the md[2] as we have already found the final value
+                                		md[2] = "";
+                                	}
+                                }
+                            }
+                        }
+                        
                         List<AValue> values = new ArrayList<AValue>();
                         if (proprieties != null)
                         {
@@ -274,7 +299,7 @@ public class CrisBrowseSolrIndexPlugin implements CrisServiceIndexPlugin
 
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-			ACNO dso, SolrInputDocument sorlDoc) {
+			ACNO dso, SolrInputDocument sorlDoc, Map<String, List<DiscoverySearchFilter>> searchFilters) {
 		// FIXME NOT SUPPORTED OPERATION
 	}
 }

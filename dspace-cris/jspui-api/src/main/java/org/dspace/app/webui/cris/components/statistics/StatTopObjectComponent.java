@@ -9,9 +9,12 @@ package org.dspace.app.webui.cris.components.statistics;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -22,22 +25,26 @@ import org.dspace.app.cris.statistics.bean.StatisticDatasBeanRow;
 import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.RootObject;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.service.SolrLoggerService;
 
-public class StatTopObjectComponent<T extends DSpaceObject> extends
+public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
         StatsComponent<T>
 {
 
 	private static final String QUERY_COMMON = "'''{'''!join from={0} to=search.uniqueid fromIndex={2}'''}'''{1} AND -withdrawn:true";
+	private static final String QUERY_GLOBAL = "'''{'''!join from={0} to=search.uniqueid fromIndex={1}'''}'''-withdrawn:true";
 
     private String fromField;
 
     @Override
-    public TreeKeyMap query(String id, HttpSolrServer solrServer) throws Exception
+    public TreeKeyMap query(String id, HttpSolrServer solrServer,Date startDate, Date endDate) throws Exception
     {
         statisticDatasBeans = new TreeKeyMap();
         if (id != null && !id.equals("") && StatComponentsService.getYearsQuery() != null)
@@ -48,7 +55,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
             solrServer.setMaxRetries(0);
             SolrQuery solrQuery = new SolrQuery();
             // http://localhost:8983/solr/statistics/select/?q=type%3A2&rows=20&facet=true&facet.date=time&facet.date.start=2008-07-00T00:00:00.000Z&facet.date.end=2009-06-31T00:00:00.000Z&facet.date.gap=%2B1MONTHS&facet.field=id
-            _prepareBasicQuery(solrQuery, StatComponentsService.getYearsQuery());
+            _prepareBasicQuery(solrQuery, StatComponentsService.getYearsQuery(),startDate,endDate);
             // _prepareTopQuery(type, id, fieldName, solrQuery);
 
             if(StatComponentsService.isExcludeBot()) {
@@ -62,8 +69,13 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
             solrQuery.addFilterQuery("type:"+ relationType);      
             for(String filter : getBean().getFilters()) {
                 solrQuery.addFilterQuery(filter);
-            }            
-            String query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());
+            }
+            String query="";
+            if(!StringUtils.equals(id,"0") ){
+            	query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());
+            }else{
+            	query = MessageFormat.format(QUERY_GLOBAL, getFromField(), getSearchCore());
+            }
             String sID = getObjectId(id);
             query = MessageFormat.format(query, sID);
             solrQuery.setQuery(query);
@@ -77,7 +89,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
             solrResponse = solrServer.query(solrQuery);            
             if(!getBean().getSubQueries().isEmpty()) {                
                 statisticDatasBeans.addValue(TOP, CrisConstants.getEntityTypeText(relationType), CATEGORY,
-                    generateCategoryView(solrServer, TOP, relationType.toString(), CATEGORY, StatComponentsService.getTopCityLength(), query, getBean().getSubQueries(), sID));
+                    generateCategoryView(solrServer, TOP, relationType.toString(), CATEGORY, StatComponentsService.getTopCityLength(), query, getBean().getSubQueries(), sID, solrQuery.getFilterQueries()));
             }
             buildTopResultModules(relationType);
 
@@ -106,7 +118,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
             {
                 for (StatisticDatasBeanRow row : myvalue.getLimitedDataTable())
                 {                   
-                    DSpaceObject item = DSpaceObject.find(context, getRelationObjectType(), Integer.parseInt(row.getLabel()));
+                    RootObject item = ContentServiceFactory.getInstance().getDSpaceObjectService(getRelationObjectType()).find(context, UUID.fromString(row.getLabel()));
 //                    if (item != null)
                     {
                         labels.addValue(type, row.getLabel(), item);
@@ -119,11 +131,12 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
         return labels;
     }
 
-    protected void _prepareBasicQuery(SolrQuery solrQuery, Integer yearsQuery)
+    @Override
+    protected void _prepareBasicQuery(SolrQuery solrQuery, Integer yearsQuery,Date startDate, Date endDate)
     {
-        _addBasicConfiguration(solrQuery, yearsQuery);
-        solrQuery.addFacetField(_CONTINENT, _COUNTRY_CODE, _CITY, ID,
-                _LOCATION, _FISCALYEAR, _SOLARYEAR);
+        _addBasicConfiguration(solrQuery, yearsQuery, startDate, endDate);
+        solrQuery.addFacetField(_CONTINENT, _COUNTRY_CODE, _CITY, ID, _LOCATION,
+                _FISCALYEAR, _SOLARYEAR);
         solrQuery.set("facet.missing", true);
         solrQuery.set("f." + _LOCATION + ".facet.missing", false);
         solrQuery.set("f." + ID + ".facet.missing", false);
@@ -155,7 +168,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
     }
 
     @Override
-    public Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger, DSpaceObject object,
+    public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger, BrowsableDSpaceObject object,
             String dateType, String dateStart, String dateEnd, int gap) throws SolrServerException
     {
         String query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());

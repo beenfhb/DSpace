@@ -27,21 +27,24 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 <%@ page import="org.dspace.app.webui.components.RecentSubmissions" %>
-
+<%@page import="org.dspace.discovery.IGlobalSearchResult"%>
 <%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@ page import="org.dspace.browse.BrowseIndex" %>
 <%@ page import="org.dspace.browse.BrowseInfo" %>
 <%@ page import="org.dspace.browse.ItemCounter"%>
 <%@ page import="org.dspace.content.*"%>
-<%@ page import="org.dspace.core.ConfigurationManager"%>
-<%@ page import="org.dspace.core.Context" %>
+<%@ page import="org.dspace.core.Utils" %>
 <%@ page import="org.dspace.core.Utils" %>
 <%@ page import="org.dspace.eperson.Group"     %>
+<%@ page import="org.dspace.services.ConfigurationService" %>
+<%@ page import="org.dspace.services.factory.DSpaceServicesFactory" %>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
-<%@ page import="java.net.URLEncoder" %>
 
 <%
     // Retrieve attributes
@@ -65,50 +68,67 @@
     boolean submit_button = (submit_b == null ? false : submit_b.booleanValue());
 
 	// get the browse indices
-    BrowseIndex[] bis = BrowseIndex.getBrowseIndices();
+    BrowseIndex[] bis = BrowseIndex.getBrowseCollectionIndices();
 
+    CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
     // Put the metadata values into guaranteed non-null variables
-    String name = collection.getMetadata("name");
-    String intro = collection.getMetadata("introductory_text");
+    String name = collectionService.getMetadata(collection, "name");
+    String intro = collectionService.getMetadata(collection, "introductory_text");
     if (intro == null)
     {
         intro = "";
     }
-    String copyright = collection.getMetadata("copyright_text");
+    String copyright = collectionService.getMetadata(collection, "copyright_text");
     if (copyright == null)
     {
         copyright = "";
     }
-    String sidebar = collection.getMetadata("side_bar_text");
+    String sidebar = collectionService.getMetadata(collection, "side_bar_text");
     if(sidebar == null)
     {
         sidebar = "";
     }
 
-    String communityName = community.getMetadata("name");
+    String communityName = collectionService.getMetadata(collection, "name");
     String communityLink = "/handle/" + community.getHandle();
 
     Bitstream logo = collection.getLogo();
     
-    boolean feedEnabled = ConfigurationManager.getBooleanProperty("webui.feed.enable");
+    ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    
+    boolean feedEnabled = configurationService.getBooleanProperty("webui.feed.enable");
     String feedData = "NONE";
     if (feedEnabled)
     {
-        feedData = "coll:" + ConfigurationManager.getProperty("webui.feed.formats");
+        // FeedData is expected to be a comma separated list
+        String[] formats = configurationService.getArrayProperty("webui.feed.formats");
+        String allFormats = StringUtils.join(formats, ",");
+        feedData = "coll:" + allFormats;
     }
     
     ItemCounter ic = new ItemCounter(UIUtil.obtainContext(request));
 
     Boolean showItems = (Boolean)request.getAttribute("show.items");
     boolean show_items = showItems != null ? showItems.booleanValue() : false;
+    
+    String formaction = request.getContextPath() + "/handle/" + collection.getHandle();
 %>
-
-<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
+<script type="text/javascript">
+function sortBy(idx, ord)
+{
+       jQuery("#ssort_by").val(idx);
+       jQuery("#sorder").val(ord);
+       jQuery("#sortform").submit();
+}
+</script>
+<%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
+<%@ page import="org.dspace.content.service.CollectionService" %>
+<%@ page import="org.dspace.content.service.ItemService" %>
 <dspace:layout locbar="commLink" title="<%= name %>" feedData="<%= feedData %>">
     <div class="well">
     <div class="row"><div class="col-md-8"><h2><%= name %>
 <%
-            if(ConfigurationManager.getBooleanProperty("webui.strengths.show"))
+            if(configurationService.getBooleanProperty("webui.strengths.show"))
             {
 %>
                 : [<%= ic.getCount(collection) %>]
@@ -116,7 +136,7 @@
             }
 %>
 		<small><fmt:message key="jsp.collection-home.heading1"/></small>
-      <a class="statisticsLink btn btn-info" href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collection.getHandle() %>"><fmt:message key="jsp.collection-home.display-statistics"/></a>
+      <a class="statisticsLink btn btn-info" href="<%= request.getContextPath() %>/cris/stats/collection.html?handle=<%= collection.getHandle() %>&type=selected"><fmt:message key="jsp.collection-home.display-statistics"/></a>
       </h2></div>
 <%  if (logo != null) { %>
         <div class="col-md-4">
@@ -211,7 +231,8 @@
    {
         BrowseInfo bi = (BrowseInfo) request.getAttribute("browse.info");
         BrowseIndex bix = bi.getBrowseIndex();
-
+        String direction = (bi.isAscending() ? "ASC" : "DESC");
+        String sortBy = ((String)request.getParameter("sort_by"))==null?"-1":request.getParameter("sort_by");
         // prepare the next and previous links
         String linkBase = request.getContextPath() + "/handle/" + collection.getHandle();
         
@@ -227,7 +248,7 @@
         {
             prev = prev + "?offset=" + bi.getPrevOffset();
         }
-
+        
         String bi_name_key = "browse.menu." + bi.getSortOption().getName();
         String so_name_key = "browse.order." + (bi.isAscending() ? "asc" : "desc");
 %>
@@ -268,13 +289,13 @@
       if (bix.isMetadataIndex())
       {
 %>
-      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getMetadata() %>" />
+      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getMetadata() %>"/>
 <%
       }
       else
       {
 %>
-      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getSortOption().getMetadata() %>" />
+      <dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getSortOption().getMetadata() %>"/>
 <%
       }
 %>
@@ -308,7 +329,21 @@
       }
 %>
     </div>
-
+   <form class="form-inline hidden"  id="sortform" method="get" action="<%= formaction %>">
+<%
+                if (bi.hasAuthority())
+                {
+                %><input type="hidden" name="authority" value="<%=bi.getAuthority() %>"/><%
+                }
+                else if (bi.hasValue())
+                {
+                        %><input type="hidden" name="value" value="<%= bi.getValue() %>"/><%
+                }
+%>
+                <input type="hidden" id="ssort_by" name="sort_by" value="" />
+                <input type="hidden" id="sorder" name="order" value="<%= direction %>" />
+                <input type="hidden" id="offset" name="offset" value="<%= request.getParameter("offset")==null?0:request.getParameter("offset") %>" />
+		</form>
 <%
    } // end of if (show_title)
 %>
@@ -364,24 +399,17 @@
 <%  } %>
 
 <%
-	if (rs != null)
+	if (rs != null && rs.count() > 0)
 	{
 %>
 	<h3><fmt:message key="jsp.collection-home.recentsub"/></h3>
 <%
-		Item[] items = rs.getRecentSubmissions();
-		for (int i = 0; i < items.length; i++)
-		{
-			Metadatum[] dcv = items[i].getMetadata("dc", "title", null, Item.ANY);
-			String displayTitle = "Untitled";
-			if (dcv != null)
-			{
-				if (dcv.length > 0)
-				{
-					displayTitle = Utils.addEntities(dcv[0].value);
-				}
-			}
-			%><p class="recentItem"><a href="<%= request.getContextPath() %>/handle/<%= items[i].getHandle() %>"><%= displayTitle %></a></p><%
+		for (IGlobalSearchResult obj : rs.getRecentSubmissions()) {
+		%>
+		
+				<dspace:discovery-artifact style="global" artifact="<%= obj %>" view="<%= rs.getConfiguration() %>"/>
+		
+		<%
 		}
 %>
     <p>&nbsp;</p>
@@ -391,8 +419,6 @@
     <%
     	int discovery_panel_cols = 12;
     	int discovery_facet_cols = 12;
-    	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
-    	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
     	String processorSidebar = (String) request.getAttribute("processorSidebar");
     
     if(processorSidebar!=null && processorSidebar.equals("sidebar")) {

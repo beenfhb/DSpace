@@ -65,19 +65,37 @@
     }
     
     boolean networkModuleEnabled = ConfigurationManager.getBooleanProperty(NetworkPlugin.CFG_MODULE,"network.enabled");
-    boolean changeStatusAdmin = ConfigurationManager.getBooleanProperty("cris.cfg","rp.changestatus.admin");
+    boolean changeStatusAdmin = ConfigurationManager.getBooleanProperty("cris","rp.changestatus.admin");
+    boolean claimEnabled = ConfigurationManager.getBooleanProperty("cris","rp.claim.enabled");
 %>
 <c:set var="admin" scope="request"><%=isAdmin%></c:set>
 <c:set var="statusAdmin" scope="request"><%=changeStatusAdmin%></c:set>
+<c:set var="claim" scope="request"><%=claimEnabled%></c:set>
+<c:set var="req" value="${pageContext.request}" />
+<c:set var="baseURL" value="${fn:replace(req.requestURL, fn:substring(req.requestURI, 0, fn:length(req.requestURI)), req.contextPath)}" />
+<c:set var="metaprofilename"><c:choose><c:when test="${!empty entity.preferredName.value}">${entity.preferredName.value}</c:when><c:otherwise>${entity.fullName}</c:otherwise></c:choose></c:set>
 
 <c:set var="dspace.cris.navbar" scope="request">
 
 </c:set>
+<c:set var="dspace.layout.head" scope="request">		
+	<meta property="title" content="${metaprofilename}" />
+	<meta property="og:title" content="${metaprofilename}" />	
+	<meta property="og:type" content="profile" />
+	<meta property="og:url" content="${baseURL}/cris/uuid/${entity.uuid}" />
+</c:set>
 <c:set var="dspace.layout.head.last" scope="request">
 	
+	<script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Person",
+      "name": "${metaprofilename}",
+      "url": "${baseURL}/cris/uuid/${entity.uuid}"
+    }
+    </script>
+    
     <script type="text/javascript"><!--
-
-		var j = jQuery;
 
 	    var activeTab = function(){
     		var ajaxurlrelations = "<%=request.getContextPath()%>/cris/${specificPartPath}/viewNested.htm";
@@ -181,12 +199,15 @@
 			
 			j("#tabs").tabs({
 				cache: true,
-				selected: ${currTabIdx-1},
+				active: ${currTabIdx-1},
 				load: function(event, ui){
 					activeTab();
 				},
 				"activate": function( event, ui ) {
 					j("li.ui-tabs-active").toggleClass("ui-tabs-active ui-state-active active");
+					if(history!=undefined) {
+						history.replaceState(null, null, "${root}/cris/rp/${entity.crisID}/" + j(ui.newTab[0]).data("tabname")+".html");	
+					}					
 				},
 				"beforeActivate": function( event, ui ) {
 	   			 j("li.active").toggleClass("active");
@@ -207,8 +228,7 @@
     
 </c:set>
 
-<dspace:layout titlekey="jsp.researcher-page.details">
-
+<dspace:layout title="${metaprofilename}">
 
 <div id="content">
 <div class="row">
@@ -230,15 +250,20 @@
 		    	if (isAdmin) {
 				%>
 				<fmt:message key="jsp.cris.detail.info.sourceid.none" var="i18nnone" />
-				<div class="cris-record-info">
-					<span class="cris-record-info-sourceid"><b><fmt:message key="jsp.cris.detail.info.sourceid" /></b> ${!empty researcher.sourceID?researcher.sourceID:i18nnone}</span>
+				<div class="row cris-record-info">
+					<div class="col-sm-6">
+					<span class="cris-record-info-sourceid"><b><fmt:message key="jsp.cris.detail.info.sourceid" /></b> ${!empty researcher.sourceID?researcher.sourceID:i18nnone}</span><br/>
 					<span class="cris-record-info-sourceref"><b><fmt:message key="jsp.cris.detail.info.sourceref" /></b> ${!empty researcher.sourceRef?researcher.sourceRef:i18nnone}</span>
-					<span class="cris-record-info-created"><b><fmt:message key="jsp.cris.detail.info.created" /></b> ${researcher.timeStampInfo.timestampCreated.timestamp}</span>
-					<span class="cris-record-info-updated"><b><fmt:message key="jsp.cris.detail.info.updated" /></b> ${researcher.timeStampInfo.timestampLastModified.timestamp}</span>
+					</div>
+					<div class="col-sm-6">
+					<span class="cris-record-info-created"><b><fmt:message key="jsp.cris.detail.info.created" /></b> <fmt:message key="jsp.display-cris.entity.created"><fmt:param value="${researcher.timeStampInfo.timestampCreated.timestamp}" /></fmt:message></span><br/>
+					<span class="cris-record-info-updated"><b><fmt:message key="jsp.cris.detail.info.updated" /></b> <fmt:message key="jsp.display-cris.entity.updated"><fmt:param value="${researcher.timeStampInfo.timestampLastModified.timestamp}" /></fmt:message></span>
+					</div>
 				</div>
 			 	<%
 		    	}
 				%>
+				
 			 </div>
 			 <div class="form-group pull-right" style="margin-top:1.5em;">
 				<div class="btn-group">
@@ -270,8 +295,11 @@
 								<a href="<%= request.getContextPath() %>/cris/tools/rp/editDynamicData.htm?id=${researcher.id}&anagraficaId=${researcher.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-pencil-square-o"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.primary-data"/></a>
 							</li>
 							<li>
-								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>
+								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>								
 							</li>
+							<li>
+								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/projects"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-project"/></a>								
+							</li>							
 							</c:if>
 							<c:if test="${admin}">				
 								<li>
@@ -285,14 +313,16 @@
 						<a class="btn btn-default" href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>
 					</div> --%>
 				</c:if>
-				<c:if test="${empty researcher.epersonID}" >
+
+				
+				<c:if test="${claim && !admin && researcher.epersonID != userID}" >
 				<div class="btn-group">				
 				<c:choose>				
-					<c:when test="${empty researcher.email.value}">
-						<a class="btn btn-primary" href="<%= request.getContextPath() %>/feedback?claimProfile=${researcher.crisID}"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></a>
+					<c:when test="${!empty researcher.email.value && empty researcher.epersonID && !userHasRP}">
+						<span id="claim-rp" class="btn btn-primary"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></span>
 					</c:when>
 					<c:otherwise>
-						<span id="claim-rp" class="btn btn-primary"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></span>
+						<a class="btn btn-primary" href="<%= request.getContextPath() %>/feedback?claimProfile=${researcher.crisID}"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></a>
 					</c:otherwise>
 				</c:choose>
 				</div>
@@ -301,7 +331,7 @@
 		</div>
 	</div>
 </div>
-	<c:if test="${!entity.status or (!statusAdmin && !admin)}">
+	<c:if test="${(!entity.status && !statusAdmin) or (!entity.status && admin)}">
 		<p class="warning">
 			<fmt:message
 				key="jsp.layout.hku.detail.researcher-disabled" /><a				

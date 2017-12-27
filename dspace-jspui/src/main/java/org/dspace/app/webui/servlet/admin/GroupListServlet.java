@@ -9,6 +9,8 @@ package org.dspace.app.webui.servlet.admin;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +20,10 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 
 /**
  * Servlet browsing through groups and selecting them
@@ -27,6 +32,10 @@ import org.dspace.eperson.Group;
  */
 public class GroupListServlet extends DSpaceServlet
 {
+	private final transient GroupService groupService
+             = EPersonServiceFactory.getInstance().getGroupService();
+	
+    @Override
 	protected void doDSGet(Context context,
 			HttpServletRequest request,
 			HttpServletResponse response)
@@ -36,29 +45,45 @@ public class GroupListServlet extends DSpaceServlet
 		boolean multiple = UIUtil.getBoolParameter(request, "multiple");
 		
 		// What are we sorting by?  Name is default
-		int sortBy = Group.NAME;
-		
-		String sbParam = request.getParameter("sortby");
+		int sortBy = GroupService.NAME;
 
-		if (sbParam != null && sbParam.equals("id"))
-		{
-			sortBy = Group.ID;
-		}
-		
 		// What's the index of the first group to show?  Default is 0
 		int first = UIUtil.getIntParameter(request, "first");
 		if (first == -1)
         {
             first = 0;
         }
+        int offset = UIUtil.getIntParameter(request, "offset");
+        if (first == -1)
+        {
+            first = 0;
+        }
+        if (offset == -1)
+        {
+            offset = 0;
+        }		
 
 		// Retrieve the e-people in the specified order
-		Group[] groups = Group.findAll(context, sortBy);
+		List<Group> groups = groupService.findAll(context, sortBy);
 		
+        String search = request.getParameter("search");
+        if (search != null && !search.equals(""))
+        {
+            groups = EPersonServiceFactory.getInstance().getGroupService().search(context, search);
+            request.setAttribute("offset", Integer.valueOf(offset));
+        }
+        else
+        {
+            // Retrieve the e-people in the specified order
+            groups = EPersonServiceFactory.getInstance().getGroupService().findAll(context, sortBy);
+            request.setAttribute("offset", Integer.valueOf(0));
+        }    
+        
 		// Set attributes for JSP
-		request.setAttribute("sortby", Integer.valueOf(sortBy));
-		request.setAttribute("first",  Integer.valueOf(first));
+		request.setAttribute("sortby", sortBy);
+		request.setAttribute("first", first);
 		request.setAttribute("groups", groups);
+        request.setAttribute("search", search);
 		if (multiple)
 		{
 			request.setAttribute("multiple", Boolean.TRUE);

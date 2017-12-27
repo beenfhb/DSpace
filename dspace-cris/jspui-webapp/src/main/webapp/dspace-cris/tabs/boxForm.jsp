@@ -20,7 +20,24 @@
 <%@page import="javax.servlet.jsp.jstl.fmt.LocaleSupport"%>
 <%@page import="java.net.URL"%>
 <%@page import="org.dspace.app.cris.model.jdyna.VisibilityTabConstant"%>
-
+<c:set var="dspace.layout.head.last" scope="request">
+	<script type="text/javascript">
+	<!--
+	jQuery(document).ready(function(){
+		
+	    jQuery('.visibility').click(function(){
+	        if(jQuery(this).attr("value")=="<%= VisibilityTabConstant.POLICY %>"){
+	            jQuery("#chooserpolicymetadata").show();
+	        }
+	        else {
+	        	jQuery("#chooserpolicymetadata").hide();
+	        	jQuery(".policydropdown").val("");
+	        }
+	    });
+	});
+	-->
+	</script>
+</c:set>
 <dspace:layout locbar="link" style="submission" navbar="admin"
 	titlekey="jsp.dspace-admin.researchers-list">
 <h1><fmt:message key="jsp.dspace-admin.edit-box" />
@@ -138,6 +155,11 @@
 			&nbsp;
 		</div>
 		
+		<c:set var="VISIBILITYCONSTANTS" value="<%= VisibilityTabConstant.getValues() %>"/>
+		<c:if test="${!(specificPartPath eq 'rp')}">
+			<c:set var="VISIBILITYCONSTANTS" value="<%= VisibilityTabConstant.getLimitedValues() %>"/>
+		</c:if>	
+		
 		<spring:bind path="visibility">
 			<c:set var="inputValue">
 				<c:out value="${status.value}" escapeXml="true"></c:out>
@@ -150,8 +172,8 @@
 				key="jsp.layout.hku.label.visibility" /></label></span>
 
 			<div class="dynaFieldValue">
-			<c:forEach items="<%= VisibilityTabConstant.getValues() %>" var="item">
-				<input ${disabled} id="${inputName}" name="${inputName}"
+			<c:forEach items="${VISIBILITYCONSTANTS}" var="item" varStatus="count">
+				<input ${disabled} id="${inputName}_${count.count}" name="${inputName}" class="${inputName}"
 					type="radio" value="${item}"
 					<c:if test="${inputValue==item}">checked="checked"</c:if> />
 				<fmt:message
@@ -163,10 +185,63 @@
 			</div>
 			</div>
 		</spring:bind>
+
+		<c:if test="${box.visibility!=4}">
+			<c:set var="chooservisibilityelement" value="style=\"display: none;\""/>
+		</c:if>		
+		<div id="chooserpolicymetadata" ${chooservisibilityelement}>
+		
+		<spring:bind path="authorizedSingle">
+			<c:set var="inputValue">
+				<c:out value="${status.value}" escapeXml="true"></c:out>
+			</c:set>
+			<c:set var="inputName">
+				<c:out value="${status.expression}" escapeXml="false"></c:out>
+			</c:set>
+
+			<div class="dynaField"><span class="dynaLabel"><label for="${inputName}"><fmt:message
+				key="jsp.layout.hku.label.authorized.eperson" /></label></span>
+
+			<div class="dynaFieldValue">
+				<select multiple="multiple" class="form-control policydropdown" id="${inputName}" name="${inputName}">
+					<option value=""><fmt:message key="jsp.layout.hku.label.authorized.eperson.select" /></option>									
+					<c:if test="${!empty metadataWithPolicySingle}">
+					    <c:forEach var="option" items="${metadataWithPolicySingle}" varStatus="loop">	    	
+				            <option value="${option.id}"<c:if test="${!empty inputValue && fn:contains(inputValue, option.id)}"> selected="selected"</c:if>>${option.label}(${option.shortName})</option>
+				        </c:forEach>        
+				    </c:if>
+				</select>
+			</div>
+			</div>
+		</spring:bind>
+		
+		<spring:bind path="authorizedGroup">
+			<c:set var="inputValue">
+				<c:out value="${status.value}" escapeXml="true"></c:out>
+			</c:set>
+			<c:set var="inputName">
+				<c:out value="${status.expression}" escapeXml="false"></c:out>
+			</c:set>
+
+			<div class="dynaField"><span class="dynaLabel"><label for="${inputName}"><fmt:message
+				key="jsp.layout.hku.label.authorized.group" /></label></span>
+
+			<div class="dynaFieldValue">
+				<select multiple="multiple" class="form-control policydropdown" id="${inputName}" name="${inputName}">
+					<option value=""><fmt:message key="jsp.layout.hku.label.authorized.group.select" /></option>				
+					<c:if test="${!empty metadataWithPolicyGroup}">
+					    <c:forEach var="option" items="${metadataWithPolicyGroup}" varStatus="loop">	    	
+				            <option value="${option.id}"<c:if test="${!empty inputValue && fn:contains(inputValue, option.id)}"> selected="selected"</c:if>>${option.label} - Shortname: ${option.shortName}</option>     	
+				        </c:forEach>        
+				    </c:if>
+				</select>
+			</div>
+			</div>
+		</spring:bind>	
+		</div>
 		<div class="dynaClear">
 			&nbsp;
 		</div>
-		
 		<dyna:text propertyPath="box.externalJSP"  helpKey="help.jdyna.message.box.externalJSP"
 			labelKey="jdyna.message.box.externalJSP" visibility="false"/>
 		<div class="dynaClear">
@@ -207,6 +282,9 @@
 					<c:if test="${boxed.real.rendering.triview == 'testo'}">
 						<c:set var="controller" value="Text" />
 					</c:if>
+				    <c:if test="${boxed.real.rendering.triview == 'boolean'}">
+						<c:set var="controller" value="Boolean" />
+					</c:if>
 					<c:if test="${boxed.real.rendering.triview == 'calendar'}">
 						<c:set var="controller" value="Date" />
 					</c:if>					
@@ -216,6 +294,20 @@
 					<c:if test="${boxed.real.rendering.triview == 'file'}">
 						<c:set var="controller" value="File" />
 					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'classificationTree'}">
+						<c:set var="controller" value="ClassificationTree" />
+					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'checkradio'}">
+						<c:set var="controller" value="CheckRadio" />
+					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'custompointer'}">
+						<c:if test="${boxed.real.rendering.type == 7}">
+							<c:set var="controller" value="EPerson" />
+						</c:if>
+						<c:if test="${boxed.real.rendering.type == 6}">
+							<c:set var="controller" value="Group" />
+						</c:if>
+					</c:if>					
 					<c:if test="${boxed.real.rendering.triview == 'pointer'}">
 						<c:set var="controller" value="${boxed.real.rendering.valoreClass.simpleName}" />
 					</c:if>
@@ -309,6 +401,9 @@
 					<c:if test="${boxed.real.rendering.triview == 'testo'}">
 						<c:set var="controller" value="Text" />
 					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'boolean'}">
+						<c:set var="controller" value="Boolean" />
+					</c:if>
 					<c:if test="${boxed.real.rendering.triview == 'calendar'}">
 						<c:set var="controller" value="Date" />
 					</c:if>
@@ -318,8 +413,22 @@
 					<c:if test="${boxed.real.rendering.triview == 'link'}">
 						<c:set var="controller" value="Link" />
 					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'classificationTree'}">
+						<c:set var="controller" value="ClassificationTree" />
+					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'checkradio'}">
+						<c:set var="controller" value="CheckRadio" />
+					</c:if>
 					<c:if test="${boxed.real.rendering.triview == 'pointer'}">
 						<c:set var="controller" value="${boxed.real.rendering.valoreClass.simpleName}" />
+					</c:if>
+					<c:if test="${boxed.real.rendering.triview == 'custompointer'}">
+						<c:if test="${boxed.real.rendering.type == 7}">
+							<c:set var="controller" value="EPerson" />
+						</c:if>
+						<c:if test="${boxed.real.rendering.type == 6}">
+							<c:set var="controller" value="Group" />
+						</c:if>
 					</c:if>
 					<a class="jdynaremovebutton"
 						title="<fmt:message
@@ -399,53 +508,88 @@
 		<input type="hidden" id="tabId" name="tabId" value="${tabId}" />
 		<input type="submit" class="btn btn-primary pull-right"
 			value="<fmt:message key="jsp.layout.hku.researcher.button.save" />" />
-		<div class="clearfix"> </div>
+		
 		<c:if test="${!empty box.id}">
-			<a class="btn btn-default"
+	  <div class="btn-group dropup pull-right">
+      <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+        <fmt:message key="jsp.layout.hku.researcher.button.default.option.dropdown" />
+        <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu">
+        <!-- dropdown menu links -->
+        	<li><a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createDateDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newdatedynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createTextDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newtextdynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createNestedDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newnesteddynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createLinkDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newlinkdynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createFileDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newfiledynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createRPPointerDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newrppointerdynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createProjectPointerDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newprojectpointerdynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createOUPointerDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newoupointerdynamicfield" />
-			</a>
-			<a class="btn btn-default"
+			</a></li><li>
+			<a 
 				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createDOPointerDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
 			<fmt:message
 				key="jsp.dspace-admin.hku.jdyna-configuration.newdopointerdynamicfield" />
-			</a>
+			</a></li><li>
+			<a 
+				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createBooleanDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
+			<fmt:message
+				key="jsp.dspace-admin.hku.jdyna-configuration.newbooleandynamicfield" />
+			</a></li><li>
+			<a 
+				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createCheckRadioDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
+			<fmt:message
+				key="jsp.dspace-admin.hku.jdyna-configuration.newcheckradiodynamicfield" />
+			</a></li><li>
+			<a 
+				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createClassificationTreeDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
+			<fmt:message
+				key="jsp.dspace-admin.hku.jdyna-configuration.newclassificationtreedynamicfield" />
+			</a></li><li>
+			<a 
+				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createEPersonDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
+			<fmt:message
+				key="jsp.dspace-admin.hku.jdyna-configuration.newepersonwidget" />
+			</a></li><li>
+			<a 
+				href="<%=request.getContextPath()%>/cris/administrator/${specificPartPath}/createGroupDynamicField.htm?boxId=${box.id}&tabId=${tabId}">
+			<fmt:message
+				key="jsp.dspace-admin.hku.jdyna-configuration.newgroupwidget" />
+			</a></li>
+        
+      	</ul>
+    </div>
 		</c:if>
 
 	</form:form>

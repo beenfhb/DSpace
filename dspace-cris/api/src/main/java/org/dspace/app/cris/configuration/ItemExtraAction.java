@@ -9,14 +9,17 @@ package org.dspace.app.cris.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.RelationPreference;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 
 public class ItemExtraAction implements RelationPreferenceExtraAction
@@ -63,7 +66,7 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
 
     @Override
     public boolean executeExtraAction(Context context, ACrisObject cris,
-            int itemID, String previousAction, int previousPriority,
+            UUID itemID, String previousAction, int previousPriority,
             String action, int priority)
     {
         if ((!RelationPreference.UNLINKED.equals(previousAction) && !RelationPreference.UNLINKED.equals(action)) 
@@ -92,13 +95,13 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
                         + previousAction);
     }
 
-	protected void unlink(Context context, ACrisObject cris, int itemID)
+	protected void unlink(Context context, ACrisObject cris, UUID itemID)
     {
         try
         {
-            Item item = Item.find(context, itemID);
+            Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
             String rpKey = cris.getCrisID();
-            ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+            ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
             if (metadata == null)
             {
                 metadata = cam.getAuthorityMetadataForAuthority(getAuthorityName());
@@ -106,17 +109,17 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
             for (String issued : metadata)
             {
                 String[] metadata = issued.split("\\.");
-                Metadatum[] original = item.getMetadataByMetadataString(issued);
+                List<IMetadataValue> original = item.getItemService().getMetadataByMetadataString(item, issued);
                 String schema = metadata[0];
                 String element = metadata[1];
                 String qualifier = metadata.length > 2 ? metadata[2] : null;
-                item.clearMetadata(schema, element, qualifier, Item.ANY);
-                for (Metadatum md : original)
+                item.getItemService().clearMetadata(context, item, schema, element, qualifier, Item.ANY);
+                for (IMetadataValue md : original)
                 {
-                    if (rpKey.equals(md.authority))
+                    if (rpKey.equals(md.getAuthority()))
                     {
-                        md.authority = null;
-                        md.confidence = Choices.CF_UNSET;
+                        md.setAuthority(null);
+                        md.setConfidence(Choices.CF_UNSET);
 						// commented the next java line as it produces a cycle
 						// the RPAuthority invoke the relationPreference as the
 						// default
@@ -127,12 +130,11 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
                         // cam.notifyReject(item.getID(), schema, element,
                         // qualifier, rpKey);
                     }
-                    item.addMetadata(md.schema, md.element, md.qualifier,
-                            md.language, md.value, md.authority, md.confidence);
+                    item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
+                            md.getLanguage(), md.getValue(), md.getAuthority(), md.getConfidence());
 
                 }
             }
-            item.update();
             context.commit();
         }
         catch (Exception e)
@@ -141,14 +143,14 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
         }
     }
 
-	protected void link(Context context, ACrisObject cris, int itemID)
+	protected void link(Context context, ACrisObject cris, UUID itemID)
     {
         try
         {
-            Item item = Item.find(context, itemID);
+            Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
             String rpKey = cris.getCrisID();
             // the item is not linked with the RP
-            ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+            ChoiceAuthorityService cam = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
             metadata = cam
                     .getAuthorityMetadataForAuthority(getAuthorityName());
 
@@ -169,31 +171,30 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
             for (String issued : metadata)
             {
                 String[] metadata = issued.split("\\.");
-                Metadatum[] original = item.getMetadataByMetadataString(issued);
+                List<IMetadataValue> original = item.getItemService().getMetadataByMetadataString(item, issued);
                 String schema = metadata[0];
                 String element = metadata[1];
                 String qualifier = metadata.length > 2 ? metadata[2] : null;
-                item.clearMetadata(schema, element, qualifier, Item.ANY);
+                item.getItemService().clearMetadata(context, item, schema, element, qualifier, Item.ANY);
 
-                for (Metadatum md : original)
+                for (IMetadataValue md : original)
                 {
                     for (String tempName : names)
                     {
-                        if (md.authority == null && md.value.equals(tempName))
+                        if (md.getAuthority() == null && md.getValue().equals(tempName))
                         {
-                            md.authority = rpKey;
-                            md.confidence = Choices.CF_ACCEPTED;
+                            md.setAuthority(rpKey);
+                            md.setConfidence(Choices.CF_ACCEPTED);
                         }
-                        else if (rpKey.equals(md.authority))
+                        else if (rpKey.equals(md.getAuthority()))
                         {
                             // low confidence value
-                            md.confidence = Choices.CF_ACCEPTED;
+                            md.setConfidence(Choices.CF_ACCEPTED);
                         }
                     }
-                    item.addMetadata(md.schema, md.element, md.qualifier,
-                            md.language, md.value, md.authority, md.confidence);
+                    item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
+                            md.getLanguage(), md.getValue(), md.getAuthority(), md.getConfidence());
                 }
-                item.update();
             }
 
 			// commented the next java line as it produces a cycle

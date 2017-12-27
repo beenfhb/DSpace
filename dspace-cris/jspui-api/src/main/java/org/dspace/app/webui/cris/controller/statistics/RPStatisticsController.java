@@ -19,7 +19,7 @@ import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 
 public class RPStatisticsController
@@ -51,7 +51,7 @@ public class RPStatisticsController
     }
     
     @Override
-    public DSpaceObject getObject(HttpServletRequest request)
+    public BrowsableDSpaceObject getObject(HttpServletRequest request)
     {
         String uuid = request.getParameter("id");
         if(uuid!=null && !uuid.isEmpty()) {

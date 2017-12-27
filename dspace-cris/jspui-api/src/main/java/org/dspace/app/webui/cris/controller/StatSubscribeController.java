@@ -16,12 +16,10 @@ import org.apache.commons.lang.StringUtils;
 import org.dspace.app.cris.statistics.StatSubscriptionViewBean;
 import org.dspace.app.cris.statistics.service.StatSubscribeService;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.handle.HandleManager;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
 

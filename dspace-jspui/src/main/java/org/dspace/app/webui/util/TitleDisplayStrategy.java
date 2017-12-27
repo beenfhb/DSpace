@@ -8,50 +8,50 @@
 package org.dspace.app.webui.util;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.PageContext;
 
-import org.dspace.browse.BrowseItem;
-import org.dspace.content.Metadatum;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.Utils;
 import org.dspace.discovery.IGlobalSearchResult;
 
-public class TitleDisplayStrategy extends ADiscoveryDisplayStrategy implements IDisplayMetadataValueStrategy
+public class TitleDisplayStrategy implements IDisplayMetadataValueStrategy
 {
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem item, boolean disableCrossLinks, boolean emph, PageContext pageContext)
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject item, boolean disableCrossLinks, boolean emph)
     {
         return getDisplay(hrq, metadataArray, item.isWithdrawn(), item.getHandle(), emph);
     }
 
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks, boolean emph, PageContext pageContext)
+            boolean viewFull, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks, boolean emph)
     {
         return getDisplay(hrq, metadataArray, item.isWithdrawn(), item.getHandle(), emph);
     }
     
 
-    private String getDisplay(HttpServletRequest hrq, Metadatum[] metadataArray,
+    private String getDisplay(HttpServletRequest hrq, List<IMetadataValue> metadataArray,
             boolean isWithdrawn, String handle, boolean emph)
     {
         String metadata = "-";
-        if (metadataArray.length > 0)
+        if (metadataArray.size() > 0)
         {
             if (isWithdrawn)
             {
-                metadata = Utils.addEntities(metadataArray[0].value);
+                metadata = Utils.addEntities(metadataArray.get(0).getValue());
             }
             else
             {
                 metadata = "<a href=\"" + hrq.getContextPath() + "/handle/"
                 + handle + "\">"
-                + Utils.addEntities(metadataArray[0].value)
+                + Utils.addEntities(metadataArray.get(0).getValue())
                 + "</a>";
             }
         }
@@ -60,37 +60,37 @@ public class TitleDisplayStrategy extends ADiscoveryDisplayStrategy implements I
     }
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String string, int colIdx, String field,
-            Metadatum[] metadataArray, BrowseItem browseItem,
-            boolean disableCrossLinks, boolean emph, PageContext pageContext)
+            boolean b, String string, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, BrowsableDSpaceObject browseItem,
+            boolean disableCrossLinks, boolean emph)
     {
         return null;
     }
 
     public String getExtraCssDisplay(HttpServletRequest hrq, int limit,
-            boolean b, String browseType, int colIdx, String field,
-            Metadatum[] metadataArray, Item item, boolean disableCrossLinks,
-            boolean emph, PageContext pageContext) throws JspException
+            boolean b, String browseType, UUID colIdx, String field,
+            List<IMetadataValue> metadataArray, Item item, boolean disableCrossLinks,
+            boolean emph) throws JspException
     {
         return null;
     }
     
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
-			int colIdx, String field, List<String> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
-			boolean emph, PageContext pageContext) throws JspException {
+			UUID colIdx, String field, List<IMetadataValue> metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
+			boolean emph) throws JspException {
         String metadata = "-";
-        if (metadataArray.size() > 0)
+        if (metadataArray.size()>0)
         {
             if (item.isWithdrawn())
             {
-                metadata = Utils.addEntities(metadataArray.get(0));
+                metadata = Utils.addEntities(metadataArray.get(0).getValue());
             }
             else
             {
                 metadata = "<a href=\"" + hrq.getContextPath() + "/handle/"
                 + item.getHandle() + "\">"
-                + Utils.addEntities(metadataArray.get(0))
+                + Utils.addEntities(metadataArray.get(0).getValue())
                 + "</a>";
             }
         }

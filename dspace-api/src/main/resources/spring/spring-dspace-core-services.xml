@@ -17,7 +17,7 @@
     <!-- Identifier Service Application Interface.  Will be autowired with
          any Identifier Providers present in Spring context.
     -->
-    <bean id="org.dspace.identifier.IdentifierService"
+    <bean id="org.dspace.identifier.service.IdentifierService"
           class="org.dspace.identifier.IdentifierServiceImpl"
           autowire="byType"
           scope="singleton"/>
@@ -31,11 +31,47 @@
     <bean id="org.dspace.identifier.VersionedHandleIdentifierProvider" class="org.dspace.identifier.VersionedHandleIdentifierProvider"
           scope="singleton">
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
-        <property name="versionDAO">
-            <bean class="org.dspace.versioning.VersionDAO"/>
-        </property>
-        <property name="versionHistoryDAO">
-            <bean class="org.dspace.versioning.VersionHistoryDAO"/>
-        </property>
     </bean>
+
+    <bean name="org.dspace.core.DBConnection" class="org.dspace.core.HibernateDBConnection" lazy-init="true"/>
+    <bean name="org.dspace.core.DatabaseSchemaValidator" class="org.dspace.core.HibernateDatabaseSchemaValidator" lazy-init="true"/>
+
+    <!-- Register all our Flyway callback classes (which run before/after database migrations) -->
+    <bean class="org.dspace.storage.rdbms.DatabaseRegistryUpdater"/>
+    <bean class="org.dspace.storage.rdbms.GroupServiceInitializer"/>
+    <bean class="org.dspace.storage.rdbms.PostgreSQLCryptoChecker"/>
+    <bean class="org.dspace.storage.rdbms.SiteServiceInitializer"/>
+
+    <!-- Initialize our LoggerService (i.e. log4j) -->
+    <bean class="org.dspace.core.LoggerServiceImpl"/>
+    
+    <bean id="org.dspace.content.service.TemplateItemService" class="org.dspace.content.service.DSpaceTemplateItemService" scope="singleton">
+    	<property name="generators">
+    		<map>
+    			<entry key="submitter">
+    				<bean class="org.dspace.content.generator.SubmitterValueGenerator" />
+    			</entry>
+    			<entry key="date">
+    				<bean class="org.dspace.content.generator.DateValueGenerator" />
+    			</entry>
+    			<entry key="identifier">
+    				<bean class="org.dspace.content.generator.IdentifierValueGenerator" />
+    			</entry>
+				<entry key="group">
+    				<bean class="org.dspace.content.generator.GroupValueGenerator" />
+    			</entry>
+				<entry key="eperson">
+    				<bean class="org.dspace.content.generator.EPersonValueGenerator" />
+    			</entry>     			    			
+    		</map>
+    	</property>
+    </bean>
+    
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>Messages</value>
+            </list>
+        </property>
+    </bean>    
 </beans>

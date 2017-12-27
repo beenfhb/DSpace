@@ -27,12 +27,15 @@
     <!-- Acquires reference to RelationPreferenceService relationPreferenceService --> 
     <bean id="relationPreferenceService" factory-bean="researcher" factory-method="getRelationPreferenceService" />
     
+    <bean id="orcidPreferencesUtils" factory-bean="researcher" factory-method="getOrcidPreferencesUtils" />
+    
     <bean id="rpComponents" factory-bean="researcher" factory-method="getRPComponents" />
     <bean id="pjComponents" factory-bean="researcher" factory-method="getProjectComponents" />
     <bean id="ouComponents" factory-bean="researcher" factory-method="getOUComponents" />
     <bean id="doComponents" factory-bean="researcher" factory-method="getDOComponents" />
 	
 	<bean id="sessionFactory" factory-bean="researcher" factory-method="getSessionFactory"/>
+	<bean id="sessionFactoryDSpace" factory-bean="researcher" factory-method="getSessionFactoryDSpace"/>
 	
 	<bean id="researcherTagLibraryService" class="org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions">
 		<property name="applicationService" ref="applicationService"/>
@@ -46,6 +49,7 @@
 		<constructor-arg ref="applicationService" />
 	</bean>
 
+	<bean id="processorService" factory-bean="researcher" factory-method="getCrisProcessorService" />
 	
 	<bean id="CrisSubscribeService" factory-bean="researcher" factory-method="getCrisSubscribeService" />
     <bean id="statSubscribeService" factory-bean="researcher" factory-method="getStatSubscribeService" />
@@ -57,4 +61,5 @@
     <bean id="collectionRequestsManager" factory-bean="researcher" factory-method="getCollectionStatsComponents" />
     <bean id="itemRequestsManager" factory-bean="researcher" factory-method="getItemStatsComponents" />
     <bean id="communityRequestsManager" factory-bean="researcher" factory-method="getCommunityStatsComponents" />
+    <bean id="siteRequestsManager" factory-bean="researcher" factory-method="getSiteStatsComponents" />
 </beans>

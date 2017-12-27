@@ -42,7 +42,7 @@ public class UserMeta extends AbstractWingElement implements
     private boolean authenticated = false;
 
     /** The metadata contents of this UserMeta element */
-    private List<Metadata> metadatum = new ArrayList<Metadata>();
+    private List<Metadata> IMetadataValue = new ArrayList<Metadata>();
 
     /**
      * Construct a new userMeta
@@ -50,6 +50,7 @@ public class UserMeta extends AbstractWingElement implements
      * @param context
      *            (Required) The context this element is contained in, such as
      *            where to route SAX events and what i18n catalogue to use.
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
      */
     protected UserMeta(WingContext context) throws WingException
     {
@@ -80,12 +81,13 @@ public class UserMeta extends AbstractWingElement implements
 	 *            (Required) determine if multiple metadata elements with the same
 	 *            element, qualifier and language are allowed.
 	 * @return A new metadata
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
 	 */
     public Metadata addMetadata(String element, String qualifier,
             String language, boolean allowMultiple) throws WingException
     {
         Metadata metadata = new Metadata(context, element, qualifier, language, allowMultiple);
-        metadatum.add(metadata);
+        IMetadataValue.add(metadata);
         return metadata;
     }
 
@@ -99,6 +101,7 @@ public class UserMeta extends AbstractWingElement implements
      * @param language
      *            (May be null) The metadata's language
      * @return A new metadata
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
      */
     public Metadata addMetadata(String element, String qualifier,
             String language) throws WingException
@@ -114,6 +117,7 @@ public class UserMeta extends AbstractWingElement implements
      * @param qualifier
      *            (May be null) The metadata qualifier.
      * @return A new metadata
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
      */
     public Metadata addMetadata(String element, String qualifier)
             throws WingException
@@ -127,6 +131,7 @@ public class UserMeta extends AbstractWingElement implements
      * @param element
      *            (Required) The metadata element.
      * @return A new metadata
+     * @throws org.dspace.app.xmlui.wing.WingException passed through.
      */
     public Metadata addMetadata(String element) throws WingException
     {
@@ -146,6 +151,7 @@ public class UserMeta extends AbstractWingElement implements
      *            The element's attributes
      * @return True if this WingElement is equivalent to the given SAX Event.
      */
+    @Override
     public boolean mergeEqual(String namespace, String localName, String qName,
             Attributes attributes) throws SAXException, WingException
     {
@@ -176,6 +182,7 @@ public class UserMeta extends AbstractWingElement implements
      *            The element's attributes
      * @return The child element
      */
+    @Override
     public WingMergeableElement mergeChild(String namespace, String localName,
             String qName, Attributes attributes) throws SAXException,
             WingException
@@ -191,7 +198,7 @@ public class UserMeta extends AbstractWingElement implements
     		String language = attributes.getValue(Metadata.A_LANGUAGE);
     		
     		List<Metadata> remove = new ArrayList<Metadata>();
-    		for (Metadata metadata : metadatum)
+    		for (Metadata metadata : IMetadataValue)
     		{
     			if (metadata.equals(element,qualifier,language) && !metadata.allowMultiple())
     			{
@@ -203,7 +210,7 @@ public class UserMeta extends AbstractWingElement implements
     		for (Metadata metadata : remove)
     		{
     			metadata.dispose();
-    			metadatum.remove(metadata);
+    			IMetadataValue.remove(metadata);
     		}
     	}
     	
@@ -213,6 +220,7 @@ public class UserMeta extends AbstractWingElement implements
     /**
      * Inform this element that it is being merged with an existing element.
      */
+    @Override
     public Attributes merge(Attributes attributes) throws SAXException,
             WingException
     {
@@ -272,6 +280,7 @@ public class UserMeta extends AbstractWingElement implements
      *            (Required) SAX Helper class to keep track of namespaces able
      *            to determine the correct prefix for a given namespace URI.
      */
+    @Override
     public void toSAX(ContentHandler contentHandler, LexicalHandler lexicalHandler,
             NamespaceSupport namespaces) throws SAXException
     {
@@ -289,7 +298,7 @@ public class UserMeta extends AbstractWingElement implements
             startElement(contentHandler, namespaces, E_USER_META, attributes);
         }
 
-        for (Metadata metadata : metadatum)
+        for (Metadata metadata : IMetadataValue)
         {
             metadata.toSAX(contentHandler, lexicalHandler, namespaces);
         }
@@ -303,14 +312,15 @@ public class UserMeta extends AbstractWingElement implements
     /**
      * dispose
      */
+    @Override
     public void dispose()
     {
-        for (AbstractWingElement content : metadatum)
+        for (AbstractWingElement content : IMetadataValue)
         {
             content.dispose();
         }
-        metadatum.clear();
-        metadatum = null;
+        IMetadataValue.clear();
+        IMetadataValue = null;
         super.dispose();
     }
 }

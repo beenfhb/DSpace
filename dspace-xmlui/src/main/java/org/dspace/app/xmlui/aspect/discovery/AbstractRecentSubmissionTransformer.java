@@ -7,6 +7,10 @@
  */
 package org.dspace.app.xmlui.aspect.discovery;
 
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.util.HashUtil;
 import org.apache.excalibur.source.SourceValidity;
@@ -17,15 +21,16 @@ import org.dspace.app.xmlui.utils.HandleUtil;
 import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.Division;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
-import org.dspace.discovery.*;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
-
-import java.io.Serializable;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * An abstract class containing the shared methods which all recent submission transformers use
@@ -93,13 +98,13 @@ public abstract class AbstractRecentSubmissionTransformer extends AbstractDSpace
 	            DSpaceValidity validity = new DSpaceValidity();
 
 	            // Add the actual collection;
-	            validity.add(dso);
+	            validity.add(context, (BrowsableDSpaceObject)dso);
 
                 getRecentlySubmittedItems(dso);
                 if(queryResults != null){
-                    List<DSpaceObject> resultingObjects = queryResults.getDspaceObjects();
-                    for(DSpaceObject resultObject : resultingObjects){
-                        validity.add(resultObject);
+                    List<BrowsableDSpaceObject> resultingObjects = queryResults.getDspaceObjects();
+                    for(BrowsableDSpaceObject resultObject : resultingObjects){
+                        validity.add(context, resultObject);
                     }
                     validity.add("numFound:" + resultingObjects.size());
                 }
@@ -130,7 +135,7 @@ public abstract class AbstractRecentSubmissionTransformer extends AbstractDSpace
             DiscoverQuery queryArgs = new DiscoverQuery();
 
             //Add the default filter queries
-            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(dso);
+            DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration((BrowsableDSpaceObject)dso);
             List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
             queryArgs.addFilterQueries(defaultFilterQueries.toArray(new String[defaultFilterQueries.size()]));
             queryArgs.setDSpaceObjectFilter(Constants.ITEM);
@@ -147,7 +152,7 @@ public abstract class AbstractRecentSubmissionTransformer extends AbstractDSpace
                     );
                 }
                 SearchService service = SearchUtils.getSearchService();
-                queryResults = service.search(context, dso, queryArgs);
+                queryResults = service.search(context, (BrowsableDSpaceObject)dso, queryArgs);
             }else{
                 //No configuration, no results
                 queryResults = null;

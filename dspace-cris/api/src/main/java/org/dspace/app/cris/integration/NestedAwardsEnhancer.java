@@ -7,13 +7,6 @@
  */
 package org.dspace.app.cris.integration;
 
-import it.cilea.osd.jdyna.model.AnagraficaSupport;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-import it.cilea.osd.jdyna.model.TypeSupport;
-import it.cilea.osd.jdyna.value.TextValue;
-import it.cilea.osd.jdyna.widget.WidgetTesto;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +17,13 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.VisibilityConstants;
+
+import it.cilea.osd.jdyna.model.AnagraficaSupport;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.model.TypeSupport;
+import it.cilea.osd.jdyna.value.TextValue;
+import it.cilea.osd.jdyna.widget.WidgetTesto;
 
 public class NestedAwardsEnhancer extends CrisEnhancer
 {

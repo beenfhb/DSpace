@@ -9,8 +9,7 @@ package org.dspace.usage;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.Constants;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.core.Context;
 import org.dspace.services.model.Event;
 
@@ -50,21 +49,21 @@ public class UsageEvent extends Event {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private transient HttpServletRequest request;
+	private HttpServletRequest request;
 	
-	private transient String ip;
+	private String ip;
 	
-	private transient String userAgent;
+	private String userAgent;
 	
-	private transient String xforwardedfor;
+	private String xforwardedfor;
 	
-	private transient Context context;
+	private Context context;
 	
-	private transient DSpaceObject object;
+	private UsageEventEntity object;
 
 	private Action action;
-			
-	private static String checkParams(Action action, HttpServletRequest request, Context context, DSpaceObject object)
+
+	private static String checkParams(Action action, HttpServletRequest request, Context context, UsageEventEntity object)
 	{
         StringBuilder eventName = new StringBuilder();
 		if(action == null)
@@ -96,7 +95,7 @@ public class UsageEvent extends Event {
 		return eventName.toString();
 	}
 	
-	private static String checkParams(Action action, Context context, DSpaceObject object)
+	private static String checkParams(Action action, Context context, UsageEventEntity object)
 	{
         StringBuilder eventName = new StringBuilder();
 		if(action == null)
@@ -129,7 +128,7 @@ public class UsageEvent extends Event {
 		return eventName.toString();
 	}
 	
-	public UsageEvent(Action action, HttpServletRequest request, Context context, DSpaceObject object)
+	public UsageEvent(Action action, HttpServletRequest request, Context context, UsageEventEntity object)
 	{
 		
 		super(checkParams(action, request, context, object));
@@ -163,7 +162,7 @@ public class UsageEvent extends Event {
 		this.object = object;
 	}
 
-	public UsageEvent(Action action, String ip, String userAgent, String xforwardedfor, Context context, DSpaceObject object)
+	public UsageEvent(Action action, String ip, String userAgent, String xforwardedfor, Context context, UsageEventEntity object)
 	{
 		
 		super(checkParams(action, context, object));
@@ -221,11 +220,11 @@ public class UsageEvent extends Event {
 		this.userAgent = userAgent;
 	}
 
-	public String getXforwarderfor() {
+	public String getXforwardedfor() {
 		return xforwardedfor;
 	}
 
-	public void setXforwarderfor(String xforwardedfor) {
+	public void setXforwardedfor(String xforwardedfor) {
 		this.xforwardedfor = xforwardedfor;
 	}
 
@@ -241,11 +240,11 @@ public class UsageEvent extends Event {
 		this.context = context;
 	}
 
-	public DSpaceObject getObject() {
+	public UsageEventEntity getObject() {
 		return object;
 	}
 
-	public void setObject(DSpaceObject object) {
+	public void setObject(UsageEventEntity object) {
 		this.object = object;
 	}
 

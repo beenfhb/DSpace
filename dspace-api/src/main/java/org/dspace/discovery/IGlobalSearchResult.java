@@ -8,21 +8,23 @@
 package org.dspace.discovery;
 
 import java.util.List;
+import java.util.UUID;
 
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 
 public interface IGlobalSearchResult {
 
 	public String getHandle();
 	
 	public List<String> getMetadataValue(String mdString);
-	public Metadatum[] getMetadataValueInDCFormat(String mdString);
+	
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString);
 	
 	public String getTypeText();
 	
 	public int getType();
 	
-	public int getID();
+	public UUID getID();
 	
 	public boolean isWithdrawn();
 

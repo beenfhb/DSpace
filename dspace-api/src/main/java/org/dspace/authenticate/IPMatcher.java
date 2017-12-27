@@ -7,10 +7,10 @@
  */
 package org.dspace.authenticate;
 
-import org.apache.log4j.Logger;
-
 import java.net.Inet6Address;
 import java.net.UnknownHostException;
+
+import org.apache.log4j.Logger;
 
 /**
  * Quickly tests whether a given IP address matches an IP range. An

@@ -8,6 +8,7 @@
 package org.dspace.app.cris.ws.discovery;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -18,6 +19,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 
 /**
@@ -52,7 +54,7 @@ public class CrisWebservicesExtraIndexPlugin implements SolrServiceIndexPlugin
        
     @Override
     public void additionalIndex(Context context, DSpaceObject dso,
-            SolrInputDocument document)
+            SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
         if (!(dso instanceof Item))
         {
@@ -69,26 +71,26 @@ public class CrisWebservicesExtraIndexPlugin implements SolrServiceIndexPlugin
             List<String> communitiesHandle = new Vector<String>();
     
             // build list of community ids
-            Community[] communities = myitem.getCommunities();
+            List<Community> communities = myitem.getItemService().getCommunities(context, myitem);
     
             // build list of collection ids
-            Collection[] collections = myitem.getCollections();
+            List<Collection> collections = myitem.getCollections();
     
             // now put those into strings
             int i = 0;
     
-            for (i = 0; i < communities.length; i++)
+            for (Community community : communities)
             {
-                communitiesList.add(new String("" + communities[i].getID()));
-                communitiesName.add(communities[i].getName());
-                communitiesHandle.add(communities[i].getHandle());
+                communitiesList.add(new String("" + community.getID()));
+                communitiesName.add(community.getName());
+                communitiesHandle.add(community.getHandle());
             }
     
-            for (i = 0; i < collections.length; i++)
+            for (Collection collection : collections)
             {
-                collectionsList.add(new String("" + collections[i].getID()));
-                collectionsName.add(collections[i].getName());
-                collectionsHandle.add(collections[i].getHandle());
+                collectionsList.add(new String("" + collection.getID()));
+                collectionsName.add(collection.getName());
+                collectionsHandle.add(collection.getHandle());
             }
     
             document.addField(FIELDNAME_COLLECTIONS, collectionsList);

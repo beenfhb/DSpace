@@ -75,11 +75,12 @@ public class DeptMetricsNetworkServlet extends DSpaceServlet
         List<DTOMetric> results = new ArrayList<DTOMetric>();
 
         String connection = ConfigurationManager
-                .getProperty(NetworkPlugin.CFG_MODULE, "network.connection");
+                .getProperty(NetworkPlugin.CFG_MODULE, "connection");
 
         String[] connections = connection.split(",");
         List<String> fieldsToRetrieve = new ArrayList<String>();
         fieldsToRetrieve.add("search.resourceid");
+        fieldsToRetrieve.add("cris-id");
         fieldsToRetrieve.add("rp_fullname");
         for (String conn : connections)
         {
@@ -119,8 +120,8 @@ public class DeptMetricsNetworkServlet extends DSpaceServlet
 
                     SolrDocument publication = iter.next();
 
-                    Integer rp_id = (Integer) publication
-                            .getFirstValue("search.resourceid");
+                    String rp_id = (String) publication
+                            .getFirstValue("cris-id");
                     String rp_fullname = (String) publication
                             .getFirstValue("rp_fullname");
                     String averageStrength = (String) publication
@@ -136,8 +137,7 @@ public class DeptMetricsNetworkServlet extends DSpaceServlet
                             .getFirstValue(ConstantNetwork.PREFIX_METADATA_BIBLIOMETRIC_4_RETRIEVE
                                     + conn);
 
-                    metric.setAuthority(ResearcherPageUtils
-                            .getPersistentIdentifier(rp_id, ResearcherPage.class));
+                    metric.setAuthority(rp_id);
                     metric.setFullName(rp_fullname);
                     metric.setType(conn);
                     metric.setAverageStrength(averageStrength);

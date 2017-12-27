@@ -7,26 +7,19 @@
  */
 package org.dspace.app.cris.util;
 
-import it.cilea.osd.jdyna.model.ANestedObject;
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ANestedProperty;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-import it.cilea.osd.jdyna.value.LinkValue;
-import it.cilea.osd.jdyna.value.TextValue;
-
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.oltu.oauth2.common.utils.OAuthUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.app.cris.integration.NameResearcherPage;
 import org.dspace.app.cris.integration.RPAuthority;
@@ -36,7 +29,9 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.RestrictedField;
 import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
+import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.authority.Choice;
@@ -48,6 +43,19 @@ import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
+
+import it.cilea.osd.jdyna.model.ANestedObject;
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ANestedProperty;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.AValue;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.EmbeddedLinkValue;
+import it.cilea.osd.jdyna.value.LinkValue;
+import it.cilea.osd.jdyna.value.TextValue;
+import it.cilea.osd.jdyna.widget.WidgetLink;
+import it.cilea.osd.jdyna.widget.WidgetTesto;
 
 
 /**
@@ -115,13 +123,8 @@ public class ResearcherPageUtils
     public static <T extends ACrisObject> String getPersistentIdentifier(
             Integer id, Class<T> clazz)
     {
-		ACrisObject crisObject;
-		try {
-			crisObject = clazz.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		return crisObject.getAuthorityPrefix() + persIdentifierFormat.format(id);
+		ACrisObject crisObject = applicationService.get(clazz, id, false);
+		return getPersistentIdentifier(crisObject);
     }
     
     
@@ -296,12 +299,12 @@ return decorator.generateDisplayValue(alternativeName, rp);
      *            the staffno
      * @return the rp identifier of the ResearcherPage or null
      */
-    public static String getRPIdentifierByStaffno(String staffno)
+    public static String getRPIdentifierByStaffno(String staffno, String sourceref)
     {
         if (staffno != null)
         {
             ResearcherPage rp = applicationService
-                    .getResearcherPageByStaffNo(staffno);
+                    .getEntityBySourceId(sourceref,  staffno, ResearcherPage.class);
             if (rp != null)
             {
                 return getPersistentIdentifier(rp);
@@ -355,6 +358,11 @@ return decorator.generateDisplayValue(alternativeName, rp);
         return applicationService.getNestedMaxPosition(nested);
     }
 
+    public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> List<ACNO> getNestedObjectsByParentIDAndShortname(Class<ACNO> modelClazz, Integer parentID, String typeShortname)
+    {    	
+    	return applicationService.getNestedObjectsByParentIDAndShortname(parentID, typeShortname, modelClazz);
+    }
+    
     public static <T extends ACrisObject> T getCrisObject(
             Integer id, Class<T> clazz)
     {
@@ -386,7 +394,7 @@ return decorator.generateDisplayValue(alternativeName, rp);
     
     private static List<Choice> choiceResults(DiscoverResult result){
     	List<Choice> choiceList = new LinkedList<Choice>();
-		for (DSpaceObject dso : result.getDspaceObjects()) {
+		for (BrowsableDSpaceObject dso : result.getDspaceObjects()) {
 			ResearcherPage rp = (ResearcherPage) dso;
 			choiceList.add(new Choice(getPersistentIdentifier(rp), rp.getFullName(),getLabel(rp.getFullName(), rp)));
 			if (rp.getTranslatedName() != null
@@ -461,8 +469,8 @@ return decorator.generateDisplayValue(alternativeName, rp);
 		    								 + luceneQuery.substring(0,luceneQuery.length() - 1) + "\")";
 		    	
 		    	discoverQuery.setQuery(crisauthoritylookup);
-				String negativeFilters = "-rpsurnames:(" + luceneQuery + ")";
-				String negativeFiltersStar = "-rpsurnames:(" + luceneQuery + "*)";
+				String negativeFilters = "-rpsurnames:(" + luceneQuery.substring(0,luceneQuery.length() - 1) + ")";
+				String negativeFiltersStar = "-rpsurnames:(" + luceneQuery + ")";
 				discoverQuery.addFilterQueries(negativeFilters);
 				discoverQuery.addFilterQueries(negativeFiltersStar);
 		    	result = _searchService.search(null, discoverQuery, true);
@@ -498,7 +506,7 @@ return decorator.generateDisplayValue(alternativeName, rp);
 	
 	
     public static List<NameResearcherPage> getAllVariantsName(
-            Set<Integer> invalidIds, ResearcherPage researcher)
+            Set<UUID> invalidIds, ResearcherPage researcher)
     {
         String authority = researcher.getCrisID();
         Integer id = researcher.getId();
@@ -535,7 +543,7 @@ return decorator.generateDisplayValue(alternativeName, rp);
         return names;
     }
 	   
-    private static List<String> getAbbreviations(List<NameResearcherPage> names)
+	public static List<String> getAbbreviations(List<NameResearcherPage> names)
     {
         List<String> result = new ArrayList<String>();
         for (NameResearcherPage rpn : names)
@@ -562,6 +570,16 @@ return decorator.generateDisplayValue(alternativeName, rp);
                         firstNames.add(firstname);
                     }
                 }
+				if (tmpStr.length > 1) {
+					firstNames.add(tmpStr[0]);
+					firstname = tmpStr[0] + " ";
+					for (int h = 1; h < tmpStr.length; h++) {
+						if (StringUtils.isNotBlank(tmpStr[h])) {
+							firstname += tmpStr[h].substring(0, 1);
+							firstNames.add(firstname);
+						}
+					}
+				}
                 for (int h = 0; h < tmpStr.length; h++) {
                 	if (StringUtils.isNotBlank(tmpStr[h])) {
                         firstNames.add(tmpStr[h].substring(0, 1));
@@ -601,11 +619,78 @@ return decorator.generateDisplayValue(alternativeName, rp);
 		return null;
 	}
 	
-	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void buildTextValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, String valueToSet, String pdefKey) {
-        TP pdef = applicationService.findPropertiesDefinitionByShortName(ro.getClassPropertiesDefinition(), pdefKey);        
+	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, 
+		ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void buildTextValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, 
+				String valueToSet, String pdefKey) {
+		buildTextValue(ro, valueToSet, pdefKey, VisibilityConstants.PUBLIC);
+	}
+
+	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void buildGenericValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, Object valueToSet, String pdefKey, Integer visibility) {
+		if (valueToSet == null) {
+			return;
+		}
+		TP pdef = applicationService.findPropertiesDefinitionByShortName(ro.getClassPropertiesDefinition(), pdefKey);
+        if (pdef == null) {
+        	log.warn("Property "+pdefKey+ " not found");
+        	return;
+        }
+        AValue avalue = pdef.getRendering().getInstanceValore();
+
+        avalue.setOggetto(valueToSet);                 
+        P prop = ro.createProprieta(pdef);
+        prop.setValue(avalue);
+        prop.setVisibility(visibility);
+	}
+	
+	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void buildTextValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, String valueToSet, String pdefKey, Integer visibility) {
+
+		TP pdef = applicationService.findPropertiesDefinitionByShortName(ro.getClassPropertiesDefinition(), pdefKey);
+        if (pdef == null || !(pdef.getRendering() instanceof WidgetTesto)) {
+        	log.warn("Property "+pdefKey+ " not found or not a text");
+        	return;
+        }
         TextValue text = new TextValue();
         text.setOggetto(valueToSet);                 
         P prop = ro.createProprieta(pdef);
         prop.setValue(text);
+        prop.setVisibility(visibility);
 	}
+
+	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, 
+		ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> 
+		void buildLinkValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, String linkDescr, String linkURL, String pdefKey, Integer visibility) {
+
+		TP pdef = applicationService.findPropertiesDefinitionByShortName(ro.getClassPropertiesDefinition(), pdefKey);
+        if (pdef == null || !(pdef.getRendering() instanceof WidgetLink)) {
+        	log.warn("Property "+pdefKey+ " not found or not a link");
+        	return;
+        }
+        LinkValue link = new LinkValue();
+        EmbeddedLinkValue linkValue = new EmbeddedLinkValue();
+        linkValue.setDescriptionLink(linkDescr);
+        linkValue.setValueLink(linkURL);
+        link.setOggetto(linkValue);                 
+        P prop = ro.createProprieta(pdef);
+        prop.setValue(link);
+        prop.setVisibility(visibility);
+	}
+
+	
+    public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void cleanPropertyByPropertyDefinition(
+            ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, String pdefKey)
+    {
+        ArrayList<P> toRemove = new ArrayList<P>();
+        List<P> rppp = ro.getAnagrafica4view().get(pdefKey);
+        if (rppp != null && !rppp.isEmpty())
+        {
+            for (P rpppp : rppp)
+            {
+                toRemove.add(rpppp);
+            }
+        }
+        
+        for(P remove : toRemove) {
+            ro.removeProprieta(remove);
+        }
+    }
 }

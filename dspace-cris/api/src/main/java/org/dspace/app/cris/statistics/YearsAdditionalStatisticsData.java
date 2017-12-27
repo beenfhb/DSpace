@@ -15,8 +15,9 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.solr.common.SolrInputDocument;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.StatisticsMetadataGenerator;
 
 public class YearsAdditionalStatisticsData implements
@@ -33,7 +34,7 @@ public class YearsAdditionalStatisticsData implements
     
     @Override
     public void addMetadata(SolrInputDocument doc1, HttpServletRequest request,
-            DSpaceObject dspaceObject)
+            BrowsableDSpaceObject dspaceObject)
     {
         Date date = null;
         try 
@@ -42,7 +43,7 @@ public class YearsAdditionalStatisticsData implements
         }
         catch (ClassCastException e) {
             String dateString = (String) doc1.getFieldValue("time");
-            SimpleDateFormat sdf = new SimpleDateFormat(SolrLogger.DATE_FORMAT_8601);
+            SimpleDateFormat sdf = new SimpleDateFormat(SolrLoggerServiceImpl.DATE_FORMAT_8601);
             try
             {
                 date = sdf.parse(dateString);

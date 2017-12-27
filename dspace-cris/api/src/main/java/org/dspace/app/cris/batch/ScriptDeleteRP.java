@@ -31,11 +31,11 @@ import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
@@ -96,7 +96,7 @@ public class ScriptDeleteRP
             Integer rpId = null;
             boolean delete = false;
             boolean silent = line.hasOption('s');
-            Item[] items = null;
+            List<Item> items = null;
             if (line.hasOption('r'))
             {
                 rpId = ResearcherPageUtils.getRealPersistentIdentifier(line.getOptionValue("r"),ResearcherPage.class);
@@ -116,13 +116,22 @@ public class ScriptDeleteRP
                 log.info("Use browse indexing");
 
                 BrowseIndex bi = BrowseIndex.getBrowseIndex(plugInBrowserIndex);
-                // now start up a browse engine and get it to do the work for us
-                BrowseEngine be = new BrowseEngine(dspaceContext);
 
+                boolean isMultilanguage = new DSpace().getConfigurationService()
+                        .getPropertyAsType(
+                                "discovery.browse.authority.multilanguage."
+                                        + bi.getName(),
+                                new DSpace().getConfigurationService()
+                                        .getPropertyAsType(
+                                                "discovery.browse.authority.multilanguage",
+                                                new Boolean(false)),
+                                false);
+                    
                 String authKey = ResearcherPageUtils.getPersistentIdentifier(rp);
 
                 // set up a BrowseScope and start loading the values into it
                 BrowserScope scope = new BrowserScope(dspaceContext);
+                scope.setUserLocale(dspaceContext.getCurrentLocale().getLanguage());
                 scope.setBrowseIndex(bi);
                 // scope.setOrder(order);
                 scope.setFilterValue(authKey);
@@ -130,6 +139,9 @@ public class ScriptDeleteRP
                 scope.setResultsPerPage(Integer.MAX_VALUE);
                 scope.setBrowseLevel(1);
 
+                // now start up a browse engine and get it to do the work for us
+                BrowseEngine be = new BrowseEngine(dspaceContext, isMultilanguage? 
+                        scope.getUserLocale():null);
                 BrowseInfo binfo = be.browse(scope);
                 log.debug("Find " + binfo.getResultCount()
                         + "item(s) for the reseracher " + authKey);
@@ -143,7 +155,7 @@ public class ScriptDeleteRP
                     System.out.println("Attempting to remove Researcher Page:");
                     System.out.println("StaffNo:" + rp.getSourceID());
                     System.out.println("FullName:" + rp.getFullName());
-                    System.out.println("the researcher has " + items.length + " relation(s) with item(s) in the HUB");
+                    System.out.println("the researcher has " + items.size() + " relation(s) with item(s) in the HUB");
                     System.out.println();
 
                     System.out.println(QUESTION_ONE);
@@ -213,15 +225,14 @@ public class ScriptDeleteRP
         System.exit(0);
     }
 
-    public static void cleanAuthority(Context dspaceContext, Item[] items, Integer rpId) throws SQLException, AuthorizeException
+    public static void cleanAuthority(Context dspaceContext, List<Item> items, Integer rpId) throws SQLException, AuthorizeException
     {
         //find all metadata with authority support
-        MetadataField[] fields = MetadataField.findAll(dspaceContext);
+        List<MetadataField> fields = ContentServiceFactory.getInstance().getMetadataFieldService().findAll(dspaceContext);
         List<MetadataField> fieldsWithAuthoritySupport = new LinkedList<MetadataField>();
         for (MetadataField field : fields)
         {
-            String schema = (MetadataSchema.find(dspaceContext, field
-                    .getSchemaID())).getName();
+            String schema = field.getMetadataSchema().getName();
             String mdstring = schema
                     + "."
                     + field.getElement()
@@ -243,32 +254,31 @@ public class ScriptDeleteRP
         String authorityKey = ResearcherPageUtils.getPersistentIdentifier(rpId, ResearcherPage.class);
         for (Item item : items)
         {
-            Metadatum[] values = null;
+            List<IMetadataValue> values = null;
             for (MetadataField md : fieldsWithAuthoritySupport)
             {
-                String schema = (MetadataSchema.find(dspaceContext, md
-                        .getSchemaID())).getName();
+                String schema = md.getMetadataSchema().getName();
 
                 values = item.getMetadata(schema, md.getElement(), md.getQualifier(), Item.ANY);
-                item.clearMetadata(schema, md.getElement(), md.getQualifier(),
+                item.getItemService().clearMetadata(dspaceContext, item, schema, md.getElement(), md.getQualifier(),
                         Item.ANY);
-                for (Metadatum value : values)
+                for (IMetadataValue value : values)
                 {
-                    if (authorityKey.equals(value.authority))
+                    if (authorityKey.equals(value.getAuthority()))
                     {
                         log.debug("remove authority_key " + authorityKey + " in item_id: "
                                     + item.getID());
-                        value.confidence = Choices.CF_UNSET;
-                        value.authority = null;
+                        value.setConfidence(Choices.CF_UNSET);
+                        value.setAuthority(null);
                     }
                     
-                    item.addMetadata(value.schema, value.element,
-                            value.qualifier, value.language,
-                            value.value, value.authority,
-                            value.confidence);
+                    item.getItemService().addMetadata(dspaceContext, item, value.getSchema(), value.getElement(),
+                            value.getQualifier(), value.getLanguage(),
+                            value.getValue(), value.getAuthority(),
+                            value.getConfidence());
                 }
             }
-            item.update();
+            item.getItemService().update(dspaceContext, item);
         }
 
     }

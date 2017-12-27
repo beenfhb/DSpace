@@ -7,12 +7,14 @@
  */
 package org.dspace.app.webui.util;
 
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.core.Utils;
 
 public class LinkDisplayStrategy extends AUniformDisplayStrategy
@@ -20,7 +22,7 @@ public class LinkDisplayStrategy extends AUniformDisplayStrategy
     /** log4j category */
     private static Logger log = Logger.getLogger(LinkDisplayStrategy.class);
 
-    protected String getDisplayForValue(HttpServletRequest hrq, String value, int itemid)
+    protected String getDisplayForValue(HttpServletRequest hrq, String value, UUID itemid)
     {
         StringBuffer sb = new StringBuffer();
         String startLink = "<a href=\"" + value + "\">";

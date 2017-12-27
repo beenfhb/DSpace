@@ -10,14 +10,22 @@ package org.dspace.app.cris.model.listener;
 
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.UUIDSupport;
 import org.hibernate.HibernateException;
 import org.hibernate.event.internal.DefaultSaveOrUpdateEventListener;
 import org.hibernate.event.spi.SaveOrUpdateEvent;
 
-public class UUIDListener extends DefaultSaveOrUpdateEventListener
+import it.cilea.osd.common.listener.NativePostUpdateEventListener;
+import it.cilea.osd.common.listener.NativePreInsertEventListener;
+import it.cilea.osd.common.model.Identifiable;
+
+public class UUIDListener implements NativePreInsertEventListener
 {
 
+	private static Logger log = Logger
+            .getLogger(UUIDListener.class);
+	
     private void generateUUID(Object object)
     {
         UUIDSupport uuidOwner = (UUIDSupport) object;
@@ -27,16 +35,14 @@ public class UUIDListener extends DefaultSaveOrUpdateEventListener
         }
     }
 
+    
     @Override
-    public void onSaveOrUpdate(SaveOrUpdateEvent event)
-            throws HibernateException
-    {
-        Object object = event.getObject();
+    public <T extends Identifiable> void onPreInsert(T entity) {
+    	Object object = entity;
         if (object instanceof UUIDSupport)
         {
+        	log.debug("UUIDSupport Call onPostUpdate " + UUIDListener.class);
             generateUUID(object);
         }
-        super.onSaveOrUpdate(event);
     }
-
 }

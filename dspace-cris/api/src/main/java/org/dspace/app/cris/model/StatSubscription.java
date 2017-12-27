@@ -7,7 +7,7 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.model.IdentifiableObject;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +18,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import it.cilea.osd.common.model.IdentifiableObject;
 
 /**
  * This class models a single subscription to receive mail notification of the
@@ -60,7 +62,7 @@ public class StatSubscription extends IdentifiableObject {
 	/**
 	 * the eperson ID of the subscriber
 	 */
-	private int epersonID;
+	private UUID epersonID;
 
 	/**
 	 * See constant FREQUENCY_*
@@ -73,7 +75,9 @@ public class StatSubscription extends IdentifiableObject {
 	public static final int FREQUENCY_WEEKLY = 7;
 	@Transient
 	public static final int FREQUENCY_MONTHLY = 30;
-	
+    @Transient
+    public static final int FREQUENCY_YEAR = 365;
+    
     public Integer getId()
     {
         return id;
@@ -85,12 +89,12 @@ public class StatSubscription extends IdentifiableObject {
     }
 
  
-    public int getEpersonID()
+    public UUID getEpersonID()
     {
         return epersonID;
     }
 
-    public void setEpersonID(int epersonID)
+    public void setEpersonID(UUID epersonID)
     {
         this.epersonID = epersonID;
     }

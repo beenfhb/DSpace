@@ -11,9 +11,9 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.statistics.IStatsComponent;
 import org.dspace.app.cris.integration.statistics.IStatsDualComponent;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 
-public abstract class CrisStatsDualComponent<T extends DSpaceObject> extends ASolrStatsConfigurerComponent<T> implements IStatsDualComponent
+public abstract class CrisStatsDualComponent<T extends BrowsableDSpaceObject> extends ASolrStatsConfigurerComponent<T> implements IStatsDualComponent
 {
     /** log4j logger */
     private static Logger log = Logger

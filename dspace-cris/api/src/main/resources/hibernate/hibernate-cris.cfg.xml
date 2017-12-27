@@ -42,6 +42,9 @@
 		<mapping class="it.cilea.osd.common.core.TimeStampInfo" />
 		<mapping class="it.cilea.osd.common.core.SingleTimeStampInfo" />
 
+		<mapping class="org.dspace.app.cris.model.CrisPotentialMatch" />
+		<mapping class="org.dspace.app.cris.model.CrisDeduplication" />
+
 		<mapping class="org.dspace.app.cris.model.ResearcherPage" />
 		<mapping class="org.dspace.app.cris.model.Project" />
 		<mapping class="org.dspace.app.cris.model.OrganizationUnit" />
@@ -51,6 +54,8 @@
 		<mapping class="org.dspace.app.cris.model.CrisSubscription" />
 		<mapping class="org.dspace.app.cris.model.RelationPreference" />
 		<mapping class="org.dspace.app.cris.model.SourceReference" />
+		<mapping class="org.dspace.app.cris.model.orcid.OrcidQueue" />
+		<mapping class="org.dspace.app.cris.model.orcid.OrcidHistory" />
 
 		<!-- Dynamic field -->
 
@@ -140,7 +145,10 @@
 		<mapping class="it.cilea.osd.jdyna.value.LinkValue" />
 		<mapping class="it.cilea.osd.jdyna.value.FileValue" />
 		<mapping class="it.cilea.osd.jdyna.value.NumberValue" />
-
+		<mapping class="it.cilea.osd.jdyna.value.BooleanValue" />
+		<mapping class="org.dspace.app.cris.model.jdyna.value.EPersonValue" />
+		<mapping class="org.dspace.app.cris.model.jdyna.value.GroupValue" />
+				
 		<mapping class="org.dspace.app.cris.model.jdyna.value.RPPointer" />
 
 		<mapping class="org.dspace.app.cris.model.jdyna.value.ProjectPointer" />
@@ -149,6 +157,7 @@
 		
 		<mapping class="org.dspace.app.cris.model.jdyna.value.DOPointer" />
 
+		<mapping class="org.dspace.app.cris.model.jdyna.value.Classification" />
 
 		<mapping class="it.cilea.osd.jdyna.model.AWidget" />
 		<mapping class="it.cilea.osd.jdyna.widget.WidgetTesto" />
@@ -156,7 +165,12 @@
 		<mapping class="it.cilea.osd.jdyna.widget.WidgetDate" />
 		<mapping class="it.cilea.osd.jdyna.widget.WidgetFile" />
 		<mapping class="it.cilea.osd.jdyna.widget.WidgetPointer" />
+		<mapping class="it.cilea.osd.jdyna.widget.WidgetCustomPointer" />
 		<mapping class="it.cilea.osd.jdyna.widget.WidgetNumero" />
+		<mapping class="it.cilea.osd.jdyna.widget.WidgetBoolean" />
+		<mapping class="it.cilea.osd.jdyna.widget.WidgetCheckRadio" />
+		<mapping class="it.cilea.osd.jdyna.widget.AWidgetClassificationTree" />
+		<mapping class="org.dspace.app.cris.model.jdyna.widget.WidgetClassificationTree" />
 
 		<mapping class="it.cilea.osd.jdyna.widget.Size" />
 		<mapping class="it.cilea.osd.jdyna.web.Box" />
@@ -176,7 +190,9 @@
 		<mapping class="org.dspace.app.cris.model.jdyna.widget.WidgetPointerPJ" />
 		<mapping class="org.dspace.app.cris.model.jdyna.widget.WidgetPointerRP" />
 		<mapping class="org.dspace.app.cris.model.jdyna.widget.WidgetPointerDO" />
-
+		
+		<mapping class="org.dspace.app.cris.model.jdyna.widget.WidgetEPerson" />
+		<mapping class="org.dspace.app.cris.model.jdyna.widget.WidgetGroup" />
 
 		<mapping class="org.dspace.app.cris.model.StatSubscription" />
 		<mapping class="org.dspace.app.cris.model.ws.User" />
@@ -185,9 +201,12 @@
 		<mapping class="it.cilea.osd.jdyna.model.ScopeDefinition" />
 		
 		<!-- PMC -->
-		<mapping class="org.dspace.app.cris.pmc.model.PMCRecord" />
-		<mapping class="org.dspace.app.cris.pmc.model.PMCCitation" />
-
+		<mapping class="org.dspace.app.cris.metrics.pmc.model.PMCRecord" />
+		<mapping class="org.dspace.app.cris.metrics.pmc.model.PMCCitation" />
+		
+		<!-- STATS METRICS -->
+		<mapping class="org.dspace.app.cris.metrics.common.model.CrisMetrics" />
+		
 	</session-factory>
 
 </hibernate-configuration>

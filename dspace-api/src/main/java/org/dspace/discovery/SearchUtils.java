@@ -7,17 +7,24 @@
  */
 package org.dspace.discovery;
 
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.content.*;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
+import org.dspace.discovery.configuration.DiscoveryMostViewedConfiguration;
+import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
 import org.dspace.kernel.ServiceManager;
-import org.dspace.utils.DSpace;
-
-import java.sql.SQLException;
-import java.util.*;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Util methods used by discovery
@@ -34,8 +41,7 @@ public class SearchUtils {
     public static SearchService getSearchService()
     {
         if(searchService ==  null){
-            DSpace dspace = new DSpace();
-            org.dspace.kernel.ServiceManager manager = dspace.getServiceManager() ;
+            org.dspace.kernel.ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
             searchService = manager.getServiceByName(SearchService.class.getName(),SearchService.class);
         }
         return searchService;
@@ -45,7 +51,7 @@ public class SearchUtils {
         return getDiscoveryConfiguration(null);
     }
 
-    public static DiscoveryConfiguration getDiscoveryConfiguration(DSpaceObject dso){
+    public static DiscoveryConfiguration getDiscoveryConfiguration(BrowsableDSpaceObject dso){
         return getDiscoveryConfigurationByName(dso!=null?dso.getHandle():null);
     }
 
@@ -70,8 +76,7 @@ public class SearchUtils {
     }
 
     public static DiscoveryConfigurationService getConfigurationService() {
-        DSpace dspace  = new DSpace();
-        ServiceManager manager = dspace.getServiceManager();
+        ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
         return manager.getServiceByName(DiscoveryConfigurationService.class.getName(), DiscoveryConfigurationService.class);
     }
 
@@ -89,43 +94,48 @@ public class SearchUtils {
     public static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(Item item) throws SQLException {
         Map<String, DiscoveryConfiguration> result = new HashMap<String, DiscoveryConfiguration>();
 
-		if (item != null) {
-			Collection[] collections = item.getCollections();
-			for (Collection collection : collections) {
-				DiscoveryConfiguration configuration = getDiscoveryConfiguration(collection);
-				if (!result.containsKey(configuration.getId())) {
-					result.put(configuration.getId(), configuration);
-				}
-			}
-		}
-		
-        //Also add one for the default
-        DiscoveryConfiguration configuration = getDiscoveryConfiguration(null);
-        if(!result.containsKey(configuration.getId())){
-            result.put(configuration.getId(), configuration);
-        }
-        
-        //Add special dspacebasic discoveryConfiguration
-        DiscoveryConfiguration configurationExtra = getDiscoveryConfigurationByName("dspacebasic");
-        if(!result.containsKey(configurationExtra.getId())){
-            result.put(configurationExtra.getId(), configurationExtra);
+        List<Collection> collections = item.getCollections();
+        for (Collection collection : collections) {
+            DiscoveryConfiguration configuration = getDiscoveryConfiguration(collection);
+            if(!result.containsKey(configuration.getId())){
+                result.put(configuration.getId(), configuration);
+            }
         }
 
-        //Add special global discoveryConfiguration
-        configurationExtra = getDiscoveryConfigurationByName(DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
-        if(!result.containsKey(configurationExtra.getId())){
-            result.put(configurationExtra.getId(), configurationExtra);
+        //Also add one for the default
+        addConfigurationIfExists(result, null);
+        
+        //Add special dspacebasic discoveryConfiguration
+        DiscoveryConfiguration configurationExtra;
+        addConfigurationIfExists(result, "dspacebasic");
+
+        String typeText = item.getTypeText();
+        String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
+                "cris", "facet.type." + typeText);
+        String extra = null;
+        if (StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
+            extra = isDefinedAsSystemEntity.split("###")[1];
+            addConfigurationIfExists(result, extra);
         }
+
+        addConfigurationIfExists(result, "dspace"+typeText);
+        
+        //Add special global discoveryConfiguration
+        addConfigurationIfExists(result, DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
         return Arrays.asList(result.values().toArray(new DiscoveryConfiguration[result.size()]));
     }
 
+    private static void addConfigurationIfExists(Map<String, DiscoveryConfiguration> result, String confName) {
+        DiscoveryConfiguration configurationExtra = getDiscoveryConfigurationByName(confName);
+        if(!result.containsKey(configurationExtra.getId())){
+            result.put(configurationExtra.getId(), configurationExtra);
+        }
+    }
     
     public static DiscoveryViewAndHighlightConfiguration getDiscoveryViewAndHighlightConfigurationByName(
             String configurationName)
     {
-        DSpace dspace  = new DSpace();
-        ServiceManager manager = dspace.getServiceManager();
-        return manager.getServiceByName(configurationName, DiscoveryViewAndHighlightConfiguration.class);
+        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(configurationName, DiscoveryViewAndHighlightConfiguration.class);
     }
     
 	public static DiscoveryConfiguration getGlobalConfiguration() {
@@ -142,4 +152,15 @@ public class SearchUtils {
 		return StringUtils.equals(configuration.getId(), DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
 	}
 
+    public static DiscoveryRecentSubmissionsConfiguration getRecentSubmissionConfiguration(
+            String configurationName)
+    {
+        return getDiscoveryConfigurationByName(configurationName).getRecentSubmissionConfiguration();
+    }
+
+    public static DiscoveryMostViewedConfiguration getMostViewedConfiguration(
+            String configurationName)
+    {
+        return getDiscoveryConfigurationByName(configurationName).getMostViewConfiguration();
+    }
 }

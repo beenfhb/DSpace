@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.xmlui.cocoon.AbstractDSpaceTransformer;
 import org.dspace.app.xmlui.wing.Message;
@@ -22,17 +23,13 @@ import org.dspace.app.xmlui.wing.element.PageMeta;
 import org.dspace.app.xmlui.wing.element.Para;
 import org.dspace.app.xmlui.wing.element.Row;
 import org.dspace.app.xmlui.wing.element.Table;
-import org.dspace.content.Collection;
-import org.dspace.content.Metadatum;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.*;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.PluginConfigurationError;
-import org.dspace.core.PluginManager;
-import org.dspace.handle.HandleManager;
-import org.dspace.search.DSQuery;
-import org.dspace.search.QueryArgs;
-import org.dspace.search.QueryResults;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -61,6 +58,9 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(SearchItemForm.class);
 
+	protected CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
+    protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
     @Override
 	public void addPageMeta(PageMeta pageMeta) throws WingException  
 	{
@@ -76,8 +76,8 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
 	public void addBody(Body body) throws SAXException, WingException, SQLException, IOException
 	{
 		// Get our parameters and state;
-		int collectionID = parameters.getParameterAsInteger("collectionID",-1);
-		Collection collection = Collection.find(context,collectionID);	
+		UUID collectionID = UUID.fromString(parameters.getParameter("collectionID", null));
+		Collection collection = collectionService.find(context,collectionID);
 		
 		String query = decodeFromURL(parameters.getParameter("query",null));
 		java.util.List<Item> items = performSearch(collection,query);
@@ -106,26 +106,26 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
 			Collection owningCollection = item.getOwningCollection();
 			String owning = "unknown";
 			if (owningCollection != null)
-				owning = owningCollection.getMetadata("name");
+				owning = owningCollection.getName();
 			String author = "unknown";
-			Metadatum[] dcCreators = item.getDC("creator",Item.ANY,Item.ANY);
-			if (dcCreators != null && dcCreators.length >= 1)
+			List<IMetadataValue> dcCreators = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "creator", Item.ANY, Item.ANY);
+			if (dcCreators != null && dcCreators.size() >= 1)
             {
-                author = dcCreators[0].value;
+                author = dcCreators.get(0).getValue();
             } else {
             	// Do a fallback look for contributors
-				Metadatum[] dcContributors = item.getDC("contributor",Item.ANY,Item.ANY);
-				if (dcContributors != null && dcContributors.length >= 1)
+				List<IMetadataValue> dcContributors = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
+				if (dcContributors != null && dcContributors.size() >= 1)
 	            {
-	                author = dcContributors[0].value;
+	                author = dcContributors.get(0).getValue();
 	            }
 			}
 			
 			String title = "untitled";
-			Metadatum[] dcTitles = item.getDC("title",null,Item.ANY);
-			if (dcTitles != null && dcTitles.length >= 1)
+			List<IMetadataValue> dcTitles = itemService.getMetadata(item, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+			if (dcTitles != null && dcTitles.size() >= 1)
             {
-                title = dcTitles[0].value;
+                title = dcTitles.get(0).getValue();
             }
 
 			String url = contextPath+"/handle/"+item.getHandle();
@@ -133,7 +133,7 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
 			Row row = table.addRow();
 
             boolean canBeMapped = true;
-            Collection[] collections = item.getCollections();
+            List<Collection> collections = item.getCollections();
             for (Collection c : collections)
             {
                 if (c.getID() == collectionID)
@@ -180,7 +180,7 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
         // Which search provider do we use?
         SearchRequestProcessor processor = null;
         try {
-            processor = (SearchRequestProcessor) PluginManager
+            processor = (SearchRequestProcessor) CoreServiceFactory.getInstance().getPluginService()
                     .getSinglePlugin(SearchRequestProcessor.class);
         } catch (PluginConfigurationError e) {
             log.warn("{} not properly configured.  Please configure the {} plugin.  {}",
@@ -196,17 +196,17 @@ public class SearchItemForm extends AbstractDSpaceTransformer {
         }
 
         // Search the repository
-        List<DSpaceObject> results = processor.doItemMapSearch(context, query, collection);
+        List<BrowsableDSpaceObject> results = processor.doItemMapSearch(context, query, collection);
 
         // Get a list of found items
         ArrayList<Item> items = new ArrayList<Item>();
-        for (DSpaceObject resultDSO : results)
+        for (BrowsableDSpaceObject resultDSO : results)
         {
             if (resultDSO instanceof Item)
             {
             	Item item = (Item) resultDSO;
 
-            	if (!item.isOwningCollection(collection))
+            	if (!itemService.isOwningCollection(item, collection))
                 {
                     items.add(item);
                 }

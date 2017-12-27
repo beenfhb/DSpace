@@ -14,7 +14,6 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
-import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.RestrictedField;
@@ -22,7 +21,8 @@ import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.Collection;
 import org.dspace.content.authority.AuthorityVariantsSupport;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
@@ -34,9 +34,9 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.services.ConfigurationService;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
 import org.dspace.utils.DSpace;
+import org.hibernate.Query;
+import org.hibernate.Session;
 
 /**
  * This class is the main point of integration beetween the Researcher Pages and
@@ -125,7 +125,7 @@ public class RPAuthority extends CRISAuthority implements
      * @return a Choices of RPs where a name form match the query string
      */
     @Override
-    public Choices getMatches(String field, String query, int collection,
+    public Choices getMatches(String field, String query, Collection collection,
             int start, int limit, String locale)
     {
         try
@@ -173,7 +173,7 @@ public class RPAuthority extends CRISAuthority implements
      *         forms and the text lookup string
      */
     @Override
-    public Choices getBestMatch(String field, String text, int collection,
+    public Choices getBestMatch(String field, String text, Collection collection,
             String locale)
     {
 
@@ -197,7 +197,7 @@ public class RPAuthority extends CRISAuthority implements
                 DiscoverResult result = searchService.search(null,
                         discoverQuery, true);
                 totalResult = (int) result.getTotalSearchResults();
-                for (DSpaceObject dso : result.getDspaceObjects())
+                for (BrowsableDSpaceObject dso : result.getDspaceObjects())
                 {
                     ResearcherPage rp = (ResearcherPage) dso;
                     choiceList
@@ -229,7 +229,7 @@ public class RPAuthority extends CRISAuthority implements
         }
         catch (Exception e)
         {
-            log.error("Error quering the HKUAuthority - " + e.getMessage(), e);
+            log.error("Error quering the CRISAuthority - " + e.getMessage(), e);
             return new Choices(true);
         }
     }
@@ -334,9 +334,8 @@ public class RPAuthority extends CRISAuthority implements
             List<String> list = new ArrayList<String>();
             for(int itemID : itemIDs) {
                 list.add(String.valueOf(itemID));    
-                DatabaseManager.updateQuery(context,
-                        "delete from potentialmatches where rp like ? and item_id = ?",
-                        cris.getCrisID(), itemID);
+                getHibernateSession(context).createSQLQuery(
+                        "delete from potentialmatches where rp like :par0 and item_id = :par1").setParameter(0, cris.getCrisID()).setParameter(1, itemID).executeUpdate();
             }
             
 			// FIXME this should be performed by the AuthorityManagementServlet
@@ -389,24 +388,19 @@ public class RPAuthority extends CRISAuthority implements
 			context = new Context();
 			context.turnOffAuthorisationSystem();
 			if (confidence != Choices.CF_ACCEPTED) {
-				if (DatabaseManager
-						.updateQuery(
-								context,
-								"update potentialmatches set pending=1 where rp like ? and item_id = ?",
-								authorityKey, itemID) != 1) {
-					TableRow row = DatabaseManager.create(context,
-							"potentialmatches");
-					row.setColumn("pending", true);
-					row.setColumn("rp", authorityKey);
-					row.setColumn("item_id", itemID);
-					DatabaseManager.update(context, row);
+				int resultUpdate = getHibernateSession(context).createSQLQuery(
+						"update potentialmatches set pending= :pending where rp like :rp and item_id = :item_id").setParameter("pending", true).setParameter("rp", authorityKey).setParameter("item_id", itemID).executeUpdate();
+				if (resultUpdate != 1) {
+					Query row = getHibernateSession(context).createQuery(
+							"INSERT INTO potentialmatches (pending, rp, item_id) VALUES (:pending,:rp,:item_id");
+					row.setParameter("pending", true);
+					row.setParameter("rp", authorityKey);
+					row.setParameter("item_id", itemID);
+					row.executeUpdate();
 				}
 			} else {
-				DatabaseManager
-						.updateQuery(
-								context,
-								"delete from potentialmatches where rp like ? and item_id = ?",
-								authorityKey, itemID);
+				getHibernateSession(context).createSQLQuery(
+								"delete from potentialmatches where rp like ? and item_id = ?").setParameter(0, authorityKey).setParameter(1, itemID).executeUpdate();
 			}
 			context.commit();
 			// FIXME this should be performed by the AuthorityManagementServlet
@@ -432,6 +426,10 @@ public class RPAuthority extends CRISAuthority implements
         
     }
 
+	public Session getHibernateSession(Context context) throws SQLException {
+		return ((Session) context.getDBConnection().getSession());
+	}
+	
 	@Override
 	public ResearcherPage getNewCrisObject() {
 		return new ResearcherPage();

@@ -27,17 +27,40 @@
 
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="org.dspace.eperson.Group" %>
+group-<%@ page import="java.util.List" %>
 
 <%
-    Group[] groups =
-        (Group[]) request.getAttribute("groups");
+    List<Group> groups =
+        (List<Group>) request.getAttribute("groups");
+        
+    // Is the logged in user an admin or community admin or collection admin
+    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    boolean isAdmin = (admin == null ? false : admin.booleanValue());
+    
+    Boolean communityAdmin = (Boolean)request.getAttribute("is.communityAdmin");
+    boolean isCommunityAdmin = (communityAdmin == null ? false : communityAdmin.booleanValue());
+    
+    Boolean collectionAdmin = (Boolean)request.getAttribute("is.collectionAdmin");
+    boolean isCollectionAdmin = (collectionAdmin == null ? false : collectionAdmin.booleanValue());
+    
+    String naviAdmin = "admin";
+    String link = "/dspace-admin";
+    
+    if(!isAdmin && (isCommunityAdmin || isCollectionAdmin))
+    {
+        naviAdmin = "community-or-collection-admin";
+        link = "/tools";
+    }
+	String search = (String) request.getAttribute("search");
+	if (search == null) search = "";
+
 %>
 
 <dspace:layout style="submission" titlekey="jsp.tools.group-list.title"
-               navbar="admin"
+               navbar="<%= naviAdmin %>"
                locbar="link"
                parenttitlekey="jsp.administer"
-               parentlink="/dspace-admin"
+               parentlink="<%= link %>"
                nocache="true">
 
     <%--  <h1>Group Editor</h1> --%>
@@ -49,12 +72,31 @@
   	
 	<p class="alert alert-info"><fmt:message key="jsp.tools.group-list.note1"/></p>	
 	<p class="alert alert-warning"><fmt:message key="jsp.tools.group-list.note2"/></p>
+
+<center>
+	<form class="form-inline" method="get">
+	    <label for="search"><fmt:message key="jsp.tools.eperson-list.search.query"/></label>
+	    <input class="form-control" style="width:200px;"type="text" name="search" value="<%= search %>"/>
+	    <input class="btn btn-success" type="submit" value="<fmt:message key="jsp.tools.eperson-list.search.submit" />" />
+	<%
+	    if (search != null && !search.equals("")){   %>
+	    <a class="btn btn-warning" href="<%= request.getContextPath() + "/tools/group-edit" %>"><fmt:message key="jsp.tools.group-list.search.return-browse" /></a>	
+		<%}%>
+		
+	</form>
+</center>
+<br/>
+
+
    	
     <form method="post" action="">
-        <div class="row col-md-offset-5">
-	    	<input class="btn btn-success" type="submit" name="submit_add" value="<fmt:message key="jsp.tools.group-list.create.button"/>" />
-        </div>
+        <% if(isAdmin){ %>
+            <div class="row col-md-offset-5">
+                    <input class="btn btn-success" type="submit" name="submit_add" value="<fmt:message key="jsp.tools.group-list.create.button"/>" />
+            </div>
+        <% } %>
     </form>
+    
 	<br/>
 	
     <table class="table" summary="Group data display table">
@@ -66,33 +108,33 @@
 
 <%
     String row = "even";
-    for (int i = 0; i < groups.length; i++)
+    for (int i = 0; i < groups.size(); i++)
     {
 %>
             <tr>
-                <td class="<%= row %>RowOddCol"><%= groups[i].getID() %></td>
+                <td class="<%= row %>RowOddCol"><%= groups.get(i).getID() %></td>
                 <td class="<%= row %>RowEvenCol">
-                    <%= groups[i].getName() %>
+                    <%= groups.get(i).getName() %>
                 </td>
                 <td class="<%= row %>RowOddCol">
 <%
 	// no edit button for group anonymous
-	if (groups[i].getID() > 0 )
+    if (!groups.get(i).getName().equals(Group.ANONYMOUS))
 	{
 %>                  
                     <form method="post" action="">
-                        <input type="hidden" name="group_id" value="<%= groups[i].getID() %>"/>
+                        <input type="hidden" name="group_id" value="<%= groups.get(i).getID() %>"/>
   		        <input class="btn btn-default col-md-6" type="submit" name="submit_edit" value="<fmt:message key="jsp.tools.general.edit"/>" />
                    </form>
 <%
 	}
 
 	// no delete button for group Anonymous 0 and Administrator 1 to avoid accidental deletion
-	if (groups[i].getID() > 1 )
+	if (!groups.get(i).getName().equals(Group.ANONYMOUS) && !groups.get(i).getName().equals(Group.ADMIN))
 	{
 %>   
                     <form method="post" action="">
-                        <input type="hidden" name="group_id" value="<%= groups[i].getID() %>"/>
+                        <input type="hidden" name="group_id" value="<%= groups.get(i).getID() %>"/>
 	                <input class="btn btn-danger col-md-6" type="submit" name="submit_group_delete" value="<fmt:message key="jsp.tools.general.delete"/>" />
 <%
 	}

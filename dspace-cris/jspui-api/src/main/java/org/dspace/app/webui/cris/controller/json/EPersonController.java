@@ -12,19 +12,19 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.app.cris.model.ResearcherPage;
-import org.dspace.app.cris.model.dto.ResearcherPageDTO;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
 
@@ -43,7 +43,7 @@ public class EPersonController extends MultiActionController
         boolean isAdmin = isAdmin(context, request);
         if (isAdmin)
         {            
-            returnJSON(response, fillInDTO(EPerson.search(context, request.getParameter("query"), 0, 10)));
+            returnJSON(response, fillInDTO(EPersonServiceFactory.getInstance().getEPersonService().search(context, request.getParameter("query"), 0, 10)));
         }
         
         return null;
@@ -52,15 +52,17 @@ public class EPersonController extends MultiActionController
     public ModelAndView eperson(HttpServletRequest request,
             HttpServletResponse response) throws Exception
     {
-        Context context = UIUtil.obtainContext(request);                    
-        returnJSON(response, fillInDTO(new EPerson[]{EPerson.find(context, Integer.parseInt(request.getParameter("id")))}));   
+        Context context = UIUtil.obtainContext(request);
+        List<EPerson> epersons = new ArrayList<>();
+        epersons.add(EPersonServiceFactory.getInstance().getEPersonService().find(context, UIUtil.getUUIDParameter(request, "id")));
+        returnJSON(response, fillInDTO(epersons));   
         
         return null;
     }
    
 
     
-    private List<EPersonDTO> fillInDTO(EPerson[] findAll)
+    private List<EPersonDTO> fillInDTO(List<EPerson> findAll)
     {
         List<EPersonDTO> epersons = new ArrayList<EPersonController.EPersonDTO>();
         for(EPerson eperson : findAll) {
@@ -100,7 +102,7 @@ public class EPersonController extends MultiActionController
                     "Wrong data or configuration: access to the my rp servlet without a valid user: there is no user logged in");
         }
 
-        return AuthorizeManager.isAdmin(context);
+        return AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
     }
 
     private EPerson getCurrentUser(HttpServletRequest request)
@@ -123,7 +125,7 @@ public class EPersonController extends MultiActionController
 
     class EPersonDTO
     {
-        private int id;
+        private UUID id;
 
         private String lastName;
         
@@ -137,12 +139,12 @@ public class EPersonController extends MultiActionController
         
         private String fullNameRPOwnered;
         
-        public int getId()
+        public UUID getId()
         {
             return id;
         }
 
-        public void setId(int id)
+        public void setId(UUID id)
         {
             this.id = id;
         }

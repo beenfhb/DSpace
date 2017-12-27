@@ -9,8 +9,12 @@ package org.dspace.submit.step;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,10 +22,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
+import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
-import org.dspace.app.util.DCInput;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
@@ -29,15 +32,20 @@ import org.dspace.content.Collection;
 import org.dspace.content.DCDate;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DCSeriesNumber;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.authority.MetadataAuthorityManager;
-import org.dspace.content.authority.ChoiceAuthorityManager;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.AbstractProcessingStep;
+import org.dspace.workflowbasic.BasicWorkflowItem;
+import org.dspace.workflowbasic.service.BasicWorkflowService;
 
 /**
  * Describe step for DSpace submission process. Handles the gathering of
@@ -80,15 +88,45 @@ public class DescribeStep extends AbstractProcessingStep
     // the metadata language qualifier
     public static final String LANGUAGE_QUALIFIER = getDefaultLanguageQualifier();
 
+    // there were validation errors found
+    public static final int STATUS_ERROR_VALIDATION_FIELDS = 3;
+    
+    private HashMap<String,DCInput> fieldName2input =new HashMap<String,DCInput>();
+
+    protected final ChoiceAuthorityService choiceAuthorityService;
+    protected final MetadataAuthorityService metadataAuthorityService;
+
+
     /** Constructor */
     public DescribeStep() throws ServletException
     {
         //load the DCInputsReader
         getInputsReader();
+        metadataAuthorityService = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
+        choiceAuthorityService = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
     }
 
-   
+    public String getHeading(HttpServletRequest request, SubmissionInfo subInfo, int pageNumber, String heading) {
+        try
+        {
+            // get the item and current page
+            Item item = subInfo.getSubmissionItem().getItem();
 
+            // lookup applicable inputs
+            Collection c = subInfo.getSubmissionItem().getCollection();
+            
+            String customHeading = inputsReader.getInputs(c.getHandle()).getHeading(pageNumber);
+            if (StringUtils.isNotBlank(customHeading)) {
+                return customHeading;
+            }
+        }
+        catch (DCInputsReaderException | NullPointerException e)
+        {
+            return heading;
+        }
+        return heading;
+    }
+    
     /**
      * Do any processing of the information input by the user, and/or perform
      * step processing (if no user interaction required)
@@ -112,6 +150,7 @@ public class DescribeStep extends AbstractProcessingStep
      *         doPostProcessing() below! (if STATUS_COMPLETE or 0 is returned,
      *         no errors occurred!)
      */
+    @Override
     public int doProcessing(Context context, HttpServletRequest request,
             HttpServletResponse response, SubmissionInfo subInfo)
             throws ServletException, IOException, SQLException,
@@ -137,52 +176,73 @@ public class DescribeStep extends AbstractProcessingStep
                     currentPage - 1,
                     subInfo.getSubmissionItem().hasMultipleTitles(),
                     subInfo.getSubmissionItem().isPublishedBefore());
+            
         }
         catch (DCInputsReaderException e)
         {
             throw new ServletException(e);
         }
 
+        for(DCInput input: inputs){
+            String field = MetadataField
+                    .formKey(input.getSchema(), input.getElement(), input.getQualifier());
+            fieldName2input.put(field, input);
+            
+            
+        }
         // Fetch the document type (dc.type)
         String documentType = "";
-        if( (item.getMetadataByMetadataString("dc.type") != null) && (item.getMetadataByMetadataString("dc.type").length >0) )
+        if( (itemService.getMetadataByMetadataString(item, "dc.type") != null) && (itemService.getMetadataByMetadataString(item, "dc.type").size() >0) )
         {
-            documentType = item.getMetadataByMetadataString("dc.type")[0].value;
+            documentType = itemService.getMetadataByMetadataString(item, "dc.type").get(0).getValue();
         }
         
+        String scope ="";
+        if(subInfo.isInWorkflow()){
+        	BasicWorkflowItem wfi = (BasicWorkflowItem)subInfo.getSubmissionItem();
+        	int wfState = wfi.getState();
+        	switch (wfState){
+        		case BasicWorkflowService.WFSTATE_STEP1:
+        			scope = DCInput.WORKFLOW_STEP1_SCOPE;
+        			break;
+        		case BasicWorkflowService.WFSTATE_STEP2:
+        			scope = DCInput.WORKFLOW_STEP2_SCOPE;
+        			break;
+        		case BasicWorkflowService.WFSTATE_STEP3:
+        		    scope = DCInput.WORKFLOW_STEP3_SCOPE;
+        		    break;
+                default:
+                    scope = DCInput.WORKFLOW_SCOPE;
+            }
+            
+        }else{
+            scope = DCInput.SUBMISSION_SCOPE;
+        }
         // Step 1:
         // clear out all item metadata defined on this page
         for (int i = 0; i < inputs.length; i++)
         {
 
-        	// Allow the clearing out of the metadata defined for other document types, provided it can change anytime
-        	
-            if (!inputs[i]
-                    .isVisible(subInfo.isInWorkflow() ? DCInput.WORKFLOW_SCOPE
-                            : DCInput.SUBMISSION_SCOPE))
+            // Allow the clearing out of the metadata defined for other document types, provided it can change anytime
+            if (!subInfo.isEditing() && !inputs[i]
+                    .isVisible(scope))
             {
                 continue;
             }
+
+            String qualifier = inputs[i].getQualifier();
 	        if (inputs[i].getInputType().equals("qualdrop_value"))
 	        {
-		        @SuppressWarnings("unchecked") // This cast is correct
-		        List<String> pairs = inputs[i].getPairs();
-		        for (int j = 0; j < pairs.size(); j += 2)
-		        {
-			        String qualifier = pairs.get(j+1);
-			        item.clearMetadata(inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
-		        }
+	        	qualifier = Item.ANY;
 	        }
-	        else
-	        {
-		        String qualifier = inputs[i].getQualifier();
-		        item.clearMetadata(inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
-	        }
+		        
+            itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
         }
 
         // Clear required-field errors first since missing authority
         // values can add them too.
         clearErrorFields(request);
+        clearValidationErrorFields(request);
 
         // Step 2:
         // now update the item metadata.
@@ -190,15 +250,14 @@ public class DescribeStep extends AbstractProcessingStep
         boolean moreInput = false;
         for (int j = 0; j < inputs.length; j++)
         {
-        	// Omit fields not allowed for this document type
+            // Omit fields not allowed for this document type
             if(!inputs[j].isAllowedFor(documentType))
             {
-            	continue;
+                continue;
             }
 
-            if (!inputs[j]
-                        .isVisible(subInfo.isInWorkflow() ? DCInput.WORKFLOW_SCOPE
-                                : DCInput.SUBMISSION_SCOPE))
+            if (!subInfo.isEditing() && !inputs[j]
+                        .isVisible(scope))
             {
                 continue;
             }
@@ -214,23 +273,23 @@ public class DescribeStep extends AbstractProcessingStep
                 fieldName = schema + "_" + element;
             }
 
-            String fieldKey = MetadataAuthorityManager.makeFieldKey(schema, element, qualifier);
-            ChoiceAuthorityManager cmgr = ChoiceAuthorityManager.getManager();
+            String fieldKey = metadataAuthorityService.makeFieldKey(schema, element, qualifier);
             String inputType = inputs[j].getInputType();
             if (inputType.equals("name"))
             {
-                readNames(request, item, schema, element, qualifier, inputs[j]
-                        .getRepeatable());
+                readNames(context, request, item, schema, element, qualifier, inputs[j]);
             }
             else if (inputType.equals("date"))
             {
-                readDate(request, item, schema, element, qualifier);
+                readDate(context, request, item, schema, element, qualifier, inputs[j]);
             }
             // choice-controlled input with "select" presentation type is
             // always rendered as a dropdown menu
-            else if (inputType.equals("dropdown") || inputType.equals("list") ||
-                     (cmgr.isChoicesConfigured(fieldKey) &&
-                      "select".equals(cmgr.getPresentation(fieldKey))))
+            else if (inputType.equals("dropdown") || inputType.equals("list") 
+                    || inputType.equals("year")
+                    || inputType.equals("year_noinprint") 
+                    || (choiceAuthorityService.isChoicesConfigured(fieldKey) &&
+                      "select".equals(choiceAuthorityService.getPresentation(fieldKey))))
             {
                 String[] vals = request.getParameterValues(fieldName);
                 if (vals != null)
@@ -239,16 +298,17 @@ public class DescribeStep extends AbstractProcessingStep
                     {
                         if (!vals[z].equals(""))
                         {
-                            item.addMetadata(schema, element, qualifier, LANGUAGE_QUALIFIER,
+                            itemService.addMetadata(context, item, schema, element, qualifier, LANGUAGE_QUALIFIER,
                                     vals[z]);
+                            validateField(request, inputs[j], fieldKey, vals[z]);
                         }
                     }
                 }
             }
             else if (inputType.equals("series"))
             {
-                readSeriesNumbers(request, item, schema, element, qualifier,
-                        inputs[j].getRepeatable());
+                readSeriesNumbers(context, request, item, schema, element, qualifier,
+                        inputs[j]);
             }
             else if (inputType.equals("qualdrop_value"))
             {
@@ -268,17 +328,17 @@ public class DescribeStep extends AbstractProcessingStep
                             + element + "_remove_" + z)
                             && !thisVal.equals(""))
                     {
-                        item.addMetadata(schema, element, thisQual, null,
+                        itemService.addMetadata(context, item, schema, element, thisQual, null,
                                 thisVal);
+                        validateField(request, inputs[j], fieldKey, thisVal);
                     }
                 }
             }
-            else if ((inputType.equals("onebox"))
+            else if (inputType.equals("number") || (inputType.equals("onebox"))
                     || (inputType.equals("twobox"))
                     || (inputType.equals("textarea")))
             {
-                readText(request, item, schema, element, qualifier, inputs[j]
-                        .getRepeatable(), LANGUAGE_QUALIFIER);
+                readText(context, request, item, schema, element, qualifier, LANGUAGE_QUALIFIER, inputs[j]);
             }
             else
             {
@@ -311,11 +371,11 @@ public class DescribeStep extends AbstractProcessingStep
         {
             for (int i = 0; i < inputs.length; i++)
             {
-            	// Do not check the required attribute if it is not visible or not allowed for the document type
-            	String scope = subInfo.isInWorkflow() ? DCInput.WORKFLOW_SCOPE : DCInput.SUBMISSION_SCOPE;
-                if ( !( inputs[i].isVisible(scope) && inputs[i].isAllowedFor(documentType) ) )
+                // Do not check the required attribute if it is not visible or not allowed for the document type
+
+                if (!subInfo.isEditing() && !( inputs[i].isVisible(scope) && inputs[i].isAllowedFor(documentType) ) )
                 {
-                	continue;
+                    continue;
                 }
 
                 String qualifier = inputs[i].getQualifier();
@@ -324,11 +384,11 @@ public class DescribeStep extends AbstractProcessingStep
                 {
                     qualifier = Item.ANY;
                 }
-                Metadatum[] values = item.getMetadata(inputs[i].getSchema(),
+                List<IMetadataValue> values = itemService.getMetadata(item, inputs[i].getSchema(),
                         inputs[i].getElement(), qualifier, Item.ANY);
 
-                if ((inputs[i].isRequired() && values.length == 0) &&
-                     inputs[i].isVisible(subInfo.isInWorkflow() ? DCInput.WORKFLOW_SCOPE : DCInput.SUBMISSION_SCOPE))
+                if ((inputs[i].isRequired() && values.size() == 0) &&
+                     inputs[i].isVisible(scope))
                 {
                     // since this field is missing add to list of error fields
                     addErrorField(request, getFieldName(inputs[i]));
@@ -336,12 +396,18 @@ public class DescribeStep extends AbstractProcessingStep
             }
         }
 
-        // Step 4:
-        // Save changes to database
-        subInfo.getSubmissionItem().update();
+        if (getValidationErrorFields(request) == null) 
+        {
+	        // Step 4:
+	        // Save changes to database
+	        ContentServiceFactory.getInstance().getInProgressSubmissionService(subInfo.getSubmissionItem()).update(context, subInfo.getSubmissionItem());
+        }
+        else {
+            return STATUS_ERROR_VALIDATION_FIELDS;
+        }
 
         // commit changes
-        context.commit();
+        context.dispatchEvents();
 
         // check for request for more input fields, first
         if (moreInput)
@@ -382,6 +448,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * @return the number of pages in this step
      */
+    @Override
     public int getNumberOfPages(HttpServletRequest request,
             SubmissionInfo subInfo) throws ServletException
     {
@@ -453,7 +520,7 @@ public class DescribeStep extends AbstractProcessingStep
     public static String getDefaultLanguageQualifier()
     {
        String language = "";
-       language = ConfigurationManager.getProperty("default.language");
+       language = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("default.language");
        if (StringUtils.isEmpty(language))
        {
            language = "en";
@@ -490,7 +557,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * dc_contributor_author_last dc_contributor_author_first
      *
-     * The values will be put in separate Metadatums, in the form "last name,
+     * The values will be put in separate MetadataValues, in the form "last name,
      * first name(s)", ordered as they appear in the list. These will replace
      * any existing values.
      *
@@ -507,14 +574,15 @@ public class DescribeStep extends AbstractProcessingStep
      * @param repeated
      *            set to true if the field is repeatable on the form
      */
-    protected void readNames(HttpServletRequest request, Item item,
-            String schema, String element, String qualifier, boolean repeated)
+    protected void readNames(Context context, HttpServletRequest request, Item item,
+            String schema, String element, String qualifier, DCInput dcInput) throws SQLException 
     {
-        String metadataField = MetadataField
-                .formKey(schema, element, qualifier);
+        boolean repeated = dcInput.getRepeatable();
+        
+		String metadataField = metadataFieldService.findByElement(context, schema, element, qualifier).toString();
 
-        String fieldKey = MetadataAuthorityManager.makeFieldKey(schema, element, qualifier);
-        boolean isAuthorityControlled = MetadataAuthorityManager.getManager().isAuthorityControlled(fieldKey);
+        String fieldKey = metadataAuthorityService.makeFieldKey(schema, element, qualifier);
+        boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(fieldKey);
 
         // Names to add
         List<String> firsts = new LinkedList<String>();
@@ -617,11 +685,12 @@ public class DescribeStep extends AbstractProcessingStep
                 }
 
                 // Add to the database -- unless required authority is missing
+                DCPersonName dcPersonName = new DCPersonName(l, f);
                 if (isAuthorityControlled)
                 {
                     String authKey = auths.size() > i ? auths.get(i) : null;
                     String sconf = (authKey != null && confs.size() > i) ? confs.get(i) : null;
-                    if (MetadataAuthorityManager.getManager().isAuthorityRequired(fieldKey) &&
+                    if (metadataAuthorityService.isAuthorityRequired(fieldKey) &&
                         (authKey == null || authKey.length() == 0))
                     {
                         log.warn("Skipping value of "+metadataField+" because the required Authority key is missing or empty.");
@@ -629,16 +698,18 @@ public class DescribeStep extends AbstractProcessingStep
                     }
                     else
                     {
-                        item.addMetadata(schema, element, qualifier, null,
-                                new DCPersonName(l, f).toString(), authKey,
+                        itemService.addMetadata(context, item, schema, element, qualifier, null,
+                                dcPersonName.toString(), authKey,
                                 (sconf != null && sconf.length() > 0) ?
                                         Choices.getConfidenceValue(sconf) : Choices.CF_ACCEPTED);
+                        validateField(request, dcInput, metadataField, dcPersonName.toString());
                     }
                 }
                 else
                 {
-                    item.addMetadata(schema, element, qualifier, null,
-                            new DCPersonName(l, f).toString());
+                    itemService.addMetadata(context, item, schema, element, qualifier, null,
+                            dcPersonName.toString());
+                    validateField(request, dcInput, metadataField, dcPersonName.toString());
                 }
             }
         }
@@ -658,7 +729,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * dc_title_alternative dc_title_alternative_1
      *
-     * The values will be put in separate Metadatums, ordered as they appear in
+     * The values will be put in separate MetadataValues, ordered as they appear in
      * the list. These will replace any existing values.
      *
      * @param request
@@ -675,26 +746,87 @@ public class DescribeStep extends AbstractProcessingStep
      *            set to true if the field is repeatable on the form
      * @param lang
      *            language to set (ISO code)
+     * @param hasLanguageTag
+     *            to check if the field has a language tag
      */
-    protected void readText(HttpServletRequest request, Item item, String schema,
-            String element, String qualifier, boolean repeated, String lang)
+    protected void readText(Context context, HttpServletRequest request, Item item, String schema,
+            String element, String qualifier, String lang, DCInput dcInput) throws SQLException
     {
+        boolean repeated = dcInput.getRepeatable();
+        boolean hasLanguageTag = dcInput.getLanguage();
         // FIXME: Of course, language should be part of form, or determined
         // some other way
-        String metadataField = MetadataField
-                .formKey(schema, element, qualifier);
+        String metadataField = metadataFieldService.findByElement(context, schema, element, qualifier).toString();
 
-        String fieldKey = MetadataAuthorityManager.makeFieldKey(schema, element, qualifier);
-        boolean isAuthorityControlled = MetadataAuthorityManager.getManager().isAuthorityControlled(fieldKey);
+        String fieldKey = metadataAuthorityService.makeFieldKey(schema, element, qualifier);
+        boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(fieldKey);
+        
+        String parentMetadataField = "";
+        String parentMetadataFieldParam = "";
+        boolean parentRepeatable = false;
+        if(dcInput.hasParent()){
+            parentMetadataField=dcInput.getParent();
+            parentRepeatable = fieldName2input.get(parentMetadataField).isRepeatable();
+        }
 
         // Values to add
-        List<String> vals = null;
+        TreeMap<Integer, String> vals = null;
         List<String> auths = null;
         List<String> confs = null;
 
-        if (repeated)
+        if (parentRepeatable)
         {
-            vals = getRepeatedParameter(request, metadataField, metadataField);
+            String parentType= fieldName2input.get(parentMetadataField).getInputType();
+            if (StringUtils.equals(parentType,"name"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_last";
+            }
+            else if (StringUtils.equals(parentType,"date"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_year";
+            }
+            else if (StringUtils.equals(parentType,"series"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_series";
+            }
+            else if (StringUtils.equals(parentType,"qualdrop_value"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_value";
+            }else{
+                parentMetadataFieldParam = parentMetadataField;
+            }
+                
+            
+            vals = getRepeatedParameterParentWithTheirIndices(request, metadataField, metadataField,parentMetadataField,parentMetadataFieldParam);
+            if (isAuthorityControlled)
+            {
+                auths = getRepeatedParameterParent(request, metadataField, metadataField+"_authority",parentMetadataField,parentMetadataFieldParam);
+                confs = getRepeatedParameterParent(request, metadataField, metadataField+"_confidence",parentMetadataField,parentMetadataFieldParam);
+            }
+
+            // Find out if the relevant "remove" button was pressed
+            // TODO: These separate remove buttons are only relevant
+            // for DSpace JSP UI, and the code below can be removed
+            // once the DSpace JSP UI is obsolete!
+            String buttonPressed = Util.getSubmitButton(request, "");
+            String removeButton = "submit_" + parentMetadataField + "_remove_";
+
+            if (buttonPressed.startsWith(removeButton))
+            {
+                int valToRemove = Integer.parseInt(buttonPressed
+                        .substring(removeButton.length()));
+
+                int key = vals.keySet().toArray(new Integer[vals.size()])[valToRemove];
+                vals.remove(key);
+                if(isAuthorityControlled)
+                {
+                   auths.remove(valToRemove);
+                   confs.remove(valToRemove);
+                }
+            }
+        }
+        else if(!dcInput.hasParent() && repeated ){
+            vals = getRepeatedParameterWithTheirIndices(request, metadataField, metadataField);
             if (isAuthorityControlled)
             {
                 auths = getRepeatedParameter(request, metadataField, metadataField+"_authority");
@@ -712,23 +844,71 @@ public class DescribeStep extends AbstractProcessingStep
             {
                 int valToRemove = Integer.parseInt(buttonPressed
                         .substring(removeButton.length()));
-
-                vals.remove(valToRemove);
+                                
+                //find the key from the given position 
+                //for more information take a look at < Edit-metadata.jsp>
+                int key = vals.keySet().toArray(new Integer[vals.size()])[valToRemove];
+                vals.remove(key);
                 if(isAuthorityControlled)
                 {
                    auths.remove(valToRemove);
                    confs.remove(valToRemove);
                 }
             }
+
+        }else if(StringUtils.isNotBlank(parentMetadataField)){
+            vals = new TreeMap<Integer, String>();
+            String value = request.getParameter(metadataField);
+            String parent = "";
+            String parentType= fieldName2input.get(parentMetadataField).getInputType();
+            
+            if (StringUtils.equals(parentType,"name"))
+            {
+                parent = request.getParameter(parentMetadataField+"_last");
+            }
+            else if (StringUtils.equals(parentType,"date"))
+            {
+                parent = request.getParameter(parentMetadataField+"_year");
+            }
+            else if (StringUtils.equals(parentType,"series"))
+            {
+                parent = request.getParameter(parentMetadataField+"_series");
+            }
+            else if (StringUtils.equals(parentType,"qualdrop_value"))
+            {
+                parent = request.getParameter(parentMetadataField+"_value");
+            }else{
+                parent = request.getParameter(parentMetadataField);
+            }
+
+            if (StringUtils.isNotBlank(parent))
+            {
+            	if(StringUtils.isNotBlank(value)){
+            		vals.put(0, value.trim());
+            	}else{
+            		vals.put(0, MetadataValue.PARENT_PLACEHOLDER_VALUE);
+            	}
+                
+                if (isAuthorityControlled)
+                {
+                    auths = new LinkedList<String>();
+                    confs = new LinkedList<String>();
+                    String av = request.getParameter(metadataField+"_authority");
+                    String cv = request.getParameter(metadataField+"_confidence");
+                    auths.add(av == null ? "":av.trim());
+                    confs.add(cv == null ? "":cv.trim());
+                }
+            }
         }
         else
         {
             // Just a single name
-            vals = new LinkedList<String>();
+            vals = new TreeMap<Integer, String>();
             String value = request.getParameter(metadataField);
+            
             if (value != null)
             {
-                vals.add(value.trim());
+                vals.put(0, value.trim());
             }
             if (isAuthorityControlled)
             {
@@ -738,41 +918,68 @@ public class DescribeStep extends AbstractProcessingStep
                 String cv = request.getParameter(metadataField+"_confidence");
                 auths.add(av == null ? "":av.trim());
                 confs.add(cv == null ? "":cv.trim());
-        }
+            }
         }
 
         // Remove existing values, already done in doProcessing see also bug DS-203
         // item.clearMetadata(schema, element, qualifier, Item.ANY);
 
+        int i=0;
+
         // Put the names in the correct form
-        for (int i = 0; i < vals.size(); i++)
+        for(Map.Entry<Integer, String> entry: vals.entrySet())
         {
             // Add to the database if non-empty
-            String s = vals.get(i);
+            
+            String s = entry.getValue();
+            int key = entry.getKey();
             if ((s != null) && !s.equals(""))
             {
+                if (hasLanguageTag && !repeated && key == 0) 
+                {
+                    // the field is like dc_title[lang] for none repeatable element,
+                    // dc_title_alternative_2[lang] otherwise
+                    lang = request.getParameter(metadataField + "[lang]");
+
+                } 
+                else if (hasLanguageTag && repeated) 
+                {
+                    lang = request.getParameter(metadataField + "_" + key + "[lang]");
+                }
+                
                 if (isAuthorityControlled)
                 {
                     String authKey = auths.size() > i ? auths.get(i) : null;
                     String sconf = (authKey != null && confs.size() > i) ? confs.get(i) : null;
-                    if (MetadataAuthorityManager.getManager().isAuthorityRequired(fieldKey) &&
-                        (authKey == null || authKey.length() == 0))
+                    if (metadataAuthorityService.isAuthorityRequired(fieldKey) &&
+                            (authKey == null || authKey.length() == 0))
                     {
                         log.warn("Skipping value of "+metadataField+" because the required Authority key is missing or empty.");
                         addErrorField(request, metadataField);
                     }
                     else
                     {
-                        item.addMetadata(schema, element, qualifier, lang, s,
+                        itemService.addMetadata(context, item, schema, element, qualifier, lang, s,
                                 authKey, (sconf != null && sconf.length() > 0) ?
                                         Choices.getConfidenceValue(sconf) : Choices.CF_ACCEPTED);
+                        validateField(request, dcInput, metadataField, s);
                     }
                 }
                 else
                 {
-                    item.addMetadata(schema, element, qualifier, lang, s);
+                    itemService.addMetadata(context, item, schema, element, qualifier, lang, s);
+                    validateField(request, dcInput, metadataField, s);
                 }
             }
+            i++;
+        }
+    }
+
+    private void validateField(HttpServletRequest request, DCInput dcInput,
+            String metadataField, String s)
+    {
+        if(!(dcInput.validate(s))) {
+            addValidationErrorField(request, metadataField); 
         }
     }
 
@@ -795,18 +1002,68 @@ public class DescribeStep extends AbstractProcessingStep
      *            the metadata element
      * @param qualifier
      *            the metadata qualifier, or null if unqualified
-     * @throws SQLException
+     * @throws SQLException if database error
      */
-    protected void readDate(HttpServletRequest request, Item item, String schema,
-            String element, String qualifier) throws SQLException
+    protected void readDate(Context context, HttpServletRequest request, Item item, String schema,
+            String element, String qualifier, DCInput dcInput) throws SQLException
     {
-        String metadataField = MetadataField
-                .formKey(schema, element, qualifier);
+        String metadataField = metadataFieldService.findByElement(context, schema, element, qualifier).toString();
+        String parentMetadataField ="";
+        String parentMetadataFieldParam ="";
+        List<String> vals =null;
+        
+        boolean parentRepeatable= false;
+        if(dcInput.hasParent() ){
+            parentMetadataField = dcInput.getParent();
+            parentRepeatable = fieldName2input.get(parentMetadataField).isRepeatable();
+        }
+        
+        if(parentRepeatable){
+            String parentType= fieldName2input.get(parentMetadataField).getInputType();
+            if (StringUtils.equals(parentType,"name"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_last";
+            }
+            else if (StringUtils.equals(parentType,"date"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_year";
+            }
+            else if (StringUtils.equals(parentType,"series"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_series";
+            }
+            else if (StringUtils.equals(parentType,"qualdrop_value"))
+            {
+                parentMetadataFieldParam = parentMetadataField+"_value";
+            }else{
+                parentMetadataFieldParam = parentMetadataField;
+            }
+                
+            
+            vals = getDateRepeatedParameterParent(request, metadataField, metadataField,parentMetadataField,parentMetadataFieldParam);
 
+            // Find out if the relevant "remove" button was pressed
+            // TODO: These separate remove buttons are only relevant
+            // for DSpace JSP UI, and the code below can be removed
+            // once the DSpace JSP UI is obsolete!
+            String buttonPressed = Util.getSubmitButton(request, "");
+            String removeButton = "submit_" + parentMetadataField + "_remove_";
+
+            if (buttonPressed.startsWith(removeButton))
+            {
+                int valToRemove = Integer.parseInt(buttonPressed
+                        .substring(removeButton.length()));
+
+                vals.remove(valToRemove);
+
+            }
+        }
         int year = Util.getIntParameter(request, metadataField + "_year");
         int month = Util.getIntParameter(request, metadataField + "_month");
         int day = Util.getIntParameter(request, metadataField + "_day");
 
+
+        
         // FIXME: Probably should be some more validation
         // Make a standard format date
         DCDate d = new DCDate(year, month, day, -1, -1, -1);
@@ -817,7 +1074,8 @@ public class DescribeStep extends AbstractProcessingStep
         if (year > 0)
         {
             // Only put in date if there is one!
-            item.addMetadata(schema, element, qualifier, null, d.toString());
+            itemService.addMetadata(context, item, schema, element, qualifier, null, d.toString());
+            validateField(request, dcInput, metadataField, d.toString());
         }
     }
 
@@ -838,7 +1096,7 @@ public class DescribeStep extends AbstractProcessingStep
      *
      * dc_relation_ispartof_series dc_relation_ispartof_number
      *
-     * The values will be put in separate Metadatums, in the form "last name,
+     * The values will be put in separate MetadataValues, in the form "last name,
      * first name(s)", ordered as they appear in the list. These will replace
      * any existing values.
      *
@@ -855,11 +1113,12 @@ public class DescribeStep extends AbstractProcessingStep
      * @param repeated
      *            set to true if the field is repeatable on the form
      */
-    protected void readSeriesNumbers(HttpServletRequest request, Item item,
-            String schema, String element, String qualifier, boolean repeated)
+    protected void readSeriesNumbers(Context context, HttpServletRequest request, Item item,
+            String schema, String element, String qualifier, DCInput dcInput) throws SQLException
     {
-        String metadataField = MetadataField
-                .formKey(schema, element, qualifier);
+        boolean repeated = dcInput.getRepeatable();
+        
+		String metadataField = metadataFieldService.findByElement(context, schema, element, qualifier).toString();
 
         // Names to add
         List<String> series = new LinkedList<String>();
@@ -917,8 +1176,10 @@ public class DescribeStep extends AbstractProcessingStep
             // Only add non-empty
             if (!s.equals("") || !n.equals(""))
             {
-                item.addMetadata(schema, element, qualifier, null,
-                        new DCSeriesNumber(s, n).toString());
+                DCSeriesNumber dcSeriesNumber = new DCSeriesNumber(s, n);
+                itemService.addMetadata(context, item, schema, element, qualifier, null,
+                        dcSeriesNumber.toString());
+                validateField(request, dcInput, metadataField, dcSeriesNumber.toString());
             }
         }
     }
@@ -993,6 +1254,304 @@ public class DescribeStep extends AbstractProcessingStep
                 if (addValue)
                 {
                     vals.add(s.trim());
+                }
+            }
+
+            i++;
+        }
+
+        log.debug("getRepeatedParameter: metadataField=" + metadataField
+                + " param=" + metadataField + ", return count = "+vals.size());
+
+        return vals;
+    }
+    
+    /** 
+     * This Methode has the same function as the getRepeatedParameter.
+     * For repeated values with language tag their indices are needed to
+     * properly identify their language tag
+     * 
+     * @param request    
+     *               the HTTP request containing the form information
+     * @param metadataField    
+     *               the metadata field which can store repeated values
+     * @param param  
+     *               the repeated parameter on the page (used to fill out the
+     *               metadataField)  
+     * @return     a TreeMap of Integer and Strings
+    */ 
+    protected TreeMap<Integer, String> getRepeatedParameterWithTheirIndices(HttpServletRequest request,
+            String metadataField, String param)
+    {
+        LinkedHashMap<Integer, String> vals = new LinkedHashMap<Integer, String>();
+
+        int i = 1;    //start index at the first of the previously entered values
+        boolean foundLast = false;
+
+        // Iterate through the values in the form.
+        while (!foundLast)
+        {
+            String s = null;
+
+            //First, add the previously entered values.
+            // This ensures we preserve the order that these values were entered
+            s = request.getParameter(param + "_" + i);
+
+            // If there are no more previously entered values,
+            // see if there's a new value entered in textbox
+            if (s==null)
+            {
+                s = request.getParameter(param);
+                //this will be the last value added
+                foundLast = true;
+            }
+
+            // We're only going to add non-null values
+            if (s != null)
+            {
+                boolean addValue = true;
+
+                // Check to make sure that this value was not selected to be
+                // removed.
+                String[] selected = request.getParameterValues(metadataField
+                        + "_selected");
+
+                if (selected != null)
+                {
+                    for (int j = 0; j < selected.length; j++)
+                    {
+                        if (selected[j].equals(metadataField + "_" + i))
+                        {
+                            addValue = false;
+                        }
+                    }
+                }
+
+                if (addValue)
+                {
+                    vals.put(i, s.trim());
+                }
+            }
+
+            i++;
+        }
+
+        log.debug("getRepeatedParameterWithTheirIndices: metadataField=" + metadataField
+                + " param=" + metadataField + ", return count = "+vals.size());
+
+        return new TreeMap(vals);
+    }
+
+    protected TreeMap<Integer, String> getRepeatedParameterParentWithTheirIndices(HttpServletRequest request,
+            String metadataField, String param,String parentMetadataField, String parentParam)
+    {
+    	LinkedHashMap<Integer, String> vals = new LinkedHashMap<Integer, String>();
+
+        int i = 1;    //start index at the first of the previously entered values
+        boolean foundLast = false;
+
+        // Iterate through the values in the form.
+        while (!foundLast)
+        {
+            String s = null;
+            String parent = null;
+            //First, add the previously entered values.
+            // This ensures we preserve the order that these values were entered
+            s = request.getParameter(param + "_" + i);
+            parent = request.getParameter(parentParam + "_" + i);
+
+            // If there are no more previously entered values,
+            // see if there's a new value entered in textbox
+            if (!StringUtils.isNotBlank(parent))
+            {
+                s = request.getParameter(param);
+                parent= request.getParameter(parentParam);
+                //this will be the last value added
+                foundLast = true;
+            }
+
+            if (StringUtils.isNotBlank(parent)) 
+            {
+                boolean addValue = true;
+
+                // Check to make sure that this value was not selected to be
+                // removed.
+                // (This is for the "remove multiple" option available in
+                // Manakin)
+                String[] selected = request.getParameterValues(parentMetadataField
+                        + "_selected");
+
+                if (selected != null)
+                {
+                    for (int j = 0; j < selected.length; j++)
+                    {
+                        if (selected[j].equals(parentMetadataField + "_" + i))
+                        {
+                            addValue = false;
+                        }
+                    }
+                }
+
+                if (addValue)
+                {
+                	if(!StringUtils.isNotBlank(s) && StringUtils.equals(param, metadataField)){
+                		vals.put(i, MetadataValue.PARENT_PLACEHOLDER_VALUE);
+                	}else if(StringUtils.isNotBlank(s)){
+                		vals.put(i, StringUtils.trim(s));
+                	}else{
+                		vals.put(i, "");
+                	}
+                		
+
+                }
+            }
+
+            i++;
+        }
+
+        log.debug("getRepeatedParameterParent: metadataField=" + metadataField
+                + " param=" + metadataField + ", return count = "+vals.size());
+
+        return new TreeMap(vals);
+    }
+   
+    protected List<String> getDateRepeatedParameterParent(HttpServletRequest request,
+            String metadataField, String param,String parentMetadataField, String parentParam)
+    {
+        List<String> vals = new LinkedList<String>();
+
+        int i = 1;    //start index at the first of the previously entered values
+        boolean foundLast = false;
+
+        // Iterate through the values in the form.
+        while (!foundLast)
+        {
+            String s = null;
+            String parent = null;
+            //First, add the previously entered values.
+            // This ensures we preserve the order that these values were entered
+            s = request.getParameter(param + "_" + i);
+            parent = request.getParameter(parentParam + "_" + i);
+
+            // If there are no more previously entered values,
+            // see if there's a new value entered in textbox
+            if (!StringUtils.isNotBlank(parent))
+            {
+                s = request.getParameter(param);
+                parent= request.getParameter(parentParam);
+                //this will be the last value added
+                foundLast = true;
+            }
+
+            // We're only going to add non-null values
+            if (StringUtils.isNotBlank(parent))
+            {
+                boolean addValue = true;
+
+                // Check to make sure that this value was not selected to be
+                // removed.
+                // (This is for the "remove multiple" option available in
+                // Manakin)
+                String[] selected = request.getParameterValues(parentMetadataField
+                        + "_selected");
+
+                if (selected != null)
+                {
+                    for (int j = 0; j < selected.length; j++)
+                    {
+                        if (selected[j].equals(parentMetadataField + "_" + i))
+                        {
+                            addValue = false;
+                        }
+                    }
+                }
+
+                if (addValue)
+                {
+                    if(!StringUtils.isNotBlank(s) && StringUtils.equals(param, metadataField)){
+                        //vals.add(MetadataValue.PARENT_PLACEHOLDER_VALUE);
+                    }else if(StringUtils.isNotBlank(s)){
+                        //vals.add();
+                    }else{
+                        //vals.add("");
+                    }
+                        
+
+                }
+            }
+
+            i++;
+        }
+
+        log.debug("getRepeatedParameter: metadataField=" + metadataField
+                + " param=" + metadataField + ", return count = "+vals.size());
+
+        return vals;
+    }    
+    
+    
+    protected List<String> getRepeatedParameterParent(HttpServletRequest request,
+            String metadataField, String param,String parentMetadataField, String parentParam)
+    {
+        List<String> vals = new LinkedList<String>();
+
+        int i = 1;    //start index at the first of the previously entered values
+        boolean foundLast = false;
+
+        // Iterate through the values in the form.
+        while (!foundLast)
+        {
+            String s = null;
+            String parent = null;
+            //First, add the previously entered values.
+            // This ensures we preserve the order that these values were entered
+            s = request.getParameter(param + "_" + i);
+            parent = request.getParameter(parentParam + "_" + i);
+
+            // If there are no more previously entered values,
+            // see if there's a new value entered in textbox
+            if (!StringUtils.isNotBlank(parent))
+            {
+                s = request.getParameter(param);
+                parent= request.getParameter(parentParam);
+                //this will be the last value added
+                foundLast = true;
+            }
+
+            // We're only going to add non-null values
+            if (StringUtils.isNotBlank(parent))
+            {
+                boolean addValue = true;
+
+                // Check to make sure that this value was not selected to be
+                // removed.
+                // (This is for the "remove multiple" option available in
+                // Manakin)
+                String[] selected = request.getParameterValues(parentMetadataField
+                        + "_selected");
+
+                if (selected != null)
+                {
+                    for (int j = 0; j < selected.length; j++)
+                    {
+                        if (selected[j].equals(parentMetadataField + "_" + i))
+                        {
+                            addValue = false;
+                        }
+                    }
+                }
+
+                if (addValue)
+                {
+                    if(!StringUtils.isNotBlank(s) && StringUtils.equals(param, metadataField)){
+                        vals.add(MetadataValue.PARENT_PLACEHOLDER_VALUE);
+                    }else if(StringUtils.isNotBlank(s)){
+                        vals.add(StringUtils.trim(s));
+                    }else{
+                        vals.add("");
+                    }
+                        
+
                 }
             }
 

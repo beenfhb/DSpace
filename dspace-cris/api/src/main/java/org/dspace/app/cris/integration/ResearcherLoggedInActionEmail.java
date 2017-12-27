@@ -30,7 +30,7 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
 	Logger log = Logger.getLogger(ResearcherLoggedInActionEmail.class);
     private ApplicationService applicationService;
     private static SearchService searcher;
-    private String netidSourceRef;
+    private String typeSourceRef;
 
     @Override
     public void loggedIn(Context context, HttpServletRequest request,
@@ -43,10 +43,11 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
             ResearcherPage rp = applicationService.getResearcherPageByEPersonId(eperson.getID());
             
             if(rp==null) {
-            	if(eperson.getNetid()!=null && 
-            			(rp = applicationService.getEntityBySourceId(netidSourceRef.toUpperCase(),eperson.getNetid(), ResearcherPage.class))!=null){
+                String key = typeSourceRef.equals("netid")?eperson.getNetid():eperson.getMetadata(typeSourceRef);
+            	if(StringUtils.isNotBlank(key) && 
+            			(rp = applicationService.getEntityBySourceId(typeSourceRef, key, ResearcherPage.class))!=null){
 	                if(rp.getEpersonID()!=null) {
-	                    if (rp.getEpersonID() != eperson.getID())
+	                    if (!rp.getEpersonID().equals(eperson.getID()))
 	                    {
 	                        rp.setEpersonID(eperson.getID());
 	                        save = true;
@@ -85,7 +86,7 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
                     	rp = applicationService.getResearcherByAuthorityKey(rpKey);
                     	if(rp!=null){
                     		if(rp.getEpersonID()!=null) {
-                    			if (rp.getEpersonID() != eperson.getID())
+                    			if (!rp.getEpersonID().equals(eperson.getID()))
                     			{
                     				rp.setEpersonID(eperson.getID());
                     				save = true;
@@ -102,7 +103,7 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
             
             if (save)
             {
-                applicationService.saveOrUpdate(ResearcherPage.class, rp);
+                applicationService.saveOrUpdate(ResearcherPage.class, rp, false);
             }
         }
         catch (Exception e)
@@ -117,12 +118,12 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
         this.applicationService = applicationService;
     }
 
-	public String getNetidSourceRef() {
-		return netidSourceRef;
+	public String getTypeSourceRef() {
+		return typeSourceRef;
 	}
 
-	public void setNetidSourceRef(String netidSourceRef) {
-		this.netidSourceRef = netidSourceRef;
+	public void setTypeSourceRef(String netidSourceRef) {
+		this.typeSourceRef = netidSourceRef;
 	}
 
 }

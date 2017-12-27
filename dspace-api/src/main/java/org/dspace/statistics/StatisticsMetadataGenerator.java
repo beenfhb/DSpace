@@ -10,11 +10,11 @@ package org.dspace.statistics;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 
 public interface StatisticsMetadataGenerator
 {
 
     public void addMetadata(SolrInputDocument doc1, HttpServletRequest request,
-            DSpaceObject dspaceObject);
+    		BrowsableDSpaceObject dspaceObject);
 }

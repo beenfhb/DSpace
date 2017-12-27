@@ -7,11 +7,6 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
-import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
-import it.cilea.osd.jdyna.model.AnagraficaObject;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,17 +31,21 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
+import it.cilea.osd.jdyna.model.AnagraficaObject;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 public class FormRPDynamicMetadataController
         extends
@@ -65,12 +64,12 @@ public class FormRPDynamicMetadataController
         // collection of metadata
         Map<String, List<IContainable>> mapBoxToContainables = new HashMap<String, List<IContainable>>();
 
-        AnagraficaObjectAreaDTO anagraficaObjectDTO = (AnagraficaObjectAreaDTO) command;
+        RPAnagraficaObjectDTO anagraficaObjectDTO = (RPAnagraficaObjectDTO) command;
 
         // check admin authorization
         boolean isAdmin = false;
         Context context = UIUtil.obtainContext(request);
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             isAdmin = true;
         }
@@ -81,6 +80,17 @@ public class FormRPDynamicMetadataController
                 .getTabsByVisibility(EditTabResearcherPage.class,
                         isAdmin);
 
+        EPerson currentUser = context.getCurrentUser();
+        
+        // if admin but also owner of the profile add the reserved tabs as well
+		if (isAdmin && anagraficaObjectDTO.getEpersonID() != null
+				&& currentUser.getID() == anagraficaObjectDTO.getEpersonID()) {
+			List<EditTabResearcherPage> extratabs = getApplicationService().getTabsByAccessLevel(EditTabResearcherPage.class, VisibilityTabConstant.LOW);
+			if (extratabs != null) {
+				tabs.addAll(extratabs);
+			}
+        }
+        
         // check if request tab from view is active (check on collection before)
         EditTabResearcherPage editT = getApplicationService().get(
                 EditTabResearcherPage.class,
@@ -117,8 +127,9 @@ public class FormRPDynamicMetadataController
         {
             if (isAdmin)
             {
-                if (!propertyHolder.getVisibility().equals(
-                        VisibilityTabConstant.LOW))
+                if ((currentUser!=null && (anagraficaObjectDTO.getEpersonID()!=null && currentUser.getID()==anagraficaObjectDTO.getEpersonID()))
+                       || !propertyHolder.getVisibility().equals(
+                               VisibilityTabConstant.LOW))              
                 {
                     propertyHoldersCurrentAccessLevel.add(propertyHolder);
                 }
@@ -139,7 +150,7 @@ public class FormRPDynamicMetadataController
         for (BoxResearcherPage iph : propertyHoldersCurrentAccessLevel)
         {
             List<IContainable> temp = getApplicationService()
-                    .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>> findContainableInPropertyHolder(
+                    .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>, RPPropertiesDefinition> findContainableInPropertyHolder(
                             getClazzBox(), iph.getId());            
             mapBoxToContainables.put(iph.getShortName(), temp);
             pDInTab.addAll(temp);
@@ -191,14 +202,14 @@ public class FormRPDynamicMetadataController
                 ResearcherPage.class, id);
         Context context = UIUtil.obtainContext(request);
         EPerson currentUser = context.getCurrentUser();
-        if ((currentUser==null || (researcher.getEpersonID()!=null && currentUser.getID()!=researcher.getEpersonID()))
-               && !AuthorizeManager.isAdmin(context))
+        if ((currentUser==null || (researcher.getEpersonID()!=null && !currentUser.getID().equals(researcher.getEpersonID())))
+               && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             throw new AuthorizeException(
                     "Only system admin can edit not personal researcher page");
         }
 
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             isAdmin = true;
         }
@@ -219,7 +230,7 @@ public class FormRPDynamicMetadataController
             }
             else
             {
-                EditTabResearcherPage fuzzyEditTab = (EditTabResearcherPage)((ApplicationService)getApplicationService()).<BoxResearcherPage, TabResearcherPage, EditTabResearcherPage>getEditTabByDisplayTab(Integer.parseInt(paramFuzzyTabId),EditTabResearcherPage.class);
+                EditTabResearcherPage fuzzyEditTab = (EditTabResearcherPage)((ApplicationService)getApplicationService()).<BoxResearcherPage, TabResearcherPage, EditTabResearcherPage, RPPropertiesDefinition>getEditTabByDisplayTab(Integer.parseInt(paramFuzzyTabId),EditTabResearcherPage.class);
                 areaId = fuzzyEditTab.getId();
             }
         }
@@ -253,7 +264,7 @@ public class FormRPDynamicMetadataController
             {
                 tipProprietaInArea
                         .addAll(getApplicationService()
-                                .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>> findContainableInPropertyHolder(
+                                .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>, RPPropertiesDefinition> findContainableInPropertyHolder(
                                         BoxResearcherPage.class,
                                         iph.getId()));
             }
@@ -261,7 +272,7 @@ public class FormRPDynamicMetadataController
             {
                 tipProprietaInArea
                         .addAll(getApplicationService()
-                                .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>> findContainableInPropertyHolder(
+                                .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>, RPPropertiesDefinition> findContainableInPropertyHolder(
                                         getClazzBox(), iph.getId()));
             }
         }
@@ -306,6 +317,9 @@ public class FormRPDynamicMetadataController
         EditTabResearcherPage editT = getApplicationService().get(
                 EditTabResearcherPage.class,
                 anagraficaObjectDTO.getTabId());
+        ResearcherPage researcher = getApplicationService().get(
+                ResearcherPage.class, anagraficaObjectDTO.getParentId());
+        
         if (anagraficaObjectDTO.getNewTabId() != null)
         {
             exitPage += "&tabId=" + anagraficaObjectDTO.getNewTabId();
@@ -313,18 +327,13 @@ public class FormRPDynamicMetadataController
         else
         {
             exitPage = "redirect:/cris/rp/"
-                    + ResearcherPageUtils
-                            .getPersistentIdentifier(anagraficaObjectDTO
-                                    .getParentId(), ResearcherPage.class) + "/"
-                    + editT.getShortName().substring(4) + ".html";
+                    + researcher.getCrisID();
         }
         if (request.getParameter("cancel") != null)
         {
             return new ModelAndView(exitPage);
         }
-
-        ResearcherPage researcher = getApplicationService().get(
-                ResearcherPage.class, anagraficaObjectDTO.getParentId());
+        
         RPAdditionalFieldStorage myObject = researcher.getDynamicField();
 
         List<BoxResearcherPage> propertyHolders = new LinkedList<BoxResearcherPage>();
@@ -349,7 +358,7 @@ public class FormRPDynamicMetadataController
 
             tipProprietaInArea
                     .addAll(getApplicationService()
-                            .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>> findContainableInPropertyHolder(
+                            .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>, RPPropertiesDefinition> findContainableInPropertyHolder(
                                     getClazzBox(), iph.getId()));
 
         }
@@ -426,7 +435,7 @@ public class FormRPDynamicMetadataController
 
             tipProprietaInArea
                     .addAll(getApplicationService()
-                            .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>> findContainableInPropertyHolder(
+                            .<BoxResearcherPage, it.cilea.osd.jdyna.web.Tab<BoxResearcherPage>, RPPropertiesDefinition> findContainableInPropertyHolder(
                                     getClazzBox(), iph.getId()));
 
         }

@@ -7,22 +7,20 @@
  */
 package org.dspace.app.webui.cris.components;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.statistics.IStatsComponent;
 import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.components.statistics.CrisStatBitstreamTopObjectComponent;
 import org.dspace.app.webui.cris.components.statistics.CrisStatTopObjectComponent;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.browse.BrowseDSpaceObject;
-import org.dspace.browse.BrowseItem;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 
 public class BrowseItemConfigurerComponent extends
-        AFacetedQueryConfigurerComponent<BrowseItem>
+        AFacetedQueryConfigurerComponent<BrowsableDSpaceObject>
 {
 
     /** log4j logger */
@@ -30,20 +28,12 @@ public class BrowseItemConfigurerComponent extends
             .getLogger(BrowseItemConfigurerComponent.class);
 
     @Override
-    public BrowseItem[] getObjectFromSolrResult(DiscoverResult docs,
+    public List<BrowsableDSpaceObject> getObjectFromSolrResult(DiscoverResult docs,
             Context context) throws Exception
     {
-        BrowseItem[] result = new BrowseItem[docs.getDspaceObjects().size()];
-        int i = 0;
-        for (DSpaceObject obj : docs.getDspaceObjects())
-        {
-            result[i] = new BrowseDSpaceObject(context,
-                    (BrowsableDSpaceObject) obj);
-            i++;
-        }
-        return result;
+    	return docs.getDspaceObjects();
     }
-
+    
     @Override
     public IStatsComponent getStatsDownloadComponent()
     {
@@ -107,7 +97,7 @@ public class BrowseItemConfigurerComponent extends
     }
 
     @Override
-    public Class<? extends DSpaceObject> getRelationObjectClass()
+    public Class<? extends BrowsableDSpaceObject> getRelationObjectClass()
     {
         return getRelationConfiguration().getRelationClass();
     }

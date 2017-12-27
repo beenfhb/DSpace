@@ -28,4 +28,8 @@ public interface DynamicObjectDao extends CrisObjectDao<ResearchObject>
     public List<ResearchObject> paginateByType(DynamicObjectType typo, String sort, boolean inverse,
             int page, Integer pagesize);
     
+    public List<ResearchObject> findByShortNameType(String shortName);
+    
+    public List<ResearchObject> findByIDType(Integer id);
+    
 }

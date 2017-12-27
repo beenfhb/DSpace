@@ -50,7 +50,7 @@ public class VisualizationGraphAppointments extends AVisualizationGraphModeTwo  
 
     protected String getQuery()
     {
-        return ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.query.appointment");
+        return ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "query.appointment");
     }
 
     @Override

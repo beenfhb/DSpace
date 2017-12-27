@@ -13,9 +13,9 @@ import java.util.List;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
-import org.dspace.statistics.SolrLogger;
 import org.dspace.statistics.content.filter.StatisticsFilter;
-import org.dspace.utils.DSpace;
+import org.dspace.statistics.factory.StatisticsServiceFactory;
+import org.dspace.statistics.service.SolrLoggerService;
 
 /**
  * Class that will hold the data needed to show
@@ -26,10 +26,10 @@ import org.dspace.utils.DSpace;
 
 public class StatisticsBSAdapter {
 
-    private boolean displayItemViews;
-    private boolean displayBitstreamViews;
-    private boolean displayTotalViews;
-    private List<StatisticsFilter> filters;
+    protected boolean displayItemViews;
+    protected boolean displayBitstreamViews;
+    protected boolean displayTotalViews;
+    protected List<StatisticsFilter> filters;
 
     /** visitType is ITEM */
     public static final int ITEM_VISITS = 0;
@@ -37,15 +37,13 @@ public class StatisticsBSAdapter {
     public static final int BITSTREAM_VISITS = 1;
     /** visitType is TOTAL */
     public static final int TOTAL_VISITS = 2;
+    protected final SolrLoggerService solrLoggerService;
 
-    DSpace dspace = new DSpace();
-
-    SolrLogger indexer = dspace.getServiceManager().getServiceByName(SolrLogger.class.getName(),SolrLogger.class);
-        
     public StatisticsBSAdapter() {
         displayItemViews = false;
         displayBitstreamViews = false;
         filters = new ArrayList<StatisticsFilter>();
+        solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
     }
 
     /**
@@ -60,9 +58,9 @@ public class StatisticsBSAdapter {
     public long getNumberOfVisits(int visitType, Item item) throws SolrServerException {
         switch (visitType){
             case ITEM_VISITS:
-                return indexer.queryTotal("type: " + Constants.ITEM + " AND id: " + item.getID(), resolveFilterQueries()).getCount();
+                return solrLoggerService.queryTotal("type: " + Constants.ITEM + " AND id: " + item.getID(), resolveFilterQueries()).getCount();
             case BITSTREAM_VISITS:
-                return indexer.queryTotal("type: " + Constants.BITSTREAM + " AND owningItem: " + item.getID(), resolveFilterQueries()).getCount();
+                return solrLoggerService.queryTotal("type: " + Constants.BITSTREAM + " AND owningItem: " + item.getID(), resolveFilterQueries()).getCount();
             case TOTAL_VISITS:
                 return getNumberOfVisits(ITEM_VISITS, item) + getNumberOfVisits(BITSTREAM_VISITS, item);
 

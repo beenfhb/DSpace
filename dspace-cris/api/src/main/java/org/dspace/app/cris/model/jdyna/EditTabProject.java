@@ -7,8 +7,7 @@
  */
 package org.dspace.app.cris.model.jdyna;
 
-import it.cilea.osd.jdyna.web.AbstractEditTab;
-
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,6 +25,8 @@ import org.dspace.core.ConfigurationManager;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import it.cilea.osd.jdyna.web.AbstractEditTab;
+
 @Entity
 @Table(name = "cris_pj_etab")
 @NamedQueries({
@@ -37,7 +38,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 		@NamedQuery(name = "EditTabProject.findByAccessLevel", query = "from EditTabProject tab where visibility = ? order by priority"),
 		@NamedQuery(name = "EditTabProject.findByAdmin", query = "from EditTabProject tab where visibility = 1 or visibility = 2 or visibility = 3 order by priority"),
 	    @NamedQuery(name = "EditTabProject.findByOwner", query = "from EditTabProject tab where visibility = 0 or visibility = 2 or visibility = 3 order by priority"),
-	    @NamedQuery(name = "EditTabProject.findByAnonimous", query = "from EditTabProject tab where visibility = 3 order by priority")
+	    @NamedQuery(name = "EditTabProject.findByAnonimous", query = "from EditTabProject tab where visibility = 3 order by priority"),
+        @NamedQuery(name = "EditTabProject.findAuthorizedGroupById", query = "select tab.authorizedGroup from EditTabProject tab where tab.id = ?"),
+        @NamedQuery(name = "EditTabProject.findAuthorizedGroupByShortname", query = "select tab.authorizedGroup from EditTabProject tab where tab.shortName = ?"),
+        @NamedQuery(name = "EditTabProject.findAuthorizedSingleById", query = "select tab.authorizedSingle from EditTabProject tab where tab.id = ?"),
+        @NamedQuery(name = "EditTabProject.findAuthorizedSingleByShortname", query = "select tab.authorizedSingle  from EditTabProject tab where tab.shortName = ?")	    
 })
 public class EditTabProject extends
 		AbstractEditTab<BoxProject,TabProject> {
@@ -53,6 +58,22 @@ public class EditTabProject extends
 	@OneToOne
 	private TabProject displayTab;
 
+	@ManyToMany
+	@JoinTable(
+          name="cris_pj_etab2policysingle",
+          joinColumns=@JoinColumn(name="etab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<ProjectPropertiesDefinition> authorizedSingle;
+    
+	@ManyToMany
+	@JoinTable(
+          name="cris_pj_etab2policygroup",
+          joinColumns=@JoinColumn(name="etab_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<ProjectPropertiesDefinition> authorizedGroup;
+    
 	public EditTabProject() {
 		this.visibility = VisibilityTabConstant.ADMIN;
 	}
@@ -90,5 +111,32 @@ public class EditTabProject extends
         return ConfigurationManager.getProperty(CrisConstants.CFG_MODULE,"project.file.path");
     }
 
+    @Override
+    public List<ProjectPropertiesDefinition> getAuthorizedSingle()
+    {
+        if(this.authorizedSingle==null) {
+            this.authorizedSingle = new ArrayList<ProjectPropertiesDefinition>();
+        }
+        return this.authorizedSingle;
+    }
+
+    public void setAuthorizedSingle(List<ProjectPropertiesDefinition> authorizedSingle)
+    {
+        this.authorizedSingle = authorizedSingle; 
+    }
+
+    @Override
+    public List<ProjectPropertiesDefinition> getAuthorizedGroup()
+    {
+        if(this.authorizedGroup==null) {
+            this.authorizedGroup = new ArrayList<ProjectPropertiesDefinition>();
+        }
+        return this.authorizedGroup;
+    }
+
+    public void setAuthorizedGroup(List<ProjectPropertiesDefinition> authorizedGroup)
+    {
+        this.authorizedGroup = authorizedGroup;
+    }
 
 }

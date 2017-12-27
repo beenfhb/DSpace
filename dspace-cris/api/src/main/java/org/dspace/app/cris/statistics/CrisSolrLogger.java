@@ -14,7 +14,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.statistics.SolrLogger;
+import org.dspace.statistics.SolrLoggerServiceImpl;
 
 /**
  * This class is mainly a copy and paste of the org.dspace.statistics.SolrLogger class used to manage logging 
@@ -25,7 +25,7 @@ import org.dspace.statistics.SolrLogger;
  * 
  * @author pascarelli, bollini
  */
-public class CrisSolrLogger extends SolrLogger
+public class CrisSolrLogger extends SolrLoggerServiceImpl
 {
 	
 	private static Logger log = Logger.getLogger(CrisSolrLogger.class);

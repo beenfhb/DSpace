@@ -19,13 +19,13 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
+import org.dspace.discovery.DiscoverHitHighlightingField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
-import org.dspace.discovery.DiscoverHitHighlightingField;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.DiscoverViewField;
 import org.dspace.discovery.SearchServiceException;
@@ -41,13 +41,15 @@ import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
+
 
 public class DiscoverUtility
 {
     /** log4j category */
     private static Logger log = Logger.getLogger(DiscoverUtility.class);
-
+    
     public static final int TYPE_FACETS = 1;
     public static final int TYPE_TAGCLOUD = 2;
     
@@ -59,7 +61,7 @@ public class DiscoverUtility
      * @throws IllegalStateException
      * @throws SQLException
      */
-    public static DSpaceObject getSearchScope(Context context,
+    public static BrowsableDSpaceObject getSearchScope(Context context,
             HttpServletRequest request) throws IllegalStateException,
             SQLException
     {
@@ -69,20 +71,21 @@ public class DiscoverUtility
         {
             if (UIUtil.getCollectionLocation(request) != null)
             {
-                return UIUtil.getCollectionLocation(request);
+                return (BrowsableDSpaceObject)UIUtil.getCollectionLocation(request);
             }
             if (UIUtil.getCommunityLocation(request) != null)
             {
-                return UIUtil.getCommunityLocation(request);
+                return (BrowsableDSpaceObject)UIUtil.getCommunityLocation(request);
             }
             return null;
         }
-        DSpaceObject scope = HandleManager.resolveToObject(context, location);
+        HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
+        BrowsableDSpaceObject scope = (BrowsableDSpaceObject)handleService.resolveToObject(context, location);
         return scope;
     }
 
     public static DiscoverQuery getDiscoverQuery(Context context,
-            HttpServletRequest request, DSpaceObject scope, 
+            HttpServletRequest request, BrowsableDSpaceObject scope, 
             boolean enableFacet)
     {
         return getDiscoverQuery(context, request, scope,
@@ -96,7 +99,7 @@ public class DiscoverUtility
      * @throws SearchServiceException
      */
     public static DiscoverQuery getDiscoverQuery(Context context,
-            HttpServletRequest request, DSpaceObject scope, 
+            HttpServletRequest request, BrowsableDSpaceObject scope, 
             String configurationName, boolean enableFacet)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
@@ -176,7 +179,7 @@ public class DiscoverUtility
      * @throws SearchServiceException
      */
     public static DiscoverQuery getTagCloudDiscoverQuery(Context context,
-            HttpServletRequest request, DSpaceObject scope, boolean enableFacet)
+            HttpServletRequest request, BrowsableDSpaceObject scope, boolean enableFacet)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
         DiscoveryConfiguration discoveryConfiguration = SearchUtils
@@ -209,7 +212,7 @@ public class DiscoverUtility
      * @return the query.
      */
     public static DiscoverQuery getDiscoverAutocomplete(Context context,
-            HttpServletRequest request, DSpaceObject scope)
+            HttpServletRequest request, BrowsableDSpaceObject scope)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
         DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration();
@@ -290,6 +293,8 @@ public class DiscoverUtility
         String query = request.getParameter("query");
         if (StringUtils.isNotBlank(query))
         {
+            // Escape any special characters in this user-entered query
+            query = escapeQueryChars(query);
             queryArgs.setQuery(query);
         }
         
@@ -331,15 +336,19 @@ public class DiscoverUtility
 			}
 		}
 		
-        List<String[]> filters = getFilters(request);
+        List<String[]> filters = getFilters(request, null);
         List<String> userFilters = new ArrayList<String>();
         for (String[] f : filters)
         {
             try
             {
-            String newFilterQuery = SearchUtils.getSearchService()
-                    .toFilterQuery(context, f[0], f[1], f[2])
-                    .getFilterQuery();
+            String newFilterQuery = null;
+            if (StringUtils.isNotBlank(f[0]) && StringUtils.isNotBlank(f[2]))
+            {
+                newFilterQuery = SearchUtils.getSearchService()
+                        .toFilterQuery(context, f[0], f[1], f[2])
+                        .getFilterQuery();
+            }
             if (StringUtils.isNotBlank(newFilterQuery))
             {
                 queryArgs.addFilterQueries(tagging+newFilterQuery);
@@ -359,6 +368,19 @@ public class DiscoverUtility
 
         return userFilters;
 
+    }
+
+    /**
+     * Escape colon-space sequence in a user-entered query, based on the
+     * underlying search service. This is intended to let end users paste in a
+     * title containing colon-space without requiring them to escape the colon.
+     *
+     * @param query user-entered query string
+     * @return query with colon in colon-space sequence escaped
+     */
+    private static String escapeQueryChars(String query)
+    {
+        return StringUtils.replace(query, ": ", "\\: ");
     }
 
     private static void setPagination(HttpServletRequest request,
@@ -464,12 +486,13 @@ public class DiscoverUtility
     }
 
     private static void setFacet(Context context, HttpServletRequest request,
-            DSpaceObject scope, DiscoverQuery queryArgs,
+            BrowsableDSpaceObject scope, DiscoverQuery queryArgs,
             DiscoveryConfiguration discoveryConfiguration,
-            List<String> userFilters, List<DiscoverySearchFilterFacet> facets, int type)
+            List<String> userFilters, List<DiscoverySearchFilterFacet> currentFacets, int type)
     {
         DiscoveryConfiguration globalConfiguration = null;
         
+        List<DiscoverySearchFilterFacet> facets = new ArrayList<DiscoverySearchFilterFacet>();
         if (SearchUtils.isGlobalConfiguration(discoveryConfiguration) 
         		|| discoveryConfiguration.isGlobalConfigurationEnabled())
         {
@@ -478,8 +501,7 @@ public class DiscoverUtility
         	facet.setIndexFieldName(globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName());
         	facets.add(facet);
         }
-        
-        facets.addAll(discoveryConfiguration.getSidebarFacets());
+        facets.addAll(currentFacets);
         
         log.info("facets for scope, " + scope + ": "
                 + (facets != null ? facets.size() : null));
@@ -668,7 +690,7 @@ public class DiscoverUtility
                             // filterquery
                             queryArgs.addFacetField(new DiscoverFacetField(
                                     facet.getIndexFieldName(), facet.getType(),
-                                    10, facet.getSortOrder(),false));
+                                    10, facet.getSortOrderSidebar(),false));
                         }
                         else
                         {
@@ -745,15 +767,23 @@ public class DiscoverUtility
                     // add the already selected facet so to have a full
                     // top list
                     // if possible
+					
+                    int limit = 0;
+                    if (type==TYPE_FACETS){
+                    	limit = facetLimit + 1 + alreadySelected;
+                    }
+                    else 
+                    	limit = facetLimit;
+
 					if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
 							globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName())) {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
-								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
-										.getSortOrder(), facetPage * facetLimit, true));
+								DiscoveryConfigurationParameters.TYPE_TEXT, limit, facet
+										.getSortOrderSidebar(), facetPage * limit, true));
 					} else {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
-								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
-										.getSortOrder(), facetPage * facetLimit, false));
+								DiscoveryConfigurationParameters.TYPE_TEXT, limit, facet
+										.getSortOrderSidebar(), facetPage * limit, false));
 					}
                 }
             }
@@ -762,11 +792,24 @@ public class DiscoverUtility
 
     public static List<String[]> getFilters(HttpServletRequest request)
     {
+        return getFilters(request, null);
+    }
+
+    public static List<String[]> getFilters(HttpServletRequest request, String relationType)
+    {
+        String suffixRelationType = "";
+        if(StringUtils.isBlank(relationType)) {
+            relationType = "";
+        }
+        else {
+            suffixRelationType = relationType + "_";
+        }
         String submit = UIUtil.getSubmitButton(request, "submit");
         int ignore = -1;
-        if (submit.startsWith("submit_filter_remove_"))
+        
+        if (submit.startsWith("submit_filter_remove_" + suffixRelationType))
         {
-            ignore = Integer.parseInt(submit.substring("submit_filter_remove_".length()));
+            ignore = Integer.parseInt(submit.substring(("submit_filter_remove_" + suffixRelationType).length()));
         }
         List<String[]> appliedFilters = new ArrayList<String[]>();
         
@@ -775,7 +818,7 @@ public class DiscoverUtility
         List<String> filterField = new ArrayList<String>();
         for (int idx = 1; ; idx++)
         {
-            String op = request.getParameter("filter_type_"+idx);
+            String op = request.getParameter("filter_type_" + suffixRelationType + idx);
             if (StringUtils.isBlank(op))
             {
                 break;
@@ -783,17 +826,17 @@ public class DiscoverUtility
             else if (idx != ignore)
             {
                 filterOp.add(op);
-                filterField.add(request.getParameter("filter_field_"+idx));
-                filterValue.add(request.getParameter("filter_value_"+idx));
+                filterField.add(request.getParameter("filter_field_" + suffixRelationType + idx));
+                filterValue.add(request.getParameter("filter_value_" + suffixRelationType + idx));
             }
         }
         
-        String op = request.getParameter("filtertype");
+        String op = request.getParameter("filtertype"+ relationType);
         if (StringUtils.isNotBlank(op))
         {
             filterOp.add(op);
-            filterField.add(request.getParameter("filtername"));
-            filterValue.add(request.getParameter("filterquery"));
+            filterField.add(request.getParameter("filtername"+ relationType));
+            filterValue.add(request.getParameter("filterquery"+ relationType));
         }
         
         for (int idx = 0; idx < filterOp.size(); idx++)

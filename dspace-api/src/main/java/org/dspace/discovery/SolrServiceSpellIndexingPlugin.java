@@ -7,13 +7,20 @@
  */
 package org.dspace.discovery;
 
-import org.apache.solr.common.SolrInputDocument;
-import org.dspace.content.Metadatum;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-
 import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.SolrInputDocument;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.MetadataValue;
+import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,30 +31,24 @@ import java.util.List;
  */
 public class SolrServiceSpellIndexingPlugin implements SolrServiceIndexPlugin {
 
+    @Autowired(required = true)
+    protected ItemService itemService;
+
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
         if(dso instanceof Item){
             Item item = (Item) dso;
-            Metadatum[] Metadatums = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            List<IMetadataValue> dcValues = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
             List<String> toIgnoreMetadataFields = SearchUtils.getIgnoredMetadataFields(item.getType());
-            for (Metadatum Metadatum : Metadatums) {
-                String field = Metadatum.schema + "." + Metadatum.element;
-                String unqualifiedField = field;
+            for (IMetadataValue dcValue : dcValues) {
 
-                String value = Metadatum.value;
-
-                if (value == null)
+                if (dcValue.getValue() == null || StringUtils.equals(dcValue.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE))
                 {
                     continue;
                 }
 
-                if (Metadatum.qualifier != null && !Metadatum.qualifier.trim().equals(""))
-                {
-                    field += "." + Metadatum.qualifier;
-                }
-
-                if(!toIgnoreMetadataFields.contains(field)){
-                    document.addField("a_spell", Metadatum.value);
+                if(!toIgnoreMetadataFields.contains(dcValue.getMetadataField().toString('.'))){
+                    document.addField("a_spell", dcValue.getValue());
                 }
             }
         }

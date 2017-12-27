@@ -7,17 +7,19 @@
  */
 package org.dspace.content.crosswalk;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.packager.PackageUtils;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
@@ -33,7 +35,9 @@ public class LicenseStreamDisseminationCrosswalk
 {
     /** log4j logger */
     private static Logger log = Logger.getLogger(LicenseStreamDisseminationCrosswalk.class);
+    protected BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
+    @Override
     public boolean canDisseminate(Context context, DSpaceObject dso)
     {
         try
@@ -48,7 +52,8 @@ public class LicenseStreamDisseminationCrosswalk
         }
     }
 
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    @Override
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException
     {
         if (dso.getType() == Constants.ITEM)
@@ -57,14 +62,20 @@ public class LicenseStreamDisseminationCrosswalk
              
             if (licenseBs != null)
             {
-                Utils.copy(licenseBs.retrieve(), out);
+                Utils.copy(bitstreamService.retrieve(context, licenseBs), out);
                 out.close();
             }
         }
     }
 
+    @Override
     public String getMIMEType()
     {
         return "text/plain";
     }
+
+	@Override
+	public boolean assignUniqueNumber() {
+		return false;
+	}
 }

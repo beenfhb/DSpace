@@ -7,116 +7,154 @@
  */
 package org.dspace.content;
 
-import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import org.dspace.authorize.AuthorizeException;
+import javax.persistence.Cacheable;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.SiteService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.handle.HandleManager;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * Represents the root of the DSpace Archive.
  * By default, the handle suffix "0" represents the Site, e.g. "1721.1/0"
  */
-public class Site extends DSpaceObject
+@Entity
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Table(name = "site")
+public class Site extends DSpaceObject implements BrowsableDSpaceObject
 {
-    /** "database" identifier of the site */
-    public static final int SITE_ID = 0;
 
-    // cache for Handle that is persistent ID for entire site.
-    private static String handle = null;
+    @Transient
+    private transient SiteService siteService;
 
-    private static Site theSite = null;
+    /**
+     * Protected constructor, create object using:
+     * {@link org.dspace.content.service.SiteService#createSite(Context)}
+     *
+     */
+    protected Site()
+    {
+
+    }
 
     /**
      * Get the type of this object, found in Constants
      *
      * @return type of the object
      */
+    @Override
     public int getType()
     {
         return Constants.SITE;
     }
 
-    /**
-     * Get the internal ID (database primary key) of this object
-     *
-     * @return internal ID of object
-     */
-    public int getID()
-    {
-        return SITE_ID;
-    }
-
-    /**
-     * Get the Handle of the object. This may return <code>null</code>
-     *
-     * @return Handle of the object, or <code>null</code> if it doesn't have
-     *         one
-     */
-    public String getHandle()
-    {
-        return getSiteHandle();
-    }
-
-    /**
-     * Static method to return site Handle without creating a Site.
-     * @return handle of the Site.
-     */
-    public static String getSiteHandle()
-    {
-        if (handle == null)
-        {
-            handle = HandleManager.getPrefix() + "/" + String.valueOf(SITE_ID);
-        }
-        return handle;
-    }
-
-    /**
-     * Get Site object corresponding to db id (which is ignored).
-     * @param context the context.
-     * @param id integer database id, ignored.
-     * @return Site object.
-     */
-    public static DSpaceObject find(Context context, int id)
-        throws SQLException
-    {
-        if (theSite == null)
-        {
-            theSite = new Site();
-        }
-        return theSite;
-    }
-
-    void delete()
-        throws SQLException, AuthorizeException, IOException
-    {
-    }
-
-    public void update()
-        throws SQLException, AuthorizeException
-    {
-    }
-
+    @Override
     public String getName()
     {
-        return ConfigurationManager.getProperty("dspace.name");
-    }
-
-    @Override
-    public void updateLastModified()
-    {
-
+        return getSiteService().getName(this);
     }
 
     public String getURL()
     {
         return ConfigurationManager.getProperty("dspace.url");
     }
-    
-    public String getTypeText() {
-        return Constants.typeText[Constants.SITE];
+
+    private SiteService getSiteService() {
+        if(siteService == null)
+        {
+            siteService = ContentServiceFactory.getInstance().getSiteService();
+        }
+        return siteService;
     }
+
+	@Override
+	public List<String> getMetadataValue(String mdString) {
+		return siteService.getAllMetadata(this, mdString);
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+		return siteService.getMetadataByMetadataString(this, mdString);
+	}
+
+	@Override
+	public String getTypeText() {
+		// TODO Auto-generated method stub
+		return Constants.typeText[getType()];
+	}
+
+	@Override
+	public UUID getID() {
+		return id;
+	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return false;
+	}
+
+	@Override
+	public Integer getLegacyId() {		
+		return -1;
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		return new HashMap<String, Object>();
+	}
+
+	@Override
+	public boolean isArchived() {
+		return false;
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return siteService.getMetadata(this, schema, element, qualifier, lang);
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return siteService.getMetadata(this, field); 
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return false;
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {		
+		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+	}
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return siteService.getMetadataFirstValue(this, schema, element, qualifier, language);
+	}
+
+	@Override
+	public Date getLastModified() {
+		return new Date();
+	}
 }

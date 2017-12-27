@@ -7,11 +7,6 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
-import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
-import it.cilea.osd.jdyna.model.AnagraficaObject;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,15 +31,19 @@ import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
+import it.cilea.osd.jdyna.model.AnagraficaObject;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 public class FormOUDynamicMetadataController
         extends
@@ -68,7 +67,7 @@ public class FormOUDynamicMetadataController
         // check admin authorization
         boolean isAdmin = false;
         Context context = UIUtil.obtainContext(request);
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             isAdmin = true;
         }
@@ -134,7 +133,7 @@ public class FormOUDynamicMetadataController
         for (BoxOrganizationUnit iph : propertyHoldersCurrentAccessLevel)
         {
             List<IContainable> temp = getApplicationService()
-                    .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>> findContainableInPropertyHolder(
+                    .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>, OUPropertiesDefinition> findContainableInPropertyHolder(
                             getClazzBox(), iph.getId());
             mapBoxToContainables.put(iph.getShortName(), temp);
             pDInTab.addAll(temp);
@@ -166,7 +165,7 @@ public class FormOUDynamicMetadataController
         }
         OrganizationUnit grant = getApplicationService().get(OrganizationUnit.class, id);
         Context context = UIUtil.obtainContext(request);
-        if (!AuthorizeManager.isAdmin(context))
+        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             throw new AuthorizeException("Only system admin can edit");
         }
@@ -191,7 +190,7 @@ public class FormOUDynamicMetadataController
             else
             {
                 EditTabOrganizationUnit fuzzyEditTab = (EditTabOrganizationUnit) ((ApplicationService) getApplicationService())
-                        .<BoxOrganizationUnit, TabOrganizationUnit, EditTabOrganizationUnit>getEditTabByDisplayTab(
+                        .<BoxOrganizationUnit, TabOrganizationUnit, EditTabOrganizationUnit, OUPropertiesDefinition>getEditTabByDisplayTab(
                                 Integer.parseInt(paramFuzzyTabId),
                                 EditTabOrganizationUnit.class);
                 areaId = fuzzyEditTab.getId();
@@ -226,14 +225,14 @@ public class FormOUDynamicMetadataController
             {
                 tipProprietaInArea
                         .addAll(getApplicationService()
-                                .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>> findContainableInPropertyHolder(
+                                .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>, OUPropertiesDefinition> findContainableInPropertyHolder(
                                         BoxOrganizationUnit.class, iph.getId()));
             }
             else
             {
                 tipProprietaInArea
                         .addAll(getApplicationService()
-                                .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>> findContainableInPropertyHolder(
+                                .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>, OUPropertiesDefinition> findContainableInPropertyHolder(
                                         getClazzBox(), iph.getId()));
             }
         }
@@ -279,6 +278,8 @@ public class FormOUDynamicMetadataController
         
         EditTabOrganizationUnit editT = getApplicationService().get(
                 EditTabOrganizationUnit.class, anagraficaObjectDTO.getTabId());
+        OrganizationUnit grant = getApplicationService().get(OrganizationUnit.class,
+                anagraficaObjectDTO.getParentId());
         if (anagraficaObjectDTO.getNewTabId() != null)
         {
             exitPage += "&tabId=" + anagraficaObjectDTO.getNewTabId();
@@ -286,18 +287,13 @@ public class FormOUDynamicMetadataController
         else
         {
             exitPage = "redirect:/cris/ou/"
-                    + ResearcherPageUtils.getPersistentIdentifier(anagraficaObjectDTO
-                                    .getParentId(), OrganizationUnit.class) + "/"
-                    + editT.getShortName().substring(4) + ".html";
+                    + grant.getCrisID();
         }
         if (request.getParameter("cancel") != null)
         {
             return new ModelAndView(exitPage);
         }
         
-        
-        OrganizationUnit grant = getApplicationService().get(OrganizationUnit.class,
-                anagraficaObjectDTO.getParentId());
         OUAdditionalFieldStorage myObject = grant.getDynamicField();
         
         List<BoxOrganizationUnit> propertyHolders = new LinkedList<BoxOrganizationUnit>();
@@ -321,7 +317,7 @@ public class FormOUDynamicMetadataController
 
             tipProprietaInArea
                     .addAll(getApplicationService()
-                            .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>> findContainableInPropertyHolder(
+                            .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>, OUPropertiesDefinition> findContainableInPropertyHolder(
                                     getClazzBox(), iph.getId()));
 
         }
@@ -397,7 +393,7 @@ public class FormOUDynamicMetadataController
 
             tipProprietaInArea
                     .addAll(getApplicationService()
-                            .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>> findContainableInPropertyHolder(
+                            .<BoxOrganizationUnit, it.cilea.osd.jdyna.web.Tab<BoxOrganizationUnit>, OUPropertiesDefinition> findContainableInPropertyHolder(
                                     getClazzBox(), iph.getId()));
 
         }

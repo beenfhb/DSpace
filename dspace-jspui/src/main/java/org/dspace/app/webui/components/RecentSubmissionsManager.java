@@ -7,19 +7,21 @@
  */
 package org.dspace.app.webui.components;
 
-import org.dspace.core.Context;
-import org.dspace.content.DSpaceObject;
-import org.dspace.browse.BrowseEngine;
-import org.dspace.browse.BrowserScope;
-import org.dspace.browse.BrowseIndex;
-import org.dspace.browse.BrowseInfo;
-import org.dspace.browse.BrowseException;
-import org.dspace.sort.SortOption;
-import org.dspace.sort.SortException;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.content.Item;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.browse.BrowseEngine;
+import org.dspace.browse.BrowseException;
+import org.dspace.browse.BrowseIndex;
+import org.dspace.browse.BrowseInfo;
+import org.dspace.browse.BrowserScope;
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
 
 /**
  * Class that obtains recent submissions to DSpace containers.
@@ -33,6 +35,8 @@ public class RecentSubmissionsManager
 	
 	/** DSpace context */
 	private Context context;
+	
+	private String indexName = "bi_item";
 	
 	/**
 	 * Construct a new RecentSubmissionsManager with the given DSpace context
@@ -65,10 +69,32 @@ public class RecentSubmissionsManager
 			String source = ConfigurationManager.getProperty("recent.submissions.sort-option");
 			String count = ConfigurationManager.getProperty("recent.submissions.count");
 			
-			// prep our engine and scope
-			BrowseEngine be = new BrowseEngine(context);
+			// prep our engine and scope			
 			BrowserScope bs = new BrowserScope(context);
-			BrowseIndex bi = BrowseIndex.getItemBrowseIndex();
+			bs.setUserLocale(context.getCurrentLocale().getLanguage());
+			BrowseIndex bi = null; 
+			if("bi_item".equals(this.indexName)) {        
+			    bi = BrowseIndex.getItemBrowseIndex();
+			}
+			else {
+			    bi = BrowseIndex.getBrowseIndex(indexName);
+			}
+			
+            boolean isMultilanguage = DSpaceServicesFactory.getInstance()
+                    .getConfigurationService()
+                    .getPropertyAsType(
+                            "discovery.browse.authority.multilanguage."
+                                    + bi.getName(),
+                            DSpaceServicesFactory.getInstance()
+                                    .getConfigurationService()
+                                    .getPropertyAsType(
+                                            "discovery.browse.authority.multilanguage",
+                                            new Boolean(false)),
+                            false);
+            
+            // gather & add items to the feed.
+            BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
+                    bs.getUserLocale():null);
 			
 			// fill in the scope with the relevant gubbins
 			bs.setBrowseIndex(bi);
@@ -88,7 +114,7 @@ public class RecentSubmissionsManager
 			
 			BrowseInfo results = be.browseMini(bs);
 			
-			Item[] items = results.getItemResults(context);
+			List items = results.getItemResults(context);
 			
 			RecentSubmissions rs = new RecentSubmissions(items);
 			
@@ -105,5 +131,15 @@ public class RecentSubmissionsManager
 			throw new RecentSubmissionsException(e);
 		}
 	}
+
+    public String getIndexName()
+    {
+        return indexName;
+    }
+
+    public void setIndexName(String indexName)
+    {
+        this.indexName = indexName;
+    }
 	
 }

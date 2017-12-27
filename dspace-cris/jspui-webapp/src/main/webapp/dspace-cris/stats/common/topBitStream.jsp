@@ -44,7 +44,7 @@
 	</div>
 	<div id="statstab-content-id" class="statstab-content-item">
                 <c:set var="pieType" >id</c:set>
-                <stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useLocalMap="true"/>
+                <stats:piewithtable mostViewedItem="true" data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useLocalMap="true"/>
 	</div>
 	<div id="statstab-content-time" class="statstab-content-item">
                 <%@include file="time.jsp"%> 
@@ -75,6 +75,29 @@ j(document).ready(function() {
                j("li.ui-state-default").toggleClass("ui-state-default ui-corner-top");
                j("div.ui-tabs-panel").toggleClass("ui-tabs-panel ui-widget-content ui-corner-bottom tab-content with-padding");
         }
+	});
+	
+	j(".datatable-mostviewed")
+	.dataTable({
+				dom : "<'pull-left'f><'pull-right'B>rtip",
+				searching : true,
+				info : false,
+				paging : false,
+				ordering : true,
+				order: [[ 1, "desc" ]],
+				aoColumnDefs: [
+					{ bSortable: false, aTargets: [ 0 ] }
+				],
+				buttons : [
+						{
+							extend : 'excelHtml5',								
+							text : '<i class="fa fa-file-excel-o"></i> Download Excel'
+						},
+						{
+							extend : 'csvHtml5',
+							text : '<i class="fa fa-file-text-o"></i> Download CSV'
+						}
+				]					
 	});
 });
 -->

@@ -11,6 +11,7 @@
   - Display the results of browsing a full hit list
   --%>
 
+<%@page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -26,6 +27,7 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.dspace.content.DCDate" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="org.dspace.eperson.EPerson" %>
 
 <c:set var="dspace.layout.head" scope="request">
 <script type="text/javascript">
@@ -45,84 +47,108 @@ function sortBy(idx, ord)
     String layoutNavbar = "default";
     boolean withdrawn = false;
     boolean privateitems = false;
-	if (request.getAttribute("browseWithdrawn") != null)
-	{
-	    layoutNavbar = "admin";
+
+    // Is the logged in user an admin or community admin or collection admin
+    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    boolean isAdmin = (admin == null ? false : admin.booleanValue());
+
+    Boolean communityAdmin = (Boolean)request.getAttribute("is.communityAdmin");
+    boolean isCommunityAdmin = (communityAdmin == null ? false : communityAdmin.booleanValue());
+
+    Boolean collectionAdmin = (Boolean)request.getAttribute("is.collectionAdmin");
+    boolean isCollectionAdmin = (collectionAdmin == null ? false : collectionAdmin.booleanValue());
+
+    if (request.getAttribute("browseWithdrawn") != null)
+    {
+        layoutNavbar = "admin";
         urlFragment = "dspace-admin/withdrawn";
         withdrawn = true;
+
+        if(!isAdmin && (isCommunityAdmin || isCollectionAdmin))
+        {
+            layoutNavbar = "community-or-collection-admin";
+        }
     }
-	else if (request.getAttribute("browsePrivate") != null)
-	{
-	    layoutNavbar = "admin";
+    else if (request.getAttribute("browsePrivate") != null)	
+    {
+        layoutNavbar = "admin";
         urlFragment = "dspace-admin/privateitems";
         privateitems = true;
+
+        if(!isAdmin && (isCommunityAdmin || isCollectionAdmin))
+        {
+            layoutNavbar = "community-or-collection-admin";
+        }
     }
 
-	// First, get the browse info object
-	BrowseInfo bi = (BrowseInfo) request.getAttribute("browse.info");
-	BrowseIndex bix = bi.getBrowseIndex();
-	SortOption so = bi.getSortOption();
+        // First, get the browse info object
+        BrowseInfo bi = (BrowseInfo) request.getAttribute("browse.info");
+        BrowseIndex bix = bi.getBrowseIndex();
+        SortOption so = bi.getSortOption();
 
-	// values used by the header
-	String scope = "";
-	String type = "";
-	String value = "";
+        // values used by the header
+        String scope = "";
+        String type = "";
+        String value = "";
+	String humanValue = "";
 	
-	Community community = null;
-	Collection collection = null;
-	if (bi.inCommunity())
-	{
-		community = (Community) bi.getBrowseContainer();
-	}
-	if (bi.inCollection())
-	{
-		collection = (Collection) bi.getBrowseContainer();
-	}
+        Community community = null;
+        Collection collection = null;
+        if (bi.inCommunity())
+        {
+                community = (Community) bi.getBrowseContainer();
+        }
+        if (bi.inCollection())
+        {
+                collection = (Collection) bi.getBrowseContainer();
+        }
 	
-	if (community != null)
-	{
-		scope = "\"" + community.getMetadata("name") + "\"";
-	}
-	if (collection != null)
-	{
-		scope = "\"" + collection.getMetadata("name") + "\"";
-	}
+        if (community != null)
+        {
+                scope = "\"" + community.getName() + "\"";
+        }
+        if (collection != null)
+        {
+                scope = "\"" + collection.getName() + "\"";
+        }
 	
-	type = bix.getName();
+        type = bix.getName();
 	
-	// next and previous links are of the form:
-	// [handle/<prefix>/<suffix>/]browse?type=<type>&sort_by=<sort_by>&order=<order>[&value=<value>][&rpp=<rpp>][&[focus=<focus>|vfocus=<vfocus>]
+        // next and previous links are of the form:
+        // [handle/<prefix>/<suffix>/]browse?type=<type>&sort_by=<sort_by>&order=<order>[&value=<value>][&rpp=<rpp>][&[focus=<focus>|vfocus=<vfocus>]
 	
-	// prepare the next and previous links
-	String linkBase = request.getContextPath() + "/";
-	if (collection != null)
-	{
-		linkBase = linkBase + "handle/" + collection.getHandle() + "/";
-	}
-	if (community != null)
-	{
-		linkBase = linkBase + "handle/" + community.getHandle() + "/";
-	}
+        // prepare the next and previous links
+        String linkBase = request.getContextPath() + "/";
+        if (collection != null)
+        {
+                linkBase = linkBase + "handle/" + collection.getHandle() + "/";
+        }
+        if (community != null)
+        {
+                linkBase = linkBase + "handle/" + community.getHandle() + "/";
+        }
 	
-	String direction = (bi.isAscending() ? "ASC" : "DESC");
+        String direction = (bi.isAscending() ? "ASC" : "DESC");
 	
-	String argument = null;
-	if (bi.hasAuthority())
+        String argument = null;
+        if (bi.hasAuthority())
     {
         value = bi.getAuthority();
+        humanValue = (String) request.getAttribute("humanValue");
         argument = "authority";
     }
 	else if (bi.hasValue())
 	{
 		value = bi.getValue();
+		humanValue = value;
 	    argument = "value";
 	}
 
-	String valueString = "";
-	if (value!=null)
-	{
-		valueString = "&amp;" + argument + "=" + URLEncoder.encode(value, "UTF-8");
-	}
+        String valueString = "";
+        if (value!=null)
+        {
+                valueString = "&amp;" + argument + "=" + URLEncoder.encode(value, "UTF-8");
+        }
 	
     String sharedLink = linkBase + urlFragment + "?";
 
@@ -130,71 +156,136 @@ function sortBy(idx, ord)
         sharedLink += "type=" + URLEncoder.encode(bix.getName(), "UTF-8");
 
     sharedLink += "&amp;sort_by=" + URLEncoder.encode(Integer.toString(so.getNumber()), "UTF-8") +
-				  "&amp;order=" + URLEncoder.encode(direction, "UTF-8") +
-				  "&amp;rpp=" + URLEncoder.encode(Integer.toString(bi.getResultsPerPage()), "UTF-8") +
-				  "&amp;etal=" + URLEncoder.encode(Integer.toString(bi.getEtAl()), "UTF-8") +
-				  valueString;
+                                  "&amp;order=" + URLEncoder.encode(direction, "UTF-8") +
+                                  "&amp;rpp=" + URLEncoder.encode(Integer.toString(bi.getResultsPerPage()), "UTF-8") +
+                                  "&amp;etal=" + URLEncoder.encode(Integer.toString(bi.getEtAl()), "UTF-8") +
+                                  valueString;
 	
-	String next = sharedLink;
-	String prev = sharedLink;
+        String next = sharedLink;
+        String prev = sharedLink;
 	
-	if (bi.hasNextPage())
+        if (bi.hasNextPage())
     {
         next = next + "&amp;offset=" + bi.getNextOffset();
     }
 	
-	if (bi.hasPrevPage())
+        if (bi.hasPrevPage())
     {
         prev = prev + "&amp;offset=" + bi.getPrevOffset();
     }
 	
-	// prepare a url for use by form actions
-	String formaction = request.getContextPath() + "/";
-	if (collection != null)
-	{
-		formaction = formaction + "handle/" + collection.getHandle() + "/";
-	}
-	if (community != null)
-	{
-		formaction = formaction + "handle/" + community.getHandle() + "/";
-	}
-	formaction = formaction + urlFragment;
+        // prepare a url for use by form actions
+        String formaction = request.getContextPath() + "/";
+        if (collection != null)
+        {
+                formaction = formaction + "handle/" + collection.getHandle() + "/";
+        }
+        if (community != null)
+        {
+                formaction = formaction + "handle/" + community.getHandle() + "/";
+        }
+        formaction = formaction + urlFragment;
 	
-	// prepare the known information about sorting, ordering and results per page
-	String sortedBy = so.getName();
-	String ascSelected = (bi.isAscending() ? "selected=\"selected\"" : "");
-	String descSelected = (bi.isAscending() ? "" : "selected=\"selected\"");
-	int rpp = bi.getResultsPerPage();
+        // prepare the known information about sorting, ordering and results per page
+        String sortedBy = so.getName();
+        String ascSelected = (bi.isAscending() ? "selected=\"selected\"" : "");
+        String descSelected = (bi.isAscending() ? "" : "selected=\"selected\"");
+        int rpp = bi.getResultsPerPage();
 	
-	// the message key for the type
-	String typeKey;
+        // the message key for the type
+        String typeKey;
+	String startWithKey;
+	String jumpKey;
 
-	if (bix.isMetadataIndex())
+	if (bix.isMetadataIndex()) {
 		typeKey = "browse.type.metadata." + bix.getName();
-	else if (bi.getSortOption() != null)
+		startWithKey = "browse.nav.enter." + bix.getName();
+		jumpKey = "browse.nav.jump." + bix.getName();
+	}
+	else if (bi.getSortOption() != null) {
 		typeKey = "browse.type.item." + bi.getSortOption().getName();
-	else
+		startWithKey = "browse.nav.enter." + bi.getSortOption().getName();
+		jumpKey = "browse.nav.jump." + bi.getSortOption().getName();
+	}
+	else {
 		typeKey = "browse.type.item." + bix.getSortOption().getName();
+		startWithKey = "browse.nav.enter." + bix.getSortOption().getName();
+		jumpKey = "browse.nav.jump." + bix.getSortOption().getName();
+	}
 
     // Admin user or not
     Boolean admin_b = (Boolean)request.getAttribute("admin_button");
     boolean admin_button = (admin_b == null ? false : admin_b.booleanValue());
+    
+    EPerson user = (EPerson) request.getAttribute("dspace.current.user");    
+	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
+	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
+	String[] cfg = ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options");
+	
+	boolean exportBiblio = false;
+	if(exportBiblioEnabled && ( exportBiblioAll || user!=null) ){
+		exportBiblio = true;
+	}
+	String inputBiblio =null;
+    
 %>
 
 <%-- OK, so here we start to develop the various components we will use in the UI --%>
 
 <%@page import="java.util.Set"%>
-<dspace:layout titlekey="browse.page-title" navbar="<%=layoutNavbar %>">
+<c:set var="fmtkey">
+ jsp.layout.navbar-default.cris.${location}
+</c:set>
+<c:set var="locbarType"><c:choose><c:when test="${location eq null}"><c:set var="fmtkey"></c:set></c:when><c:otherwise>link</c:otherwise></c:choose></c:set>
+<dspace:layout titlekey="browse.page-title" locbar="${locbarType}" parenttitlekey="${fmtkey}" parentlink="/cris/explore/${location}" navbar="<%=layoutNavbar %>">
+<script type="text/javascript">
+<!--
 
+jQuery(document).ready(function() {
+	jQuery("#item_idchecker").click(function() {
+		var inputbutton = jQuery(this).prop('id');
+		var var1 = jQuery(this).data('checkboxname');
+		var inputstatus = jQuery('#'+inputbutton).prop( "checked");
+		jQuery("input[name*='"+var1+"']").prop('checked', inputstatus);
+		jQuery('#submit_export').attr('disabled', !inputstatus);
+	});
+	
+	var checkboxes = jQuery("input[type='checkbox']"), submitButt = jQuery("#export-submit-button"), radio = jQuery("input[type='radio']");
+	
+	radio.click(function() {
+		if('refworks'==jQuery(this).prop('id')) {
+			jQuery('#email').attr("checked", false);
+			jQuery('#email').attr("disabled", true);
+		} else {
+			jQuery('#email').attr("disabled", false);
+		}
+	});
+	
+	checkboxes.click(function() {
+		if('email'==jQuery(this).prop('id')) {
+			//NOTHING TO DO	
+		}
+		else {
+			submitButt.attr("disabled", !checkboxes.is(":checked"));	
+		}		
+	});
+});
+-->
+
+</script>
 	<%-- Build the header (careful use of spacing) --%>
 	<h2>
-		<fmt:message key="browse.full.header"><fmt:param value="<%= scope %>"/></fmt:message> <fmt:message key="<%= typeKey %>"/> <%= value %>
+		<fmt:message key="browse.full.header"><fmt:param value="<%= scope %>"/></fmt:message> <fmt:message key="<%= typeKey %>"/> 
+			<% if (StringUtils.isNotBlank(humanValue)) { %><i class="fa fa-chevron-right"></i> <%= humanValue %> <% } %>
 	</h2>
 
+<% if (!bi.hasPrevPage() && !bi.hasNextPage()) { %>
+<div class="hidden">
+<% } %>
 	<%-- Include the main navigation for all the browse pages --%>
 	<%-- This first part is where we render the standard bits required by both possibly navigations --%>
 	<div id="browse_navigation" class="well text-center">
-	<form id="sortform" method="get" action="<%= formaction %>">
+	<form id="sortform" class="form-inline" method="get" action="<%= formaction %>">
 <input type="hidden" name="type" value="<%= bix.getName() %>"/>
 <%
                 if (bi.hasAuthority())
@@ -229,7 +320,7 @@ function sortBy(idx, ord)
                 <input type="hidden" id="sorder" name="order" value="<%= direction %>" />
 </form>
 
-	<form method="get" action="<%= formaction %>">
+	<form class="form-inline" method="get" action="<%= formaction %>">
 			<input type="hidden" name="type" value="<%= bix.getName() %>"/>
 			<input type="hidden" name="sort_by" value="<%= so.getNumber() %>"/>
 			<input type="hidden" name="order" value="<%= direction %>"/>
@@ -292,7 +383,16 @@ function sortBy(idx, ord)
 	else
 	{
 %>	
-		<span><fmt:message key="browse.nav.jump"/></span>
+	
+	<label for="starts_with" class="sr-only">
+		<fmt:message key="<%= startWithKey %>"/>
+	</label>
+	<input class="form-control" type="text" name="starts_with" size="60" 
+		placeholder="<fmt:message key="<%= startWithKey %>"/>" />
+	<input type="submit" class="btn btn-default" value="<fmt:message key="browse.nav.go"/>" />
+	<br/>	    					
+		<span><fmt:message key="<%= jumpKey %>"/></span>
+	<br/>
 	                        <a class="label label-default" href="<%= sharedLink %>&amp;starts_with=0">0-9</a>
 <%
 	    for (char c = 'A'; c <= 'Z'; c++)
@@ -301,19 +401,17 @@ function sortBy(idx, ord)
 	                        <a class="label label-default" href="<%= sharedLink %>&amp;starts_with=<%= c %>"><%= c %></a>
 <%
 	    }
-%><br/>
-	    					<span><fmt:message key="browse.nav.enter"/></span>
-	    					<input type="text" name="starts_with"/>&nbsp;<input type="submit" class="btn btn-default" value="<fmt:message key="browse.nav.go"/>" />
-<%
 	}
 %>
 	</form>
 	</div>
 	<%-- End of Navigation Headers --%>
-
+<% if (!bi.hasPrevPage() && !bi.hasNextPage()) { %>
+</div>
+<% } %>
 	<%-- Include a component for modifying sort by, order, results per page, and et-al limit --%>
 	<div id="browse_controls" class="well text-center">
-	<form method="get" action="<%= formaction %>">
+	<form class="form-inline" method="get" action="<%= formaction %>">
 		<input type="hidden" name="type" value="<%= bix.getName() %>"/>
 <%
 		if (bi.hasAuthority())
@@ -346,7 +444,7 @@ function sortBy(idx, ord)
 	{
 %>
 		<label for="sort_by"><fmt:message key="browse.full.sort-by"/></label>
-		<select name="sort_by">
+		<select class="form-control" name="sort_by">
 <%
 		for (SortOption sortBy : sortOptions)
 		{
@@ -360,16 +458,23 @@ function sortBy(idx, ord)
 %>
 		</select>
 <%
+	} else if (sortOptions.size() == 1) {
+		for (SortOption sortBy : sortOptions)
+		{
+		%>
+		<input type="hidden" name="sort_by" value="<%= sortBy.getNumber() %>" />
+		<%
+		}
 	}
 %>
 		<label for="order"><fmt:message key="browse.full.order"/></label>
-		<select name="order">
+		<select class="form-control" name="order">
 			<option value="ASC" <%= ascSelected %>><fmt:message key="browse.order.asc" /></option>
 			<option value="DESC" <%= descSelected %>><fmt:message key="browse.order.desc" /></option>
 		</select>
 
 		<label for="rpp"><fmt:message key="browse.full.rpp"/></label>
-		<select name="rpp">
+		<select class="form-control" name="rpp">
 <%
 	for (int i = 5; i <= 100 ; i += 5)
 	{
@@ -475,11 +580,43 @@ function sortBy(idx, ord)
 	</div>
 	
     <%-- output the results using the browselist tag --%>
+    
     <%
+	if (exportBiblio) {
+		inputBiblio="item_id";
+%>
+
+		<form target="blank" class="form-inline"  id="exportform" action="<%= request.getContextPath() %>/references">
+
+		<div id="export-biblio-panel">
+	<%		
+		if (cfg == null)
+		{
+			cfg = new String[]{"refman", "endnote", "bibtex", "refworks"};
+		}
+		
+		for (String format : cfg) {
+	%>
+		<c:set var="format"><%= format %></c:set>	    
+		<label class="radio-inline">
+    		  <input id="${format}" type="radio" name="format" value="${format}" <c:if test="${format=='bibtex'}"> checked="checked"</c:if>/><fmt:message key="exportcitation.option.${format}" />
+	    </label>
+		
+	<% 		}
+	  %>
+		<label class="checkbox-inline">
+			<input type="checkbox" id="email" name="email" value="true"/><fmt:message key="exportcitation.option.email" />
+		</label>
+			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
+		</div>
+	<%
+	 	}
+    
     	if (bix.isMetadataIndex())
     	{
     %>
-	<dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getMetadata() %>" />
+    
+	<dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getMetadata() %>"  inputName="<%= inputBiblio %>" />
     <%
         }
         else if (withdrawn || privateitems)
@@ -491,10 +628,16 @@ function sortBy(idx, ord)
     	else
     	{
 	%>
-	<dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getSortOption().getMetadata() %>" />
+	<dspace:browselist browseInfo="<%= bi %>" emphcolumn="<%= bix.getSortOption().getMetadata() %>" inputName="<%= inputBiblio %>"/>
 	<%
     	}
-	%>
+  
+	if (exportBiblio ) {
+	%>	
+
+	</form>
+	<% }%>
+	
 	<%-- give us the bottom report on what we are looking at --%>
 	<div class="panel-footer text-center">
 		<fmt:message key="browse.full.range">

@@ -38,7 +38,7 @@
 		<property name="alias" value="project" />
 		<property name="metadata">
 			<list>
-				<value>dc.authority.project</value>
+				<value>dc.relation</value>
 			</list>
 		</property>
 		<property name="clazz">
@@ -164,4 +164,34 @@
 		</property>
 	</bean>
 	
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="fulltext" />
+		<property name="metadata">
+			<list>
+				<value>placeholder.placeholder.placeholder</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>				
+			    <ref bean="enhancerFulltext"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="grantfulltext" />
+		<property name="metadata">
+			<list>
+				<value>placeholder.placeholder.placeholder</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>				
+			    <ref bean="enhancerPermissionFulltext"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean name="enhancerFulltext" class="org.dspace.content.integration.defaultvalues.FulltextInfoGenerator"/>
+	<bean name="enhancerPermissionFulltext" class="org.dspace.content.integration.defaultvalues.FulltextPermissionGenerator"/>
 </beans>

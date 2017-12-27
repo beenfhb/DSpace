@@ -9,6 +9,7 @@ package org.dspace.app.cris.model.dto;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.collections.FactoryUtils;
 import org.apache.commons.collections.list.LazyList;
@@ -25,7 +26,7 @@ public class RPAnagraficaObjectDTO extends CrisAnagraficaObjectDTO
      */
     protected final Log log = LogFactory.getLog(getClass());
 
-    private Integer epersonID;
+    private UUID epersonID;
 
     private String fullName;
 
@@ -185,12 +186,12 @@ public class RPAnagraficaObjectDTO extends CrisAnagraficaObjectDTO
         return lazyList;
     }
 
-    public void setEpersonID(Integer epersonID)
+    public void setEpersonID(UUID epersonID)
     {
         this.epersonID = epersonID;
     }
 
-    public Integer getEpersonID()
+    public UUID getEpersonID()
     {
         return epersonID;
     }

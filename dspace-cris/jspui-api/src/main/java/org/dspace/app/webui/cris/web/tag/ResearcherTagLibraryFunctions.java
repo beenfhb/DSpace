@@ -53,6 +53,9 @@ import org.dspace.app.cris.model.jdyna.BoxProject;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
 import org.dspace.app.cris.model.jdyna.DecoratorRPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPTypeNested;
+import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.ProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.RPNestedObject;
 import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
@@ -264,7 +267,7 @@ public class ResearcherTagLibraryFunctions
 
                     for (String compp : comp.keySet())
                     {
-                        if (component.count(comp.get(compp)
+                        if (component.count(null, comp.get(compp)
                                 .getComponentIdentifier(), anagrafica.getId()) > 0)
                         {
                             return false;
@@ -298,7 +301,7 @@ public class ResearcherTagLibraryFunctions
 
                     for (String compp : comp.keySet())
                     {
-                        if (component.count(comp.get(compp)
+                        if (component.count(null, comp.get(compp)
                                 .getComponentIdentifier(), anagrafica.getId()) > 0)
                         {
                             return false;
@@ -331,7 +334,7 @@ public class ResearcherTagLibraryFunctions
 
                     for (String compp : comp.keySet())
                     {
-                        if (component.count(comp.get(compp)
+                        if (component.count(null, comp.get(compp)
                                 .getComponentIdentifier(), anagrafica.getId()) > 0)
                         {
                             return false;
@@ -364,7 +367,7 @@ public class ResearcherTagLibraryFunctions
 
                     for (String compp : comp.keySet())
                     {
-                        if (component.count(comp.get(compp)
+                        if (component.count(null, comp.get(compp)
                                 .getComponentIdentifier(), anagrafica.getId()) > 0)
                         {
                             return false;
@@ -581,9 +584,10 @@ public class ResearcherTagLibraryFunctions
             String tempKey = temp[i][0];
             String year = tempKey.substring(0, 4);
             String month = tempKey.substring(5, 7);
-            String key = Integer.parseInt(month) < 7 ? String.valueOf(Integer
-                    .parseInt(year) - 1) + "/" + year : year + "/"
-                    + String.valueOf(Integer.parseInt(year) + 1);
+            String key = year;
+//            String key = Integer.parseInt(month) < 7 ? String.valueOf(Integer
+//                    .parseInt(year) - 1) + "/" + year : year + "/"
+//                    + String.valueOf(Integer.parseInt(year) + 1);
             if (!tempMap.containsKey(key))
             {
                 final ArrayList<String> list = new ArrayList<String>();
@@ -863,5 +867,46 @@ public class ResearcherTagLibraryFunctions
     {
         return applicationService.getNestedObjectsByParentIDAndShortname(id,
                 typoNested, nestedClass);
+    }
+    
+    public static <TP extends PropertiesDefinition, P extends Property<TP>> TP getPropertiesDefinition(Class<TP> clazz, String shortName)
+    {
+        return applicationService.findPropertiesDefinitionByShortName(clazz, shortName);
+    }
+    
+    public static <TP extends PropertiesDefinition, P extends Property<TP>> String getPropertyDefinitionLabel(String specificPart, String shortName) throws ClassNotFoundException
+    {
+        TP pd = null;
+        Class<TP> clazz = null;
+        switch (specificPart)
+        {
+        case "rp":
+            clazz = (Class<TP>)RPPropertiesDefinition.class;
+            break;
+        case "project":
+            clazz = (Class<TP>)ProjectPropertiesDefinition.class;
+            break;
+        case "ou":
+            clazz = (Class<TP>)OUPropertiesDefinition.class;
+            break;        
+        default:
+            clazz = (Class<TP>)DynamicPropertiesDefinition.class;
+            break;
+        }
+        pd = applicationService.findPropertiesDefinitionByShortName(clazz, shortName);
+        if(pd != null) {
+            return pd.getLabel();
+        }
+        return null;
+    }
+    
+    public static Object getPropertyDefinitionI18N(Object pd, String locale) {
+    	if (pd instanceof PropertiesDefinition) {
+    		return PropertyDefintionI18NWrapper.getWrapper((PropertiesDefinition) pd, locale);
+    	}
+    	else if (pd instanceof ADecoratorPropertiesDefinition) {
+    		return PropertyDefintionI18NWrapper.getWrapper((ADecoratorPropertiesDefinition) pd, locale);
+    	} 
+    	return pd;
     }
 }

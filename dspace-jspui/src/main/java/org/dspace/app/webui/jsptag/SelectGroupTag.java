@@ -42,7 +42,7 @@ public class SelectGroupTag extends TagSupport
 	private boolean multiple;
 	
 	/** Which groups are initially in the list? */
-	private transient Group[] groups;
+	private Group[] groups;
 
     private static final long serialVersionUID = -3330389128849427302L; 
 
@@ -89,6 +89,7 @@ public class SelectGroupTag extends TagSupport
 	}
 
 	
+    @Override
 	public void release()
 	{
 		multiple = false;
@@ -96,6 +97,7 @@ public class SelectGroupTag extends TagSupport
 	}
 
 
+    @Override
 	public int doStartTag()
 		throws JspException
 	{
@@ -125,7 +127,7 @@ public class SelectGroupTag extends TagSupport
 			}
 			
 			out.print("</select>");
-			out.print("<br/><div class=\"row container\">");
+			out.print("<br/><div role=\"group\">");
             String p = (multiple ? 
                     LocaleSupport.getLocalizedMessage(pageContext,
                             "org.dspace.app.webui.jsptag.SelectGroupTag.selectGroups")
@@ -134,17 +136,17 @@ public class SelectGroupTag extends TagSupport
             
             if (multiple)
 			{
-                out.print("<input class=\"btn btn-danger\" type=\"button\" value=\""
+                out.print("<input class=\"col-xs-12 col-sm-6 btn btn-danger\" type=\"button\" value=\""
                             + LocaleSupport.getLocalizedMessage(pageContext,
                                 "org.dspace.app.webui.jsptag.SelectGroupTag.removeSelected")
                                 + "\" onclick=\"javascript:removeSelected(window.document.epersongroup.group_ids);\"/>");
 			}
-            
-            out.print("<input class=\"btn btn-primary pull-right\" type=\"button\" value=\"" + p 
+            out.print("<input class=\"col-xs-12 col-sm-6 btn btn-primary\" type=\"button\" value=\"" + p 
                             + "\" onclick=\"javascript:popup_window('"
                             + req.getContextPath() + "/tools/group-select-list?multiple=" 
                             + multiple + "', 'group_popup');\" />");
             out.print("</div>");
+            
 		}
 		catch (IOException ie)
 		{

@@ -7,11 +7,6 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
-import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
-import it.cilea.osd.jdyna.model.AnagraficaObject;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,15 +31,19 @@ import org.dspace.app.cris.model.jdyna.ProjectProperty;
 import org.dspace.app.cris.model.jdyna.TabProject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
+import it.cilea.osd.jdyna.model.AnagraficaObject;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 public class FormProjectDynamicMetadataController
         extends
@@ -68,7 +67,7 @@ public class FormProjectDynamicMetadataController
         // check admin authorization
         boolean isAdmin = false;
         Context context = UIUtil.obtainContext(request);
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             isAdmin = true;
         }
@@ -134,7 +133,7 @@ public class FormProjectDynamicMetadataController
         for (BoxProject iph : propertyHoldersCurrentAccessLevel)
         {
             List<IContainable> temp = getApplicationService()
-                    .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>> findContainableInPropertyHolder(
+                    .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>, ProjectPropertiesDefinition> findContainableInPropertyHolder(
                             getClazzBox(), iph.getId());
             mapBoxToContainables.put(iph.getShortName(), temp);
             pDInTab.addAll(temp);
@@ -166,7 +165,7 @@ public class FormProjectDynamicMetadataController
         }
         Project grant = getApplicationService().get(Project.class, id);
         Context context = UIUtil.obtainContext(request);
-        if (!AuthorizeManager.isAdmin(context))
+        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             throw new AuthorizeException("Only system admin can edit");
         }
@@ -191,7 +190,7 @@ public class FormProjectDynamicMetadataController
             else
             {
                 EditTabProject fuzzyEditTab = (EditTabProject) ((ApplicationService) getApplicationService())
-                        .<BoxProject, TabProject, EditTabProject>getEditTabByDisplayTab(
+                        .<BoxProject, TabProject, EditTabProject, ProjectPropertiesDefinition>getEditTabByDisplayTab(
                                 Integer.parseInt(paramFuzzyTabId),
                                 EditTabProject.class);
                 areaId = fuzzyEditTab.getId();
@@ -226,14 +225,14 @@ public class FormProjectDynamicMetadataController
             {
                 tipProprietaInArea
                         .addAll(getApplicationService()
-                                .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>> findContainableInPropertyHolder(
+                                .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>, ProjectPropertiesDefinition> findContainableInPropertyHolder(
                                         BoxProject.class, iph.getId()));
             }
             else
             {
                 tipProprietaInArea
                         .addAll(getApplicationService()
-                                .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>> findContainableInPropertyHolder(
+                                .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>, ProjectPropertiesDefinition> findContainableInPropertyHolder(
                                         getClazzBox(), iph.getId()));
             }
         }
@@ -278,25 +277,22 @@ public class FormProjectDynamicMetadataController
         
         EditTabProject editT = getApplicationService().get(
                 EditTabProject.class, anagraficaObjectDTO.getTabId());
+
+        Project grant = getApplicationService().get(Project.class,
+                anagraficaObjectDTO.getParentId());
         if (anagraficaObjectDTO.getNewTabId() != null)
         {
             exitPage += "&tabId=" + anagraficaObjectDTO.getNewTabId();
         }
         else
         {
-            exitPage = "redirect:/cris/project/"
-                    + ResearcherPageUtils.getPersistentIdentifier(anagraficaObjectDTO
-                                    .getParentId(), Project.class) + "/"
-                    + editT.getShortName().substring(4) + ".html";
+            exitPage = "redirect:/cris/project/"+ grant.getCrisID();
         }
         if (request.getParameter("cancel") != null)
         {
             return new ModelAndView(exitPage);
         }
         
-        
-        Project grant = getApplicationService().get(Project.class,
-                anagraficaObjectDTO.getParentId());
         ProjectAdditionalFieldStorage myObject = grant.getDynamicField();
         
         List<BoxProject> propertyHolders = new LinkedList<BoxProject>();
@@ -320,7 +316,7 @@ public class FormProjectDynamicMetadataController
 
             tipProprietaInArea
                     .addAll(getApplicationService()
-                            .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>> findContainableInPropertyHolder(
+                            .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>, ProjectPropertiesDefinition> findContainableInPropertyHolder(
                                     getClazzBox(), iph.getId()));
 
         }
@@ -396,7 +392,7 @@ public class FormProjectDynamicMetadataController
 
             tipProprietaInArea
                     .addAll(getApplicationService()
-                            .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>> findContainableInPropertyHolder(
+                            .<BoxProject, it.cilea.osd.jdyna.web.Tab<BoxProject>, ProjectPropertiesDefinition> findContainableInPropertyHolder(
                                     getClazzBox(), iph.getId()));
 
         }

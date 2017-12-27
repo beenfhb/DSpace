@@ -22,29 +22,41 @@
   -                  appear yet.  If this is omitted, the item display won't
   -                  display any collections.
   -    admin_button - Boolean, show admin 'edit' button
+  -    submitter_button - Boolean, show submitter "new version" button
   --%>
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@page contentType="text/html;charset=UTF-8" %>
 
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
+<%@taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
-<%@ page import="org.dspace.content.Collection" %>
-<%@ page import="org.dspace.content.Metadatum" %>
-<%@ page import="org.dspace.content.Item" %>
-<%@ page import="org.dspace.core.ConfigurationManager" %>
-<%@ page import="org.dspace.handle.HandleManager" %>
-<%@ page import="org.dspace.license.CreativeCommons" %>
+<%@page import="org.apache.commons.lang.StringUtils"%>
+<%@page import="org.dspace.content.Collection" %>
+<%@page import="org.dspace.content.Item" %>
+<%@page import="org.dspace.core.ConfigurationManager" %>
+<%@page import="org.dspace.handle.HandleServiceImpl" %>
+<%@page import="org.dspace.license.CreativeCommonsServiceImpl" %>
 <%@page import="javax.servlet.jsp.jstl.fmt.LocaleSupport"%>
 <%@page import="org.dspace.versioning.Version"%>
 <%@page import="org.dspace.core.Context"%>
 <%@page import="org.dspace.app.webui.util.VersionUtil"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
-<%@page import="org.dspace.authorize.AuthorizeManager"%>
+<%@page import="org.dspace.authorize.AuthorizeServiceImpl"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dspace.core.Constants"%>
 <%@page import="org.dspace.eperson.EPerson"%>
 <%@page import="org.dspace.versioning.VersionHistory"%>
+<%@page import="org.dspace.plugin.PluginException"%>
+<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
+<%@page import="org.dspace.content.factory.ContentServiceFactory" %>
+<%@page import="org.dspace.content.IMetadataValue" %>
+<%@page import="org.dspace.content.MetadataValue" %>
+<%@page import="org.dspace.license.factory.LicenseServiceFactory" %>
+<%@page import="org.dspace.license.service.CreativeCommonsService" %>
+<%@page import="org.dspace.handle.factory.HandleServiceFactory" %>
+<%@page import="org.dspace.versioning.service.VersionHistoryService" %>
+<%@page import="org.dspace.versioning.factory.VersionServiceFactory" %>
+
 <%
     // Attributes
     Boolean displayAllBoolean = (Boolean) request.getAttribute("display.all");
@@ -52,19 +64,29 @@
     Boolean suggest = (Boolean)request.getAttribute("suggest.enable");
     boolean suggestLink = (suggest == null ? false : suggest.booleanValue());
     Item item = (Item) request.getAttribute("item");
-    Collection[] collections = (Collection[]) request.getAttribute("collections");
+    List<Collection> collections = (List<Collection>) request.getAttribute("collections");
     Boolean admin_b = (Boolean)request.getAttribute("admin_button");
     boolean admin_button = (admin_b == null ? false : admin_b.booleanValue());
-    
+    Boolean submitter_b = (Boolean) request.getAttribute("submitter_button");
+    boolean submitter_button = (submitter_b == null ? false : submitter_b.booleanValue());
     // get the workspace id if one has been passed
     Integer workspace_id = (Integer) request.getAttribute("workspace_id");
 
     // get the handle if the item has one yet
     String handle = item.getHandle();
+    Context context = UIUtil.obtainContext(request);
+    
+    // get the doi if the item has one
+    String doi = (String) request.getAttribute("doi");
+    // get the preferred identifier (as URL)
+    String preferredIdentifier = (String) request.getAttribute("preferred_identifier");
+    // get the latestVersionIdentifier
+    String latestVersionIdentifier = (String)request.getAttribute("versioning.latest_version_identifier");
 
     // CC URL & RDF
-    String cc_url = CreativeCommons.getLicenseURL(item);
-    String cc_rdf = CreativeCommons.getLicenseRDF(item);
+    CreativeCommonsService creativeCommonsService = LicenseServiceFactory.getInstance().getCreativeCommonsService();
+    String cc_url = creativeCommonsService.getLicenseURL(context, item);
+    String cc_rdf = creativeCommonsService.getLicenseRDF(context, item);
 
     // Full title needs to be put into a string to use as tag argument
     String title = "";
@@ -74,17 +96,22 @@
 	}
 	else 
 	{
-		Metadatum[] titleValue = item.getDC("title", null, Item.ANY);
-		if (titleValue.length != 0)
+		List<IMetadataValue> titleValue = ContentServiceFactory.getInstance().getItemService().getMetadata(item, "dc", "title", null, Item.ANY);
+		if (titleValue.size() != 0)
 		{
-			title = titleValue[0].value;
+			title = titleValue.get(0).getValue();
 		}
 		else
 		{
 			title = "Item " + handle;
 		}
 	}
-    Boolean pmcEnabled = ConfigurationManager.getBooleanProperty("cris","pmc.enabled",false);
+    boolean pmcEnabled = ConfigurationManager.getBooleanProperty("cris","pmc.enabled",false);
+    boolean scopusEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.elsevier.scopus.enabled",false);
+    boolean wosEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.thomsonreuters.wos.enabled",false);
+    boolean scholarEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.google.scholar.enabled",false);
+    boolean altMetricEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.enabled",false) && StringUtils.isNotBlank(doi);
+    
     Boolean versioningEnabledBool = (Boolean)request.getAttribute("versioning.enabled");
     boolean versioningEnabled = (versioningEnabledBool!=null && versioningEnabledBool.booleanValue());
     Boolean hasVersionButtonBool = (Boolean)request.getAttribute("versioning.hasversionbutton");
@@ -97,44 +124,93 @@
     Boolean showVersionWorkflowAvailableBool = (Boolean)request.getAttribute("versioning.showversionwfavailable");
     boolean showVersionWorkflowAvailable = (showVersionWorkflowAvailableBool!=null && showVersionWorkflowAvailableBool.booleanValue());
     
-    String latestVersionHandle = (String)request.getAttribute("versioning.latestversionhandle");
-    String latestVersionURL = (String)request.getAttribute("versioning.latestversionurl");
-    
+    VersionHistoryService versionHistoryService = VersionServiceFactory.getInstance().getVersionHistoryService();
     VersionHistory history = (VersionHistory)request.getAttribute("versioning.history");
     List<Version> historyVersions = (List<Version>)request.getAttribute("versioning.historyversions");
+    
+    EPerson user = (EPerson) request.getAttribute("dspace.current.user");
+    boolean dedupEnabled = ConfigurationManager.getBooleanProperty("deduplication", "deduplication.admin.feature", false);
+    
+	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.item.enabled", false);
+	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
+	String[] cfg = ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options");
+	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","enabled");
+	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "credentials");
 %>
 
-<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 
-<% if(pmcEnabled) { %>
+<% if(pmcEnabled || scopusEnabled || wosEnabled || scholarEnabled || altMetricEnabled) { %>
 <c:set var="dspace.layout.head.last" scope="request">
+<% if(altMetricEnabled) { %> 
+<script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
+<% } %>
 <script type="text/javascript"><!--
-var j = jQuery.noConflict();
-
-ajaxPMCCitedBy = function(args) {
-        new j.ajax({
-                url: "<%= request.getContextPath() %>/pmcCitedBy",
-                data: { item_id: encodeURIComponent(args)}
-        }).done(function(transport) {
-               var respPmc = jQuery.trim(String(transport.textContent));
-               if(respPmc=="null") {
-                       j('#pmcCitedResult').html("No data found");
-               }
-               else {
-                       j('#pmcCitedResult').html(transport);
-                       j('.citedCount').show();
-               }
-               j('#pmcCitedCount').show();
-
-
-        });
-
-}
-
 j(document).ready(function() {
-        ajaxPMCCitedBy('<%= item.getID()%>');
+
+	<% if(altMetricEnabled) { %>
+	j(function () {
+	    j('div.altmetric-embed').on('altmetric:hide ', function () {
+	    	j('div.altmetric').hide();
+	    });
+	});
+	<% } %>
+	
+	<% if (dedupEnabled && admin_button) { %>
+	j.ajax({
+		url : "<%=request.getContextPath()%>/json/duplicate",
+		data : {																			
+			"itemid" : <%= item.getID()%>,
+			"typeid" : "2",
+			"admin": true
+		},
+		success : function(data) {
+			if(data.iTotalDisplayRecords==0) {
+				j('div.dedup').hide();
+			}
+			else {
+				j('#dedupCounter').html(data.iTotalDisplayRecords);
+				var queryString = "?";
+				var tmp_itemid_list = <%= item.getID()%> + ",";
+				j.each(data.aaData, function( index, value ) {
+					tmp_itemid_list += value.entityID;
+					tmp_itemid_list += ",";
+				});				
+				var itemid_list = tmp_itemid_list.substr(0, tmp_itemid_list.length-1);
+				queryString += 'scope=0&submitcheck=submitcheck&itemid_list='+itemid_list;
+				j('#dedupCounter').attr('href', '<%=request.getContextPath()%>/tools/duplicate' + queryString);
+			}			
+		},
+		error : function(data) {
+		}
+	});
+	<% } %>
 });
 --></script>
+	<% if(coreRecommender) { %>
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/recommender/core.css" type="text/css" />	
+	<script>
+		(function(d, s, idScript, idRec, userInput) {
+			var coreAddress = 'https://core.ac.uk/';
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(idScript))
+				return;
+			js = d.createElement(s);
+			js.id = idScript;
+			js.src = coreAddress + 'recommender/embed.js';
+			fjs.parentNode.insertBefore(js, fjs);
+	
+			localStorage.setItem('idRecommender', idRec);
+			localStorage.setItem('userInput', JSON.stringify(userInput));
+	
+/* 			var link = d.createElement('link');
+			link.setAttribute('rel', 'stylesheet');
+			link.setAttribute('type', 'text/css');
+			link.setAttribute('href', coreAddress
+					+ 'recommender/embed-default-style.css');
+			d.getElementsByTagName('head')[0].appendChild(link); */
+		}(document, 'script', 'recommender-embed', '<%= coreCredentials %>', {}));
+	</script>
+	<% } %>
 </c:set>
 <% } %>
 
@@ -143,13 +219,14 @@ j(document).ready(function() {
     if (handle != null)
     {
 %>
-
+	<div class="row">
+		<div class="col-sm-<%= admin_button?"7":"12" %> col-md-<%= admin_button?"8":"12" %> col-lg-<%= admin_button?"9":"12" %>">
 		<%		
 		if (newVersionAvailable)
 		   {
 		%>
-		<div class="alert alert-warning"><b><fmt:message key="jsp.version.notice.new_version_head"/></b>		
-		<fmt:message key="jsp.version.notice.new_version_help"/><a href="<%=latestVersionURL %>"><%= latestVersionHandle %></a>
+		<div class="alert alert-warning"><b><fmt:message key="jsp.version.notice.new_version_head"/></b>
+		<fmt:message key="jsp.version.notice.new_version_help"/> <a href="<%= latestVersionIdentifier %>"><%= latestVersionIdentifier %></a>
 		</div>
 		<%
 		    }
@@ -170,18 +247,25 @@ j(document).ready(function() {
                 <%-- <strong>Please use this identifier to cite or link to this item:
                 <code><%= HandleManager.getCanonicalForm(handle) %></code></strong>--%>
                 <div class="well"><fmt:message key="jsp.display-item.identifier"/>
-                <code><%= HandleManager.getCanonicalForm(handle) %></code></div>
+                <code><%= preferredIdentifier %></code></div>
+       </div>         
 <%
         if (admin_button)  // admin edit button
         { %>
-        <dspace:sidebar>
+        <div class="col-sm-5 col-md-4 col-lg-3">
             <div class="panel panel-warning">
             	<div class="panel-heading"><fmt:message key="jsp.admintools"/></div>
             	<div class="panel-body">
+				<form method="get" action="<%= request.getContextPath() %>/submit">
+                    <input type="hidden" name="edit_item" value="<%= item.getID() %>" />
+                    <input type="hidden" name="pageCallerID" value="0" />
+                    <%--<input type="submit" name="submit" value="Edit...">--%>
+                    <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.editsubmission.button"/>" />
+                </form>
                 <form method="get" action="<%= request.getContextPath() %>/tools/edit-item">
                     <input type="hidden" name="item_id" value="<%= item.getID() %>" />
                     <%--<input type="submit" name="submit" value="Edit...">--%>
-                    <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.edit.button"/>" />
+                    <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.editnormal.button"/>" />
                 </form>
                 <form method="post" action="<%= request.getContextPath() %>/mydspace">
                     <input type="hidden" name="item_id" value="<%= item.getID() %>" />
@@ -206,23 +290,57 @@ j(document).ready(function() {
                 	<% if(hasVersionHistory) { %>			                
                 	<form method="get" action="<%= request.getContextPath() %>/tools/history">
                     	<input type="hidden" name="itemID" value="<%= item.getID() %>" />
-                    	<input type="hidden" name="versionID" value="<%= history.getVersion(item)!=null?history.getVersion(item).getVersionId():null %>" />                    
+                    	<input type="hidden" name="versionID" value="<%= versionHistoryService.getVersion(context, history, item)!=null?versionHistoryService.getVersion(context, history, item).getID():null %>" />
                     	<input class="btn btn-info col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.version.history.button"/>" />
                 	</form>         	         	
 					<% } %>
              </div>
           </div>
-        </dspace:sidebar>
+        </div>
 <%      } %>
 
+</div>
 <%
+        // submitter create new version button
+        if (submitter_button && hasVersionButton) {
+%>
+        <dspace:sidebar>
+            <div class="panel panel-warning">
+                <div class="panel-heading"><fmt:message key="jsp.submittertools"/></div>
+                <div class="panel-body">
+                    <form method="get" action="<%= request.getContextPath()%>/tools/version">
+                        <input type="hidden" name="itemID" value="<%= item.getID()%>" />
+                        <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.version.button"/>" />
+                    </form>
+                </div>
+            </div>
+        </dspace:sidebar>
+<%
+        }
     }
 
     String displayStyle = (displayAll ? "full" : "");
 %>
+
+<div class="row">
+<div id="wrapperDisplayItem" class="col-lg-9">
     <dspace:item-preview item="<%= item %>" />
     <dspace:item item="<%= item %>" collections="<%= collections %>" style="<%= displayStyle %>" />
-<div class="container row">
+    <%-- SFX Link --%>
+<%
+    if (ConfigurationManager.getProperty("sfx.server.url") != null)
+    {
+        String sfximage = ConfigurationManager.getProperty("sfx.server.image_url");
+        if (sfximage == null)
+        {
+            sfximage = request.getContextPath() + "/image/sfx-link.gif";
+        }
+%>
+        <a class="btn btn-default" href="<dspace:sfxlink item="<%= item %>"/>" /><img src="<%= sfximage %>" border="0" alt="SFX Query" /></a>
+<%
+    }
+%>
+
 <%
     String locationLink = request.getContextPath() + "/handle/" + handle;
 
@@ -233,7 +351,7 @@ j(document).ready(function() {
         if (workspace_id != null)
         {
 %>
-    <form class="col-md-2" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
+    <form class="pull-left" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
         <input type="hidden" name="workspace_id" value="<%= workspace_id.intValue() %>" />
         <input class="btn btn-default" type="submit" name="submit_simple" value="<fmt:message key="jsp.display-item.text1"/>" />
     </form>
@@ -247,17 +365,13 @@ j(document).ready(function() {
     </a>
 <%
         }
-%>
-<%
     }
     else
     {
-%>
-<%
         if (workspace_id != null)
         {
 %>
-    <form class="col-md-2" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
+    <form class="pull-left" method="post" action="<%= request.getContextPath() %>/view-workspaceitem">
         <input type="hidden" name="workspace_id" value="<%= workspace_id.intValue() %>" />
         <input class="btn btn-default" type="submit" name="submit_full" value="<fmt:message key="jsp.display-item.text2"/>" />
     </form>
@@ -276,59 +390,269 @@ j(document).ready(function() {
     if (workspace_id != null)
     {
 %>
-   <form class="col-md-2" method="post" action="<%= request.getContextPath() %>/workspace">
+   <form class="pull-left" method="post" action="<%= request.getContextPath() %>/workspace">
         <input type="hidden" name="workspace_id" value="<%= workspace_id.intValue() %>"/>
         <input class="btn btn-primary" type="submit" name="submit_open" value="<fmt:message key="jsp.display-item.back_to_workspace"/>"/>
     </form>
 <%
     } else {
+    	if (exportBiblioEnabled && ( exportBiblioAll || user!=null ) ) {
+    %>
 
+    		<form target="blank" class="form-inline"  id="exportform" action="<%= request.getContextPath() %>/references">
+
+    		<div id="export-biblio-panel">
+    	<%		
+    		if (cfg == null)
+    		{
+    			cfg = new String[]{"refman", "endnote", "bibtex", "refworks"};
+    		}
+    		
+    		for (String format : cfg) {
+    	%>
+    		<c:set var="format"><%= format %></c:set>	    
+    		<label class="radio-inline">
+        		  <input id="${format}" type="radio" name="format" value="${format}" <c:if test="${format=='bibtex'}"> checked="checked"</c:if>/><fmt:message key="exportcitation.option.${format}" />
+    	    </label>
+
+    		
+    	<% } %>
+    		<label class="checkbox-inline">
+    			<input type="checkbox" id="email" name="email" value="true"/><fmt:message key="exportcitation.option.email" />
+    		</label>
+    			<input type="hidden" name="item_id" value="<%= item.getID() %>" />
+    			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" />
+    		</div>	
+    		</form>
+    <% }
 		if (suggestLink)
         {
 %>
-    <a class="btn btn-success" href="<%= request.getContextPath() %>/suggest?handle=<%= handle %>" target="new_window">
-       <fmt:message key="jsp.display-item.suggest"/></a>
+    <a class="btn btn-success" href="<%= request.getContextPath() %>/suggest?handle=<%= handle %>" target="_blank">
+       <fmt:message key="jsp.display-item.suggest"/>
+    </a>
 <%
         }
 %>
-
-<% if(pmcEnabled) { %>
-<div>&nbsp;</div>
-<div class="panel panel-info">
-<div class="panel-heading">Citations:</div>
-<ul class="panel-body">
-       <li id="pmcCitedCount" style="display: none;"><div id="pmcCitedResult" class="citedByDiv"></div></li>
-</ul>
+	<% if(coreRecommender) { %>	
+	<br/>
+	<br/>
+	<div id="recommender" class="panel panel-default">
+	<div class="panel-heading"><fmt:message key="jsp.display-item.recommender" /></div>
+	
+	<div class="panel-body">
+	<div id="coreRecommenderOutput"></div>
+	</div>
+	</div>
+	<% } %>
 </div>
-
+<div class="col-lg-3">
+<div class="row">
+<%
+if (dedupEnabled && admin_button) { %>	
+<div class="col-lg-12 col-md-4 col-sm-6">
+<div class="media dedup">
+	<div class="media-left">
+		<fmt:message key="jsp.display-item.dedup.title"/>
+	</div>
+	<div id="dedupResult" class="media-body text-center">
+		<h4 class="media-heading"><fmt:message key="jsp.display-item.dedup.heading"/></h4>
+	    <span class="metric-counter"><a id="dedupCounter" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.dedup.tooltip"/>" href=""><fmt:message key="jsp.display-item.dedup.check"/></a></span>
+	</div>
+</div>	
+</div>
+<br class="visible-lg" />
 <% } %>
+<c:forEach var="metricType" items="${metricTypes}">
+<c:set var="metricNameKey">
+	jsp.display-item.citation.${metricType}
+</c:set>
+<c:set var="metricIconKey">
+	jsp.display-item.citation.${metricType}.icon
+</c:set>
+<c:if test="${not empty metrics[metricType].counter and metrics[metricType].counter gt 0}">
+	<c:if test="${!empty metrics[metricType].moreLink}">
+		<script type="text/javascript">
+		j(document).ready(function() {
+			var obj = JSON.parse('${metrics[metricType].moreLink}');
+			j( "div" ).data( "moreLink", obj );
+			j( "#metric-counter-${metricType}" ).wrap(function() {
+				  return "<a target='_blank' href='" + j( "div" ).data( "moreLink" ).link + "'></a>";
+			}).append(" <i class='fa fa-info-circle' data-toggle='tooltip' title='Get updated citations from database'></i>");
+			
+			jQuery('[data-toggle="tooltip"]').tooltip();
+		});
+		</script>
+	</c:if>
+<div class="col-lg-12 col-md-4 col-sm-6 col-xs-12 box-${metricType}">
+<div class="media ${metricType}">
+	<div class="media-left">
+		<fmt:message key="${metricIconKey}"/>
+	</div>
+	<div class="media-body text-center">
+		<h4 class="media-heading"><fmt:message key="${metricNameKey}"/>
+		<c:if test="${not empty metrics[metricType].rankingLev}">
+		<span class="pull-right">
+		<fmt:message key="jsp.display-item.citation.top"/>		
+		<span class="metric-ranking arc">
+			<span class="circle" data-toggle="tooltip" data-placement="bottom" 
+				title="<fmt:message key="jsp.display-item.citation.${metricType}.ranking.tooltip"><fmt:param><fmt:formatNumber value="${metrics[metricType].rankingLev}" type="NUMBER" maxFractionDigits="0" /></fmt:param></fmt:message>">
+				<fmt:formatNumber value="${metrics[metricType].rankingLev}" 
+					type="NUMBER" maxFractionDigits="0" />
+			</span>
+		</span>
+		</span>
+		</c:if>
+		</h4>
+		<span id="metric-counter-${metricType}" class="metric-counter">
+		<c:choose>		
+		<c:when test="${!empty metrics[metricType].formatter.type}">
+		<c:choose>
+		<c:when test="${!(metrics[metricType].formatter.type eq 'PERCENT')}">
+			<fmt:formatNumber value="${metrics[metricType].counter}" 
+				type="${metrics[metricType].formatter.type}"
+				maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
+				minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
+		</c:when>
+		<c:otherwise>
+			<fmt:formatNumber value="${metrics[metricType].counter/100}" 
+				type="${metrics[metricType].formatter.type}"
+				maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
+				minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
+		</c:otherwise>
+		</c:choose>
+		</c:when>		
+		<c:otherwise>
+			<fmt:formatNumber value="${metrics[metricType].counter}" 
+				pattern="${metrics[metricType].formatter.pattern}"/>
+		</c:otherwise>
+		</c:choose>
+		</span>
+	</div>
+	<c:if test="${not empty metrics[metricType].last1}">
+	<div class="row">
+		<div class="col-xs-6 text-left">
+			<fmt:message key="jsp.display-item.citation.last1" />
+			<br/>
+				<c:choose>		
+					<c:when test="${!empty metrics[metricType].formatter.type}">
+					<c:choose>
+						<c:when test="${!(metrics[metricType].formatter.type eq 'PERCENT')}">
+							<fmt:formatNumber value="${metrics[metricType].last1}" 
+								type="${metrics[metricType].formatter.type}"
+								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
+								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
+						</c:when>
+						<c:otherwise>
+							<fmt:formatNumber value="${metrics[metricType].last1/100}" 
+								type="${metrics[metricType].formatter.type}"
+								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
+								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
+						</c:otherwise>
+					</c:choose>
+					</c:when>		
+					<c:otherwise>
+						<fmt:formatNumber value="${metrics[metricType].last1}" 
+							pattern="${metrics[metricType].formatter.pattern}"/>
+					</c:otherwise>
+				</c:choose>			
+		</div>
+		<div class="col-xs-6 text-right">
+			<fmt:message key="jsp.display-item.citation.last2" />
+			<br/>
+				<c:choose>		
+					<c:when test="${!empty metrics[metricType].formatter.type}">
+					<c:choose>
+						<c:when test="${!(metrics[metricType].formatter.type eq 'PERCENT')}">
+							<fmt:formatNumber value="${metrics[metricType].last2}" 
+								type="${metrics[metricType].formatter.type}"
+								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
+								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
+						</c:when>
+						<c:otherwise>
+							<fmt:formatNumber value="${metrics[metricType].last2/100}" 
+								type="${metrics[metricType].formatter.type}"
+								maxFractionDigits="${metrics[metricType].formatter.maxFractionDigits}"
+								minFractionDigits="${metrics[metricType].formatter.minFractionDigits}"/>
+						</c:otherwise>
+					</c:choose>
+					</c:when>		
+					<c:otherwise>
+						<fmt:formatNumber value="${metrics[metricType].last2}" 
+							pattern="${metrics[metricType].formatter.pattern}"/>
+					</c:otherwise>
+				</c:choose>				
+		</div>
+	</div>
+	</c:if>
+	<div class="row">
+		<div class="col-lg-12 text-center small">
+			<fmt:message
+				key="jsp.display-item.citation.time">
+				<fmt:param value="${metrics[metricType].time}" />
+			</fmt:message>
+		</div>
+	</div>
+	</div>
+</div>
+</c:if>
+</c:forEach>
+    <%
+	   if(scholarEnabled) { %>
+<div class="col-lg-12 col-md-4 col-sm-6">
+<div class="media google">
+	<div class="media-left">
+		<fmt:message key="jsp.display-item.citation.google.icon">
+			<fmt:param value="<%=request.getContextPath()%>" />
+		</fmt:message>
+	</div>
+	<div id="googleCitedResult" class="media-body text-center">
+		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.google"/></h4>
+		
+		
+   		    <span class="metric-counter"><a data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.citation.google.tooltip"/>" href="https://scholar.google.com/scholar?as_q=&as_epq=<%= title %>&as_occt=any"><fmt:message key="jsp.display-item.citation.google.check"/></a></span>
+	</div>
+</div>	
+</div>
+<br class="visible-lg" />
+    <% }
+	   if(altMetricEnabled) { %>
+<div class="col-lg-12 col-md-4 col-sm-6">
+<div class="media altmetric">
+	<div class="media-left">
+      		<div class='altmetric-embed' data-hide-no-mentions="true" data-badge-popover="right" data-badge-type="donut" data-link-target='_blank' data-doi="<%= doi %>"></div>
+	</div>
+	<div class="media-body media-middle text-center">
+		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.altmetric"/></h4>
+	</div>
+</div>
+</div>
+<% } %>
+    </div>
+</div>
+<% if(pmcEnabled) { %>
+<div class="modal fade" id="dialogPMC" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
 
-
-    <a class="statisticsLink  btn btn-primary" href="<%= request.getContextPath() %>/cris/stats/item.html?handle=<%=handle %>"><fmt:message key="jsp.display-item.display-statistics"/></a>
-
-    <%-- SFX Link --%>
+    </div>
+  </div>
+</div>
+<% }%>
 <%
-    if (ConfigurationManager.getProperty("sfx.server.url") != null)
-    {
-        String sfximage = ConfigurationManager.getProperty("sfx.server.image_url");
-        if (sfximage == null)
-        {
-            sfximage = request.getContextPath() + "/image/sfx-link.gif";
-        }
-%>
-        <a class="btn btn-default" href="<dspace:sfxlink item="<%= item %>"/>" /><img src="<%= sfximage %>" border="0" alt="SFX Query" /></a>
-<%
-    }
     }
 %>
 </div>
-<br/>
+</div>
+<div class="container">
     <%-- Versioning table --%>
 <%
     if (versioningEnabled && hasVersionHistory)
     {
         boolean item_history_view_admin = ConfigurationManager
                 .getBooleanProperty("versioning", "item.history.view.admin");
+        boolean item_history_include_submitter = ConfigurationManager
+                .getBooleanProperty("versioning", "item.history.include.submitter", false);
         if(!item_history_view_admin || admin_button) {         
 %>
 	<div id="versionHistory" class="panel panel-info">
@@ -339,8 +663,11 @@ j(document).ready(function() {
 			<th id="tt1" class="oddRowEvenCol"><fmt:message key="jsp.version.history.column1"/></th>
 			<th 			
 				id="tt2" class="oddRowOddCol"><fmt:message key="jsp.version.history.column2"/></th>
-			<th 
-				 id="tt3" class="oddRowEvenCol"><fmt:message key="jsp.version.history.column3"/></th>
+            <%-- Add Information about submitter only for admins or if item.history.include.submitter is true --%>
+            <% if (item_history_include_submitter || admin_button) { %>
+    			<th 
+	    			 id="tt3" class="oddRowEvenCol"><fmt:message key="jsp.version.history.column3"/></th>
+            <% } %>
 			<th 
 				
 				id="tt4" class="oddRowOddCol"><fmt:message key="jsp.version.history.column4"/></th>
@@ -350,14 +677,28 @@ j(document).ready(function() {
 		
 		<% for(Version versRow : historyVersions) {  
 		
-			EPerson versRowPerson = versRow.getEperson();
-			String[] identifierPath = VersionUtil.addItemIdentifier(item, versRow);
+			EPerson versRowPerson = versRow.getEPerson();
+			String[] identifierPath = UIUtil.getItemIdentifier(UIUtil.obtainContext(request), versRow.getItem());
+                        String url = identifierPath[0];
+                        String identifier;
+                        if (ConfigurationManager.getBooleanProperty("webui.identifier.strip-prefixes", true))
+                        {
+                            identifier = identifierPath[2];
+                        } else {
+                            identifier = identifierPath[3];
+                        }
 		%>	
 		<tr>			
 			<td headers="tt1" class="oddRowEvenCol"><%= versRow.getVersionNumber() %></td>
-			<td headers="tt2" class="oddRowOddCol"><a href="<%= request.getContextPath() + identifierPath[0] %>"><%= identifierPath[1] %></a><%= item.getID()==versRow.getItemID()?"<span class=\"glyphicon glyphicon-asterisk\"></span>":""%></td>
-			<td headers="tt3" class="oddRowEvenCol"><% if(admin_button) { %><a
-				href="mailto:<%= versRowPerson.getEmail() %>"><%=versRowPerson.getFullName() %></a><% } else { %><%=versRowPerson.getFullName() %><% } %></td>
+			<td headers="tt2" class="oddRowOddCol"><a href="<%= url %>"><%= identifier %></a><%= item.getID()==versRow.getItem().getID()?"<span class=\"glyphicon glyphicon-asterisk\"></span>":""%></td>
+
+                        <% if(admin_button) { %> 
+                            <td headers="tt3" class="oddRowEvenCol"><a
+                               href="mailto:<%= versRowPerson.getEmail() %>"><%=versRowPerson.getFullName() %></a> </td>
+                        <% } 
+                        else if(item_history_include_submitter) { %>
+                            <td headers="tt3" class="oddRowEvenCol"> <%=versRowPerson.getFullName() %> </td>
+                        <% }%>
 			<td headers="tt4" class="oddRowOddCol"><%= versRow.getVersionDate() %></td>
 			<td headers="tt5" class="oddRowEvenCol"><%= versRow.getSummary() %></td>
 		</tr>
@@ -375,7 +716,7 @@ j(document).ready(function() {
     if (cc_url != null)
     {
 %>
-    <p class="submitFormHelp alert alert-info"><fmt:message key="jsp.display-item.text3"/> <a href="<%= cc_url %>"><fmt:message key="jsp.display-item.license"/></a>
+    <p class="text-center alert alert-info"><fmt:message key="jsp.display-item.text3"/> <a href="<%= cc_url %>"><fmt:message key="jsp.display-item.license"/></a>
     <a href="<%= cc_url %>"><img src="<%= request.getContextPath() %>/image/cc-somerights.gif" border="0" alt="Creative Commons" style="margin-top: -5px;" class="pull-right"/></a>
     </p>
     <!--
@@ -384,8 +725,10 @@ j(document).ready(function() {
 <%
     } else {
 %>
-    <p class="submitFormHelp alert alert-info"><fmt:message key="jsp.display-item.copyright"/></p>
+    <p class="text-center alert alert-info"><fmt:message key="jsp.display-item.copyright"/></p>
 <%
     } 
-%>    
+%>
+	</div>
+    
 </dspace:layout>

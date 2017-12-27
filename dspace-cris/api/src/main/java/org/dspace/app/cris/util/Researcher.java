@@ -9,13 +9,16 @@ package org.dspace.app.cris.util;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.CrisComponentsService;
 import org.dspace.app.cris.integration.ICRISComponent;
 import org.dspace.app.cris.integration.statistics.CrisStatComponentsService;
 import org.dspace.app.cris.integration.statistics.StatComponentsService;
+import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.model.ResearcherPage;
+import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.service.RelationPreferenceService;
@@ -29,10 +32,21 @@ public class Researcher implements EPersonCRISIntegration
 {
     DSpace dspace = new DSpace();
 
+    public Researcher()
+    {
+        getApplicationService().checkRebuildCrisConfiguration();
+    }
+    
     public ApplicationService getApplicationService()
     {
         return dspace.getServiceManager().getServiceByName(
                 "applicationService", ApplicationService.class);
+    }
+
+    public MetricsPersistenceService getMetricsPersistenceService()
+    {
+        return dspace.getServiceManager().getServiceByName(
+                "org.dspace.app.cris.metrics.common.services.MetricsPersistenceService", MetricsPersistenceService.class);
     }
     
     public CrisSubscribeService getCrisSubscribeService()
@@ -91,6 +105,11 @@ public class Researcher implements EPersonCRISIntegration
     public SessionFactory getSessionFactory()
     {
         return (SessionFactory) dspace.getServiceManager().getServiceByName("&sessionFactory", LocalSessionFactoryBean.class).getObject();
+    }
+
+    public SessionFactory getSessionFactoryDSpace()
+    {
+        return (SessionFactory) dspace.getServiceManager().getServiceByName("&sessionFactoryDSpace", LocalSessionFactoryBean.class).getObject();
     }
     
     public RelationPreferenceService getRelationPreferenceService() {
@@ -168,7 +187,7 @@ public class Researcher implements EPersonCRISIntegration
     }
 
     @Override
-    public String getResearcher(Integer epersonID)
+    public String getResearcher(UUID epersonID)
     {
         ResearcherPage result = getApplicationService().getResearcherPageByEPersonId(epersonID);
         if(result==null) {
@@ -184,5 +203,23 @@ public class Researcher implements EPersonCRISIntegration
             return null;
         }
         return ResearcherPageUtils.getPersistentIdentifier(result);
-    }    
+    }
+    
+    public OrcidPreferencesUtils getOrcidPreferencesUtils() {
+        return dspace.getServiceManager().getServiceByName(
+                "orcidPreferencesUtils", OrcidPreferencesUtils.class);
+    }
+
+    public List<ICrisHomeProcessor> getCrisProcessorService() {
+        return dspace.getServiceManager().getServicesByType(ICrisHomeProcessor.class);
+    }
+    
+    public StatComponentsService getSiteStatsComponents() {
+        StatComponentsService compService = dspace.getServiceManager().getServiceByName("siteStatsComponent", StatComponentsService.class);
+        if (compService == null)
+        {
+            return null;
+        }
+        return compService;
+    }
 }

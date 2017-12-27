@@ -26,6 +26,7 @@ import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.model.ResearcherPage;
+import org.dspace.app.cris.network.ConstantNetwork;
 import org.dspace.app.cris.network.VisualizationGraphSolrService;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
@@ -146,11 +147,11 @@ public class ProfileResearcherNetworkServlet extends DSpaceServlet {
         
         if (matcher.find())
         {                            
-        	field1 = "focus_auth";
+        	field1 = "a_auth";
         }
         else
         {
-        	field1 = "focus_val";
+        	field1 = "a_val";
         }
         
         matcher = patternRP.matcher(to);
@@ -158,20 +159,20 @@ public class ProfileResearcherNetworkServlet extends DSpaceServlet {
 
         if (matcher.find())
         {                            
-        	field2 = "focus_auth";
+        	field2 = "b_auth";
         }
         else
         {
-        	field2 = "focus_val";
+        	field2 = "b_val";
         }
         
         
 		solrQuery.setQuery(
 				
-				field1 + ":\"" + from + "\" AND "+ field2 + ":\""+ to +"\""				
+				"("+field1 + ":\"" + from + "\" AND "+ field2 + ":\""+ to +"\"" + ") OR ("+field2 + ":\"" + from + "\" AND "+ field1 + ":\""+ to +"\"" + ")"				
 								
 		);
-		
+		solrQuery.addFilterQuery("entity:" + ConstantNetwork.ENTITY_RP);
 		solrQuery.setFacet(true);
 		solrQuery.addFacetField("type");
 		solrQuery.setFacetLimit(Integer.MAX_VALUE);

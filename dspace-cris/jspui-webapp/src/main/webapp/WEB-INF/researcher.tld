@@ -129,5 +129,24 @@
 	<function-signature>String encode(java.lang.String,java.lang.String)</function-signature>
 </function>
 
+<function>
+	<description>Get the property definition on demand</description>
+	<name>getPropertiesDefinition</name>
+	<function-class>org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions</function-class>
+	<function-signature>Object getPropertiesDefinition(java.lang.Class,java.lang.String)</function-signature>
+</function>
 
+<function>
+	<description>Get the property definition label</description>
+	<name>getPropertyDefinitionLabel</name>
+	<function-class>org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions</function-class>
+	<function-signature>String getPropertyDefinitionLabel(java.lang.String,java.lang.String)</function-signature>
+</function>
+
+<function>
+	<description>Wrap the property definition to add i18n support</description>
+	<name>getPropertyDefinitionI18N</name>
+	<function-class>org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions</function-class>
+	<function-signature>java.lang.Object getPropertyDefinitionI18N(java.lang.Object, java.lang.String)</function-signature>
+</function>
 </taglib>

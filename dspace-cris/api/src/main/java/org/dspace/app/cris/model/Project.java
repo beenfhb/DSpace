@@ -7,8 +7,6 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.core.TimeStampInfo;
-
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +20,6 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectNestedObject;
 import org.dspace.app.cris.model.jdyna.ProjectNestedPropertiesDefinition;
@@ -30,7 +27,10 @@ import org.dspace.app.cris.model.jdyna.ProjectNestedProperty;
 import org.dspace.app.cris.model.jdyna.ProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.ProjectProperty;
 import org.dspace.app.cris.model.jdyna.ProjectTypeNestedObject;
-import org.dspace.app.cris.model.jdyna.RPAdditionalFieldStorage;
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.eperson.EPerson;
+
+import it.cilea.osd.common.core.TimeStampInfo;
 
 @Entity
 @Table(name = "cris_project", uniqueConstraints = @UniqueConstraint(columnNames={"sourceID","sourceRef"}))
@@ -274,6 +274,32 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
 	@Override
 	public String getMetadataFieldTitle() {
 		return NAME;
+	}
+
+    @Override
+    public Class<Project> getCRISTargetClass()
+    {
+        return Project.class;
+    }
+
+    @Override
+    public boolean isOwner(EPerson eperson)
+    {
+        // TODO not implemented
+        return false;
+    }
+    
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

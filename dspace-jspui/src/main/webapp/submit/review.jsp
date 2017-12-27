@@ -13,28 +13,19 @@
 
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 <%@ page import="javax.servlet.jsp.PageContext" %>
-
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Iterator" %>
-
+<%@ page import="org.dspace.app.util.SubmissionConfig"%>
 <%@ page import="org.dspace.app.webui.servlet.SubmissionController" %>
 <%@ page import="org.dspace.submit.AbstractProcessingStep" %>
-<%@ page import="org.dspace.app.util.DCInputSet" %>
-<%@ page import="org.dspace.app.util.DCInput" %>
 <%@ page import="org.dspace.app.util.SubmissionInfo" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
-<%@ page import="org.dspace.content.Bitstream" %>
-<%@ page import="org.dspace.content.BitstreamFormat" %>
-<%@ page import="org.dspace.content.DCDate" %>
-<%@ page import="org.dspace.content.DCLanguage" %>
-<%@ page import="org.dspace.content.Metadatum" %>
-<%@ page import="org.dspace.content.InProgressSubmission" %>
-<%@ page import="org.dspace.content.Item" %>
 <%@ page import="org.dspace.core.Context" %>
-<%@ page import="org.dspace.core.Utils" %>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%
     request.setAttribute("LanguageSwitch", "hide");
@@ -44,7 +35,8 @@
 
 	//get submission information object
     SubmissionInfo subInfo = SubmissionController.getSubmissionInfo(context, request);
-    
+
+	boolean last = SubmissionController.isLastStep(request, subInfo);
 	//get list of review JSPs from VerifyServlet
 	HashMap reviewJSPs = (HashMap) request.getAttribute("submission.review");
 
@@ -70,6 +62,15 @@
 
         <p><fmt:message key="jsp.submit.review.info4"/></p>
 		<div class="container">
+		
+		<c:if test="${fn:length(validationMessages)>0}">
+			<div class="callout callout-danger">
+				<h5><fmt:message key="jsp.submit.review.validation.errors"/></h5>
+				<c:forEach var="i" items="${validationMessages}">
+					<p>${i}</p>
+				</c:forEach>
+			</div>
+		</c:if>
 <%
 		//loop through the list of review JSPs
 		while(reviewIterator.hasNext())
@@ -99,9 +100,25 @@
         <div class="col-md-6 pull-right btn-group">
 			<input class="btn btn-default col-md-4" type="submit" name="<%=AbstractProcessingStep.PREVIOUS_BUTTON%>" value="<fmt:message key="jsp.submit.review.button.previous"/>" />
           	<input class="btn btn-default col-md-4" type="submit" name="<%=AbstractProcessingStep.CANCEL_BUTTON%>" value="<fmt:message key="jsp.submit.review.button.cancelsave"/>" />
-          	<input class="btn btn-primary col-md-4" type="submit" name="<%=AbstractProcessingStep.NEXT_BUTTON%>" value="<fmt:message key="jsp.submit.review.button.next"/>" />
+        	<c:if test="${fn:length(validationMessages)>0}">
+	       		<c:set var="disableButtonNext">disabled="disabled"</c:set>
+	       	</c:if>
+	       	<div id="nextButtonDiv" data-original-title="<fmt:message key="jsp.submit.review.validation.failed"/>" data-placement="top">
+          	<% if (last) { %>
+          	<input class="btn btn-primary col-md-4" type="submit" name="<%=AbstractProcessingStep.NEXT_BUTTON%>" value="<fmt:message key="jsp.submit.review.button.complete"/>" ${disableButtonNext}/>
+          	<% } else { %>
+          	<input class="btn btn-primary col-md-4" type="submit" name="<%=AbstractProcessingStep.NEXT_BUTTON%>" value="<fmt:message key="jsp.submit.review.button.next"/>" ${disableButtonNext}/>
+          	<% } %>
+          	</div>
         </div>
 
+		<input type="hidden" name="pageCallerID" value="<%= request.getAttribute("pageCallerID")%>"/>
     </form>
-
+    <c:if test="${fn:length(validationMessages)>0}">
+	    <script type="text/javascript">
+		    jQuery( document ).ready(function() {
+		    	jQuery('#nextButtonDiv').tooltip();
+		    });
+	    </script>
+    </c:if>
 </dspace:layout>

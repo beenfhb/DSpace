@@ -11,6 +11,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.dspace.statistics.factory.StatisticsServiceFactory;
 
 import java.io.*;
 import java.util.HashSet;
@@ -32,7 +33,7 @@ public class ApacheLogRobotsProcessor {
      * by analyzing users of the robots.txt file
      *
      * @param args
-     * @throws Exception
+     * @throws Exception if error
      */
 
     public static void main(String[] args) throws Exception {
@@ -80,7 +81,7 @@ public class ApacheLogRobotsProcessor {
 
             if (spiderIpFile.exists())
             {
-                logSpiders = SpiderDetector.readPatterns(spiderIpFile);
+                logSpiders = StatisticsServiceFactory.getInstance().getSpiderDetectorService().readPatterns(spiderIpFile);
             }
             else
             {

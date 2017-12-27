@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.utils.DSpace;
 
 public class DSpaceObjectStatsIndexPlugin implements SolrStatsIndexPlugin
@@ -26,13 +26,13 @@ public class DSpaceObjectStatsIndexPlugin implements SolrStatsIndexPlugin
     
 
     @Override
-    public void additionalIndex(HttpServletRequest request, DSpaceObject dso,
+    public void additionalIndex(HttpServletRequest request, BrowsableDSpaceObject dso,
             SolrInputDocument document)
     {
         storeAdditionalMetadata(dso, request, document);
     }
 
-    private void storeAdditionalMetadata(DSpaceObject dspaceObject,
+    private void storeAdditionalMetadata(BrowsableDSpaceObject dspaceObject,
             HttpServletRequest request, SolrInputDocument doc1)
     {
         if (getGenerators() != null)

@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
@@ -35,6 +36,7 @@ public interface StreamDisseminationCrosswalk
     /**
      * Predicate: Can this disseminator crosswalk the given object.
      *
+     * @param context context
      * @param dso  dspace object, e.g. an <code>Item</code>.
      * @return true when disseminator is capable of producing metadata.
      */
@@ -53,8 +55,10 @@ public interface StreamDisseminationCrosswalk
      * @throws SQLException  Database failure in services this calls
      * @throws AuthorizeException current user not authorized for this operation.
      */
-    public void disseminate(Context context, DSpaceObject dso, OutputStream out)
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException;
 
     public String getMIMEType();
+
+	public boolean assignUniqueNumber();
 }

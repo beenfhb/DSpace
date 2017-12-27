@@ -7,9 +7,9 @@
  */
 package org.dspace.app.cris.integration.statistics;
 
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 
-public interface IStatsGenericComponent<T extends DSpaceObject>
+public interface IStatsGenericComponent<T extends BrowsableDSpaceObject>
 {
     public Class<T> getRelationObjectClass();
     public Integer getRelationObjectType();

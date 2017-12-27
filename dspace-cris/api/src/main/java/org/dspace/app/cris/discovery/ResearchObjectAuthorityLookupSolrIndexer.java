@@ -7,16 +7,21 @@
  */
 package org.dspace.app.cris.discovery;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.solr.common.SolrInputDocument;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.ResearchObject;
+import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
+
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedProperty;
 import it.cilea.osd.jdyna.model.ATypeNestedObject;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
-
-import org.apache.solr.common.SolrInputDocument;
-import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 
 public class ResearchObjectAuthorityLookupSolrIndexer implements CrisServiceIndexPlugin
 {
@@ -24,21 +29,24 @@ public class ResearchObjectAuthorityLookupSolrIndexer implements CrisServiceInde
     @Override
     public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
             ACrisObject<P, TP, NP, NTP, ACNO, ATNO> crisObject,
-            SolrInputDocument document)
+            SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
 
         String result = "";               
+        String typeName;
         Integer type = crisObject.getType();
         if (type > CrisConstants.CRIS_DYNAMIC_TYPE_ID_START)
         {
             result = crisObject.getName();
+            typeName = ((ResearchObject) crisObject).getAuthorityPrefix();
             document.addField("crisdo.name", result);
+            document.addField("crisdo.type", typeName);
         }
     }
 
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
-			ACNO dso, SolrInputDocument sorlDoc) {
+			ACNO dso, SolrInputDocument sorlDoc, Map<String, List<DiscoverySearchFilter>> searchFilters) {
 		// FIXME NOT SUPPORTED OPERATION
 	}
 }

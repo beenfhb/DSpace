@@ -26,7 +26,13 @@ import javax.persistence.Table;
     @NamedQuery(name = "RPNestedPropertiesDefinition.findAdvancedSearch", query = "from RPNestedPropertiesDefinition where advancedSearch=true"),
     @NamedQuery(name = "RPNestedPropertiesDefinition.uniqueIdByShortName", query = "select id from RPNestedPropertiesDefinition where shortName = ?"),
     @NamedQuery(name = "RPNestedPropertiesDefinition.uniqueByShortName", query = "from RPNestedPropertiesDefinition where shortName = ?"),
-    @NamedQuery(name = "RPNestedPropertiesDefinition.findValoriDaMostrare", query = "from RPNestedPropertiesDefinition where showInList = true")
+    @NamedQuery(name = "RPNestedPropertiesDefinition.findValoriDaMostrare", query = "from RPNestedPropertiesDefinition where showInList = true"),
+    @NamedQuery(name = "RPNestedPropertiesDefinition.findAllWithPolicySingle", query = "from RPNestedPropertiesDefinition where rendering in (from WidgetEPerson)"),
+    @NamedQuery(name = "RPNestedPropertiesDefinition.findAllWithPolicyGroup", query = "from RPNestedPropertiesDefinition where rendering in (from WidgetGroup)"),
+    @NamedQuery(name = "RPNestedPropertiesDefinition.likeAllWithPolicySingle", query = "from RPNestedPropertiesDefinition where shortName = ? and rendering in (from WidgetEPerson)"),
+    @NamedQuery(name = "RPNestedPropertiesDefinition.likeAllWithPolicyGroup", query = "from RPNestedPropertiesDefinition where shortName = ? and rendering in (from WidgetGroup)"),
+    @NamedQuery(name = "RPNestedPropertiesDefinition.findAllWithCheckRadioDropdown", query = "from RPNestedPropertiesDefinition where rendering in (from WidgetCheckRadio)"),
+    @NamedQuery(name = "RPNestedPropertiesDefinition.likeByShortName", query = "from RPNestedPropertiesDefinition where shortName LIKE :par0", hints = { @javax.persistence.QueryHint(name = "org.hibernate.cacheable", value = "true") })
 })
 public class RPNestedPropertiesDefinition extends ANestedPropertiesDefinition
 {

@@ -7,18 +7,21 @@
  */
 package org.dspace.core;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.StringTokenizer;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.eperson.EPerson;
-
-import java.io.File;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.ResourceBundle.Control;
-import java.util.StringTokenizer;
-import java.util.List;
-import java.util.ArrayList;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.utils.DSpace;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 
 
 
@@ -46,6 +49,8 @@ public class I18nUtil
     // delimiters between elements of UNIX/POSIX locale spec, e.g. en_US.UTF-8
     private static final String LOCALE_DELIMITERS = " _.";
 
+    private static MessageSource messageSource;
+    
     /**
      * Gets the default locale as defined in dspace.cfg If no default locale is
      * defined, the Locale of the JVM is used
@@ -55,11 +60,12 @@ public class I18nUtil
      */
     public static Locale getDefaultLocale()
     {
+        ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
         // First, try configured default locale
         Locale defaultLocale = null;
-        if (!StringUtils.isEmpty(ConfigurationManager.getProperty("default.locale")))
+        if (config.hasProperty("default.locale"))
         {
-            defaultLocale = makeLocale(ConfigurationManager.getProperty("default.locale"));
+            defaultLocale = makeLocale(config.getProperty("default.locale"));
         }
 
         // Finally, get the Locale of the JVM
@@ -95,7 +101,8 @@ public class I18nUtil
      * Get the Locale for a specified EPerson. If the language is missing,
      * return the default Locale for the repository.
      *
-     * @param ep
+     * @param ep Eperson
+     * @return Locale
      */
     public static Locale getEPersonLocale(EPerson ep)
     {
@@ -124,11 +131,12 @@ public class I18nUtil
      */
     public static Locale[] getSupportedLocales()
     {
-        
-        String ll = ConfigurationManager.getProperty("webui.supported.locales");
-        if (ll != null)
+        ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+        String[] locales = config.getArrayProperty("webui.supported.locales");
+        if (locales != null && locales.length>0)
         {
-            return parseLocales(ll);
+            return parseLocales(locales);
         }
         else
         {
@@ -232,7 +240,7 @@ public class I18nUtil
         String fileName = "";
         final String FORM_DEF_FILE = "input-forms";
         final String FILE_TYPE = ".xml";
-        String defsFilename = ConfigurationManager.getProperty("dspace.dir")
+        String defsFilename = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir")
                 + File.separator + "config" + File.separator + FORM_DEF_FILE;
         fileName =  getFilename(locale, defsFilename, FILE_TYPE);
         return fileName;
@@ -253,6 +261,11 @@ public class I18nUtil
         return getMessage(key.trim(), DEFAULTLOCALE);
     }
     
+    public static String getMessage(String key, boolean throwExcIfNotFound)
+    {
+        return getMessage(key.trim(), DEFAULTLOCALE, throwExcIfNotFound);
+    }
+    
     /**
      * Get the i18n message string for a given key and locale
      *
@@ -266,23 +279,12 @@ public class I18nUtil
      */
     public static String getMessage(String key, Locale locale)
     {
-        if (locale == null)
-        {
-            locale = DEFAULTLOCALE;
-        }
-        ResourceBundle.Control control = 
-            ResourceBundle.Control.getNoFallbackControl(
-            ResourceBundle.Control.FORMAT_DEFAULT);
-
-        ResourceBundle messages = ResourceBundle.getBundle("Messages", locale, control);
-        try {
-            String message = messages.getString(key.trim());
-            return message;
-        } catch (MissingResourceException e) {
-            log.error("'" + key + "' translation undefined in locale '"
-                    + locale.toString() + "'");
-            return key;
-        }
+        return getMessage(key, locale, false);
+    }
+    
+    public static String getMessage(String key, Locale locale, boolean throwExcIfNotFound)
+    {
+       return getMessage(key, null, locale, throwExcIfNotFound);
     }
     
     /**
@@ -320,7 +322,7 @@ public class I18nUtil
         /** Name of the default license */
         final String DEF_LIC_FILE = "default";
         final String FILE_TYPE = ".license";
-        String defsFilename = ConfigurationManager.getProperty("dspace.dir")
+        String defsFilename = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir")
                 + File.separator + "config" + File.separator + DEF_LIC_FILE;
         
         fileName = getFilename(locale, defsFilename, FILE_TYPE);
@@ -420,7 +422,7 @@ public class I18nUtil
     public static String getEmailFilename(Locale locale, String name)
     {
         String templateName = "";
-        String templateFile = ConfigurationManager.getProperty("dspace.dir")
+        String templateFile = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir")
                 + File.separator + "config" + File.separator + "emails"
                 + File.separator + name;
 
@@ -431,13 +433,13 @@ public class I18nUtil
     /**
      * Creates array of Locales from text list of locale-specifications.
      * Used to parse lists in DSpace configuration properties.
-     * @param ll locale list of comma-separated values
+     * @param locales locale string array
      * @return array of locale results, possibly empty
      */
-    public static Locale[] parseLocales(String ll)
+    public static Locale[] parseLocales(String[] locales)
     {
         List<Locale> resultList = new ArrayList<Locale>();
-        for (String ls : ll.trim().split("\\s*,\\s*"))
+        for (String ls : locales)
         {
             Locale lc = makeLocale(ls);
             if (lc != null)
@@ -446,5 +448,81 @@ public class I18nUtil
             }
         }
         return resultList.toArray(new Locale[resultList.size()]);
+    }
+    
+    public static String getMessage(String key, Object[] args, Context c)
+            throws MissingResourceException {
+        return getMessage(key.trim(), args, c.getCurrentLocale());
+    }
+    
+    /**
+     * Get the appropriate localized version for the message string for a given key and parameters
+     * 
+     * @param key 
+     *        String - name of the key to get the message for
+     * @param args 
+     *        Object[] - arguments for substitution
+     * @param locale
+     *        Locale - to get the message for
+     *          
+     * @return
+     * @throws MissingResourceException
+     */
+    public static String getMessage(String key, Object[] args, Locale locale) throws MissingResourceException
+    {
+        return getMessage(key, args, locale, false);
+    }
+    
+    /**
+     * 
+     * Get the appropriate localized version for the message string for a given key and parameters
+     *  
+     * @param key 
+     *        String - name of the key to get the message for
+     * @param args 
+     *        Object[] - arguments for substitution
+     * @param locale
+     *        Locale - to get the message for
+     * @param throwExcIfNotFound
+     *        boolean - false if you want fail silent 
+     * 
+     * @return
+     * @throws MissingResourceException
+     */
+    public static String getMessage(String key, Object[] args, Locale locale, boolean throwExcIfNotFound) throws MissingResourceException
+    {
+        String message = "";
+        if (locale == null)
+        {
+            locale = DEFAULTLOCALE;
+        }
+        
+        try {
+            message = getMessageSource().getMessage(key.trim(), args, locale);
+        } catch (MissingResourceException | NoSuchMessageException e) {
+            if (throwExcIfNotFound) {
+                throw new MissingResourceException(e.getMessage(), messageSource
+                        .getClass().toString(), key);
+            }
+            log.error("'" + key + "' translation undefined in locale '"
+                    + locale.toString() + "'");
+            return key;
+        }
+        return message;
+    }
+    
+    
+    public static MessageSource getMessageSource() {
+        if (I18nUtil.messageSource == null) {
+            DSpace dspace = new DSpace();
+            I18nUtil.messageSource = dspace.getServiceManager().getServiceByName("messageSource", MessageSource.class);
+        }
+        return I18nUtil.messageSource;
+    }
+    
+    
+    public static void setMessageSource(MessageSource messageSource)
+    {
+        I18nUtil.messageSource = messageSource;
     }
 }

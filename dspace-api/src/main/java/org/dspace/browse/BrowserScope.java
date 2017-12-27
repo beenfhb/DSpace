@@ -11,8 +11,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
-import org.dspace.sort.SortOption;
 import org.dspace.sort.SortException;
+import org.dspace.sort.SortOption;
 
 /**
  * A class which represents the initial request to the browse system.
@@ -79,6 +79,8 @@ public class BrowserScope
     private int offset = 0;
 
     private String authority = null;
+    
+    private String userLocale = null;
 
     /**
      * Construct a new BrowserScope using the given Context
@@ -96,7 +98,7 @@ public class BrowserScope
      * exception
      *
      * @param dso       the container object; a Community or Collection
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public void setBrowseContainer(DSpaceObject dso)
         throws BrowseException
@@ -184,6 +186,7 @@ public class BrowserScope
 
     /**
      * @param browseIndex The browseIndex to set.
+     * @throws BrowseException if error
      */
     public void setBrowseIndex(BrowseIndex browseIndex)
         throws BrowseException
@@ -370,6 +373,7 @@ public class BrowserScope
 
     /**
      * @param sortBy The sortBy to set.
+     * @throws BrowseException if error
      */
     public void setSortBy(int sortBy)
         throws BrowseException
@@ -397,7 +401,7 @@ public class BrowserScope
      * Obtain the sort option
      *
      * @return  the sort option
-     * @throws BrowseException
+     * @throws BrowseException if browse error
      */
     public SortOption getSortOption()
         throws BrowseException
@@ -628,5 +632,13 @@ public class BrowserScope
 
     public void setAuthorityValue(String value) {
         authority = value;
+    }
+    
+    public void setUserLocale(String userLocale) {
+        this.userLocale = userLocale;
+    }
+    
+    public String getUserLocale() {
+        return userLocale;
     }
 }

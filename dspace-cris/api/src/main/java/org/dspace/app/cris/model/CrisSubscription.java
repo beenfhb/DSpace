@@ -7,7 +7,7 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.model.IdentifiableObject;
+import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,6 +16,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+
+import it.cilea.osd.common.model.IdentifiableObject;
 
 /**
  * This class models a single subscription to receive mail notification of the
@@ -49,7 +51,7 @@ public class CrisSubscription extends IdentifiableObject {
     /**
      * the eperson ID of the subscriber
      */
-    private int epersonID;
+    private UUID epersonID;
 
     public Integer getId()
     {
@@ -61,12 +63,12 @@ public class CrisSubscription extends IdentifiableObject {
         this.id = id;
     }
     
-    public int getEpersonID()
+    public UUID getEpersonID()
     {
         return epersonID;
     }
     
-    public void setEpersonID(int epersonID)
+    public void setEpersonID(UUID epersonID)
     {
         this.epersonID = epersonID;
     }

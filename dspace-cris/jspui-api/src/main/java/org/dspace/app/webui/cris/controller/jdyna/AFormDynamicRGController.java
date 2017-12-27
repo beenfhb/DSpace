@@ -7,6 +7,18 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dspace.app.cris.model.Project;
+import org.dspace.app.webui.util.UIUtil;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.core.Context;
+
 import it.cilea.osd.jdyna.model.ANestedObjectWithTypeSupport;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedProperty;
@@ -17,18 +29,6 @@ import it.cilea.osd.jdyna.model.Property;
 import it.cilea.osd.jdyna.web.IPropertyHolder;
 import it.cilea.osd.jdyna.web.Tab;
 import it.cilea.osd.jdyna.web.controller.FormAnagraficaController;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.dspace.app.cris.model.Project;
-import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.core.Context;
 
 /**
  * This is the base abstract SpringMVC controller for the RPs authority list
@@ -70,7 +70,7 @@ public abstract class AFormDynamicRGController<P extends Property<TP>, TP extend
         Project grant = getApplicationService().get(
                     Project.class, id);
         Context context = UIUtil.obtainContext(request);        
-        if (AuthorizeManager.isAdmin(context))        
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))        
         {
             reference.put("grant_page_menu", new Boolean(true));
             reference.put("project", grant);         

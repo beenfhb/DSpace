@@ -7,11 +7,12 @@
  */
 package org.dspace.app.cris.dao;
 
-import it.cilea.osd.common.dao.PaginableObjectDao;
-
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.cris.model.StatSubscription;
+
+import it.cilea.osd.common.dao.PaginableObjectDao;
 
 /**
  * This interface define the methods available to retrieve StatSubscription
@@ -24,8 +25,8 @@ public interface StatSubscriptionDao extends PaginableObjectDao<StatSubscription
     public List<StatSubscription> findByFreqAndType(int freq, int type);
 	public List<StatSubscription> findByType(Integer type);
 	public List<StatSubscription> findByUID(String uid);
-	public List<StatSubscription> findByEPersonID(int epersonID);    
-    public List<StatSubscription> findByEPersonIDandUID(int id, String uid);
-    public List<StatSubscription> findByEPersonIDandType(int id, Integer type);
-    public void deleteByEPersonID(int id);    
+	public List<StatSubscription> findByEPersonID(UUID epersonID);    
+    public List<StatSubscription> findByEPersonIDandUID(UUID id, String uid);
+    public List<StatSubscription> findByEPersonIDandType(UUID id, Integer type);
+    public void deleteByEPersonID(UUID id);    
 }

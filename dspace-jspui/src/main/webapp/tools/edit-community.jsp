@@ -15,8 +15,11 @@
   -                  is null, we are creating one.
   --%>
 
+<%@page import="org.dspace.content.factory.ContentServiceFactory"%>
+<%@page import="org.dspace.content.service.CommunityService"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
+<%@ page import="java.util.UUID" %> 
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 
 <%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet" %>
@@ -30,11 +33,29 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <%
+	CommunityService comServ = ContentServiceFactory.getInstance().getCommunityService();
     Community community = (Community) request.getAttribute("community");
-    int parentID = UIUtil.getIntParameter(request, "parent_community_id");
-    // Is the logged in user a sys admin
+	Community parentCommunity = (Community) request.getAttribute("parent");
+    UUID parentID = (parentCommunity != null ? parentCommunity.getID() : null);
+    
+    // Is the logged in user an admin or community admin or collection admin
     Boolean admin = (Boolean)request.getAttribute("is.admin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
+    
+    Boolean communityAdmin = (Boolean)request.getAttribute("is.communityAdmin");
+    boolean isCommunityAdmin = (communityAdmin == null ? false : communityAdmin.booleanValue());
+    
+    Boolean collectionAdmin = (Boolean)request.getAttribute("is.collectionAdmin");
+    boolean isCollectionAdmin = (collectionAdmin == null ? false : collectionAdmin.booleanValue());
+    
+    String naviAdmin = "admin";
+    String link = "/dspace-admin";
+    
+    if(!isAdmin && (isCommunityAdmin || isCollectionAdmin))
+    {
+        naviAdmin = "community-or-collection-admin";
+        link = "/tools";
+    }
     
     Boolean adminCreateGroup = (Boolean)request.getAttribute("admin_create_button");
     boolean bAdminCreateGroup = (adminCreateGroup == null ? false : adminCreateGroup.booleanValue());
@@ -61,20 +82,20 @@
     
     if (community != null)
     {
-        name = community.getMetadata("name");
-        shortDesc = community.getMetadata("short_description");
-        intro = community.getMetadata("introductory_text");
-        copy = community.getMetadata("copyright_text");
-        side = community.getMetadata("side_bar_text");
+        name = comServ.getMetadata(community, "name");
+        shortDesc = comServ.getMetadata(community, "short_description");
+        intro = comServ.getMetadata(community, "introductory_text");
+        copy = comServ.getMetadata(community, "copyright_text");
+        side = comServ.getMetadata(community, "side_bar_text");
         logo = community.getLogo();
         admins = community.getAdministrators();
     }
 %>
 
 <dspace:layout style="submission" titlekey="jsp.tools.edit-community.title"
-		       navbar="admin"
+		       navbar="<%= naviAdmin %>"
 		       locbar="link"
-		       parentlink="/dspace-admin"
+		       parentlink="<%= link %>"
 		       parenttitlekey="jsp.administer" nocache="true">
 
 <div class="row">
@@ -106,6 +127,10 @@
                 <input class="col-md-12 btn btn-danger" type="submit" name="submit_delete" value="<fmt:message key="jsp.tools.edit-community.button.delete"/>" />
               </form>
     <% } %>
+	<div class="col-md-4">
+	   	<a class="btn btn-warning col-sm-12" target="_blank" 
+	  		href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=4&resource_id=<%= community.getID() %>"><fmt:message key="jsp.general.editnormal.button"/></a>	
+	</div>   		
 <%
     }
 %>
@@ -165,7 +190,6 @@
 <%  } %>
                     </div>
 			</div>
-            
         </div>
      </div>
  </div>

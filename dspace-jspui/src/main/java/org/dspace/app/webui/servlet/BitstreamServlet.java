@@ -10,6 +10,7 @@ package org.dspace.app.webui.servlet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,21 +18,28 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.Utils;
-import org.dspace.handle.HandleManager;
+import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
+import org.dspace.plugin.BitstreamHomeProcessor;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.usage.UsageEvent;
-import org.dspace.utils.DSpace;
 
 /**
  * Servlet for retrieving bitstreams. The bits are simply piped to the user. If
@@ -46,16 +54,22 @@ import org.dspace.utils.DSpace;
 public class BitstreamServlet extends DSpaceServlet
 {
     /** log4j category */
-    private static Logger log = Logger.getLogger(BitstreamServlet.class);
+    private static final Logger log = Logger.getLogger(BitstreamServlet.class);
 
     /**
      * Threshold on Bitstream size before content-disposition will be set.
      */
     private int threshold;
     
+    // services API
+    private final transient HandleService handleService
+             = HandleServiceFactory.getInstance().getHandleService();
+    
+    private final transient BitstreamService bitstreamService
+             = ContentServiceFactory.getInstance().getBitstreamService();
+    
     @Override
 	public void init(ServletConfig arg0) throws ServletException {
-
 		super.init(arg0);
 		threshold = ConfigurationManager
 				.getIntProperty("webui.content_disposition_threshold");
@@ -121,7 +135,7 @@ public class BitstreamServlet extends DSpaceServlet
         }
         
         // Now try and retrieve the item
-        DSpaceObject dso = HandleManager.resolveToObject(context, handle);
+        DSpaceObject dso = handleService.resolveToObject(context, handle);
         
         // Make sure we have valid item and sequence number
         if (dso != null && dso.getType() == Constants.ITEM && sequenceID >= 0)
@@ -138,17 +152,17 @@ public class BitstreamServlet extends DSpaceServlet
 
             boolean found = false;
 
-            Bundle[] bundles = item.getBundles();
+            List<Bundle> bundles = item.getBundles();
 
-            for (int i = 0; (i < bundles.length) && !found; i++)
+            for (int i = 0; (i < bundles.size()) && !found; i++)
             {
-                Bitstream[] bitstreams = bundles[i].getBitstreams();
+                List<Bitstream> bitstreams = bundles.get(i).getBitstreams();
 
-                for (int k = 0; (k < bitstreams.length) && !found; k++)
+                for (int k = 0; (k < bitstreams.size()) && !found; k++)
                 {
-                    if (sequenceID == bitstreams[k].getSequenceID())
+                    if (sequenceID == bitstreams.get(k).getSequenceID())
                     {
-                        bitstream = bitstreams[k];
+                        bitstream = bitstreams.get(k);
                         found = true;
                     }
                 }
@@ -169,11 +183,15 @@ public class BitstreamServlet extends DSpaceServlet
 
         log.info(LogManager.getHeader(context, "view_bitstream",
                 "bitstream_id=" + bitstream.getID()));
-        
+ 
+		if (bitstream.getMetadataValue(IViewer.METADATA_STRING_PROVIDER).contains(IViewer.STOP_DOWNLOAD)
+				&& !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context, bitstream)) {
+			throw new AuthorizeException("Download not allowed by viewer policy");
+		}
         //new UsageEvent().fire(request, context, AbstractUsageEvent.VIEW,
 		//		Constants.BITSTREAM, bitstream.getID());
 
-        new DSpace().getEventService().fireEvent(
+        DSpaceServicesFactory.getInstance().getEventService().fireEvent(
         		new UsageEvent(
         				UsageEvent.Action.VIEW, 
         				request, 
@@ -203,11 +221,13 @@ public class BitstreamServlet extends DSpaceServlet
             }
         }
         
+        preProcessBitstreamHome(context, request, response, bitstream);
+        
         // Pipe the bits
-        InputStream is = bitstream.retrieve();
+        InputStream is = bitstreamService.retrieve(context, bitstream);
      
 		// Set the response MIME type
-        response.setContentType(bitstream.getFormat().getMIMEType());
+        response.setContentType(bitstream.getFormat(context).getMIMEType());
 
         // Response length
         response.setHeader("Content-Length", String
@@ -224,5 +244,24 @@ public class BitstreamServlet extends DSpaceServlet
         Utils.bufferedCopy(is, response.getOutputStream());
         is.close();
         response.getOutputStream().flush();
+    }
+    
+    private void preProcessBitstreamHome(Context context, HttpServletRequest request,
+            HttpServletResponse response, Bitstream item)
+        throws ServletException, IOException, SQLException
+    {
+        try
+        {
+            BitstreamHomeProcessor[] chp = (BitstreamHomeProcessor[]) CoreServiceFactory.getInstance().getPluginService().getPluginSequence(BitstreamHomeProcessor.class);
+            for (int i = 0; i < chp.length; i++)
+            {
+                chp[i].process(context, request, response, item);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("caught exception: ", e);
+            throw new ServletException(e);
+        }
     }
 }

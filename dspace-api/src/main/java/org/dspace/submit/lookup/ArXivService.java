@@ -58,7 +58,15 @@ public class ArXivService
     {
         if (dois != null && dois.size() > 0)
         {
-            String doisQuery = StringUtils.join(dois.iterator(), " OR ");
+            String doisQuery = "";
+            int i = 0;
+            for(String doi : dois) {
+                if(i>0) {
+                    doisQuery += " OR ";
+                }
+                doisQuery += "\"" + doi + "\"";
+                i++;
+            }
             return search(doisQuery, null, 100);
         }
         return null;
@@ -82,7 +90,7 @@ public class ArXivService
         return search(query.toString(), "", 10);
     }
 
-    private List<Record> search(String query, String arxivid, int max_result)
+    protected List<Record> search(String query, String arxivid, int max_result)
     		throws IOException, HttpException
     		{
     	List<Record> results = new ArrayList<Record>();

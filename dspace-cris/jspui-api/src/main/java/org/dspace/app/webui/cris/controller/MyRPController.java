@@ -8,6 +8,8 @@
 package org.dspace.app.webui.cris.controller;
 
 
+import java.util.UUID;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +18,7 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.springframework.web.servlet.ModelAndView;
@@ -49,13 +51,13 @@ public class MyRPController extends
             throw new ServletException("Wrong data or configuration: access to the my rp servlet without a valid user: there is no user logged in or the user's netid is null");
         }
         
-        if (AuthorizeManager.isAdmin(context))
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
         {
             response.sendRedirect(request.getContextPath()+ "/dspace-admin/");
         }
         else
         {
-            Integer id = currUser.getID();
+            UUID id = currUser.getID();
             ResearcherPage rp = applicationService.getResearcherPageByEPersonId(id);
             if (rp != null && rp.getStatus() != null && rp.getStatus().booleanValue())
             {

@@ -13,15 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
-import javax.servlet.jsp.tagext.TagSupport;
+import javax.servlet.jsp.tagext.BodyContent;
+import javax.servlet.jsp.tagext.BodyTagSupport;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.webui.util.DateDisplayStrategy;
 import org.dspace.app.webui.util.DefaultDisplayStrategy;
@@ -31,24 +31,23 @@ import org.dspace.app.webui.util.ResolverDisplayStrategy;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
-import org.dspace.content.Metadatum;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
-import org.dspace.core.PluginManager;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.discovery.DiscoverResult.DSpaceObjectHighlightResult;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.discovery.configuration.DiscoveryViewConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration;
 
-import com.coverity.security.Escape;
-
 /**
  * 
  */
-public class DiscoveryArtifactTag extends TagSupport {
+public class DiscoveryArtifactTag extends BodyTagSupport {
 	/** Artifact to display */
 	private transient IGlobalSearchResult artifact;
 	private transient DSpaceObjectHighlightResult hlt;
@@ -62,15 +61,33 @@ public class DiscoveryArtifactTag extends TagSupport {
 
 	public int doStartTag() throws JspException {
 		try {
-			showPreview();
+			JspWriter out = pageContext.getOut();
+			out.println("<div class=\"list-group-item\">");			
 		} catch (IOException ie) {
 			throw new JspException(ie);
-		} catch (JspException se) {
-			throw new JspException(se);
-		} catch (SQLException e) {
+		}
+		return EVAL_BODY_BUFFERED;
+	}
+
+	@Override
+	public int doEndTag() throws JspException {
+		try {
+			JspWriter out = pageContext.getOut();
+			BodyContent bodyContent = getBodyContent();
+			if (bodyContent != null) {
+				String body = bodyContent.getString();
+				out.print(StringUtils.substringBefore(body, "##artifact-item##"));
+				showPreview();
+				out.print(StringUtils.substringAfter(body, "##artifact-item##"));
+			}
+			else {
+				showPreview();
+			}
+			out.println("</div>");			
+		} catch (IOException | SQLException e) {
 			throw new JspException(e);
 		}
-		return SKIP_BODY;
+		return EVAL_PAGE;
 	}
 
 	private void showPreview() throws JspException, IOException, SQLException {
@@ -81,28 +98,32 @@ public class DiscoveryArtifactTag extends TagSupport {
 		String browseIndex = null;
 		boolean viewFull = false;
 
-
+		out.println("<div class=\"list-group-item-heading\">");
 		if (view != null) {
-
-			out.println("<div class=\"list-group-item\">");
-			out.println("<div class=\"list-group-item-heading\">");
-			
 			if (view.getThumbnail() != null) {
 
 				out.println("<div class=\"media\">");
 
 				if (artifact.getType() == 2) {
-					Bundle[] bundles = ((Item) artifact).getBundles("BRANDED_PREVIEW");
+					List<Bundle> bundles = ((Item) artifact).getItemService().getBundles((Item)artifact ,"BRANDED_PREVIEW");
 
-					if (bundles.length > 0) {
-						Bitstream[] bitstreams = bundles[0].getBitstreams();
+					if (bundles!=null && bundles.size() > 0) {
+						List<Bitstream> bitstreams = bundles.get(0).getBitstreams();
 
-						out.println("<img class=\"media-object pull-left\" src=\"" + request.getContextPath() + "/retrieve/" + bitstreams[0].getID()
-								+ "/" + UIUtil.encodeBitstreamName(bitstreams[0].getName(), Constants.DEFAULT_ENCODING)
+						out.println("<img class=\"media-object pull-left\" src=\"" + request.getContextPath() + "/retrieve/" + bitstreams.get(0).getID()
+								+ "/" + UIUtil.encodeBitstreamName(bitstreams.get(0).getName(), Constants.DEFAULT_ENCODING)
 								+ "\"/>");
 					}
 				} else {
-					// TODO MANANAGE OTHER THUMBNAIL
+					// TODO MANANAGE COLLECTION AND COMMUNITY
+				    if (artifact.getType() >= 9) {
+			            IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) CoreServiceFactory.getInstance().getPluginService()
+			                        .getNamedPlugin(IDisplayMetadataValueStrategy.class, "crispicture");
+
+	                    if (strategy != null) {
+	                        out.println(strategy.getMetadataDisplay(request, -1, true, "thumbnail", UUID.randomUUID(), "thumbnail", new ArrayList<IMetadataValue>(), artifact, true, true)); 	                        
+	                    }
+	                }				    
 				}
 
 			}
@@ -126,11 +147,8 @@ public class DiscoveryArtifactTag extends TagSupport {
 				out.println("</div>");				
 			}
 
-			out.println("</div>");
 
 		} else {
-			out.println("<div class=\"list-group-item\">");
-			out.println("<div class=\"list-group-item-heading\">");
 			if (artifact.getType() == 2) {
 				printDefault(out, request, context, browseIndex, viewFull, "title", "dc.title");
 			}
@@ -141,7 +159,11 @@ public class DiscoveryArtifactTag extends TagSupport {
 
 					printDefault(out, request, context, browseIndex, viewFull, "cristitle", "fullName");
 
-				} else if (artifact.getType() > 9 && artifact.getType() < 1000) {
+				} else if (artifact.getType() == 10) {
+
+                    printDefault(out, request, context, browseIndex, viewFull, "cristitle", "title");
+
+                } else if (artifact.getType() > 10 && artifact.getType() < 1000) {
 
 					printDefault(out, request, context, browseIndex, viewFull, "cristitle", "name");
 
@@ -150,7 +172,6 @@ public class DiscoveryArtifactTag extends TagSupport {
 					printDefault(out, request, context, browseIndex, viewFull, "cristitle", meta);
 				}
 			}
-			out.println("</div>");
 			out.println("</div>");
 		}
 	}
@@ -206,8 +227,8 @@ public class DiscoveryArtifactTag extends TagSupport {
 			}
 		}
 		boolean unescapeHtml = false;
-		List<String> metadataValue = new ArrayList<String>();
-		List<Metadatum> dcMetadataValue = new ArrayList<Metadatum>();
+		List<String> metadataValue = new ArrayList<String>();		
+		List<IMetadataValue> dcMetadataValue = new ArrayList<>();
 		String metadata = "";
 		if (hls != null) {
 			for (String[] hl : hls) {
@@ -216,26 +237,27 @@ public class DiscoveryArtifactTag extends TagSupport {
 					metadata = hl[0];
 				} else {
 					unescapeHtml = true;
-					Metadatum Metadatum = new Metadatum();
-					Metadatum.value = hl[0];
+					MetadataValueVolatile IMetadataValue = new MetadataValueVolatile();
+					IMetadataValue.setValue(hl[0]);
 					if (hl.length > 1) {
-						Metadatum.authority = hl[1];
+						IMetadataValue.setAuthority(hl[1]);		
 					}
-					Metadatum.schema = schema;
-					Metadatum.element = element;
-					Metadatum.qualifier = qualifier;
-					Metadatum.confidence = Choices.CF_ACCEPTED;
-					dcMetadataValue.add(Metadatum);
+					IMetadataValue.schema = schema;
+					IMetadataValue.element = element;
+					IMetadataValue.qualifier = qualifier;
+					IMetadataValue.setConfidence(Choices.CF_ACCEPTED);
+					dcMetadataValue.add(IMetadataValue);
 				}
 			}
 		}
 		if ((!founded && dvfc.isMandatory()) || (founded && dvfc.getDecorator() != null)) {
-
-			if (!founded) {
-				metadataValue = artifact.getMetadataValue(field);
-			}
+            List<IMetadataValue> arrayDcMetadataValue = artifact
+                    .getMetadataValueInDCFormat(field);      
+            if (arrayDcMetadataValue == null || arrayDcMetadataValue.size() == 0) {
+            	return;
+            }
 			if (StringUtils.isNotBlank(displayStrategyName)) {
-				IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) PluginManager
+				IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) CoreServiceFactory.getInstance().getPluginService()
 						.getNamedPlugin(IDisplayMetadataValueStrategy.class, displayStrategyName);
 
 				if (strategy == null) {
@@ -250,28 +272,23 @@ public class DiscoveryArtifactTag extends TagSupport {
 					}
 				}
 
-				if (!founded) {
-					metadataValue = artifact.getMetadataValue(field);
-					metadata = strategy.getMetadataDisplay(request, -1, viewFull, browseIndex, 0, field,
-							metadataValue, artifact, false, false, pageContext);
-				} else {
-					Metadatum[] arrayDcMetadataValue = new Metadatum[dcMetadataValue.size() - 1];
-					metadata = strategy.getMetadataDisplay(request, -1, viewFull, browseIndex, 0, field,
-							dcMetadataValue.toArray(arrayDcMetadataValue), artifact, false, false, pageContext);
-				}
-
+				metadata = strategy.getMetadataDisplay(request, -1, viewFull,
+                        browseIndex, UUID.randomUUID(), field,
+                        arrayDcMetadataValue, artifact,
+                        false, false);
 			} else {
 				if (!founded) {
+                    metadataValue = artifact.getMetadataValue(field);
 					for (String vl : metadataValue) {
 						metadata += vl;
-						if (metadataValue.size() > 1) {
+						if (arrayDcMetadataValue.size() > 1) {
 							metadata += dvfc.getSeparator();
 						}
 					}
 				} else {
-					for (Metadatum vl : dcMetadataValue) {
-						metadata += vl.value;
-						if (dcMetadataValue.size() > 1) {
+					for (IMetadataValue vl : dcMetadataValue) {
+						metadata += vl.getValue();
+						if (arrayDcMetadataValue.size() > 1) {
 							metadata +=  dvfc.getSeparator();
 						}
 					}
@@ -326,14 +343,14 @@ public class DiscoveryArtifactTag extends TagSupport {
 
 	private void printDefault(JspWriter out, HttpServletRequest request, Context context, String browseIndex,
 			boolean viewFull, String displayStrategyConf, String field) throws JspException, IOException {
-		IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) PluginManager.getNamedPlugin(
+		IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(
 				IDisplayMetadataValueStrategy.class, displayStrategyConf);
 		if (strategy == null) {
 			strategy = new DefaultDisplayStrategy();
 		}
 
-		String metadata = strategy.getMetadataDisplay(request, -1, viewFull, browseIndex, 0, field,
-				artifact.getMetadataValue(field), artifact, false, false, pageContext);
+		String metadata = strategy.getMetadataDisplay(request, -1, viewFull, browseIndex, UUID.randomUUID(), field,
+				artifact.getMetadataValueInDCFormat(field), artifact, false, false);
 
 		String label = null;
 		try {

@@ -10,9 +10,10 @@ package org.dspace.app.webui.cris.components.statistics;
 import it.cilea.osd.jdyna.components.IBeanSubComponent;
 
 import org.dspace.app.cris.integration.statistics.IStatsComponent;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 
-public abstract class StatsComponent<T extends DSpaceObject> extends ASolrStatsConfigurerComponent implements IStatsComponent
+public abstract class StatsComponent<T extends BrowsableDSpaceObject> extends ASolrStatsConfigurerComponent implements IStatsComponent
 {
     public static final String DOWNLOAD = "download";
     public static final String VIEW = "view";
