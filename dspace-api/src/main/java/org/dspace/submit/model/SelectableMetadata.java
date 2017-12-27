@@ -7,6 +7,9 @@
  */
 package org.dspace.submit.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * The SelectableMetadata REST Resource. It is not addressable directly, only
  * used as inline object in the InputForm resource.
@@ -24,8 +27,11 @@ package org.dspace.submit.model;
  */
 public class SelectableMetadata {
 	private String metadata;
+	@JsonInclude(Include.NON_NULL)
 	private String label;
+	@JsonInclude(Include.NON_NULL)
 	private String authority;
+	@JsonInclude(Include.NON_NULL)
 	private Boolean closed;
 
 	public String getMetadata() {

@@ -10,6 +10,9 @@ package org.dspace.submit.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
@@ -22,6 +25,8 @@ public class SubmissionFormField {
 	private String hints;
 
 	private List<SelectableMetadata> selectableMetadata;
+	
+	@JsonInclude(Include.NON_EMPTY)
 	private List<LanguageFormField> languageCodes;
 	
 	public List<SelectableMetadata> getSelectableMetadata() {
