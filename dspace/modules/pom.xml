@@ -40,7 +40,6 @@
     -->
     <profiles>
         <profile>
-        <profile>
             <id>dspace-jspui</id>
             <activation>
                 <file>

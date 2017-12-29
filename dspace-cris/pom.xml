@@ -100,12 +100,6 @@
 		<dependencies>
 						        
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-ehcache</artifactId>
-				<version>${org.hibernate.ehcache.version}</version>
-			</dependency>
-						     
-			<dependency>
 				<groupId>c3p0</groupId>
 				<artifactId>c3p0</artifactId>
 				<version>0.9.1.2</version>

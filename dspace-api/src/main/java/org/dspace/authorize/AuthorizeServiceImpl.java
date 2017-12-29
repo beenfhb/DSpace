@@ -787,7 +787,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     }
 
     @Override
-    public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson, int type, String rpType) throws SQLException, AuthorizeException {
+    public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity  dso, Group group, EPerson eperson, int type, String rpType, String rpName, String rpDescription, Date startDate, Date endDate) throws SQLException, AuthorizeException {
         if(group == null && eperson == null)
         {
             throw new IllegalArgumentException("We need at least an eperson or a group in order to create a resource policy.");

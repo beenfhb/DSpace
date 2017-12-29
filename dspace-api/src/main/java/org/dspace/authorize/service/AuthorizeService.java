@@ -223,17 +223,6 @@ public interface AuthorizeService {
      */
     public boolean isAdmin(Context c, EPerson e) throws SQLException;
 
-    /**
-     * Check to see if a specific user is system admin. Always return
-     * {@code true} if c.ignoreAuthorization is set.
-     *
-     * @param c current context
-     * @return {@code true} if user is an admin or ignore authorization
-     *         flag set
-     * @throws SQLException if database error
-     */
-    public boolean isAdmin(Context c, EPerson e) throws SQLException;
-    
     public boolean isCommunityAdmin(Context c) throws SQLException;
     
     public boolean isCollectionAdmin(Context c) throws SQLException; 
@@ -467,9 +456,6 @@ public interface AuthorizeService {
     
     public ResourcePolicy findByTypeGroupAction(Context c, AuthorizableEntity dso, Group group, int action) throws SQLException;
     
-    public ResourcePolicy findByTypeGroupAction(Context c, DSpaceObject dso, Group group, int action) throws SQLException;
-
-
     /**
      * Generate Policies policies READ for the date in input adding reason. New policies are assigned automatically at the groups that
      * have right on the collection. E.g., if the anonymous can access the collection policies are assigned to anonymous.

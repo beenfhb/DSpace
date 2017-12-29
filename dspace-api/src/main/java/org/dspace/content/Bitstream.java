@@ -473,8 +473,6 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
 		getBitstreamService().setMetadataSingleValue(context, this, "dcterms", "accessRights", null, null, acceptanceDate.toString());
 	}
 
-}
-    
     public void setMD5Value(Context context, String valueMD5) {
         this.checksum = valueMD5;
     }
