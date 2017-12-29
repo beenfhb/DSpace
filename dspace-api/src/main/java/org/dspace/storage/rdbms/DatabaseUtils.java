@@ -82,7 +82,7 @@ public class DatabaseUtils
 
     /**
      * Commandline tools for managing database changes, etc.
-     * @param argv
+     * @param argv the command line arguments given
      */
     public static void main(String[] argv)
     {
@@ -104,7 +104,7 @@ public class DatabaseUtils
             Flyway flyway = setupFlyway(dataSource);
 
             // "test" = Test Database Connection
-            if(argv[0].equalsIgnoreCase("test"))
+            if (argv[0].equalsIgnoreCase("test"))
             {
                 // Try to connect to the database
                 System.out.println("\nAttempting to connect to database");
@@ -119,7 +119,7 @@ public class DatabaseUtils
                     boolean issueFound = printDBIssues(connection);
 
                     // If issues found, exit with an error status (even if connection succeeded).
-                    if(issueFound)
+                    if (issueFound)
                         System.exit(1);
                     else
                         System.exit(0);
@@ -133,7 +133,7 @@ public class DatabaseUtils
                     System.exit(1);
                 }
             }
-            else if(argv[0].equalsIgnoreCase("info") || argv[0].equalsIgnoreCase("status"))
+            else if (argv[0].equalsIgnoreCase("info") || argv[0].equalsIgnoreCase("status"))
             {
                 try(Connection connection = dataSource.getConnection())
                 {
@@ -146,7 +146,7 @@ public class DatabaseUtils
                     // If Flyway is NOT yet initialized, also print the determined version information
                     // NOTE: search is case sensitive, as flyway table name is ALWAYS lowercase,
                     // See: http://flywaydb.org/documentation/faq.html#case-sensitive
-                    if(!tableExists(connection, flyway.getTable(), true))
+                    if (!tableExists(connection, flyway.getTable(), true))
                     {
                         System.out.println("\nNOTE: This database is NOT yet initialized for auto-migrations (via Flyway).");
                         // Determine which version of DSpace this looks like
@@ -163,7 +163,7 @@ public class DatabaseUtils
                     boolean issueFound = printDBIssues(connection);
 
                     // If issues found, exit with an error status
-                    if(issueFound)
+                    if (issueFound)
                         System.exit(1);
                     else
                         System.exit(0);
@@ -175,7 +175,7 @@ public class DatabaseUtils
                     System.exit(1);
                 }
             }
-            else if(argv[0].equalsIgnoreCase("migrate"))
+            else if (argv[0].equalsIgnoreCase("migrate"))
             {
                 try (Connection connection = dataSource.getConnection())
                 {
@@ -184,9 +184,9 @@ public class DatabaseUtils
                     // "migrate" allows for an OPTIONAL second argument:
                     //    - "ignored" = Also run any previously "ignored" migrations during the migration
                     //    - [version] = ONLY run migrations up to a specific DSpace version (ONLY FOR TESTING)
-                    if(argv.length==2)
+                    if (argv.length==2)
                     {
-                        if(argv[1].equalsIgnoreCase("ignored"))
+                        if (argv[1].equalsIgnoreCase("ignored"))
                         {
                             System.out.println("Migrating database to latest version AND running previously \"Ignored\" migrations... (Check logs for details)");
                             // Update the database to latest version, but set "outOfOrder=true"
@@ -238,7 +238,7 @@ public class DatabaseUtils
                 }
             }
             // "repair" = Run Flyway repair script
-            else if(argv[0].equalsIgnoreCase("repair"))
+            else if (argv[0].equalsIgnoreCase("repair"))
             {
                 try (Connection connection = dataSource.getConnection();)
                 {
@@ -256,7 +256,7 @@ public class DatabaseUtils
                 }
             }
             // "validate" = Run Flyway validation to check for database errors/issues
-            else if(argv[0].equalsIgnoreCase("validate"))
+            else if (argv[0].equalsIgnoreCase("validate"))
             {
                 try (Connection connection = dataSource.getConnection();)
                 {
@@ -274,10 +274,10 @@ public class DatabaseUtils
                 }
             }
             // "clean" = Run Flyway clean script
-            else if(argv[0].equalsIgnoreCase("clean"))
+            else if (argv[0].equalsIgnoreCase("clean"))
             {
                 // If clean is disabled, return immediately
-                if(flyway.isCleanDisabled())
+                if (flyway.isCleanDisabled())
                 {
                     System.out.println("\nWARNING: 'clean' command is currently disabled, as it is dangerous to run in Production scenarios!");
                     System.out.println("\nIn order to run a 'clean' you first must enable it in your DSpace config by specifying 'db.cleanDisabled=false'.\n");
@@ -290,10 +290,10 @@ public class DatabaseUtils
 
                     // Not all Postgres user accounts will be able to run a 'clean',
                     // as only 'superuser' accounts can remove the 'pgcrypto' extension.
-                    if(dbType.equals(DBMS_POSTGRES))
+                    if (dbType.equals(DBMS_POSTGRES))
                     {
                         // Check if database user has permissions suitable to run a clean
-                        if(!PostgresUtils.checkCleanPermissions(connection))
+                        if (!PostgresUtils.checkCleanPermissions(connection))
                         {
                             String username = connection.getMetaData().getUserName();
                             // Exit immediately, providing a descriptive error message
@@ -310,11 +310,11 @@ public class DatabaseUtils
                     System.out.println("\nDatabase URL: " + connection.getMetaData().getURL());
                     System.out.println("\nWARNING: ALL DATA AND TABLES IN YOUR DATABASE WILL BE PERMANENTLY DELETED.\n");
                     System.out.println("There is NO turning back from this action. Backup your DB before continuing.");
-                    if(dbType.equals(DBMS_ORACLE))
+                    if (dbType.equals(DBMS_ORACLE))
                     {
                         System.out.println("\nORACLE WARNING: your RECYCLEBIN will also be PURGED.\n");
                     }
-                    else if(dbType.equals(DBMS_POSTGRES))
+                    else if (dbType.equals(DBMS_POSTGRES))
                     {
                         System.out.println("\nPOSTGRES WARNING: the '" + PostgresUtils.PGCRYPTO + "' extension will be dropped if it is in the same schema as the DSpace database.\n");
                     }
@@ -385,7 +385,7 @@ public class DatabaseUtils
 
         // For Postgres, report whether pgcrypto is installed
         // (If it isn't, we'll also write out warnings...see below)
-        if(dbType.equals(DBMS_POSTGRES))
+        if (dbType.equals(DBMS_POSTGRES))
         {
             boolean pgcryptoUpToDate = PostgresUtils.isPgcryptoUpToDate();
             Double pgcryptoVersion = PostgresUtils.getPgcryptoInstalledVersion(connection);
@@ -409,7 +409,7 @@ public class DatabaseUtils
 
         // For PostgreSQL databases, we need to check for the 'pgcrypto' extension.
         // If it is NOT properly installed, we'll need to warn the user, as DSpace will be unable to proceed.
-        if(dbType.equals(DBMS_POSTGRES))
+        if (dbType.equals(DBMS_POSTGRES))
         {
             // Get version of pgcrypto available in this postgres instance
             Double pgcryptoAvailable = PostgresUtils.getPgcryptoAvailableVersion(connection);
@@ -418,13 +418,13 @@ public class DatabaseUtils
             String requirementsMsg = "\n** DSpace REQUIRES PostgreSQL >= " + PostgresUtils.POSTGRES_VERSION + " AND " + PostgresUtils.PGCRYPTO + " extension >= " + PostgresUtils.PGCRYPTO_VERSION + " **\n";
 
             // Check if installed in PostgreSQL & a supported version
-            if(pgcryptoAvailable!=null && pgcryptoAvailable.compareTo(PostgresUtils.PGCRYPTO_VERSION)>=0)
+            if (pgcryptoAvailable!=null && pgcryptoAvailable.compareTo(PostgresUtils.PGCRYPTO_VERSION)>=0)
             {
                 // We now know it's available in this Postgres. Let's see if it is installed in this database.
                 Double pgcryptoInstalled = PostgresUtils.getPgcryptoInstalledVersion(connection);
 
                 // Check if installed in database, but outdated version
-                if(pgcryptoInstalled!=null && pgcryptoInstalled.compareTo(PostgresUtils.PGCRYPTO_VERSION)<0)
+                if (pgcryptoInstalled!=null && pgcryptoInstalled.compareTo(PostgresUtils.PGCRYPTO_VERSION)<0)
                 {
                     System.out.println("\nWARNING: Required PostgreSQL '" + PostgresUtils.PGCRYPTO + "' extension is OUTDATED (installed version=" + pgcryptoInstalled + ", available version = " + pgcryptoAvailable + ").");
                     System.out.println(requirementsMsg);
@@ -432,7 +432,7 @@ public class DatabaseUtils
                     System.out.println("\n  ALTER EXTENSION " + PostgresUtils.PGCRYPTO + " UPDATE TO '" + pgcryptoAvailable + "';\n");
                     issueFound = true;
                 }
-                else if(pgcryptoInstalled==null) // If it's not installed in database
+                else if (pgcryptoInstalled==null) // If it's not installed in database
                 {
                     System.out.println("\nWARNING: Required PostgreSQL '" + PostgresUtils.PGCRYPTO + "' extension is NOT INSTALLED on this database.");
                     System.out.println(requirementsMsg);
@@ -442,7 +442,7 @@ public class DatabaseUtils
                 }
             }
             // Check if installed in Postgres, but an unsupported version
-            else if(pgcryptoAvailable!=null && pgcryptoAvailable.compareTo(PostgresUtils.PGCRYPTO_VERSION)<0)
+            else if (pgcryptoAvailable!=null && pgcryptoAvailable.compareTo(PostgresUtils.PGCRYPTO_VERSION)<0)
             {
                 System.out.println("\nWARNING: UNSUPPORTED version of PostgreSQL '" + PostgresUtils.PGCRYPTO + "' extension found (version=" + pgcryptoAvailable + ").");
                 System.out.println(requirementsMsg);
@@ -450,7 +450,7 @@ public class DatabaseUtils
                 System.out.println("The '" + PostgresUtils.PGCRYPTO + "' extension is often provided in the 'postgresql-contrib' package for your operating system.");
                 issueFound = true;
             }
-            else if(pgcryptoAvailable==null) // If it's not installed in Postgres
+            else if (pgcryptoAvailable==null) // If it's not installed in Postgres
             {
                 System.out.println("\nWARNING: PostgreSQL '" + PostgresUtils.PGCRYPTO + "' extension is NOT AVAILABLE. Please install it into this PostgreSQL instance.");
                 System.out.println(requirementsMsg);
@@ -497,7 +497,7 @@ public class DatabaseUtils
                 // First, add location for custom SQL migrations, if any (based on DB Type)
                 // e.g. [dspace.dir]/etc/[dbtype]/
                 // (We skip this for H2 as it's only used for unit testing)
-                if(!dbType.equals(DBMS_H2))
+                if (!dbType.equals(DBMS_H2))
                 {
                     scriptLocations.add("filesystem:" + config.getProperty("dspace.dir") +
                                         "/etc/" + dbType);
@@ -617,7 +617,7 @@ public class DatabaseUtils
 
             // If a target version was specified, tell Flyway to ONLY migrate to that version
             // (i.e. all later migrations are left as "pending"). By default we always migrate to latest version.
-            if(!StringUtils.isBlank(targetVersion))
+            if (!StringUtils.isBlank(targetVersion))
             {
                 flyway.setTargetAsString(targetVersion);
             }
@@ -626,7 +626,7 @@ public class DatabaseUtils
             // If not, then this is the first time Flyway has run, and we need to initialize
             // NOTE: search is case sensitive, as flyway table name is ALWAYS lowercase,
             // See: http://flywaydb.org/documentation/faq.html#case-sensitive
-            if(!tableExists(connection, flyway.getTable(), true))
+            if (!tableExists(connection, flyway.getTable(), true))
             {
                 // Try to determine our DSpace database version, so we know what to tell Flyway to do
                 String dbVersion = determineDBVersion(connection);
@@ -704,7 +704,7 @@ public class DatabaseUtils
                 // If this is Oracle, the only way to entirely clean the database
                 // is to also purge the "Recyclebin". See:
                 // http://docs.oracle.com/cd/B19306_01/server.102/b14200/statements_9018.htm
-                if(dbType.equals(DBMS_ORACLE))
+                if (dbType.equals(DBMS_ORACLE))
                 {
                     PreparedStatement statement = null;
                     try
@@ -714,7 +714,7 @@ public class DatabaseUtils
                     }
                     finally
                     {
-                        if(statement!=null && !statement.isClosed())
+                        if (statement!=null && !statement.isClosed())
                             statement.close();
                     }
                 }
@@ -745,7 +745,7 @@ public class DatabaseUtils
             throws SQLException
     {
         // First, is this a "fresh_install"?  Check for an "item" table.
-        if(!tableExists(connection, "Item"))
+        if (!tableExists(connection, "Item"))
         {
             // Item table doesn't exist. This database must be a fresh install
             return null;
@@ -847,7 +847,7 @@ public class DatabaseUtils
         }
         
         // Is this DSpace 4.x? Look for the "Webapp" table created in that version.
-        if(tableExists(connection, "Webapp"))
+        if (tableExists(connection, "Webapp"))
         {
             if(tableColumnExists(connection, "jdyna_widget_text", "displayFormat", null, null))
             {
@@ -861,7 +861,7 @@ public class DatabaseUtils
         }
 
         // Is this DSpace 3.x? Look for the "versionitem" table created in that version.
-        if(tableExists(connection, "versionitem"))
+        if (tableExists(connection, "versionitem"))
         {
             if(tableColumnExists(connection, "cris_rp_wpointer", "urlPath", null, null))
             {
@@ -897,43 +897,43 @@ public class DatabaseUtils
         }
         // Is this DSpace 1.7.x? Look for the "dctyperegistry_seq" to NOT exist (it was deleted in 1.7)
         // NOTE: DSPACE 1.7.x only differs from 1.6 in a deleted sequence.
-        if(!sequenceExists(connection, "dctyperegistry_seq"))
+        if (!sequenceExists(connection, "dctyperegistry_seq"))
         {
             return "1.7";
         }
 
         // Is this DSpace 1.6.x? Look for the "harvested_collection" table created in that version.
-        if(tableExists(connection, "harvested_collection"))
+        if (tableExists(connection, "harvested_collection"))
         {
             return "1.6";
         }
 
         // Is this DSpace 1.5.x? Look for the "collection_item_count" table created in that version.
-        if(tableExists(connection, "collection_item_count"))
+        if (tableExists(connection, "collection_item_count"))
         {
             return "1.5";
         }
 
         // Is this DSpace 1.4.x? Look for the "Group2Group" table created in that version.
-        if(tableExists(connection, "Group2Group"))
+        if (tableExists(connection, "Group2Group"))
         {
             return "1.4";
         }
 
         // Is this DSpace 1.3.x? Look for the "epersongroup2workspaceitem" table created in that version.
-        if(tableExists(connection, "epersongroup2workspaceitem"))
+        if (tableExists(connection, "epersongroup2workspaceitem"))
         {
             return "1.3";
         }
 
         // Is this DSpace 1.2.x? Look for the "Community2Community" table created in that version.
-        if(tableExists(connection, "Community2Community"))
+        if (tableExists(connection, "Community2Community"))
         {
             return "1.2";
         }
 
         // Is this DSpace 1.1.x? Look for the "Community" table created in that version.
-        if(tableExists(connection, "Community"))
+        if (tableExists(connection, "Community"))
         {
             return "1.1";
         }
@@ -984,7 +984,7 @@ public class DatabaseUtils
             DatabaseMetaData meta = connection.getMetaData();
 
             // If this is not a case sensitive search
-            if(!caseSensitive)
+            if (!caseSensitive)
             {
                 // Canonicalize everything to the proper case based on DB type
                 schema = canonicalize(connection, schema);
@@ -1007,7 +1007,7 @@ public class DatabaseUtils
             try
             {
                 // ensure the ResultSet gets closed
-                if(results!=null && !results.isClosed())
+                if (results!=null && !results.isClosed())
                     results.close();
             }
             catch(SQLException e)
@@ -1082,7 +1082,7 @@ public class DatabaseUtils
             try
             {
                 // ensure the ResultSet gets closed
-                if(results!=null && !results.isClosed())
+                if (results!=null && !results.isClosed())
                     results.close();
             }
             catch(SQLException e)
@@ -1128,7 +1128,7 @@ public class DatabaseUtils
             {
                 case DBMS_POSTGRES:
                     // Default schema in PostgreSQL is "public"
-                    if(schema == null)
+                    if (schema == null)
                     {
                         schema = "public";
                     }
@@ -1163,14 +1163,14 @@ public class DatabaseUtils
                 // Run the query, passing it our parameters
                 statement = connection.prepareStatement(sequenceSQL);
                 statement.setString(1, sequenceName);
-                if(schemaFilter)
+                if (schemaFilter)
                 {
                     statement.setString(2, schema);
                 }
                 results = statement.executeQuery();
 
                 // If results are non-zero, then this sequence exists!
-                if(results!=null && results.next() && results.getInt(1)>0)
+                if (results!=null && results.next() && results.getInt(1)>0)
                 {
                     exists = true;
                 }
@@ -1185,10 +1185,10 @@ public class DatabaseUtils
             try
             {
                 // Ensure statement gets closed
-                if(statement!=null && !statement.isClosed())
+                if (statement!=null && !statement.isClosed())
                     statement.close();
                 // Ensure ResultSet gets closed
-                if(results!=null && !results.isClosed())
+                if (results!=null && !results.isClosed())
                     results.close();
             }
             catch(SQLException e)
@@ -1236,8 +1236,10 @@ public class DatabaseUtils
      * be used to limit queries in other methods (e.g. tableExists()).
      *
      * @param connection
-     *            Current Database Connection
+     *     Current Database Connection
      * @return Schema name as a string, or "null" if cannot be determined or unspecified
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public static String getSchemaName(Connection connection)
             throws SQLException
@@ -1256,17 +1258,17 @@ public class DatabaseUtils
         }
 
         // If we don't know our schema, let's try the schema in the DSpace configuration
-        if(StringUtils.isBlank(schema))
+        if (StringUtils.isBlank(schema))
         {
             schema = canonicalize(connection, DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("db.schema"));
         }
             
         // Still blank? Ok, we'll find a "sane" default based on the DB type
-        if(StringUtils.isBlank(schema))
+        if (StringUtils.isBlank(schema))
         {
             String dbType = getDbType(connection);
 
-            if(dbType.equals(DBMS_POSTGRES))
+            if (dbType.equals(DBMS_POSTGRES))
             {
                 // For PostgreSQL, the default schema is named "public"
                 // See: http://www.postgresql.org/docs/9.0/static/ddl-schemas.html
@@ -1291,28 +1293,30 @@ public class DatabaseUtils
      * database defaults to storing identifiers in uppercase or lowercase.
      *
      * @param connection 
-     *            Current Database Connection
+     *     Current Database Connection
      * @param dbIdentifier 
-     *            Identifier to canonicalize (may be a table name, column name, etc)
+     *     Identifier to canonicalize (may be a table name, column name, etc)
      * @return The canonical name of the identifier.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public static String canonicalize(Connection connection, String dbIdentifier)
             throws SQLException
     {
         // Avoid any null pointers
-        if(dbIdentifier==null)
+        if (dbIdentifier==null)
             return null;
         
         DatabaseMetaData meta = connection.getMetaData();
 
         // Check how this database stores its identifiers, etc.
         // i.e. lowercase vs uppercase (by default we assume mixed case)
-        if(meta.storesLowerCaseIdentifiers())
+        if (meta.storesLowerCaseIdentifiers())
         {
             return StringUtils.lowerCase(dbIdentifier);
             
         }
-        else if(meta.storesUpperCaseIdentifiers())
+        else if (meta.storesUpperCaseIdentifiers())
         {
             return StringUtils.upperCase(dbIdentifier);
         }
@@ -1340,12 +1344,12 @@ public class DatabaseUtils
         File reindexFlag = new File(reindexDiscoveryFilePath);
 
         // If we need to flag Discovery to reindex, we'll create a temporary file to do so.
-        if(reindex)
+        if (reindex)
         {
             try
             {
                 //If our flag file doesn't exist, create it as writeable to all
-                if(!reindexFlag.exists())
+                if (!reindexFlag.exists())
                 {
                     reindexFlag.createNewFile();
                     reindexFlag.setWritable(true, false);
@@ -1359,10 +1363,10 @@ public class DatabaseUtils
         else // Otherwise, Discovery doesn't need to reindex. Delete the temporary file if it exists
         {
             //If our flag file exists, delete it
-            if(reindexFlag.exists())
+            if (reindexFlag.exists())
             {
                 boolean deleted = reindexFlag.delete();
-                if(!deleted)
+                if (!deleted)
                     log.error("Unable to delete Discovery reindex flag file " + reindexFlag.getAbsolutePath() + ". You may need to delete it manually.");
             }
         }
@@ -1438,7 +1442,7 @@ public class DatabaseUtils
     public static synchronized void checkReindexDiscovery(IndexingService indexer)
     {
         // We only do something if the reindexDiscovery flag has been triggered
-        if(getReindexDiscovery())
+        if (getReindexDiscovery())
         {
             // Kick off a custom thread to perform the reindexing in Discovery
             // (See ReindexerThread nested class below)
@@ -1475,7 +1479,7 @@ public class DatabaseUtils
             {
                 // Make sure reindexDiscovery flag is still true
                 // If multiple threads get here we only want to reindex ONCE
-                if(DatabaseUtils.getReindexDiscovery())
+                if (DatabaseUtils.getReindexDiscovery())
                 {
                     Context context = null;
                     try
@@ -1509,7 +1513,7 @@ public class DatabaseUtils
                         DatabaseUtils.setReindexDiscovery(false);
 
                         // Clean up our context, if it still exists
-                        if(context!=null && context.isValid())
+                        if (context!=null && context.isValid())
                             context.abort();
                     }
                 }
@@ -1596,7 +1600,7 @@ public class DatabaseUtils
     {
         String flywayState = getCurrentFlywayState(connection);
         Matcher matcher = Pattern.compile("^([0-9]*\\.[0-9]*)(\\.)?.*").matcher(flywayState);
-        if(matcher.matches())
+        if (matcher.matches())
         {
             return Double.parseDouble(matcher.group(1));
         }

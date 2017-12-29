@@ -112,7 +112,7 @@ public class AccountServiceImpl implements AccountService
      * @param token
      *            Account token
      * @return The EPerson corresponding to token, or null.
-     * @exception SQLException
+     * @throws SQLException
      *                If the token or eperson cannot be retrieved from the
      *                database.
      */
@@ -166,7 +166,7 @@ public class AccountServiceImpl implements AccountService
      *            DSpace context
      * @param token
      *            The token to delete
-     * @exception SQLException
+     * @throws SQLException
      *                If a database error occurs
      */
     @Override
@@ -176,7 +176,7 @@ public class AccountServiceImpl implements AccountService
         registrationDataService.deleteByToken(context, token);
     }
 
-    /*
+    /**
      * THIS IS AN INTERNAL METHOD. THE SEND PARAMETER ALLOWS IT TO BE USED FOR
      * TESTING PURPOSES.
      *
@@ -184,15 +184,18 @@ public class AccountServiceImpl implements AccountService
      * is TRUE, this is registration email; otherwise, it is forgot-password
      * email. If send is TRUE, the email is sent; otherwise it is skipped.
      *
-     * Potential error conditions: No EPerson with that email (returns null)
-     * Cannot create registration data in database (throws SQLException) Error
-     * sending email (throws MessagingException) Error reading email template
-     * (throws IOException) Authorization error (throws AuthorizeException)
+     * Potential error conditions:
+     * @return null if no EPerson with that email found
+     * @throws SQLException Cannot create registration data in database 
+     * @throws MessagingException Error sending email
+     * @throws IOException Error reading email template
+     * @throws AuthorizeException Authorization error
      *
-     * @param context DSpace context @param email Email address to send the
-     * forgot-password email to @param isRegister If true, this is for
-     * registration; otherwise, it is for forgot-password @param send If true,
-     * send email; otherwise do not send any email
+     * @param context DSpace context
+     * @param email Email address to send the forgot-password email to
+     * @param isRegister If true, this is for registration; otherwise, it is
+     *     for forgot-password 
+     * @param send If true, send email; otherwise do not send any email
      */
     protected RegistrationData sendInfo(Context context, String email,
             boolean isRegister, boolean send) throws SQLException, IOException,
@@ -239,17 +242,21 @@ public class AccountServiceImpl implements AccountService
      * If isRegister is <code>true</code>, this is registration email;
      * otherwise, it is a forgot-password email.
      *
+     * @param context
+     *     The relevant DSpace Context.
      * @param email
-     *            The email address to mail to
+     *     The email address to mail to
      * @param isRegister
-     *            If true, this is registration email; otherwise it is
-     *            forgot-password email.
+     *     If true, this is registration email; otherwise it is
+     *     forgot-password email.
      * @param rd
-     *            The RDBMS row representing the registration data.
-     * @exception MessagingException
-     *                If an error occurs while sending email
-     * @exception IOException
-     *                If an error occurs while reading the email template.
+     *     The RDBMS row representing the registration data.
+     * @throws MessagingException
+     *     If an error occurs while sending email
+     * @throws IOException
+     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     protected void sendEmail(Context context, String email, boolean isRegister, RegistrationData rd)
             throws MessagingException, IOException, SQLException

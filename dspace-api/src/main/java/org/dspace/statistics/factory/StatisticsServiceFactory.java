@@ -10,7 +10,6 @@ package org.dspace.statistics.factory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.statistics.service.ElasticSearchLoggerService;
 import org.dspace.statistics.service.SolrLoggerService;
-import org.dspace.statistics.util.SpiderDetector;
 import org.dspace.statistics.util.SpiderDetectorService;
 
 /**

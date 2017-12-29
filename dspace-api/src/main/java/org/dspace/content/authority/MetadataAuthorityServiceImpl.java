@@ -15,7 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.util.DCInput;
+import org.dspace.app.util.DCInputSet;
+import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -166,10 +171,11 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
             {
                 defaultMinConfidence = dmc;
             }
-        }        
-        
+            
+            autoRegisterAuthorityFromInputReader();
+        }
     }
-
+	
     private int readConfidence(String key)
     {
         String mc = ConfigurationManager.getProperty(key);
@@ -390,4 +396,32 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService
 		return getMinConfidence(metadataFieldService.findByElement(context, schema, element, qualifier));
 	}
 
+	private void autoRegisterAuthorityFromInputReader() {
+		try {
+			DCInputsReader dcInputsReader = new DCInputsReader();
+			for (DCInputSet dcinputSet : dcInputsReader.getAllInputs(Integer.MAX_VALUE, 0)) {
+				DCInput[][] dcinputs = dcinputSet.getFields();
+				for (DCInput[] dcrows : dcinputs) {
+				    for (DCInput dcinput : dcrows) {
+    					if (StringUtils.isNotBlank(dcinput.getPairsType())
+    							|| StringUtils.isNotBlank(dcinput.getVocabulary())) {
+    						String authorityName = dcinput.getPairsType();
+    						if(StringUtils.isBlank(authorityName)) {
+    							authorityName = dcinput.getVocabulary();
+    						}
+    						if (!StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
+    							String fieldKey = makeFieldKey(dcinput.getSchema(), dcinput.getElement(),
+    									dcinput.getQualifier());
+    							boolean req = ConfigurationManager.getBooleanProperty("authority.required."+fieldKey, false);
+    	                        controlled.put(fieldKey, true);	                        
+    	                        isAuthorityRequired.put(fieldKey, req);
+    						}
+    					}
+				    }
+				}
+			}
+		} catch (DCInputsReaderException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+	}
 }

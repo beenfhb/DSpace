@@ -125,6 +125,23 @@ public interface WorkspaceItemService extends InProgressSubmissionService<Worksp
      */
     public List<WorkspaceItem> findAll(Context context)
         throws SQLException;
+    
+	/**
+	 * Get all workspace items in the whole system, paginated.
+	 *
+	 * @param context
+	 *            the context object
+	 * @param limit
+	 *            limit
+	 * @param offset
+	 *            offset
+	 *
+	 * @return a page of workspace items
+	 * @throws SQLException
+	 *             if database error
+	 */
+	public List<WorkspaceItem> findAll(Context context, Integer limit, Integer offset) throws SQLException;
+
 
     /**
      * Delete the workspace item. The entry in workspaceitem, the unarchived
@@ -143,6 +160,7 @@ public interface WorkspaceItemService extends InProgressSubmissionService<Worksp
     /**
      * The map entry returned contains stage reached as the key and count of items in that stage as a value
      * @param context
+     *     The relevant DSpace Context.
      * @return the map
      * @throws SQLException if database error
      */

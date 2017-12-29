@@ -7,8 +7,9 @@
  */
 package org.dspace.app.util;
 
-import java.io.Serializable;
 import java.util.Map;
+import org.apache.commons.lang3.BooleanUtils;
+import java.io.Serializable;
 
 /**
  * Class representing configuration for a single step within an Item Submission
@@ -27,6 +28,10 @@ import java.util.Map;
  */
 public class SubmissionStepConfig implements Serializable
 {
+	
+	public static final String INPUT_FORM_STEP_NAME = "submission-form";
+	public static final String UPLOAD_STEP_NAME = "upload";
+	
     /*
      * The identifier for the Select Collection step
      */
@@ -39,31 +44,34 @@ public class SubmissionStepConfig implements Serializable
 
     /**
      * the id for this step ('id' only exists if this step is defined in the
-     * <step-definitions> section)
+     * &lt;step-definitions&gt; section)
      */
     private String id = null;
+    
+    private boolean mandatory = true;
 
     /** the heading for this step */
     private String heading = null;
 
     /** the name of the java processing class for this step */
     private String processingClassName = null;
-   
-    /** whether or not this step is editable during workflow (default=true) */
-    private boolean workflowEditable = true;
 
     /** 
-     * The full name of the JSP-UI binding class for this step. This field is
-     * ONLY used by the JSP-UI.
+     * The name of the UI components for this step.
      **/
-    private String jspBindingClassName = null;
+    private String type = null;
+    
 
-    /**
-     * The full name of the Manakin XML-UI Transformer class which will generate
-     * the necessary DRI for displaying this class in Manakin. This field is
-     * ONLY used by the Manakin XML-UI.
-     */
-    private String xmlBindingClassName = null;
+    /** 
+     * The scope restriction for this step (submission or workflow).
+     **/
+    private String scope = null;
+
+    /** visibility in the main scope (default=editable, eventually read-only) */
+    private String visibility = null;
+
+    /** visibility outside the main scope (default=hidden, eventually read-only) */
+    private String visibilityOutside = null;
 
     /** The number of this step in the current SubmissionConfig */
     private int number = -1;
@@ -86,16 +94,17 @@ public class SubmissionStepConfig implements Serializable
     public SubmissionStepConfig(Map<String, String> stepMap)
     {
         id = stepMap.get("id");
+        String s = stepMap.get("mandatory");
+		// only set if explicitly configured
+        if (s != null) {
+			mandatory = BooleanUtils.toBoolean(s);
+		}
         heading = stepMap.get("heading");
         processingClassName = stepMap.get("processing-class");
-        jspBindingClassName = stepMap.get("jspui-binding");
-        xmlBindingClassName = stepMap.get("xmlui-binding");
-
-        String wfEditString = stepMap.get("workflow-editable");
-        if (wfEditString != null && wfEditString.length() > 0)
-        {
-            workflowEditable = Boolean.parseBoolean(wfEditString);
-        }
+        type = stepMap.get("type");
+        scope = stepMap.get("scope");
+        visibility = stepMap.get("scope.visibility");
+        visibilityOutside = stepMap.get("scope.visibilityOutside");
     }
 
     /**
@@ -137,39 +146,31 @@ public class SubmissionStepConfig implements Serializable
     }
 
     /**
-     * Retrieve the full class name of the Manakin Transformer which will
-     * generate this step's DRI, for display in Manakin XML-UI.
-     * <P>
-     * This class must extend the
-     * org.dspace.app.xmlui.aspect.submission.StepTransformer class.
-     * <P>
-     * This property is only used by the Manakin XML-UI, and therefore is not
-     * relevant if you are using the JSP-UI.
+     * Retrieve the name of the component used by this step in the UI
      * 
-     * @return the full java class name of the Transformer to use for this step
+     * @return the name of the UI component to use for this step
      */
-    public String getXMLUIClassName()
+    public String getType()
     {
-        return xmlBindingClassName;
-    }
-    
-    /**
-     * Retrieve the full class name of the JSP-UI "binding" class which will
-     * initialize and call the necessary JSPs for display in the JSP-UI
-     * <P>
-     * This class must extend the
-     * org.dspace.app.webui.submit.JSPStep class.
-     * <P>
-     * This property is only used by the JSP-UI, and therefore is not
-     * relevant if you are using the XML-UI (aka. Manakin).
-     * 
-     * @return the full java class name of the JSPStep to use for this step
-     */
-    public String getJSPUIClassName()
-    {
-        return jspBindingClassName;
+        return type;
     }
 
+    /**
+     * 
+     * @return the scope restriction for this step
+     */
+    public String getScope() {
+		return scope;
+	}
+    
+    public String getVisibility() {
+		return visibility;
+	}
+    
+    public String getVisibilityOutside() {
+		return visibilityOutside;
+	}
+    
     /**
      * Get the number of this step in the current Submission process config.
      * Step numbers start with #0 (although step #0 is ALWAYS the special
@@ -196,18 +197,6 @@ public class SubmissionStepConfig implements Serializable
     }
 
     /**
-     * Whether or not this step is editable during workflow processing. If
-     * "true", then this step will appear in the "Edit Metadata" stage of the
-     * workflow process.
-     * 
-     * @return if step is editable in a workflow process
-     */
-    public boolean isWorkflowEditable()
-    {
-        return workflowEditable;
-    }
-
-    /**
      * Whether or not this step is visible within the Progress Bar. A step is
      * only visible if it has been assigned a Heading, otherwise it's invisible
      * 
@@ -217,4 +206,8 @@ public class SubmissionStepConfig implements Serializable
     {
         return ((heading != null) && (heading.length() > 0));
     }
+
+	public boolean isMandatory() {
+		return mandatory;
+	}
 }

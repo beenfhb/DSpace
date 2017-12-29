@@ -14,21 +14,24 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.core.Constants;
 import org.dspace.core.I18nUtil;
+import org.dspace.core.Utils;
 
 
 /**
@@ -446,7 +449,7 @@ public class Util {
     /**
      * Get a list of all the respective "displayed-value(s)" from the given
      * "stored-value(s)" for a specific metadata field of a DSpace Item, by
-     * reading input-forms.xml
+     * reading submission-forms.xml
      * 
      * @param item
      *            The Dspace Item
@@ -490,66 +493,58 @@ public class Util {
         // Read the input form file for the specific collection
         DCInputsReader inputsReader = new DCInputsReader(formFileName);
 
-        DCInputSet inputSet = inputsReader.getInputs(col_handle);
+        List<DCInputSet> inputSets = inputsReader.getInputsByCollectionHandle(col_handle);
 
-        // Replace the values of List<IMetadataValue> with the correct ones in case of
-        // controlled vocabularies
-        String currentField = schema + "." + element
-                + (qualifier == null ? "" : "." + qualifier);
+		// Replace the values of Metadatum[] with the correct ones in case
+		// of
+		// controlled vocabularies			
+		String currentField = Utils.standardize(schema, element, qualifier, ".");
+		
+		for (DCInputSet inputSet : inputSets) {
 
-        if (inputSet != null)
-        {
+			if (inputSet != null) {
 
-            int pageNums = inputSet.getNumberPages();
+				int fieldsNums = inputSet.getNumberFields();
 
-            for (int p = 0; p < pageNums; p++)
-            {
+				for (int p = 0; p < fieldsNums; p++) {
 
-                DCInput[] inputs = inputSet.getPageRows(p, false, false);
+					DCInput[][] inputs = inputSet.getFields();
 
-                if (inputs != null)
-                {
+					if (inputs != null) {
 
-                    for (int i = 0; i < inputs.length; i++)
-                    {
-                        String inputField = inputs[i].getSchema()
-                                + "."
-                                + inputs[i].getElement()
-                                + (inputs[i].getQualifier() == null ? "" : "."
-                                        + inputs[i].getQualifier());
-                        if (currentField.equals(inputField))
-                        {
+						for (int i = 0; i < inputs.length; i++) {
+						    for (int j = 0; j < inputs[i].length; j++) {
+    							String inputField = Utils.standardize(inputs[i][j].getSchema(), inputs[i][j].getElement(),
+    									inputs[i][j].getQualifier(), ".");
+    							if (currentField.equals(inputField)) {
+    								myInputs = inputs[i][j];
+    								myInputsFound = true;
+    								break;
+    							}
+						    }
+						}
+					}
+					if (myInputsFound)
+						break;
+				}
+			}
 
-                            myInputs = inputs[i];
-                            myInputsFound = true;
-                            break;
+			if (myInputsFound) {
 
-                        }
-                    }
-                }
-                if (myInputsFound)
-                    break;
-            }
-        }
+				for (IMetadataValue value : values) {
 
-        if (myInputsFound)
-        {
+					String pairsName = myInputs.getPairsType();
+					String stored_value = value.getValue();
+					String displayVal = myInputs.getDisplayString(pairsName, stored_value);
 
-            for (IMetadataValue value : values) {
+					if (displayVal != null && !"".equals(displayVal)) {
 
-                String pairsName = myInputs.getPairsType();
-                String stored_value = value.getValue();
-                String displayVal = myInputs.getDisplayString(pairsName,
-                        stored_value);
+						toReturn.add(displayVal);
+					}
 
-                if (displayVal != null && !"".equals(displayVal)) {
-
-                    toReturn.add(displayVal);
-                }
-
-            }
-        }
-
+				}
+			}
+		}
         return toReturn;
     }
     
@@ -574,4 +569,29 @@ public class Util {
         }
         return issn;
     }
+
+	public static List<String> diff(Collection fromCollection, Collection toCollection) throws DCInputsReaderException {
+		DCInputsReader reader = new DCInputsReader();
+		List<DCInputSet> from = reader.getInputsByCollectionHandle(fromCollection.getHandle());
+		List<DCInputSet> to = reader.getInputsByCollectionHandle(toCollection.getHandle());
+		
+		Set<String> fromFieldName = new HashSet<>();
+		Set<String> toFieldName = new HashSet<>();
+		for(DCInputSet ff : from) {
+			for (DCInput[] fdcrow : ff.getFields()) {
+			    for (DCInput fdc : fdcrow) {
+			        fromFieldName.add(fdc.getFieldName());
+			    }
+			}
+		}
+		for(DCInputSet tt : to) {
+			for (DCInput[] tdcrow : tt.getFields()) {
+			    for (DCInput tdc : tdcrow) {
+			        toFieldName.add(tdc.getFieldName());
+			    }
+			}
+		}		
+		
+		return ListUtils.removeAll(fromFieldName, toFieldName);
+	}
 }

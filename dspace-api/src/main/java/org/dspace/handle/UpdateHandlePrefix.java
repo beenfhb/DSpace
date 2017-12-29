@@ -7,7 +7,6 @@
  */
 package org.dspace.handle;
 
-
 import org.apache.log4j.Logger;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -42,7 +41,7 @@ public class UpdateHandlePrefix
      * When invoked as a command-line tool, updates handle prefix
      *
      * @param args the command-line arguments, none used
-     * @throws java.lang.Exception
+     * @throws Exception on generic exception
      *
      */
     public static void main(String[] args) throws Exception
@@ -86,7 +85,7 @@ public class UpdateHandlePrefix
 
                 if (choiceString.equalsIgnoreCase("y"))
                 {
-                	context.turnOffAuthorisationSystem();
+                    context.turnOffAuthorisationSystem();
                     try {
                         log.info("Updating handle prefix from " + oldH + " to " + newH);
 
@@ -100,7 +99,7 @@ public class UpdateHandlePrefix
                         System.out.print("Updating metadatavalues table... ");
                         MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
 
-                        String handlePrefix = handleService.getCanonicalPrefix();
+                        String handlePrefix = configurationService.getProperty("handle.canonical.prefix");
                         Iterator<MetadataValue> metadataValues = metadataValueService.findByValueLike(context, handlePrefix + oldH);
 
                         int updMeta = 0;

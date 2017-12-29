@@ -334,7 +334,7 @@ public class StatisticsImporter
             solrLoggerService.optimizeSOLR();
         }
         System.out.println(" done!");
-	}
+    }
 
     /**
      * Print the help message
@@ -353,23 +353,29 @@ public class StatisticsImporter
     /**
      * Main method to run the statistics importer.
      *
-     * @param args The command line arguments
+     * @param args the command line arguments given
      * @throws Exception If something goes wrong
      */
-	public static void main(String[] args) throws Exception
+    public static void main(String[] args) throws Exception
     {
-		CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new PosixParser();
 
-		Options options = new Options();
+        Options options = new Options();
 
-        options.addOption("i", "in", true, "the input file ('-' or omit for standard input)");
-        options.addOption("l", "local", false, "developers tool - map external log file to local handles");
-        options.addOption("m", "multiple", false, "treat the input file as having a wildcard ending");
-        options.addOption("s", "skipdns", false, "skip performing reverse DNS lookups on IP addresses");
-        options.addOption("v", "verbose", false, "display verbose output (useful for debugging)");
-        options.addOption("h", "help", false, "help");
+        options.addOption("i", "in", true,
+            "the input file ('-' or omit for standard input)");
+        options.addOption("l", "local", false,
+            "developers tool - map external log file to local handles");
+        options.addOption("m", "multiple", false,
+            "treat the input file as having a wildcard ending");
+        options.addOption("s", "skipdns", false,
+            "skip performing reverse DNS lookups on IP addresses");
+        options.addOption("v", "verbose", false,
+            "display verbose output (useful for debugging)");
+        options.addOption("h", "help", false,
+            "help");
 
-		CommandLine line = parser.parse(options, args);
+        CommandLine line = parser.parse(options, args);
 
         // Did the user ask to see the help?
         if (line.hasOption('h'))
@@ -386,8 +392,8 @@ public class StatisticsImporter
         // (useful if using someone else's log file for testing)
         boolean local = line.hasOption('l');
 
-		// We got all our parameters now get the rest
-		Context context = new Context();
+        // We got all our parameters now get the rest
+        Context context = new Context();
 
         // Verbose option
         boolean verbose = line.hasOption('v');
@@ -423,8 +429,8 @@ public class StatisticsImporter
 
     /**
      * Inner class to hold a cache of reverse lookups of IP addresses
-     * @param <K>
-     * @param <V>
+     * @param <K> key type.
+     * @param <V> value type.
      */
     static class DNSCache<K,V> extends LinkedHashMap<K,V>
     {

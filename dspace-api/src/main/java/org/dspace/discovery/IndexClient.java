@@ -54,9 +54,11 @@ public class IndexClient {
      * from the whole index
      *
      * @param args the command-line arguments, none used
-     * @throws java.io.IOException
-     * @throws SQLException if database error
-     *
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
+     * @throws IOException
+     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @throws SearchServiceException if something went wrong with querying the solr server
      */
     public static void main(String[] args) throws SQLException, IOException, SearchServiceException {
 
@@ -68,43 +70,41 @@ public class IndexClient {
         HelpFormatter formatter = new HelpFormatter();
         CommandLine line = null;
 
-        options
-                .addOption(OptionBuilder
-                        .withArgName("handle to remove")
-                        .hasArg(true)
-                        .withDescription(
-                                "remove an Item, Collection or Community from index based on its handle")
-                        .create("r"));
+        options.addOption(OptionBuilder
+            .withArgName("handle to remove")
+            .hasArg(true)
+            .withDescription(
+                "remove an Item, Collection or Community from index based on its handle")
+            .create("r"));
 
-        options
-                .addOption(OptionBuilder
-                        .withArgName("handle to add or update")
-                        .hasArg(true)
-                        .withDescription(
-                                "add or update an Item, Collection or Community based on its handle")
-                        .create("i"));
+        options.addOption(OptionBuilder
+            .withArgName("handle to add or update")
+            .hasArg(true)
+            .withDescription(
+                "add or update an Item, Collection or Community based on its handle")
+            .create("i"));
 
-        options
-                .addOption(OptionBuilder
-                        .isRequired(false)
-                        .withDescription(
-                                "clean existing index removing any documents that no longer exist in the db")
-                        .create("c"));
+        options.addOption(OptionBuilder
+            .isRequired(false)
+            .withDescription(
+                "clean existing index removing any documents that no longer exist in the db")
+            .create("c"));
 
         options.addOption(OptionBuilder.isRequired(false).withDescription(
                 "(re)build index [incremental mode]").create(
                 "b"));
 
-        options.addOption(OptionBuilder.isRequired(false).withDescription(
-                "Rebuild the spellchecker, can be combined with -b and -f.").create(
-                "s"));
+        options.addOption(OptionBuilder
+            .isRequired(false)
+            .withDescription(
+                "Rebuild the spellchecker, can be combined with -b and -f.")
+            .create("s"));
 
-        options
-                .addOption(OptionBuilder
-                        .isRequired(false)
-                        .withDescription(
-                                "if updating existing index, force each handle to be reindexed even if uptodate")
-                        .create("f"));
+        options.addOption(OptionBuilder
+            .isRequired(false)
+            .withDescription(
+                "if updating existing index, force each handle to be reindexed even if uptodate")
+            .create("f"));
 
         options
         .addOption(OptionBuilder
@@ -149,7 +149,10 @@ public class IndexClient {
          * new DSpace.getServiceManager().getServiceByName("org.dspace.discovery.SolrIndexer");
          */
 
-        IndexingService indexer = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(IndexingService.class.getName(),IndexingService.class);
+        IndexingService indexer = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(
+            IndexingService.class.getName(),
+            IndexingService.class
+        );
 
         if (line.hasOption("r")) {
             log.info("Removing " + line.getOptionValue("r") + " from Index");
@@ -214,7 +217,7 @@ public class IndexClient {
             } catch (Exception e) {
                 log.error("Error: " + e.getMessage());
             }
-        } else if(line.hasOption('i')) {
+        } else if (line.hasOption('i')) {
             final String handle = line.getOptionValue('i');
             final BrowsableDSpaceObject dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
             if (dso == null) {
@@ -233,10 +236,24 @@ public class IndexClient {
         }
 
         log.info("Done with indexing");
-	}
+    }
 
     /**
      * Indexes the given object and all children, if applicable.
+     *
+     * @param indexingService
+     *     
+     * @param itemService
+     *     
+     * @param context
+     *     The relevant DSpace Context.
+     * @param dso
+     *     DSpace object to index recursively
+     * @throws IOException
+     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @throws SearchServiceException in case of a solr exception
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     private static long indexAll(final IndexingService indexingService,
                                  final ItemService itemService,
@@ -271,11 +288,27 @@ public class IndexClient {
 
     /**
      * Indexes all items in the given collection.
+     *
+     * @param indexingService
+     *     
+     * @param itemService
+     *     
+     * @param context
+     *     The relevant DSpace Context.
+     * @param collection
+     *     collection to index
+     * @throws IOException
+     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @throws SearchServiceException in case of a solr exception
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     private static long indexItems(final IndexingService indexingService,
                                    final ItemService itemService,
                                    final Context context,
-                                   final Collection collection) throws IOException, SearchServiceException, SQLException {
+                                   final Collection collection)
+    throws IOException, SearchServiceException, SQLException
+    {
         long count = 0;
 
         final Iterator<Item> itemIterator = itemService.findByCollection(context, collection);
@@ -297,7 +330,9 @@ public class IndexClient {
      * @param indexer the solr indexer
      * @throws SearchServiceException in case of a solr exception
      */
-    protected static void checkRebuildSpellCheck(CommandLine line, IndexingService indexer) throws SearchServiceException {
+    protected static void checkRebuildSpellCheck(CommandLine line, IndexingService indexer)
+    throws SearchServiceException
+    {
         if (line.hasOption("s")) {
             log.info("Rebuilding spell checker.");
             indexer.buildSpellCheck();

@@ -40,7 +40,7 @@ public interface HandleService {
      * @param handle
      *            The handle
      * @return The local URL
-     * @exception SQLException
+     * @throws SQLException
      *                If a database error occurs
      */
     public String resolveToURL(Context context, String handle)
@@ -87,7 +87,7 @@ public interface HandleService {
      * @param dso
      *            The DSpaceObject to create a handle for
      * @return The newly created handle
-     * @exception SQLException
+     * @throws SQLException
      *                If a database error occurs
      */
     public String createHandle(Context context, DSpaceObject dso)
@@ -104,6 +104,8 @@ public interface HandleService {
      * @param suppliedHandle
      *            existing handle value
      * @return the Handle
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      * @throws IllegalStateException if specified handle is already in use by another object
      */
     public String createHandle(Context context, DSpaceObject dso, String suppliedHandle)
@@ -119,7 +121,11 @@ public interface HandleService {
      *            DSpaceObject
      * @param suppliedHandle
      *            existing handle value
+     * @param force
+     *            FIXME: currently unused
      * @return the Handle
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      * @throws IllegalStateException if specified handle is already in use by another object
      */
     public String createHandle(Context context, DSpaceObject dso, String suppliedHandle, boolean force)
@@ -132,6 +138,8 @@ public interface HandleService {
      *
      * @param context DSpace context
      * @param dso DSpaceObject whose Handle to unbind.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void unbindHandle(Context context, DSpaceObject dso)
             throws SQLException;
@@ -146,9 +154,9 @@ public interface HandleService {
      *            The handle to resolve
      * @return The object which handle maps to, or null if handle is not mapped
      *         to any object.
-     * @exception IllegalStateException
+     * @throws IllegalStateException
      *                If handle was found but is not bound to an object
-     * @exception SQLException
+     * @throws SQLException
      *                If a database error occurs
      */
     public DSpaceObject resolveToObject(Context context, String handle)
@@ -163,7 +171,7 @@ public interface HandleService {
      * @param dso
      *            The object to obtain a handle for
      * @return The handle for object, or null if the object has no handle.
-     * @exception SQLException
+     * @throws SQLException
      *                If a database error occurs
      */
     public String findHandle(Context context, DSpaceObject dso)
@@ -178,7 +186,7 @@ public interface HandleService {
      *            The handle prefix
      * @return A list of the handles starting with prefix. The list is
      *         guaranteed to be non-null. Each element of the list is a String.
-     * @exception SQLException
+     * @throws SQLException
      *                If a database error occurs
      */
     public List<String> getHandlesForPrefix(Context context, String prefix)

@@ -56,7 +56,9 @@ public class EPersonConsumer implements Consumer
      * Consume the event
      *
      * @param context
+     *     The relevant DSpace Context.
      * @param event
+     *     Which Event to consume
      * @throws Exception if error
      */
     @Override
@@ -122,6 +124,7 @@ public class EPersonConsumer implements Consumer
      * Handle the end of the event
      *
      * @param ctx
+     *     The relevant DSpace Context.
      * @throws Exception if error
      */
     @Override
@@ -135,6 +138,7 @@ public class EPersonConsumer implements Consumer
      * Finish the event
      *
      * @param ctx
+     *     The relevant DSpace Context.
      */
     @Override
     public void finish(Context ctx)

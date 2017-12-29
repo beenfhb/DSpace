@@ -27,10 +27,12 @@ import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.event.Dispatcher;
 import org.dspace.event.Event;
 import org.dspace.event.factory.EventServiceFactory;
 import org.dspace.event.service.EventService;
+import org.dspace.services.factory.DSpaceServicesFactoryImpl;
 import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.utils.DSpace;
@@ -168,7 +170,7 @@ public class Context
     /**
      * Initializes a new context object. 
      *
-     * @exception SQLException
+     * @throws SQLException
      *                if there was an error obtaining a database connection
      */
     private void init()
@@ -180,7 +182,8 @@ public class Context
         if(dbConnection == null)
         {
             // Obtain a non-auto-committing connection
-            dbConnection = new DSpace().getSingletonService(DBConnection.class);
+            dbConnection = new DSpace().getServiceManager()
+                    .getServiceByName(null, DBConnection.class);
             if(dbConnection == null)
             {
                 //It appears there is a problem with the database, run the Schema validator
@@ -404,7 +407,7 @@ public class Context
      * Calling complete() on a Context which is no longer valid (isValid()==false),
      * is a no-op.
      * 
-     * @exception SQLException
+     * @throws SQLException
      *                if there was an error completing the database transaction
      *                or closing the connection
      */
@@ -526,6 +529,7 @@ public class Context
      * Add an event to be dispatched when this context is committed.
      * 
      * @param event
+     *     event to be dispatched
      */
     public void addEvent(Event event)
     {

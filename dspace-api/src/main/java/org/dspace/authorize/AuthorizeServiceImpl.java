@@ -101,7 +101,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
     @Override
     public void authorizeAction(Context c, AuthorizableEntity o, int action, boolean useInheritance) throws AuthorizeException, SQLException
     {
-    	authorizeAction(c, c.getCurrentUser(), o, action, useInheritance);
+        authorizeAction(c, c.getCurrentUser(), o, action, useInheritance);
     }
     
     @Override
@@ -541,21 +541,21 @@ public class AuthorizeServiceImpl implements AuthorizeService
     public void addPolicy(Context context, AuthorizableEntity o, int actionID,
                                  EPerson e, String type) throws SQLException, AuthorizeException
     {
-        createResourcePolicy(context, o, null, e, actionID, type);
+        createResourcePolicy(context, o, null, e, actionID, type, null, null, null, null);
     }
 
     @Override
     public void addPolicy(Context c, AuthorizableEntity o, int actionID,
                                  Group g) throws SQLException, AuthorizeException
     {
-        createResourcePolicy(c, o, g, null, actionID, null);
+        createResourcePolicy(c, o, g, null, actionID, null, null, null, null, null);
     }
 
     @Override
     public void addPolicy(Context c, AuthorizableEntity o, int actionID,
                                  Group g, String type) throws SQLException, AuthorizeException
     {
-        createResourcePolicy(c, o, g, null, actionID, type);
+        createResourcePolicy(c, o, g, null, actionID, type, null, null, null, null);
     }
 
     @Override
@@ -607,12 +607,12 @@ public class AuthorizeServiceImpl implements AuthorizeService
     
     @Override
     public void switchPoliciesAction(Context context, AuthorizableEntity dso, int fromAction, int toAction) throws SQLException, AuthorizeException {
-		List<ResourcePolicy> rps = getPoliciesActionFilter(context, dso, fromAction);
+        List<ResourcePolicy> rps = getPoliciesActionFilter(context, dso, fromAction);
         for (ResourcePolicy rp : rps) {
-        	rp.setAction(toAction);
+            rp.setAction(toAction);
         }
         resourcePolicyService.update(context, rps);
-	}
+    }
 
     @Override
     public void addPolicies(Context c, List<ResourcePolicy> policies, AuthorizableEntity dest)
@@ -723,7 +723,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
         if (CollectionUtils.isNotEmpty(policies))
         {
             return policies.iterator().next();
-        }else{
+        } else {
             return null;
         }
     }
@@ -733,10 +733,15 @@ public class AuthorizeServiceImpl implements AuthorizeService
      * have right on the collection. E.g., if the anonymous can access the collection policies are assigned to anonymous.
      *
      * @param context
+     *     The relevant DSpace Context.
      * @param embargoDate
+     *     embargo end date
      * @param reason
+     *     embargo reason
      * @param dso
+     *     DSpace object
      * @param owningCollection
+     *     collection to get group policies from
      * @throws SQLException if database error
      * @throws AuthorizeException if authorization error
      */
@@ -794,6 +799,10 @@ public class AuthorizeServiceImpl implements AuthorizeService
         myPolicy.setGroup(group);
         myPolicy.setEPerson(eperson);
         myPolicy.setRpType(rpType);
+        myPolicy.setRpName(rpName);
+        myPolicy.setRpDescription(rpDescription);
+        myPolicy.setEndDate(endDate);
+        myPolicy.setStartDate(startDate);
         resourcePolicyService.update(context, myPolicy);
 
         return myPolicy;
@@ -824,7 +833,7 @@ public class AuthorizeServiceImpl implements AuthorizeService
 
         if (policy == null)
         {
-            policy = createResourcePolicy(context, dso, group, ePerson, action, ResourcePolicy.TYPE_CUSTOM);
+            policy = createResourcePolicy(context, dso, group, ePerson, action, ResourcePolicy.TYPE_CUSTOM, null, null, null, null);
         }
         policy.setGroup(group);
         policy.setEPerson(ePerson);

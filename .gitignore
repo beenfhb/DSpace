@@ -35,10 +35,18 @@ META-INF/
 
 # Ignore a local.cfg file in root folder, if it exists
 /local.cfg
+# Ignore all local-*.cfg file in root folder, if it exists
+/local-*.cfg
+
 # Also ignore it under dspace/config
 /dspace/config/local.cfg
+/dspace/config/local-*.cfg
 
 ##Mac noise
 .DS_Store
-rebel.xml
+
+##Eclipse external tools
 .externalToolBuilders/
+
+##Ignore JRebel project configuration
+rebel.xml

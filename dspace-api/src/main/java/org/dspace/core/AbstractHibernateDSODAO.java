@@ -41,8 +41,11 @@ public abstract class AbstractHibernateDSODAO<T extends DSpaceObject> extends Ab
      * The identifier of the join will be the toString() representation of the metadata field.
      * The joineded metadata fields can then be used to query or sort.
      * @param query
+     *     partial SQL query (to be appended)
      * @param tableIdentifier
+     *     DB table to join with
      * @param metadataFields
+     *     a collection of metadata fields
      */
     protected void addMetadataLeftJoin(StringBuilder query, String tableIdentifier, Collection<MetadataField> metadataFields)
     {
@@ -64,26 +67,26 @@ public abstract class AbstractHibernateDSODAO<T extends DSpaceObject> extends Ab
      */
     protected void addMetadataValueWhereQuery(StringBuilder query, List<MetadataField> metadataFields, String operator, String additionalWhere)
     {
-        if(CollectionUtils.isNotEmpty(metadataFields) || StringUtils.isNotBlank(additionalWhere)){
+        if (CollectionUtils.isNotEmpty(metadataFields) || StringUtils.isNotBlank(additionalWhere)) {
             //Add the where query on metadata
             query.append(" WHERE ");
             for (int i = 0; i < metadataFields.size(); i++) {
                 MetadataField metadataField = metadataFields.get(i);
-                if(StringUtils.isNotBlank(operator))
+                if (StringUtils.isNotBlank(operator))
                 {
                     query.append(" (");
                     query.append("lower(STR(" + metadataField.toString()).append(".value)) ").append(operator).append(" lower(:queryParam)");
                     query.append(")");
-                    if(i < metadataFields.size() - 1)
+                    if (i < metadataFields.size() - 1)
                     {
                         query.append(" OR ");
                     }
                 }
             }
 
-            if(StringUtils.isNotBlank(additionalWhere))
+            if (StringUtils.isNotBlank(additionalWhere))
             {
-                if(CollectionUtils.isNotEmpty(metadataFields))
+                if (CollectionUtils.isNotEmpty(metadataFields))
                 {
                     query.append(" OR ");
                 }
@@ -99,7 +102,7 @@ public abstract class AbstractHibernateDSODAO<T extends DSpaceObject> extends Ab
     protected void addMetadataSortQuery(StringBuilder query, List<MetadataField> metadataSortFields, List<String> columnSortFields, List<String> direction)
     {
 
-        if(CollectionUtils.isNotEmpty(metadataSortFields)){
+        if (CollectionUtils.isNotEmpty(metadataSortFields)) {
             query.append(" ORDER BY ");
             for (int i = 0; i < metadataSortFields.size(); i++) {
                 MetadataField metadataField = metadataSortFields.get(i);
@@ -111,13 +114,13 @@ public abstract class AbstractHibernateDSODAO<T extends DSpaceObject> extends Ab
                     query.append(",");
                 }
             }
-        }else if(CollectionUtils.isNotEmpty(columnSortFields))
+        } else if (CollectionUtils.isNotEmpty(columnSortFields))
         {
             query.append(" ORDER BY ");
             for (int i = 0; i < columnSortFields.size(); i++) {
                 String sortField = columnSortFields.get(i);
                 query.append(sortField);
-                if(i != columnSortFields.size() -1)
+                if (i != columnSortFields.size() -1)
                 {
                     query.append(",");
                 }

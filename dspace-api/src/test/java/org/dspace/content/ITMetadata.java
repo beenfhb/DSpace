@@ -7,31 +7,23 @@
  */
 package org.dspace.content;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.databene.contiperf.PerfTest;
 import org.databene.contiperf.Required;
 import org.dspace.AbstractIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.CollectionService;
-import org.dspace.content.service.CommunityService;
-import org.dspace.content.service.ItemService;
-import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataSchemaService;
-import org.dspace.content.service.MetadataValueService;
-import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.service.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.*;
 
 /**
  * This is an integration test to validate the metadata classes
@@ -142,6 +134,8 @@ public class ITMetadata  extends AbstractIntegrationTest
         metadataFieldService.delete(context, field1);
         metadataFieldService.delete(context, field2);
         metadataSchemaService.delete(context, schema);
+
+        communityService.delete(context, owningCommunity);
 
         context.restoreAuthSystemState();
     }

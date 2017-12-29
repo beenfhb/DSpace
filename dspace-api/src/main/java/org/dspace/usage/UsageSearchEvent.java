@@ -16,7 +16,7 @@ import org.dspace.core.Context;
 
 /**
  * Extends the standard usage event to contain search information
- * search information includes the query(s) used & the scope
+ * search information includes the query/queries used and the scope
  *
  * @author Kevin Van de Velde (kevin at atmire dot com)
  * @author Ben Bosman (ben at atmire dot com)

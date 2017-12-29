@@ -121,10 +121,10 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
         Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
 
 
-        authorizeService.createResourcePolicy(context, newCollection, anonymousGroup, null, Constants.READ, null);
+        authorizeService.createResourcePolicy(context, newCollection, anonymousGroup, null, Constants.READ, null, null, null, null, null);
         // now create the default policies for submitted items
-        authorizeService.createResourcePolicy(context, newCollection, anonymousGroup, null, Constants.DEFAULT_ITEM_READ, null);
-        authorizeService.createResourcePolicy(context, newCollection, anonymousGroup, null, Constants.DEFAULT_BITSTREAM_READ, null);
+        authorizeService.createResourcePolicy(context, newCollection, anonymousGroup, null, Constants.DEFAULT_ITEM_READ, null, null, null, null, null);
+        authorizeService.createResourcePolicy(context, newCollection, anonymousGroup, null, Constants.DEFAULT_BITSTREAM_READ, null, null, null, null, null);
 
 
 
@@ -444,12 +444,13 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
      * Get the value of a metadata field
      *
      * @param collection
+     *     which collection to operate on
      * @param field
-     *            the name of the metadata field to get
+     *     the name of the metadata field to get
      *
      * @return the value of the metadata field
      *
-     * @exception IllegalArgumentException
+     * @throws IllegalArgumentException
      *                if the requested metadata field doesn't exist
      */
     @Override

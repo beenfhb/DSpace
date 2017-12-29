@@ -21,6 +21,7 @@ import org.dspace.storage.rdbms.DatabaseUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 import java.sql.SQLException;
 
@@ -38,6 +39,7 @@ import static org.junit.Assert.fail;
  * @see AbstractDSpaceTest
  * @author pvillega
  */
+@Ignore
 public class AbstractUnitTest extends AbstractDSpaceTest
 {
     /** log4j category */
@@ -105,7 +107,7 @@ public class AbstractUnitTest extends AbstractDSpaceTest
         try
         {
             //Start a new context
-            context = new Context();
+            context = new Context(Context.Mode.BATCH_EDIT);
             context.turnOffAuthorisationSystem();
 
             //Find our global test EPerson account. If it doesn't exist, create it.

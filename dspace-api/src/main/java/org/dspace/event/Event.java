@@ -380,7 +380,11 @@ public class Event implements Serializable
     /**
      * Get the DSpace object which is the "object" of an event.
      * 
+     * @param context
+     *     The relevant DSpace Context.
      * @return DSpaceObject or null if none can be found or no object was set.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public UsageEventEntity getObject(Context context) throws SQLException
     {
@@ -400,7 +404,11 @@ public class Event implements Serializable
      * Syntactic sugar to get the DSpace object which is the "subject" of an
      * event.
      * 
+     * @param context
+     *     The relevant DSpace Context.
      * @return DSpaceObject or null if none can be found.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public UsageEventEntity getSubject(Context context) throws SQLException
     {
@@ -678,11 +686,12 @@ public class Event implements Serializable
     }
 
     /**
-     * Keeps track of which consumers the event has been consumed by. Should be
+     * Keeps track of which consumers have consumed the event. Should be
      * called by a dispatcher when calling consume(Context ctx, String name,
      * Event event) on an event.
      * 
      * @param consumerName
+     *     name of consumer which has consumed the event
      */
     public void setBitSet(String consumerName)
     {

@@ -661,6 +661,7 @@ public class EZIDIdentifierProvider
      * generation of EZID metadata for the minting of new identifiers.
      *
      * @param aCrosswalk
+     *     map of metadata fields to EZID keys
      */
     @Required
     public void setCrosswalk(Map<String, String> aCrosswalk)
@@ -677,6 +678,7 @@ public class EZIDIdentifierProvider
      * values to something acceptable to EZID.
      *
      * @param transformMap
+     *     map of metadata fields to EZID transformation classes
      */
     public void setCrosswalkTransform(Map<String, Transform> transformMap)
     {
@@ -705,7 +707,7 @@ public class EZIDIdentifierProvider
 
     /**
      * Method should never be used aside from the unit tests where we can cannot autowire this class.
-     * @param itemService
+     * @param itemService itemService instance
      */
     protected void setItemService(ItemService itemService){
         this.itemService = itemService;

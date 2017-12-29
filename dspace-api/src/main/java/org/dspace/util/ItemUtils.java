@@ -10,6 +10,7 @@ package org.dspace.util;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
@@ -174,61 +175,61 @@ public class ItemUtils
 	        String language, IMetadataValue metadataValue)
 	{
 	
-	    MetadataField metadataField = metadataValue.getMetadataField();
-	    MetadataSchema metadataSchema = metadataField.getMetadataSchema();
-	    // We will attempt to disprove a match - if we can't we have a match
-	    if (!element.equals(Item.ANY) && !element.equals(metadataField.getElement()))
-	    {
-	        // Elements do not match, no wildcard
-	        return false;
-	    }
-	
-	    if (qualifier == null)
-	    {
-	        // Value must be unqualified
-	        if (metadataField.getQualifier() != null)
-	        {
-	            // Value is qualified, so no match
-	            return false;
-	        }
-	    }
-	    else if (!qualifier.equals(Item.ANY))
-	    {
-	        // Not a wildcard, so qualifier must match exactly
-	        if (!qualifier.equals(metadataField.getQualifier()))
-	        {
-	            return false;
-	        }
-	    }
-	
-	    if (language == null)
-	    {
-	        // Value must be null language to match
-	        if (metadataValue.getLanguage() != null)
-	        {
-	            // Value is qualified, so no match
-	            return false;
-	        }
-	    }
-	    else if (!language.equals(Item.ANY))
-	    {
-	        // Not a wildcard, so language must match exactly
-	        if (!language.equals(metadataValue.getLanguage()))
-	        {
-	            return false;
-	        }
-	    }
-	
-	    if (!schema.equals(Item.ANY))
-	    {
-	        if (metadataSchema != null && !metadataSchema.getName().equals(schema))
-	        {
-	            // The namespace doesn't match
-	            return false;
-	        }
-	    }
-	
-	    // If we get this far, we have a match
-	    return true;
+        MetadataField metadataField = metadataValue.getMetadataField();
+        MetadataSchema metadataSchema = metadataField.getMetadataSchema();
+        // We will attempt to disprove a match - if we can't we have a match
+        if (!element.equals(Item.ANY) && !element.equals(metadataField.getElement()))
+        {
+            // Elements do not match, no wildcard
+            return false;
+        }
+
+        if (StringUtils.isBlank(qualifier))
+        {
+            // Value must be unqualified
+            if (metadataField.getQualifier() != null)
+            {
+                // Value is qualified, so no match
+                return false;
+            }
+        }
+        else if (!qualifier.equals(Item.ANY))
+        {
+            // Not a wildcard, so qualifier must match exactly
+            if (!qualifier.equals(metadataField.getQualifier()))
+            {
+                return false;
+            }
+        }
+
+        if (language == null)
+        {
+            // Value must be null language to match
+            if (metadataValue.getLanguage() != null)
+            {
+                // Value is qualified, so no match
+                return false;
+            }
+        }
+        else if (!language.equals(Item.ANY))
+        {
+            // Not a wildcard, so language must match exactly
+            if (!language.equals(metadataValue.getLanguage()))
+            {
+                return false;
+            }
+        }
+
+        if (!schema.equals(Item.ANY))
+        {
+            if (metadataSchema != null && !metadataSchema.getName().equals(schema))
+            {
+                // The namespace doesn't match
+                return false;
+            }
+        }
+
+        // If we get this far, we have a match
+        return true;
 	}
 }

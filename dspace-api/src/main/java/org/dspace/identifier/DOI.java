@@ -29,7 +29,7 @@ import org.dspace.core.ReloadableEntity;
  * @author Pascal-Nicolas Becker
  */
 @Entity
-@Table(name = "Doi" )
+@Table(name = "doi" )
 public class DOI
         implements Identifier, ReloadableEntity<Integer>
 {

@@ -42,6 +42,7 @@ public final class SpringServiceManager implements ServiceManagerSystem {
     /**
      * @return the parent core Spring {@link ApplicationContext}
      */
+    @Override
     public ClassPathXmlApplicationContext getApplicationContext() {
         return applicationContext;
     }
@@ -103,7 +104,7 @@ public final class SpringServiceManager implements ServiceManagerSystem {
                     bean = (T) applicationContext.getBean(name, type);
                 } catch (BeansException e) {
                     // no luck, try the fall back option
-                    log.info("Unable to locate bean by name or id=" + name + ". Will try to look up bean by type next.");
+                    log.info("Unable to locate bean by name or id=" + name + ". Will try to look up bean by type next. BeansException: " + e.getMessage());
                     bean = null;
                 }
             } else {
@@ -112,7 +113,7 @@ public final class SpringServiceManager implements ServiceManagerSystem {
                     bean = (T) applicationContext.getBean(type.getName(), type);
                 } catch (BeansException e) {
                     // no luck, try the fall back option
-                    log.info("Unable to locate bean by name or id=" + type.getName() + ". Will try to look up bean by type next.");
+                    log.info("Unable to locate bean by name or id=" + type.getName() + ". Will try to look up bean by type next. BeansException: " + e.getMessage());
                     bean = null;
                 }
             }

@@ -31,6 +31,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -55,7 +56,7 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
     public static final String EMBARGO = "Embargo";
 
     /**
-     * Initial value is set to 2 since 0 & 1 are reserved for anonymous & administrative uses
+     * Initial value is set to 2 since 0 and 1 are reserved for anonymous and administrative uses, respectively
      */
     @Column(name="eperson_group_id", insertable = false, updatable = false)
     private Integer legacyId;
@@ -110,6 +111,8 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 
     /**
      * Return EPerson members of a Group
+     *
+     * @return list of EPersons
      */
     public List<EPerson> getMembers()
     {
@@ -161,6 +164,8 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 
     /**
      * Return Group members of a Group.
+     *
+     * @return list of groups
      */
     public List<Group> getMemberGroups()
     {

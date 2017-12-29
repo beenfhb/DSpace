@@ -254,7 +254,8 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
         }
         return bundleService;
     }
-	@Override
+
+    @Override
 	public String getTypeText() {
 		return Constants.typeText[Constants.BUNDLE];
 	}
@@ -278,5 +279,4 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
 		}
 		return null;
 	}
-
 }

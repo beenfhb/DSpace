@@ -44,10 +44,11 @@ public interface AuthorizeService {
      * @param c context with the current user
      * @param o DSpace object user is attempting to perform action on
      * @param actions array of action IDs from
-     *         <code>org.dspace.core.Constants</code>
+     *     <code>org.dspace.core.Constants</code>
      * @throws AuthorizeException if any one of the specified actions cannot be 
-     *         performed by the current user on the given object.
-     * @throws SQLException if database error
+     *     performed by the current user on the given object.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void authorizeAnyOf(Context c, AuthorizableEntity o, int[] actions) throws AuthorizeException, SQLException;
 
@@ -59,8 +60,11 @@ public interface AuthorizeService {
      * @param c context
      * @param o a AuthorizableEntity
      * @param action action to perform from <code>org.dspace.core.Constants</code>
-     * @throws AuthorizeException if the user is denied
-     * @throws SQLException if database error
+     * @throws AuthorizeException
+     *     Exception indicating the current user of the context does not have permission
+     *     to perform a particular action.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void authorizeAction(Context c, AuthorizableEntity o, int action) throws AuthorizeException, SQLException;
 
@@ -75,8 +79,11 @@ public interface AuthorizeService {
      *         flag to say if ADMIN action on the current object or parent
      *         object can be used
      * @param action action to perform from <code>org.dspace.core.Constants</code>
-     * @throws AuthorizeException if the user is denied
-     * @throws SQLException if database error
+     * @throws AuthorizeException
+     *     Exception indicating the current user of the context does not have permission
+     *     to perform a particular action.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void authorizeAction(Context c, AuthorizableEntity o, int action, boolean useInheritance)
             throws AuthorizeException, SQLException;
@@ -93,8 +100,11 @@ public interface AuthorizeService {
      *         flag to say if ADMIN action on the current object or parent
      *         object can be used
      * @param action action to perform from <code>org.dspace.core.Constants</code>
-     * @throws AuthorizeException if the user is denied
-     * @throws SQLException if database error
+     * @throws AuthorizeException
+     *     Exception indicating the current user of the context does not have permission
+     *     to perform a particular action.
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void authorizeAction(Context c, EPerson e, AuthorizableEntity o, int action, boolean useInheritance)
             throws AuthorizeException, SQLException;
@@ -109,7 +119,8 @@ public interface AuthorizeService {
      *         <code>org.dspace.core.Constants</code>
      * @return {@code true} if the current user in the context is
      *         authorized to perform the given action on the given object
-     * @throws SQLException if database error
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public boolean authorizeActionBoolean(Context c, AuthorizableEntity o, int a) throws SQLException;
 
@@ -126,7 +137,8 @@ public interface AuthorizeService {
      *         object can be used
      * @return {@code true} if the current user in the context is
      *         authorized to perform the given action on the given object
-     * @throws SQLException if database error
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public boolean authorizeActionBoolean(Context c, AuthorizableEntity o, int a, boolean useInheritance) throws SQLException;
     
@@ -144,7 +156,8 @@ public interface AuthorizeService {
      *         object can be used
      * @return {@code true} if the requested user is
      *         authorized to perform the given action on the given object
-     * @throws SQLException if database error
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public boolean authorizeActionBoolean(Context c, EPerson e, AuthorizableEntity o, int a, boolean useInheritance) throws SQLException;
 
@@ -163,7 +176,8 @@ public interface AuthorizeService {
      *         method
      * @return {@code true} if user has administrative privileges on the
      *         given DSpace object
-     * @throws SQLException if database error
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public boolean isAdmin(Context c, AuthorizableEntity o) throws SQLException;
 
@@ -193,9 +207,21 @@ public interface AuthorizeService {
      * @param c current context
      * @return {@code true} if user is an admin or ignore authorization
      *         flag set
-     * @throws SQLException if database error
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public boolean isAdmin(Context c) throws SQLException;
+
+    /**
+     * Check to see if a specific user is system admin. Always return
+     * {@code true} if c.ignoreAuthorization is set.
+     *
+     * @param c current context
+     * @return {@code true} if user is an admin or ignore authorization
+     *         flag set
+     * @throws SQLException if database error
+     */
+    public boolean isAdmin(Context c, EPerson e) throws SQLException;
 
     /**
      * Check to see if a specific user is system admin. Always return
@@ -440,6 +466,8 @@ public interface AuthorizeService {
     public boolean isAnIdenticalPolicyAlreadyInPlace(Context c, AuthorizableEntity o, Group group, int actionID, int policyID) throws SQLException;
     
     public ResourcePolicy findByTypeGroupAction(Context c, AuthorizableEntity dso, Group group, int action) throws SQLException;
+    
+    public ResourcePolicy findByTypeGroupAction(Context c, DSpaceObject dso, Group group, int action) throws SQLException;
 
 
     /**
@@ -456,7 +484,7 @@ public interface AuthorizeService {
      */
     public void generateAutomaticPolicies(Context context, Date embargoDate, String reason, AuthorizableEntity dso, Collection owningCollection) throws SQLException, AuthorizeException;
 
-    public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson, int type, String rpType) throws SQLException, AuthorizeException;
+    public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson, int type, String rpType, String rpName, String rpDescription, Date startDate, Date endDate) throws SQLException, AuthorizeException;
 
     public ResourcePolicy createOrModifyPolicy(ResourcePolicy policy, Context context, String name, Group group, EPerson ePerson, Date embargoDate, int action, String reason, AuthorizableEntity dso) throws AuthorizeException, SQLException;
 
@@ -471,8 +499,11 @@ public interface AuthorizeService {
 	 *            the action to change
 	 * @param toAction
 	 *            the new action to set
-	 * @throws SQLException
-	 * @throws AuthorizeException
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
+     * @throws AuthorizeException
+     *     Exception indicating the current user of the context does not have permission
+     *     to perform a particular action.
 	 */
 	void switchPoliciesAction(Context context, AuthorizableEntity dso, int fromAction, int toAction)
 			throws SQLException, AuthorizeException;

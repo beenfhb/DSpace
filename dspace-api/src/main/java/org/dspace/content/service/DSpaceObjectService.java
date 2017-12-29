@@ -17,7 +17,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataField;
-import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 /**
@@ -182,7 +181,7 @@ public interface DSpaceObjectService<T extends DSpaceObject> extends RootEntityS
      *
      * @return the value of the metadata field (or null if the column is an SQL NULL)
      *
-     * @exception IllegalArgumentException
+     * @throws IllegalArgumentException
      *                if the requested metadata field doesn't exist
      */
     public String getMetadata(T dSpaceObject, String value);
@@ -406,4 +405,9 @@ public interface DSpaceObjectService<T extends DSpaceObject> extends RootEntityS
      */
     public int getSupportsTypeConstant();
 
+    void addAndShiftRightMetadata(Context context, T dso, String schema, String element, String qualifier, String lang, String value, String authority, int confidence, int index) throws SQLException;
+    
+    void replaceMetadata(Context context, T dso, String schema, String element, String qualifier, String lang, String value, String authority, int confidence, int index) throws SQLException;
+    
+    void moveMetadata(Context context, T dso, String schema, String element, String qualifier, int from, int to) throws SQLException;
 }

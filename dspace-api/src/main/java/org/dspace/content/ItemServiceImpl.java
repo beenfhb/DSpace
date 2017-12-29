@@ -207,6 +207,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
+    public Iterator<Item> findAll(Context context, Integer limit, Integer offset) throws SQLException {
+        return itemDAO.findAll(context, true, limit, offset);
+    }
+
+    @Override
     public Iterator<Item> findAllUnfiltered(Context context) throws SQLException {
         return itemDAO.findAll(context, true, true);
     }
@@ -544,10 +549,10 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // switch all READ authorization policies to WITHDRAWN_READ
         authorizeService.switchPoliciesAction(context, item, Constants.READ, Constants.WITHDRAWN_READ);
         for (Bundle bnd : item.getBundles()) {
-        	authorizeService.switchPoliciesAction(context, bnd, Constants.READ, Constants.WITHDRAWN_READ);
-        	for (Bitstream bs : bnd.getBitstreams()) {
-        		authorizeService.switchPoliciesAction(context, bs, Constants.READ, Constants.WITHDRAWN_READ);
-        	}
+            authorizeService.switchPoliciesAction(context, bnd, Constants.READ, Constants.WITHDRAWN_READ);
+            for (Bitstream bs : bnd.getBitstreams()) {
+                authorizeService.switchPoliciesAction(context, bs, Constants.READ, Constants.WITHDRAWN_READ);
+            }
         }
 
         // Write log
@@ -596,26 +601,26 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
                 "REINSTATE", getIdentifiers(context, item)));
 
-		// restore all WITHDRAWN_READ authorization policies back to READ
-		for (Bundle bnd : item.getBundles()) {
-			authorizeService.switchPoliciesAction(context, bnd, Constants.WITHDRAWN_READ, Constants.READ);
-			for (Bitstream bs : bnd.getBitstreams()) {
-				authorizeService.switchPoliciesAction(context, bs, Constants.WITHDRAWN_READ, Constants.READ);
-			}
-		}
+        // restore all WITHDRAWN_READ authorization policies back to READ
+        for (Bundle bnd : item.getBundles()) {
+            authorizeService.switchPoliciesAction(context, bnd, Constants.WITHDRAWN_READ, Constants.READ);
+            for (Bitstream bs : bnd.getBitstreams()) {
+                authorizeService.switchPoliciesAction(context, bs, Constants.WITHDRAWN_READ, Constants.READ);
+            }
+        }
 
         // check if the item was withdrawn before the fix DS-3097
         if (authorizeService.getPoliciesActionFilter(context, item, Constants.WITHDRAWN_READ).size() != 0) {
-        	authorizeService.switchPoliciesAction(context, item, Constants.WITHDRAWN_READ, Constants.READ);
+            authorizeService.switchPoliciesAction(context, item, Constants.WITHDRAWN_READ, Constants.READ);
         }
         else {
-	        // authorization policies
-	        if (colls.size() > 0)
-	        {
-	            // remove the item's policies and replace them with
-	            // the defaults from the collection
-	        	adjustItemPolicies(context, item, item.getOwningCollection());
-	        }
+            // authorization policies
+            if (colls.size() > 0)
+            {
+                // remove the item's policies and replace them with
+                // the defaults from the collection
+                adjustItemPolicies(context, item, item.getOwningCollection());
+            }
         }
         
         // Write log
@@ -929,12 +934,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // is this collection not yet created, and an item template is created
         if (item.getOwningCollection() == null)
         {
-        	if (!isInProgressSubmission(context, item)) {
-        		return true;
-        	}
-        	else {
-        		return false;
-        	}
+            if (!isInProgressSubmission(context, item)) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         return collectionService.canEditBoolean(context, item.getOwningCollection(), false);
@@ -942,18 +947,21 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     /**
      * Check if the item is an inprogress submission
+     * 
      * @param context
-     * @param item
+     *     The relevant DSpace Context.
+     * @param item item to check
      * @return <code>true</code> if the item is an inprogress submission, i.e. a WorkspaceItem or WorkflowItem
      * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public boolean isInProgressSubmission(Context context, Item item) throws SQLException {
-		return workspaceItemService.findByItem(context, item) != null
-				|| workflowItemService.findByItem(context, item) != null;
+        return workspaceItemService.findByItem(context, item) != null
+                || workflowItemService.findByItem(context, item) != null;
     }
     
     /*
-    With every finished submission a bunch of resource policy entries with have null value for the dspace_object column are generated in the database.
+    With every finished submission a bunch of resource policy entries which have null value for the dspace_object column are generated in the database.
 prevent the generation of resource policy entry values with null dspace_object as value
 
     */
@@ -962,10 +970,16 @@ prevent the generation of resource policy entry values with null dspace_object a
      * Add the default policies, which have not been already added to the given DSpace object
      * 
      * @param context
+     *     The relevant DSpace Context.
      * @param dso
+     *     The DSpace Object to add policies to
      * @param defaultCollectionPolicies
+     *     list of policies
      * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      * @throws AuthorizeException 
+     *     Exception indicating the current user of the context does not have permission
+     *     to perform a particular action.
      */
     protected void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso, List<ResourcePolicy> defaultCollectionPolicies) throws SQLException, AuthorizeException
     {
@@ -993,8 +1007,12 @@ prevent the generation of resource policy entry values with null dspace_object a
      * @param value field value or Item.ANY to match any value
      * @return an iterator over the items matching that authority value
      * @throws SQLException if database error
+     *     An exception that provides information on a database access error or other errors.
      * @throws AuthorizeException if authorization error
+     *     Exception indicating the current user of the context does not have permission
+     *     to perform a particular action.
      * @throws IOException if IO error
+     *     A general class of exceptions produced by failed or interrupted I/O operations.
      *
      */
     @Override

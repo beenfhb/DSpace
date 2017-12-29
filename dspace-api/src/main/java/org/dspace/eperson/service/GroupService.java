@@ -203,9 +203,9 @@ public interface GroupService extends DSpaceObjectService<Group>, DSpaceObjectLe
      * specified group, etc.
      *
      * @param context
-     *          DSpace context
+     *     The relevant DSpace Context.
      * @param group
-     *          Group object
+     *     Group object
      * @return List of EPerson objects
      * @throws SQLException if error
      */
@@ -215,7 +215,9 @@ public interface GroupService extends DSpaceObjectService<Group>, DSpaceObjectLe
      * Find the group by its name - assumes name is unique
      *
      * @param context
+     *     The relevant DSpace Context.
      * @param name
+     *     Group name to search for
      *
      * @return the named Group, or null if not found
      * @throws SQLException if error
@@ -226,15 +228,30 @@ public interface GroupService extends DSpaceObjectService<Group>, DSpaceObjectLe
      * Finds all groups in the site
      *
      * @param context
-     *            DSpace context
+     *     The relevant DSpace Context.
      * @param metadataSortFields
-     *            metadata fields to sort by, leave empty to sort by Name
+     *     metadata fields to sort by, leave empty to sort by Name
+     * @param pageSize
+     *     how many results return
+     * @param offset
+     * 	   the position of the first result to return   
+     * @return List of all groups in the site
+     * @throws SQLException if error
+     */
+    public List<Group> findAll(Context context, List<MetadataField> metadataSortFields, int pageSize, int offset) throws SQLException;
+
+    /**
+     * @deprecated Please use {@code findAll(Context context, List<MetadataField> metadataFieldsSort, int pageSize, int offset)} instead
+     *
+     * @param context
+     *     The relevant DSpace Context.
+     * @param metadataSortFields
+     *     metadata fields to sort by, leave empty to sort by Name
      *
      * @return List of all groups in the site
      * @throws SQLException if error
      */
     public List<Group> findAll(Context context, List<MetadataField> metadataSortFields) throws SQLException;
-
 
     /**
      * DEPRECATED: Please use {@code findAll(Context context, List<MetadataField> metadataFieldsSort)} instead
@@ -299,7 +316,7 @@ public interface GroupService extends DSpaceObjectService<Group>, DSpaceObjectLe
     public boolean isEmpty(Group group);
 
     /**
-     * Initializes the group names for anonymous & administrator, and marks them
+     * Initializes the group names for anonymous and administrator, and marks them
      * "permanent".
      *
      * @param context the DSpace context
@@ -325,7 +342,9 @@ public interface GroupService extends DSpaceObjectService<Group>, DSpaceObjectLe
     int countTotal(Context context) throws SQLException;
 
     /**
-     * Look up groups based on their value for a certain metadata field (NOTE: name is not stored as metadata)
+     * Look up groups based on their value for a certain metadata field
+     * (NOTE: name is not stored as metadata)
+     *
      * @param context The DSpace context
      * @param searchValue The value to match
      * @param metadataField The metadata field to search in

@@ -15,6 +15,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.MetadataSchema;
+import org.dspace.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +26,9 @@ import org.slf4j.LoggerFactory;
  */
 public class DCInput
 {
-    private static final Logger log = LoggerFactory.getLogger(DCInput.class);
-    
+	
+	private static final Logger log = LoggerFactory.getLogger(DCInput.class);
+	
     /** the DC element name */
     private String dcElement = null;
 
@@ -47,6 +49,9 @@ public class DCInput
 
     /** a label describing input */
     private String label = null;
+    
+    /** a custom style assigned to the field **/
+    private String style = null;
 
     /** the input type */
     private String inputType = null;
@@ -81,6 +86,9 @@ public class DCInput
     /** is the entry closed to vocabulary terms? */
     private boolean closedVocabulary = false;
 
+    /** the regex to comply with, null if nothing */
+    private String regex = null;
+    
     /** allowed document types */
     private List<String> typeBind = null;
     
@@ -112,8 +120,10 @@ public class DCInput
      * a HashMap
      * 
      * @param fieldMap
-     *            ???
+     *     named field values.
+     *     
      * @param listMap
+     *     value-pairs map, computed from the forms definition XML file
      */
     public DCInput(Map<String, String> fieldMap, Map<String, List<String>> listMap)
     {
@@ -132,13 +142,18 @@ public class DCInput
         valueLanguageList = new ArrayList();
         if (language)
         {
-            valueLanguageList = listMap.get(LanguageName);
+        	String languageNameTmp = fieldMap.get("value-pairs-name");
+        	if(StringUtils.isBlank(languageNameTmp)) {
+        		languageNameTmp = LanguageName;
+        	}
+            valueLanguageList = listMap.get(languageNameTmp);
         }
         
         String repStr = fieldMap.get("repeatable");
         repeatable = "true".equalsIgnoreCase(repStr)
                 || "yes".equalsIgnoreCase(repStr);
         label = fieldMap.get("label");
+        style = fieldMap.get("style");
         inputType = fieldMap.get("input-type");
         // these types are list-controlled
         if ("dropdown".equals(inputType) || "qualdrop_value".equals(inputType)
@@ -153,6 +168,7 @@ public class DCInput
         visibility = fieldMap.get("visibility");
         readOnly = fieldMap.get("readonly");
         vocabulary = fieldMap.get("vocabulary");
+        regex = fieldMap.get("regex");
         String closedVocabularyStr = fieldMap.get("closedVocabulary");
         closedVocabulary = "true".equalsIgnoreCase(closedVocabularyStr)
                             || "yes".equalsIgnoreCase(closedVocabularyStr);
@@ -324,7 +340,7 @@ public class DCInput
     }
 
     /**
-     * Get the label for this form row.
+     * Get the label for this form field.
      * 
      * @return the label
      */
@@ -332,6 +348,17 @@ public class DCInput
     {
         return label;
     }
+    
+    /**
+     * Get the custom style for this field if any.
+     * 
+     * @return the style
+     */
+    public String getStyle()
+    {
+        return style;
+    }
+
 
     /**
      * Get the name of the pairs type
@@ -451,7 +478,7 @@ public class DCInput
 
 	/**
 	 * The closed attribute of the vocabulary tag for this field as set in 
-	 * input-forms.xml
+	 * submission-forms.xml
 	 * 
 	 * {@code 
 	 * <field>
@@ -478,15 +505,24 @@ public class DCInput
 		return typeBind.contains(typeName);
 	}
 
-    public String getValidation()
-    {
-        return validation;
-    }
+	public String getScope() {
+		return visibility;
+	}
 
-    public void setValidation(String validation)
-    {
-        this.validation = validation;
-    }
+	public String getRegex() {
+		return regex;
+	}
+
+	public String getFieldName() {
+		return Utils.standardize(this.getSchema(), this.getElement(), this.getQualifier(), ".");
+	}
+
+	public boolean isQualdropValue() {
+		if("qualdrop_value".equals(getInputType())) {
+			return true;
+		}
+		return false;
+	}
 
     public boolean validate(String value)
     {
@@ -494,9 +530,9 @@ public class DCInput
         {
             try
             {
-                if (StringUtils.isNotBlank(validation))
+                if (StringUtils.isNotBlank(regex))
                 {
-                    Pattern pattern = Pattern.compile(validation);
+                    Pattern pattern = Pattern.compile(regex);
                     if (!pattern.matcher(value).matches())
                     {
                         return false;
@@ -511,21 +547,5 @@ public class DCInput
         }
 
         return true;
-    }
-    
-    public boolean requireValidation() {
-        if (StringUtils.isNotBlank(getValidation()))
-        {
-            return true;
-        }
-        return false;
-    }
-    
-    public boolean hasParent(){
-        if (StringUtils.isNotBlank(getParent()))
-        {
-            return true;
-        }
-        return false;
     }
 }

@@ -195,7 +195,7 @@ public class GoogleMetadata extends MappingMetadata
         // Dissertations
         if (itemIsDissertation())
         {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("ITEM TYPE:  DISSERTATION");
             }
 
@@ -206,7 +206,7 @@ public class GoogleMetadata extends MappingMetadata
         // Patents
         if (itemIsPatent())
         {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("ITEM TYPE:  PATENT");
             }
 
@@ -225,7 +225,7 @@ public class GoogleMetadata extends MappingMetadata
         // Tech Reports
         if (itemIsTechReport())
         {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("ITEM TYPE:  TECH REPORT");
             }
             addSingleField(TECH_REPORT_NUMBER);
@@ -233,7 +233,7 @@ public class GoogleMetadata extends MappingMetadata
         }
 
 
-        if(!itemIsDissertation() && !itemIsTechReport()) {
+        if (!itemIsDissertation() && !itemIsTechReport()) {
             // PUBLISHER
             addSingleField(PUBLISHER);
         }

@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
 {
     
-      /** log4j logger */
+    /** log4j logger */
     private Logger log = Logger.getLogger(WorkflowCuratorServiceImpl.class);
     
     protected Map<String, TaskSet> tsMap = new HashMap<String, TaskSet>();
@@ -81,6 +81,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
      * Ensures the configurationService is injected, so that we can read the
      * settings from configuration
      * Called by "init-method" in Spring config.
+     * @throws Exception ...
      */
     public void init() throws Exception {
         File cfgFile = new File(configurationService.getProperty("dspace.dir") +
@@ -89,7 +90,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         try
         {
             loadTaskConfig(cfgFile);
-            if(workflowServiceFactory.getWorkflowService() instanceof BasicWorkflowItemService)
+            if (workflowServiceFactory.getWorkflowService() instanceof BasicWorkflowItemService)
             {
                 basicWorkflowService = (BasicWorkflowService) workflowServiceFactory.getWorkflowService();
                 basicWorkflowItemService = (BasicWorkflowItemService) workflowServiceFactory.getWorkflowItemService();

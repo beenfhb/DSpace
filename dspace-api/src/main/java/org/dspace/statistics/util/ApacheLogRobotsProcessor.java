@@ -32,7 +32,7 @@ public class ApacheLogRobotsProcessor {
      * Creates a file containing spiders based on an Apache logfile
      * by analyzing users of the robots.txt file
      *
-     * @param args
+     * @param args the command line arguments given
      * @throws Exception if error
      */
 

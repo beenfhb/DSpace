@@ -369,8 +369,9 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
      * bitstream is uncertain, and the format is set to "unknown."
      *
      * @param context
+     *     The relevant DSpace Context.
      * @param desc
-     *            the user's description of the format
+     *     the user's description of the format
      * @throws SQLException if database error
      */
     public void setUserFormatDescription(Context context, String desc) throws SQLException
@@ -460,6 +461,19 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
          return hash;
      }
 
+	/**
+	 * Add date for bitstream granted (used into the use case for license grant the {@link LicenseUtils#grantLicense(Context, Item, String, String)}
+	 * 
+	 * @param context
+     *            the dspace context
+	 * @param acceptanceDate the granted date
+	 * @throws SQLException
+	 */
+	public void setAcceptanceDate(Context context, DCDate acceptanceDate) throws SQLException {
+		getBitstreamService().setMetadataSingleValue(context, this, "dcterms", "accessRights", null, null, acceptanceDate.toString());
+	}
+
+}
     
     public void setMD5Value(Context context, String valueMD5) {
         this.checksum = valueMD5;

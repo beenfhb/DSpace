@@ -28,10 +28,17 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.util.DCInput;
+import org.dspace.app.util.DCInputSet;
+import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.content.Collection;
 
 import com.coverity.security.Escape;
 
@@ -420,12 +427,55 @@ public final class Utils
         int rl = result.length();
         return result.substring(0, rl-2) + ":" + result.substring(rl-2);
     }
-	public static String readFile(String path, Charset encoding) throws IOException {
-		byte[] encoded = Files.readAllBytes(Paths.get(path));
-		return new String(encoded, encoding);
-	}
 
-    public static <E> Collection<E> emptyIfNull(Collection<E> collection) {
+    public static <E> java.util.Collection<E> emptyIfNull(java.util.Collection<E> collection) {
         return collection == null ? Collections.<E>emptyList() : collection;
     }
+    
+	/**
+	 * Utility method to extract schema, element, qualifier from the metadata field key 
+	 * Keep in mind that this method try to auto discover the common separator used in DSpace ("_" or ".") 
+	 * 
+	 * Return an array of token with size 3 which contains:
+	 * schema = tokens[0];
+	 * element = tokens[1];
+	 * qualifier = tokens[2]; //it can be empty string
+	 * 
+	 * @param metadata (the field in the form dc.title or dc_title)
+	 * @return array of tokens 
+	 */
+	public static String[] tokenize(String metadata) {
+		String separator = metadata.contains("_") ? "_" : ".";
+		StringTokenizer dcf = new StringTokenizer(metadata, separator);
+
+		String[] tokens = { "", "", "" };
+		int i = 0;
+		while (dcf.hasMoreTokens()) {
+			tokens[i] = dcf.nextToken().trim();
+			i++;
+		}
+		// Tokens contains:
+		// schema = tokens[0];
+		// element = tokens[1];
+		// qualifier = tokens[2];
+		return tokens;
+
+	}
+	
+	/**
+	 * Make the metadata field key using the separator.
+	 * 
+	 * @param schema
+	 * @param element
+	 * @param qualifier
+	 * @param separator (DSpace common separator are "_" or ".")
+	 * @return metadata field key
+	 */
+	public static String standardize(String schema, String element, String qualifier, String separator) {
+		if (StringUtils.isBlank(qualifier)) {
+			return schema + separator + element;
+		} else {
+			return schema + separator + element + separator + qualifier;
+		}
+	}
 }

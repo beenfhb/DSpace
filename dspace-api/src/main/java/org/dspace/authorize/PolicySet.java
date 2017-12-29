@@ -46,7 +46,8 @@ public class PolicySet
 
     /**
      * Command line interface to setPolicies - run to see arguments
-     * @param argv arguments
+     *
+     * @param argv the command line arguments given
      * @throws Exception if error
      */
     public static void main(String[] argv) throws Exception
@@ -133,17 +134,30 @@ public class PolicySet
     /**
      *
      * @param c
+     *            current context
      * @param containerType
+     *            type, Constants.ITEM or Constants.COLLECTION
      * @param containerID
+     *            ID of container (DB primary key)
      * @param contentType
+     *            ID of container (DB primary key)
      * @param actionID
+     *            action ID (e.g. Constants.READ)
      * @param groupID
+     *            group ID (database key)
      * @param isReplace
+     *            if <code>true</code>, existing policies are removed first,
+     *            otherwise add to existing policies
      * @param clearOnly
+     *            if non-null, only process bitstreams whose names contain filter
      * @param name
+     *            policy name
      * @param description
+     *            policy descrption
      * @param startDate
+     *            policy start date
      * @param endDate
+     *            policy end date
      * @throws SQLException if database error
      * @throws AuthorizeException if authorization error
      */
@@ -169,7 +183,7 @@ public class PolicySet
      * @param contentType
      *            type (BUNDLE, ITEM, or BITSTREAM)
      * @param actionID
-     *            action ID
+     *            action ID (e.g. Constants.READ)
      * @param groupID
      *            group ID (database key)
      * @param isReplace
@@ -217,9 +231,13 @@ public class PolicySet
      * @param filter
      *            if non-null, only process bitstreams whose names contain filter
      * @param name
+     *            policy name
      * @param description
+     *            policy description
      * @param startDate
+     *            policy start date
      * @param endDate
+     *            policy end date
      * @throws SQLException if database error
      *             if database problem
      * @throws AuthorizeException if authorization error
@@ -253,7 +271,7 @@ public class PolicySet
                     {
 
                         // before create a new policy check if an identical policy is already in place
-                        if(!authorizeService.isAnIdenticalPolicyAlreadyInPlace(c, myitem, group, actionID, -1)){
+                        if (!authorizeService.isAnIdenticalPolicyAlreadyInPlace(c, myitem, group, actionID, -1)) {
                             // now add the policy
                             ResourcePolicy rp = resourcePolicyService.create(c);
 

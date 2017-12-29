@@ -117,8 +117,8 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
     /**
      * Return true if this object equals obj, false otherwise.
      * 
-     * @param obj
-     * @return true if ResourcePolicy objects are equal
+     * @param obj another EPerson.
+     * @return true if EPerson objects are equal in ID, email, and full name
      */
     @Override
     public boolean equals(Object obj)
@@ -178,8 +178,12 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
      * Locale specification of the form {language} or {language}_{territory},
      * e.g. "en", "en_US", "pt_BR" (the latter is Brazilian Portugese).
      * 
+     * @param context
+     *     The relevant DSpace Context.
      * @param language
-     *            language code
+     *     language code
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
      public void setLanguage(Context context, String language) throws SQLException {
          getePersonService().setMetadataSingleValue(context, this, "eperson", "language", null, null, language);
@@ -199,7 +203,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
      * Set the EPerson's email
      * 
      * @param s
-     *            the new email
+     *     the new email
      */
     public void setEmail(String s)
     {
@@ -221,7 +225,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
      * Set the EPerson's netid
      * 
      * @param netid
-     *            the new netid
+     *     the new netid
      */
     public void setNetid(String netid) {
         this.netid = netid;
@@ -266,8 +270,12 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
     /**
      * Set the eperson's first name
      * 
+     * @param context
+     *     The relevant DSpace Context.
      * @param firstname
-     *            the person's first name
+     *     the person's first name
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void setFirstName(Context context, String firstname) throws SQLException {
         getePersonService().setMetadataSingleValue(context, this, "eperson", "firstname", null, null, firstname);
@@ -287,8 +295,12 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
     /**
      * Set the eperson's last name
      * 
+     * @param context
+     *     The relevant DSpace Context.
      * @param lastname
-     *            the person's last name
+     *     the person's last name
+     * @throws SQLException
+     *     An exception that provides information on a database access error or other errors.
      */
     public void setLastName(Context context, String lastname) throws SQLException {
         getePersonService().setMetadataSingleValue(context, this, "eperson", "lastname", null, null, lastname);
@@ -299,7 +311,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
      * Indicate whether the user can log in
      * 
      * @param login
-     *            boolean yes/no
+     *     boolean yes/no
      */
     public void setCanLogIn(boolean login)
     {
@@ -321,7 +333,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
      * Set require cert yes/no
      * 
      * @param isrequired
-     *            boolean yes/no
+     *     boolean yes/no
      */
     public void setRequireCertificate(boolean isrequired)
     {
@@ -343,7 +355,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
      * Indicate whether the user self-registered
      * 
      * @param sr
-     *            boolean yes/no
+     *     boolean yes/no
      */
     public void setSelfRegistered(boolean sr)
     {
@@ -382,7 +394,7 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport
     }
 
     /**
-     * return type found in Constants
+     * @return type found in Constants, see {@link org.dspace.core.Constants#Constants Constants}
      */
     @Override
     public int getType()

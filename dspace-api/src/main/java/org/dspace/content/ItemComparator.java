@@ -154,8 +154,8 @@ public class ItemComparator implements Comparator, Serializable
     }
 
     /**
-     * @param first
-     * @param second
+     * @param first first operand
+     * @param second second operand
      * @return true if the first string is equal to the second. Either or both
      * may be null.
      */
@@ -229,7 +229,8 @@ public class ItemComparator implements Comparator, Serializable
 
     /**
      * Normalize the title of a IMetadataValue.
-     * @param value
+     * 
+     * @param value metadata value
      * @return normalized title
      */
     protected String normalizeTitle(IMetadataValue value)

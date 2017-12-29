@@ -29,9 +29,10 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.proxy.HibernateProxyHelper;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.orm.hibernate4.SessionFactoryUtils;
+import org.springframework.orm.hibernate5.SessionFactoryUtils;
 
 /**
  * Hibernate implementation of the DBConnection
@@ -43,7 +44,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
     @Autowired(required = true)
     @Qualifier("sessionFactoryDSpace")
     private SessionFactory sessionFactory;
-
+    
     private boolean batchModeEnabled = false;
     private boolean readOnlyEnabled = false;
 
@@ -68,7 +69,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
 
     @Override
     public boolean isSessionAlive() {
-        return sessionFactory.getCurrentSession() != null && sessionFactory.getCurrentSession().getTransaction() != null && sessionFactory.getCurrentSession().getTransaction().isActive();
+        return sessionFactory.getCurrentSession() != null && sessionFactory.getCurrentSession().getTransaction() != null && sessionFactory.getCurrentSession().getTransaction().getStatus().isOneOf(TransactionStatus.ACTIVE);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class HibernateDBConnection implements DBConnection<Session> {
 
     @Override
     public void commit() throws SQLException {
-        if(isTransActionAlive() && !getTransaction().wasRolledBack())
+        if(isTransActionAlive() && !getTransaction().getStatus().isOneOf(TransactionStatus.MARKED_ROLLBACK, TransactionStatus.ROLLING_BACK))
         {
             getSession().flush();
             getTransaction().commit();
@@ -157,11 +158,13 @@ public class HibernateDBConnection implements DBConnection<Session> {
 
     private void configureDatabaseMode() throws SQLException {
         if(batchModeEnabled) {
-            getSession().setFlushMode(FlushMode.ALWAYS);
+            getSession().setHibernateFlushMode(FlushMode.ALWAYS);
+        } else if(readOnlyEnabled) {
+            getSession().setHibernateFlushMode(FlushMode.MANUAL);
         } else if(readOnlyEnabled) {
             getSession().setFlushMode(FlushMode.MANUAL);
         } else {
-            getSession().setFlushMode(FlushMode.AUTO);
+            getSession().setHibernateFlushMode(FlushMode.AUTO);
         }
     }
 

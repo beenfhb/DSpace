@@ -7,14 +7,15 @@
  */
 package org.dspace.content.authority.service;
 
-import org.dspace.content.Collection;
-import org.dspace.content.IMetadataValue;
-import org.dspace.content.IMetadataValue;
-import org.dspace.content.authority.ChoiceAuthority;
-import org.dspace.content.authority.Choices;
-
 import java.util.List;
 import java.util.Set;
+
+import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.Choice;
+import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.authority.Choices;
 
 /**
  * Broker for ChoiceAuthority plugins, and for other information configured
@@ -37,7 +38,24 @@ import java.util.Set;
  */
 public interface ChoiceAuthorityService
 {
+	
+	/**
+	 * 
+	 * @return the names of all the defined choice authorities
+	 */
+	public Set<String> getChoiceAuthoritiesNames();
 
+	/**
+     * @param schema schema of metadata field
+     * @param element element of metadata field
+     * @param qualifier qualifier of metadata field 
+	 * @return the name of the choice authority associated with the specified
+	 *         metadata. Throw IllegalArgumentException if the supplied metadat
+	 *         is not associated with an authority choice
+	 * 
+	 */
+	public String getChoiceAuthorityName(String schema, String element, String qualifier);
+	
     /**
      *  Wrapper that calls getMatches method of the plugin corresponding to
      *  the metadata field defined by schema,element,qualifier.
@@ -157,4 +175,11 @@ public interface ChoiceAuthorityService
 	public List<String> getVariants(String schema, String element, String qualifier, String authKey, String locale);    
 
 	public String makeFieldKey(String schema, String element, String qualifier);
+
+	public String getChoiceMetadatabyAuthorityName(String name);
+	
+	public Choice getChoice(String fieldKey, String authKey, String locale);
+	
+	public ChoiceAuthority getChoiceAuthorityByAuthorityName(String authorityName);
+	
 }
