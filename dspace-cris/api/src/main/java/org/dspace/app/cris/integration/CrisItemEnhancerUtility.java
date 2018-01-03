@@ -182,16 +182,17 @@ public class CrisItemEnhancerUtility {
 					}
 				}
 
-			}
-			for (P prop : props) {
-				if (prop.getObject() instanceof ACrisObject) {
-					ACrisObject val = (ACrisObject) prop.getObject();
-					result.add(new String[] { val.getName(), ResearcherPageUtils.getPersistentIdentifier(val) });
-				} else {
-					PropertyEditor editor = prop.getTypo().getRendering().getPropertyEditor(as);
-					editor.setValue(prop.getObject());
-
-					result.add(new String[] { editor.getAsText(), null });
+			}else{
+				for (P prop : props) {
+					if (prop.getObject() instanceof ACrisObject) {
+						ACrisObject val = (ACrisObject) prop.getObject();
+						result.add(new String[] { val.getName(), ResearcherPageUtils.getPersistentIdentifier(val) });
+					} else {
+						PropertyEditor editor = prop.getTypo().getRendering().getPropertyEditor(as);
+						editor.setValue(prop.getObject());
+	
+						result.add(new String[] { editor.getAsText(), null });
+					}
 				}
 			}
 		}
