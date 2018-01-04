@@ -11,12 +11,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.app.rest.model.MetadataValueRest;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.core.Utils;
 import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.json.patch.LateObjectEvaluator;
@@ -85,7 +84,7 @@ public class ItemMetadataValueAddPatchOperation extends MetadataValueAddPatchOpe
 			// object member
 			MetadataValueRest object = evaluateSingleObject((LateObjectEvaluator) value);
 			// check if is not empty
-			List<MetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(source.getItem(),
+			List<IMetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(source.getItem(),
 					split[0]);
 			Assert.notEmpty(metadataByMetadataString);
 			if (split.length > 1) {

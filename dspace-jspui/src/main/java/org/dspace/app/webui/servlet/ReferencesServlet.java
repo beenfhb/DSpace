@@ -471,103 +471,89 @@ public class ReferencesServlet extends DSpaceServlet
         }
         else
         {
-        	Integer index = 1;
-            for (Item item : items)
-            {
-				if (!exportBiblioEnabled || (context.getCurrentUser()==null  && !exportBiblioAll) )
-                {
-                    // the item is withdrawn we skip it
-                    log.info(LogManager.getHeader(context, "references",
-							"item_id=" + item.getID() + ",not authorized"));
-                    continue;
-                }
+			Integer index = 1;
+			for (Item item : items) {
+				if (!exportBiblioEnabled || (context.getCurrentUser() == null && !exportBiblioAll)) {
+					// the item is withdrawn we skip it
+					log.info(
+							LogManager.getHeader(context, "references", "item_id=" + item.getID() + ",not authorized"));
+					continue;
+				}
 
 				String type = "";
-                try {           
-                    String formFileName = I18nUtil.getInputFormsFileName(I18nUtil.getDefaultLocale());
-                    String col_handle = "";
+				List<DCInputSet> inputSets = null;
+				try {
+					String formFileName = I18nUtil.getInputFormsFileName(I18nUtil.getDefaultLocale());
+					String col_handle = "";
 
-                    Collection collection = item.getOwningCollection();
+					Collection collection = item.getOwningCollection();
 
-                    if (collection == null)
-                    {
-                        // set an empty handle so to get the default input set
-                        col_handle = "";
-                    }
-                    else
-                    {
-                        col_handle = collection.getHandle();
-                    }
+					if (collection == null) {
+						// set an empty handle so to get the default input set
+						col_handle = "";
+					} else {
+						col_handle = collection.getHandle();
+					}
 
-                    // Read the input form file for the specific collection
-                    DCInputsReader inputsReader = new DCInputsReader(formFileName);
+					// Read the input form file for the specific collection
+					DCInputsReader inputsReader = new DCInputsReader(formFileName);
 
-                    DCInputSet inputSet = inputsReader.getInputs(col_handle);
-                    type = inputSet.getFormName();
-                } catch (Exception e1) {
-					log.error(LogManager.getHeader(context, "references",
-							"unable to determine type " + e1.getMessage()), e1);
+					inputSets = inputsReader.getInputsByCollectionHandle(col_handle);
+
+				} catch (Exception e1) {
+					log.error(
+							LogManager.getHeader(context, "references", "unable to determine type " + e1.getMessage()),
+							e1);
 				}
-				log.info(LogManager.getHeader(context, "references", "item_id="
-						+ item.getID()));
+				log.info(LogManager.getHeader(context, "references", "item_id=" + item.getID()));
 
-                StreamDisseminationCrosswalk streamCrosswalk = null;
+				for (DCInputSet inputSet : inputSets) {
+					type = inputSet.getFormName();
+					StreamDisseminationCrosswalk streamCrosswalk = null;
 
-            	//try to retrieve from inputform type
-                if (type != null)
-                {
-                    streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
-                            .getNamedPlugin(StreamDisseminationCrosswalk.class,
-                                    format + "-" + type);
-                } 
+					// try to retrieve from inputform type
+					if (type != null) {
+						streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance()
+								.getPluginService()
+								.getNamedPlugin(StreamDisseminationCrosswalk.class, format + "-" + type);
+					}
 
-            	//try to retrieve from the lowercase of dc.type deleting all whitespace 
-                if (streamCrosswalk == null)
-                {
-            		String metadata = item.getMetadata("dc.type");
-            		if (StringUtils.isNotBlank(metadata)) {
-            			type = StringUtils.deleteWhitespace(metadata).toLowerCase(); 
-            			if (StringUtils.isNotBlank(type)) {
-                            streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance().getPluginService()
-                                    .getNamedPlugin(StreamDisseminationCrosswalk.class,
-                                            format + "-" + type);            				
-            			}
-            		}
-                }
+					// try to retrieve from the lowercase of dc.type deleting
+					// all whitespace
+					if (streamCrosswalk == null) {
+						String metadata = item.getMetadata("dc.type");
+						if (StringUtils.isNotBlank(metadata)) {
+							type = StringUtils.deleteWhitespace(metadata).toLowerCase();
+							if (StringUtils.isNotBlank(type)) {
+								streamCrosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance()
+										.getPluginService()
+										.getNamedPlugin(StreamDisseminationCrosswalk.class, format + "-" + type);
+							}
+						}
+					}
 
-                //apply the default
-                if (streamCrosswalk == null)
-                {
-                    log.debug(LogManager
-                            .getHeader(
-                                    context,
-                                    "references",
-                                    "format= "
-                                            + format
-                                            + ", type="
-                                            + type
-                                            + " template not found using default for the specified format"));
-                    streamCrosswalk = streamCrosswalkDefault;
-                }
+					// apply the default
+					if (streamCrosswalk == null) {
+						log.debug(LogManager.getHeader(context, "references", "format= " + format + ", type=" + type
+								+ " template not found using default for the specified format"));
+						streamCrosswalk = streamCrosswalkDefault;
+					}
 
-                try
-                {
-                	if(streamCrosswalk.assignUniqueNumber()) {
-                		((IDisseminateUniqueNumber)streamCrosswalk).disseminate(context, item, outputStream, index);
-                	}
-                	else {
-                		streamCrosswalk.disseminate(context, item, outputStream);
-                	}
-                    
-                }
-                catch (CrosswalkException e)
-                {
-                    log.error(LogManager.getHeader(context, "references",
-							"item_id=" + item.getID()), e);
-                }
-                index++;
-            }
-        }
+					try {
+						if (streamCrosswalk.assignUniqueNumber()) {
+							((IDisseminateUniqueNumber) streamCrosswalk).disseminate(context, item, outputStream,
+									index);
+						} else {
+							streamCrosswalk.disseminate(context, item, outputStream);
+						}
+
+					} catch (CrosswalkException e) {
+						log.error(LogManager.getHeader(context, "references", "item_id=" + item.getID()), e);
+					}
+					index++;
+				}
+			}
+		}
         outputStream.flush();
         outputStream.close();
     }

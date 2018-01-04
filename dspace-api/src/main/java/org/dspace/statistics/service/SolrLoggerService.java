@@ -14,8 +14,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
@@ -225,7 +225,7 @@ public interface SolrLoggerService {
     
     public SolrDocumentList getRawData(int type, int year) throws SolrServerException;
     
-    public HttpSolrServer getSolr();
+    public SolrServer getSolr();
 
     public void deleteByType(int type) throws SolrServerException, IOException;
     

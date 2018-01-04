@@ -20,6 +20,7 @@
     <properties>
         <!-- This is the path to the root [dspace-src] directory. -->
         <root.basedir>${basedir}/..</root.basedir>
+        <org.spring.version>3.2.16.RELEASE</org.spring.version>
     </properties>
 
     <build>
@@ -130,6 +131,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+            <version>${org.spring.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>

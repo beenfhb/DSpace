@@ -13,6 +13,7 @@ import org.dspace.app.util.service.MetadataExposureService;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -76,11 +77,11 @@ public class Item extends DSpaceObject {
         if (expandFields.contains("metadata") || expandFields.contains("all"))
         {
             metadata = new ArrayList<MetadataEntry>();
-            List<MetadataValue> metadataValues = itemService.getMetadata(
+            List<IMetadataValue> metadataValues = itemService.getMetadata(
                 item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY,
                 org.dspace.content.Item.ANY, org.dspace.content.Item.ANY);
 
-            for (MetadataValue metadataValue : metadataValues)
+            for (IMetadataValue metadataValue : metadataValues)
             {
                 MetadataField metadataField = metadataValue.getMetadataField();
                 if (!metadataExposureService.isHidden(context,

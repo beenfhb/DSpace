@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,6 +35,7 @@ import org.dspace.app.cris.deduplication.utils.DedupUtils;
 import org.dspace.app.cris.deduplication.utils.DuplicateInfo;
 import org.dspace.app.cris.deduplication.utils.DuplicateInfoList;
 import org.dspace.app.util.DCInput;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
@@ -50,7 +52,6 @@ import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.crosswalk.CrosswalkException;
@@ -328,8 +329,13 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             	BrowsableDSpaceObject current = it.next();
                 if (resourceType == Constants.ITEM)
                 {
-                    String aliasForm = ItemUtils.getDCInputSet((Item) current)
-                            .getFormName();
+                    String aliasForm;
+					try {
+						aliasForm = ItemUtils.getSubmissionFormName((Item) current);
+					} catch (SubmissionConfigReaderException e) {
+						throw new ServletException(e);
+					}
+                            
                     if (StringUtils.isNotBlank(aliasForm))
                     {
                         itemTypeInfo.put(current.getID(), aliasForm);
@@ -408,6 +414,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             request.setAttribute("scope", scope);
             optionInt = MANAGE_PREVIEW;
         }
+        // fall through 
         case MANAGE_PREVIEW:
         {
             // manage preview
@@ -450,7 +457,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
             // Checking configuration
             if (ArrayUtils.isNotEmpty(configurationStyles))
             {
-                log.info("INFO: Applying default style " + styles
+                log.info("INFO: Applying default style " + Arrays.toString(styles)
                         + "  You can overwrite \"plugin.bootstrap.styles\" in dspace.cfg");
                 styles = configurationStyles;
             }
@@ -696,6 +703,7 @@ public class DuplicateCheckerServlet extends DSpaceServlet
                         + "/tools/duplicate");                
             }
         }
+        // fall through 
         default:
             // none operations
             break;

@@ -7,18 +7,16 @@
  */
 package org.dspace.app.rest.submit.factory.impl;
 
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -26,9 +24,6 @@ import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.json.patch.LateObjectEvaluator;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 /**
  * Submission "replace" operation to replace metadata in the Bitstream
@@ -65,7 +60,7 @@ public class BitstreamMetadataValueReplacePatchOperation extends MetadataValueRe
 
 	private void replace(Context context, Bitstream b, String[] split, Object value) throws SQLException, IllegalArgumentException, IllegalAccessException {
 		String mdString = split[3];
-		List<MetadataValue> metadataByMetadataString = bitstreamService.getMetadataByMetadataString(b, mdString);
+		List<IMetadataValue> metadataByMetadataString = bitstreamService.getMetadataByMetadataString(b, mdString);
 		Assert.notEmpty(metadataByMetadataString);
 
 		int index = Integer.parseInt(split[4]);

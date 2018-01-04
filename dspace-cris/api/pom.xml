@@ -90,11 +90,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
@@ -102,12 +97,6 @@
 		<dependency>
 			<groupId>org.jdyna</groupId>
 			<artifactId>jdyna-core</artifactId>
-			<exclusions>
-		  		<exclusion>
-          			<groupId>org.hibernate.common</groupId>
-          			<artifactId>hibernate-commons-annotations</artifactId>
-        		</exclusion>
-		    </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jdyna</groupId>
@@ -139,12 +128,6 @@
 			<groupId>it.cilea</groupId>
 			<artifactId>commons-cilea-genericdao</artifactId>
 			<version>${it.cilea.ccommons.version}</version>
-			  <exclusions>
-			  		<exclusion>
-	          			<groupId>org.hibernate.common</groupId>
-	          			<artifactId>hibernate-commons-annotations</artifactId>
-	        		</exclusion>
-			  </exclusions>				
 		</dependency>
 		
     	<dependency>

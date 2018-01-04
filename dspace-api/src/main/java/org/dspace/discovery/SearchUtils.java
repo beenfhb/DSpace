@@ -51,7 +51,6 @@ public class SearchUtils {
         return getDiscoveryConfiguration(null);
     }
 
-    public static DiscoveryConfiguration getDiscoveryConfiguration(DSpaceObject dso
     public static DiscoveryConfiguration getDiscoveryConfiguration(BrowsableDSpaceObject dso){
         return getDiscoveryConfigurationByName(dso!=null?dso.getHandle():null);
     }

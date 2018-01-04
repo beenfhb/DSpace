@@ -23,7 +23,7 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
@@ -65,9 +65,9 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
     				
     				
     				for (String fieldName : fieldsName) {
-    					List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(),
+    					List<IMetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(),
     							fieldName);
-    					for (MetadataValue md : mdv) {
+    					for (IMetadataValue md : mdv) {
     						MetadataValueRest dto = new MetadataValueRest();
     						dto.setAuthority(md.getAuthority());
     						dto.setConfidence(md.getConfidence());

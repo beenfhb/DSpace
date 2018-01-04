@@ -21,7 +21,7 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
@@ -73,8 +73,8 @@ public class MetadataValidation extends AbstractValidation {
     			}
     
     			for (String fieldName : fieldsName) {
-    				List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(), fieldName);
-    				for (MetadataValue md : mdv) {
+    				List<IMetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(), fieldName);
+    				for (IMetadataValue md : mdv) {
     					if (!(input.validate(md.getValue()))) {
     						addError(ERROR_VALIDATION_REGEX, "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
     								+ config.getId() + "/" + input.getFieldName() + "/" + md.getPlace());

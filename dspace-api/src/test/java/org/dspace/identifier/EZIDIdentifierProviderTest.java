@@ -450,13 +450,5 @@ public class EZIDIdentifierProviderTest
             org.apache.log4j.Logger.getLogger(EZIDIdentifierProviderTest.class).fatal("Caught NPE", ex);
             throw ex;
         }
-        } catch (NullPointerException ex) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            System.out.println(sw.toString());
-            org.apache.log4j.Logger.getLogger(EZIDIdentifierProviderTest.class).fatal("Caught NPE", ex);
-            throw ex;
-        }
     }
 }

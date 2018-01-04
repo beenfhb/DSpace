@@ -17,6 +17,7 @@ import org.dspace.app.itemimport.factory.ItemImportServiceFactory;
 import org.dspace.app.itemimport.service.ItemImportService;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -651,16 +652,20 @@ public class MyDSpaceServlet extends DSpaceServlet
             // Load the Submission Process for the collection this WSI is
             // associated with
             Collection c = wsi.getCollection();
-            SubmissionConfigReader subConfigReader = new SubmissionConfigReader();
-            SubmissionConfig subConfig = subConfigReader.getSubmissionConfig(c
-                    .getHandle(), false);
+            SubmissionConfigReader subConfigReader = null;
+			try {
+				subConfigReader = new SubmissionConfigReader();
+			} catch (SubmissionConfigReaderException e) {
+				throw new ServletException(e);
+			}
+            SubmissionConfig subConfig = subConfigReader.getSubmissionConfigByCollection(c.getHandle());
 
             // Set the "stage_reached" column on the workspace item
             // to the LAST page of the LAST step in the submission process
             // (i.e. the page just before "Complete")
             int lastStep = subConfig.getNumberOfSteps() - 2;
             wsi.setStageReached(lastStep);
-            wsi.setPageReached(AbstractProcessingStep.LAST_PAGE_REACHED);
+//            wsi.setPageReached(AbstractProcessingStep.LAST_PAGE_REACHED);
             workspaceItemService.update(context, wsi);
 
             JSPManager

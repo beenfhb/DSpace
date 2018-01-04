@@ -7,10 +7,22 @@
  */
 package org.dspace.xoai.app;
 
-import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
-import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
-import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
-import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
+import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
+import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
@@ -25,15 +37,18 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.Utils;
-import org.dspace.handle.Handle;
 import org.dspace.xoai.exceptions.CompilingException;
 import org.dspace.xoai.services.api.CollectionsService;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
@@ -47,16 +62,10 @@ import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.util.*;
-
-import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
-import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
+import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
+import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
+import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 
 /**
  * @author Lyncode Development Team (dspace at lyncode dot com)
@@ -236,9 +245,9 @@ public class XOAI {
             doc.addField("item.communities",
                     "com_" + com.getHandle().replace("/", "_"));
 
-        List<MetadataValue> allData = itemService.getMetadata(item,
+        List<IMetadataValue> allData = itemService.getMetadata(item,
                 Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue dc : allData) {
+        for (IMetadataValue dc : allData) {
             MetadataField field = dc.getMetadataField();
             String key = "metadata."
                     + field.getMetadataSchema().getName() + "."

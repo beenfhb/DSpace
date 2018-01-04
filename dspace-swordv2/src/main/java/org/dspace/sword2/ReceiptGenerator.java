@@ -273,11 +273,11 @@ public class ReceiptGenerator
      */
     protected void addCategories(DepositResult result, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService.getMetadataByMetadataString(
+        List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(
             result.getItem(), "dc.subject.*");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 receipt.getWrappedEntry().addCategory(
                     UriRegistry.DC_NAMESPACE, aDcv.getValue(), aDcv.getValue());
@@ -296,11 +296,11 @@ public class ReceiptGenerator
      */
     protected void addCategories(Item item, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService
+        List<IMetadataValue> dcv = itemService
                 .getMetadataByMetadataString(item, "dc.subject.*");
         if (dcv != null)
         {
-            for (MetadataValue aDcv : dcv)
+            for (IMetadataValue aDcv : dcv)
             {
                 receipt.getWrappedEntry().addCategory(
                     UriRegistry.DC_NAMESPACE, aDcv.getValue(), aDcv.getValue());
@@ -318,7 +318,7 @@ public class ReceiptGenerator
      */
     protected void addPublishDate(DepositResult result, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService.getMetadataByMetadataString(
+        List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(
             result.getItem(), "dc.date.issued");
         if (dcv != null && !dcv.isEmpty())
         {
@@ -346,7 +346,7 @@ public class ReceiptGenerator
      */
     protected void addPublishDate(Item item, DepositReceipt receipt)
     {
-        List<MetadataValue> dcv = itemService.getMetadataByMetadataString(
+        List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(
             item, "dc.date.issued");
         if (dcv != null && dcv.size() == 1)
         {
@@ -377,7 +377,7 @@ public class ReceiptGenerator
     {
         String config = ConfigurationManager.getProperty(
             "swordv2-server", "updated.field");
-        List<MetadataValue> dcv = itemService.getMetadataByMetadataString(
+        List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(
             result.getItem(), config);
         if (dcv != null && dcv.size() == 1)
         {
@@ -407,7 +407,7 @@ public class ReceiptGenerator
     {
         String config = ConfigurationManager.getProperty(
             "swordv2-server", "updated.field");
-        List<MetadataValue> dcv = itemService.getMetadataByMetadataString(
+        List<IMetadataValue> dcv = itemService.getMetadataByMetadataString(
             item, config);
         if (dcv != null && dcv.size() == 1)
         {

@@ -56,7 +56,6 @@ public class SolrImportExport
     private static final ThreadLocal<DateFormat> SOLR_DATE_FORMAT_NO_MS;
     private static final ThreadLocal<DateFormat> EXPORT_DATE_FORMAT;
 	private static final String EXPORT_SEP = "_export_";
-	private static final String EXPORT_SEP = "_export_";
 
     static
     {
@@ -96,8 +95,6 @@ public class SolrImportExport
     public static final int ROWS_PER_FILE = 10_000;
 	
 	private static final String MULTIPLE_VALUES_SPLITTER = ",";
-
-    private static final String MULTIPLE_VALUES_SPLITTER = ",";
 
     private static final Logger log = Logger.getLogger(SolrImportExport.class);
 
@@ -617,7 +614,6 @@ public class SolrImportExport
                 throw new SolrImportExportException("Could not read start of month batch as date: " + monthStart, e);
             }
             int docsThisMonth = monthFacet.getCount();
-			monthQuery.setParam("csv.mv.separator", MULTIPLE_VALUES_SPLITTER);
 		
             SolrQuery monthQuery = new SolrQuery("*:*");
             monthQuery.setRows(ROWS_PER_FILE);

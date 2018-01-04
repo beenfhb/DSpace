@@ -100,7 +100,7 @@ public class RebuildDerivateStatisticsMetadata
         
         System.out.println("Found " + sdl.getNumFound()
                 + " access in the statistics core");
-        HttpSolrServer solr = indexer.getSolr();
+        HttpSolrServer solr = (HttpSolrServer)indexer.getSolr();
         if(year) {
             indexer.deleteByTypeAndYear(dspaceType, Integer.parseInt(line.getOptionValue("y")));
         }
@@ -149,7 +149,7 @@ public class RebuildDerivateStatisticsMetadata
             sdl = indexer.getRawData(crisType);
             System.out.println("Found " + sdl.getNumFound()
                     + " access in the RP statistics core");
-            HttpSolrServer rpsolr = indexer.getSolr();
+            HttpSolrServer rpsolr = (HttpSolrServer)indexer.getSolr();
             indexer.deleteByType(crisType);
             rpsolr.commit();
     

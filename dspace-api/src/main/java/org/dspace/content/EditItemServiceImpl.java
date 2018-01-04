@@ -10,6 +10,7 @@ package org.dspace.content;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.EditItemService;
 import org.dspace.content.service.ItemService;
@@ -45,6 +46,13 @@ public class EditItemServiceImpl implements EditItemService {
     {
         return itemService;
     }
+
+	@Override
+	public void move(Context context, EditItem inProgressSubmission, Collection fromCollection, Collection toCollection)
+			throws DCInputsReaderException {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }

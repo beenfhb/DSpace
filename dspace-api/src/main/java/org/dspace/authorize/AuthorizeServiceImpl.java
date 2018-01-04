@@ -851,4 +851,10 @@ public class AuthorizeServiceImpl implements AuthorizeService
         return policy;
     }
 
+	@Override
+	public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson,
+			int type, String rpType) throws SQLException, AuthorizeException {
+		return createResourcePolicy(context, dso, group, eperson, type, rpType, null, null, null, null);
+	}
+
 }

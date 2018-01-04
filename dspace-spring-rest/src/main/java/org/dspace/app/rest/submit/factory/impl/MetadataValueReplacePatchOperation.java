@@ -9,11 +9,11 @@ package org.dspace.app.rest.submit.factory.impl;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
@@ -40,7 +40,7 @@ public abstract class MetadataValueReplacePatchOperation<DSO extends DSpaceObjec
 		return MetadataValueRest.class;
 	}
 
-	protected void replaceValue(Context context, DSO source, String target, List<MetadataValue> list, MetadataValueRest object, int index)
+	protected void replaceValue(Context context, DSO source, String target, List<IMetadataValue> list, MetadataValueRest object, int index)
 			throws SQLException {
 		String[] metadata = Utils.tokenize(target);
 		getDSpaceObjectService().replaceMetadata(context, source, metadata[0], metadata[1], metadata[2],
@@ -48,7 +48,7 @@ public abstract class MetadataValueReplacePatchOperation<DSO extends DSpaceObjec
 	}
 	
 	protected void setDeclaredField(Context context, DSO source, Object value, String metadata, String namedField,
-			List<MetadataValue> metadataByMetadataString, int index) throws IllegalAccessException, SQLException {
+			List<IMetadataValue> metadataByMetadataString, int index) throws IllegalAccessException, SQLException {
 		// check field
 		String raw = (String)value;
 		for (Field field : MetadataValueRest.class.getDeclaredFields()) {
@@ -60,7 +60,7 @@ public abstract class MetadataValueReplacePatchOperation<DSO extends DSpaceObjec
 				if (field.getName().equals(namedField)) {
 					int idx = 0;
 					MetadataValueRest obj = new MetadataValueRest();
-					for (MetadataValue mv : metadataByMetadataString) {
+					for (IMetadataValue mv : metadataByMetadataString) {
 
 						if (idx == index) {
 							obj.setAuthority(mv.getAuthority());

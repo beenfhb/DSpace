@@ -73,7 +73,7 @@ public class BrowseItemLinkRepository extends AbstractDSpaceRestRepository
 			filterAuthority = request.getParameter("filterAuthority");
 		}
 		Context context = obtainContext();
-		BrowseEngine be = new BrowseEngine(context);
+		BrowseEngine be = new BrowseEngine(context, context.getCurrentLocale().toString());
 		BrowserScope bs = new BrowserScope(context);
 		DSpaceObject scopeObj = null;
 		if (scope != null) {
@@ -158,7 +158,7 @@ public class BrowseItemLinkRepository extends AbstractDSpaceRestRepository
 		BrowseInfo binfo = be.browse(bs);
 
 		Pageable pageResultInfo = new PageRequest((binfo.getStart() -1) / binfo.getResultsPerPage(), binfo.getResultsPerPage());
-		Page<ItemRest> page = new PageImpl<Item>(binfo.getBrowseItemResults(), pageResultInfo, binfo.getTotal())
+		Page<ItemRest> page = new PageImpl<Item>(binfo.getItemResults(context), pageResultInfo, binfo.getTotal())
 				.map(converter);
 		return page;
 	}

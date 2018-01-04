@@ -1015,7 +1015,7 @@ public abstract class MappingMetadata {
 			for (IMetadataValue v : fields) {
 				if (null != v && StringUtils.isNotBlank(v.getValue())) {
 					metadataMappings.put(fieldName, v.getValue());
-					metadataMappings.put(v.getValue(), map.get(v.getMetadataField()));
+					metadataMappings.put(v.getValue(), map.get(v.getMetadataField().toString()));
 				}
 			}
 		} else {

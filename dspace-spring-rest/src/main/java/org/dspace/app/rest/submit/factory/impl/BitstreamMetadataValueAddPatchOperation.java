@@ -12,8 +12,8 @@ import java.util.List;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -61,7 +61,7 @@ public class BitstreamMetadataValueAddPatchOperation extends MetadataValueAddPat
 						// object member
 						MetadataValueRest object = evaluateSingleObject((LateObjectEvaluator) value);
 						// check if is not empty
-						List<MetadataValue> metadataByMetadataString = bitstreamService.getMetadataByMetadataString(b,
+						List<IMetadataValue> metadataByMetadataString = bitstreamService.getMetadataByMetadataString(b,
 								split[3]);
 						Assert.notEmpty(metadataByMetadataString);
 						if (split.length > 4) {

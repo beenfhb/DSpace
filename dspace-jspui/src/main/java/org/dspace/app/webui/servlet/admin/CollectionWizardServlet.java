@@ -662,7 +662,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case PERM_READ:
 
             // Next page is 'permission to submit' iff there's a submit group
@@ -675,7 +675,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case PERM_SUBMIT:
 
             // Next page is 'workflow step 1' iff there's a wf step 1 group
@@ -688,7 +688,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case PERM_WF1:
 
             // Next page is 'workflow step 2' iff there's a wf step 2 group
@@ -701,7 +701,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case PERM_WF2:
 
             // Next page is 'workflow step 3' iff there's a wf step 2 group
@@ -714,7 +714,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case PERM_WF3:
 
             // Next page is 'collection administrator' iff there's a collection
@@ -727,7 +727,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case PERM_ADMIN:
 
             // Next page is 'default item' iff there's a default item
@@ -740,7 +740,7 @@ public class CollectionWizardServlet extends DSpaceServlet
 
                 break;
             }
-
+         // fall through
         case DEFAULT_ITEM:
 
             // Next page is 'summary page (the last page)

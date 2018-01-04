@@ -153,9 +153,9 @@ public class SimpleDCEntryIngester extends AbstractSimpleDC
         {
             lang = Item.ANY;
         }
-        List<MetadataValue> existing = itemService.getMetadata(
+        List<IMetadataValue> existing = itemService.getMetadata(
             item, info.schema, info.element, qual, lang);
-        for (MetadataValue dcValue : existing)
+        for (IMetadataValue dcValue : existing)
         {
             // FIXME: probably we want to be slightly more careful about qualifiers and languages
             //

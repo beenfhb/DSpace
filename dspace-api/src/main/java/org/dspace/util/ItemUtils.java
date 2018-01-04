@@ -9,12 +9,15 @@ package org.dspace.util;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.SubmissionConfigReader;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.IMetadataValue;
@@ -59,7 +62,7 @@ public class ItemUtils
     }
     
 
-    public static DCInputSet getDCInputSet(Item item)
+    public static List<DCInputSet> getDCInputSet(Item item)
     {
         try
         {
@@ -83,7 +86,7 @@ public class ItemUtils
             DCInputsReader inputsReader = new DCInputsReader(
                     formFileName);
 
-            return inputsReader.getInputs(col_handle);
+            return inputsReader.getInputsByCollectionHandle(col_handle);
         }
         catch (Exception e)
         {
@@ -92,24 +95,21 @@ public class ItemUtils
         return null;
     }
     
-    public static DCInput getDCInput(String schema, String element,
-            String qualifier, DCInputSet dcinputset)
-    {
-        for (int idx = 0; idx < dcinputset.getNumberPages(); idx++)
-        {
-            for (DCInput dcinput : dcinputset.getPageRows(idx, true, true))
-            {
-                if (dcinput.getSchema().equals(schema)
-                        && dcinput.getElement().equals(element)
-                        && ((dcinput.getQualifier() != null && dcinput.getQualifier().equals(qualifier)) || (dcinput
-                                .getQualifier() == null && qualifier == null) || "qualdrop_value".equals(dcinput.getInputType())))
-                {
-                    return dcinput;
-                }
-            }
-        }
-        return null;
-    }
+	public static DCInput getDCInput(String schema, String element, String qualifier, List<DCInputSet> dcinputsets) {
+		for (DCInputSet dcinputset : dcinputsets) {
+			for (DCInput[] dcinputs : dcinputset.getFields()) {
+				for (DCInput dcinput : dcinputs) {
+					if (dcinput.getSchema().equals(schema) && dcinput.getElement().equals(element)
+							&& ((dcinput.getQualifier() != null && dcinput.getQualifier().equals(qualifier))
+									|| (dcinput.getQualifier() == null && qualifier == null)
+									|| "qualdrop_value".equals(dcinput.getInputType()))) {
+						return dcinput;
+					}
+				}
+			}
+		}
+		return null;
+	}
     
     public static void removeOrWithdrawn(Context context, Item item)
             throws SQLException, AuthorizeException, IOException
@@ -231,5 +231,14 @@ public class ItemUtils
 
         // If we get this far, we have a match
         return true;
+	}
+
+
+	public static String getSubmissionFormName(Item current) throws SubmissionConfigReaderException {
+		SubmissionConfigReader submissionConfigReader = new SubmissionConfigReader();
+		if(current.getOwningCollection()!=null) {
+			return submissionConfigReader.getSubmissionConfigByCollection(current.getOwningCollection().getHandle()).getSubmissionName();
+		}
+		return submissionConfigReader.getDefaultSubmissionConfigName();
 	}
 }

@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -267,7 +267,7 @@ public class ItemFilterUtil {
     {
         if (fieldList.equals("*"))
         {
-            for (MetadataValue md: itemService.getMetadata(item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY))
+            for (IMetadataValue md: itemService.getMetadata(item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY))
             {
                 if (regex.matcher(md.getValue()).matches())
                 {
@@ -279,7 +279,7 @@ public class ItemFilterUtil {
         {
             for (String field: fieldList.split(","))
             {
-                for (MetadataValue md: itemService.getMetadataByMetadataString(item, field.trim()))
+                for (IMetadataValue md: itemService.getMetadataByMetadataString(item, field.trim()))
                 {
                     if (regex.matcher(md.getValue()).matches())
                     {
@@ -297,7 +297,7 @@ public class ItemFilterUtil {
         boolean matches = false;
         if (fieldList.equals("*"))
         {
-            for (MetadataValue md: itemService.getMetadata(item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY))
+            for (IMetadataValue md: itemService.getMetadata(item, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY, org.dspace.content.Item.ANY))
             {
                 if (regex.matcher(md.getValue()).matches())
                 {
@@ -313,7 +313,7 @@ public class ItemFilterUtil {
         {
             for (String field: fieldList.split(","))
             {
-                for (MetadataValue md: itemService.getMetadataByMetadataString(item, field.trim()))
+                for (IMetadataValue md: itemService.getMetadataByMetadataString(item, field.trim()))
                 {
                     if (regex.matcher(md.getValue()).matches())
                     {

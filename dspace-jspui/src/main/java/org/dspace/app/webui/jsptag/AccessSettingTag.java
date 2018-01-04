@@ -21,7 +21,6 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -49,9 +48,6 @@ public class AccessSettingTag extends TagSupport
 
     /** Name of the restricted group */
     private static final String restrictedGroup = ConfigurationManager.getProperty("webui.submission.restrictstep.groups");
-
-    /** the SubmissionInfo */
-    private transient SubmissionInfo subInfo = null;
 
     /** the target DSpaceObject */
     private transient DSpaceObject dso = null;
@@ -157,7 +153,7 @@ public class AccessSettingTag extends TagSupport
                 sb.append(label_group).append("\n");
                 sb.append("<select class=\"form-control\" name=\"group_id\" id=\"select_group\">\n");
 
-                List<Group> groups = getGroups(context, hrq, subInfo);
+                List<Group> groups = getGroups(context, hrq);
                 if (groups != null)
                 {
                     for (Group group : groups)
@@ -240,27 +236,6 @@ public class AccessSettingTag extends TagSupport
         }
 
         return SKIP_BODY;
-    }
-
-    /**
-     * Get the browseInfo
-     *
-     * @return the browseInfo
-     */
-    public SubmissionInfo getSubInfo()
-    {
-        return subInfo;
-    }
-
-    /**
-     * Set the subInfo (SubmissionInfo)
-     *
-     * @param subInfo
-     *            the subInfo
-     */
-    public void setSubInfo(SubmissionInfo subInfo)
-    {
-        this.subInfo = subInfo;
     }
 
     /**
@@ -372,14 +347,13 @@ public class AccessSettingTag extends TagSupport
     public void release()
     {
         dso = null;
-        subInfo = null;
         rp = null;
         embargo = false;
         hidden = false;
         addpolicy = false;
     }
 
-    private List<Group> getGroups(Context context, HttpServletRequest request, SubmissionInfo subInfo)
+    private List<Group> getGroups(Context context, HttpServletRequest request)
         throws SQLException
     {
         List<Group> groups = null;

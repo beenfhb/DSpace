@@ -33,6 +33,7 @@ import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PostLoadEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
+import org.hibernate.persister.entity.EntityPersister;
 
 public class RPResourcePolicyListener implements PostUpdateEventListener,
         PostInsertEventListener, PostDeleteEventListener, PostLoadEventListener
@@ -267,5 +268,11 @@ public class RPResourcePolicyListener implements PostUpdateEventListener,
     
 	public Session getHibernateSession(Context context) throws SQLException {
 		return ((Session) context.getDBConnection().getSession());
+	}
+
+	@Override
+	public boolean requiresPostCommitHanding(EntityPersister persister) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

@@ -71,7 +71,7 @@ public class BrowseEntryLinkRepository extends AbstractDSpaceRestRepository
 		}
 
 		Context context = obtainContext();
-		BrowseEngine be = new BrowseEngine(context);
+		BrowseEngine be = new BrowseEngine(context, context.getCurrentLocale().toString());
 		BrowserScope bs = new BrowserScope(context);
 		DSpaceObject scopeObj = null;
 		if (scope != null) {

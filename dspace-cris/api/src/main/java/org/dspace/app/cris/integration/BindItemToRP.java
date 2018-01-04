@@ -98,7 +98,14 @@ public class BindItemToRP
         while (items.hasNext())
         {
             Item item = items.next();
-            if (rejected == null || !rejected.contains(item.getID()))
+            boolean rr = false;
+            for(RelationPreference relPref : rejected) {
+            	if(relPref.getItemID().equals(item.getID())) {
+            		rr = true;
+            		break;
+            	}
+            }
+            if (rejected == null || !rr)
             {
                 boolean found = false;
                 for (MetadataField mf : mfs)

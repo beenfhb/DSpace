@@ -19,7 +19,8 @@
     <properties>
         <!-- This is the path to the root [dspace-src] directory. -->
         <root.basedir>${basedir}/../../..</root.basedir>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>		
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <org.spring.version>3.2.16.RELEASE</org.spring.version>		
     </properties>
 	
     <profiles>
@@ -236,6 +237,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
+			<version>${org.spring.version}</version>
 		</dependency>
 
 		<dependency>

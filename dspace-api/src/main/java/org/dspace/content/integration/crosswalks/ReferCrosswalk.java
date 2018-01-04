@@ -36,8 +36,8 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
@@ -52,6 +52,7 @@ import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.util.ItemUtils;
 
 /**
  * This class has been initially developed by Graham Triggs, we have moved to a
@@ -118,26 +119,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
         BufferedWriter writer = new BufferedWriter( new OutputStreamWriter(out, "UTF-8") );
 		String aliasForm;
 		try {			
-	        String formFileName = I18nUtil.getInputFormsFileName(I18nUtil.getDefaultLocale());
-	        String col_handle = "";
-
-	        Collection collection = item.getOwningCollection();
-
-	        if (collection == null)
-	        {
-	            // set an empty handle so to get the default input set
-	            col_handle = "";
-	        }
-	        else
-	        {
-	            col_handle = collection.getHandle();
-	        }
-
-	        // Read the input form file for the specific collection
-	        DCInputsReader inputsReader = new DCInputsReader(formFileName);
-
-	        DCInputSet inputSet = inputsReader.getInputs(col_handle);
-	        aliasForm = inputSet.getFormName();
+	        aliasForm = ItemUtils.getSubmissionFormName(item);
 		} catch (Exception e) {
 			throw new CrosswalkException(e.getMessage(), e);
 		}
@@ -353,7 +335,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
         File templateFile = new File(parent, templateFileName);
         BufferedReader templateReader = new BufferedReader(new FileReader(templateFile));
 
-		Pattern mdRepl = Pattern.compile("@[a-zA-Z0-9.*]+(\\(.*\\))?@");
+		Pattern mdRepl = Pattern.compile("@[a-z0-9.*]+(\\(.*\\))?@");
         String templateLine = templateReader.readLine();
         while (templateLine != null)
         {
@@ -407,6 +389,7 @@ public class ReferCrosswalk extends SelfNamedPlugin
 
 	@Override
 	public boolean assignUniqueNumber() {
+		// TODO Auto-generated method stub
 		return false;
 	}
 }

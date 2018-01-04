@@ -32,165 +32,133 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
 
-public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy
-{
+public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy {
 
-    private static final Logger log = Logger
-            .getLogger(ValuePairsDisplayStrategy.class);
+	private static final Logger log = Logger.getLogger(ValuePairsDisplayStrategy.class);
 
-    private DCInputsReader dcInputsReader;
+	private DCInputsReader dcInputsReader;
 
-    private void init() throws DCInputsReaderException
-    {
-        if (dcInputsReader == null)
-        {
-            dcInputsReader = new DCInputsReader();
-        }
-    }
+	private void init() throws DCInputsReaderException {
+		if (dcInputsReader == null) {
+			dcInputsReader = new DCInputsReader();
+		}
+	}
 
-    @Override
-    public String getMetadataDisplay(HttpServletRequest hrq, int limit,
-            boolean viewFull, String browseType, UUID colIdx, UUID itemid,
-            String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks,
-            boolean emph) throws JspException
-    {
-        try
-        {
-            init();
-        }
-        catch (DCInputsReaderException e)
-        {
-            log.error(e.getMessage(), e);
-        }
+	@Override
+	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
+			UUID colIdx, UUID itemid, String field, List<IMetadataValue> metadataArray, boolean disableCrossLinks,
+			boolean emph) throws JspException {
+		try {
+			init();
+		} catch (DCInputsReaderException e) {
+			log.error(e.getMessage(), e);
+		}
 
-        String result = "";
-        try
-        {
-            Context obtainContext = UIUtil.obtainContext(hrq);
-            Collection collection = ContentServiceFactory.getInstance().getCollectionService().find(obtainContext, colIdx);
-            if (collection != null)
-            {
-                result = getResult(field, metadataArray, result,
-                        obtainContext, collection);
-            }
-            else
-            {
-            	Item item = ContentServiceFactory.getInstance().getItemService().find(obtainContext, itemid);
-                collection = (Collection)item.getParentObject();
-                result = getResult(field, metadataArray, result,
-                        obtainContext, collection);
-            }
+		String result = "";
+		try {
+			Context obtainContext = UIUtil.obtainContext(hrq);
+			Collection collection = ContentServiceFactory.getInstance().getCollectionService().find(obtainContext,
+					colIdx);
+			if (collection != null) {
+				result = getResult(field, metadataArray, result, obtainContext, collection);
+			} else {
+				Item item = ContentServiceFactory.getInstance().getItemService().find(obtainContext, itemid);
+				collection = (Collection) item.getParentObject();
+				result = getResult(field, metadataArray, result, obtainContext, collection);
+			}
 
-            // workaround, a sort of fuzzy match search in all valuepairs (possible wrong result due to the same stored value in many valuepairs)
-            if (StringUtils.isBlank(result))
-            {
-                Map<String, List<String>> mappedValuePairs = dcInputsReader
-                        .getMappedValuePairs();
-                List<String> pairsnames = new ArrayList<String>();
-                if (mappedValuePairs != null)
-                {
-                    for (String key : mappedValuePairs.keySet())
-                    {
-                        List<String> values = mappedValuePairs.get(key);
-                        for (String vv : values)
-                        {
-                            if (StringUtils.equals(field, vv))
-                            {
-                                pairsnames.add(key);
-                            }
-                        }
-                    }
-                }
+			// workaround, a sort of fuzzy match search in all valuepairs
+			// (possible wrong result due to the same stored value in many
+			// valuepairs)
+			if (StringUtils.isBlank(result)) {
+				Map<String, List<String>> mappedValuePairs = dcInputsReader.getMappedValuePairs();
+				List<String> pairsnames = new ArrayList<String>();
+				if (mappedValuePairs != null) {
+					for (String key : mappedValuePairs.keySet()) {
+						List<String> values = mappedValuePairs.get(key);
+						for (String vv : values) {
+							if (StringUtils.equals(field, vv)) {
+								pairsnames.add(key);
+							}
+						}
+					}
+				}
 
-                for (String pairsname : pairsnames)
-                {
-                    ChoiceAuthority choice = (ChoiceAuthority) CoreServiceFactory.getInstance().getPluginService()
-                            .getNamedPlugin(ChoiceAuthority.class, pairsname);
+				for (String pairsname : pairsnames) {
+					ChoiceAuthority choice = (ChoiceAuthority) CoreServiceFactory.getInstance().getPluginService()
+							.getNamedPlugin(ChoiceAuthority.class, pairsname);
 
-                    int ii = 0;
-                    for (IMetadataValue r : metadataArray)
-                    {
-                        if (ii > 0)
-                        {
-                            result += " ";
-                        }
-                        Choices choices = choice.getBestMatch(field, r.getValue(),
-                                collection,
-                                obtainContext.getCurrentLocale().toString());
-                        if (choices != null)
-                        {
-                            for (Choice ch : choices.values)
-                            {
-                                result += ch.label;
-                            }
-                        }
-                    }
-                }
-            }
+					int ii = 0;
+					for (IMetadataValue r : metadataArray) {
+						if (ii > 0) {
+							result += " ";
+						}
+						Choices choices = choice.getBestMatch(field, r.getValue(), collection,
+								obtainContext.getCurrentLocale().toString());
+						if (choices != null) {
+							for (Choice ch : choices.values) {
+								result += ch.label;
+							}
+						}
+					}
+				}
+			}
 
-        }
-        catch (SQLException | DCInputsReaderException e)
-        {
-            throw new JspException(e);
-        }
-        return result;
-    }
+		} catch (SQLException | DCInputsReaderException e) {
+			throw new JspException(e);
+		}
+		return result;
+	}
 
-    private String getResult(String field,
-            List<IMetadataValue> metadataArray, String result, Context obtainContext,
-            Collection collection) throws DCInputsReaderException
-    {
-        DCInputSet dcInputSet = dcInputsReader
-                .getInputs(collection.getHandle());
-        for (int i = 0; i < dcInputSet.getNumberPages(); i++)
-        {
-            DCInput[] dcInput = dcInputSet.getPageRows(i, false, false);
-            for (DCInput myInput : dcInput)
-            {
-                String key = myInput.getPairsType();
-                if (StringUtils.isNotBlank(key))
-                {
-                    String inputField = myInput.getSchema() + "."
-                            + myInput.getElement();
-                    if (StringUtils.isNotBlank(myInput.getQualifier()))
-                    {
-                        inputField += "." + myInput.getQualifier();
-                    }
+	private String getResult(String field, List<IMetadataValue> metadataArray, String result, Context obtainContext,
+			Collection collection) throws DCInputsReaderException {
 
-                    if (inputField.equals(field))
-                    {
-                        ChoiceAuthority choice = (ChoiceAuthority) CoreServiceFactory.getInstance().getPluginService()
-                                .getNamedPlugin(ChoiceAuthority.class, key);
+		List<DCInputSet> dcInputSets = dcInputsReader
+				.getInputsByCollectionHandle(collection.getHandle());
 
-                        int ii = 0;
-                        for (IMetadataValue r : metadataArray)
-                        {
-                            if (ii > 0)
-                            {
-                                result += " ";
-                            }
-                            Choices choices = choice.getBestMatch(field,
-                                    r.getValue(), collection, obtainContext
-                                            .getCurrentLocale().toString());
-                            if (choices != null)
-                            {
-                                int iii = 0;
-                                for (Choice ch : choices.values)
-                                {
-                                    result += ch.label;
-                                    if (iii > 0)
-                                    {
-                                        result += " ";
-                                    }
-                                    iii++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return result;
-    }
+		for (DCInputSet dcInputSet : dcInputSets) {
+			{
+				DCInput[][] dcInputs = dcInputSet.getFields();
+
+				for (DCInput[] dcInput : dcInputs) {
+
+					for (DCInput myInput : dcInput) {
+						String key = myInput.getPairsType();
+						if (StringUtils.isNotBlank(key)) {
+							String inputField = myInput.getSchema() + "." + myInput.getElement();
+							if (StringUtils.isNotBlank(myInput.getQualifier())) {
+								inputField += "." + myInput.getQualifier();
+							}
+
+							if (inputField.equals(field)) {
+								ChoiceAuthority choice = (ChoiceAuthority) CoreServiceFactory.getInstance()
+										.getPluginService().getNamedPlugin(ChoiceAuthority.class, key);
+
+								int ii = 0;
+								for (IMetadataValue r : metadataArray) {
+									if (ii > 0) {
+										result += " ";
+									}
+									Choices choices = choice.getBestMatch(field, r.getValue(), collection,
+											obtainContext.getCurrentLocale().toString());
+									if (choices != null) {
+										int iii = 0;
+										for (Choice ch : choices.values) {
+											result += ch.label;
+											if (iii > 0) {
+												result += " ";
+											}
+											iii++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
 
 }

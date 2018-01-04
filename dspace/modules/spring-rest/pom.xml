@@ -13,7 +13,6 @@ just adding new jar in the classloader</description>
     <parent>
         <artifactId>modules</artifactId>
         <groupId>org.dspace</groupId>
-        <artifactId>modules</artifactId>
         <version>CRIS-7.0.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>

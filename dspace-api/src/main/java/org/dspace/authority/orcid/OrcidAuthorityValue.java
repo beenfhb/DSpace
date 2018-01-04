@@ -169,7 +169,7 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 
 			if (name.getCreditName() != null) {
 				if (StringUtils.isNotBlank(name.getCreditName().getValue())) {
-					if (!getNameVariants().contains(name.getCreditName())) {
+					if (!getNameVariants().contains(name.getCreditName().getValue())) {
 						addNameVariant(name.getCreditName().getValue());
 						update = true;
 					}

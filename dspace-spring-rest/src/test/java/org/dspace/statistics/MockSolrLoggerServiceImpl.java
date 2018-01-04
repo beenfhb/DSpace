@@ -27,7 +27,6 @@ public class MockSolrLoggerServiceImpl extends SolrLoggerServiceImpl implements 
     public void afterPropertiesSet() throws Exception {
         mockSolrServer = new MockSolrServer("statistics");
         solr = mockSolrServer.getSolrServer();
-        locationService = new MockLookupService();
         useProxies = configurationService.getBooleanProperty("useProxies");
     }
 

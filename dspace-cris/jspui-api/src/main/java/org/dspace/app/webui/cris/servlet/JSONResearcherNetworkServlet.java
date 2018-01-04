@@ -73,7 +73,7 @@ public class JSONResearcherNetworkServlet extends JSONRequest
         }
         catch (SQLException e1)
         {
-            new AuthorizeException(e1.getMessage());
+            throw new AuthorizeException(e1.getMessage());
         }
 
         String rpName = rp.getFullName();

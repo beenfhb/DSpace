@@ -398,6 +398,41 @@ public class DCInputsReader
                 Map<String, String> field = new HashMap<String, String>();
                 processField(formName, npg, field);
                 fields.add(field);
+                String key = field.get(PAIR_TYPE_NAME);
+                if (StringUtils
+                        .isNotBlank(key))
+                {
+                    String schema = field.get("dc-schema");
+                    String element = field.get("dc-element");
+                    String qualifier = field
+                            .get("dc-qualifier");
+                    String metadataField = schema + "."
+                            + element;
+                    if (StringUtils.isNotBlank(qualifier))
+                    {
+                        metadataField += "." + qualifier;
+                    }
+
+                    if (mappedValuePairs.containsKey(
+                            key))
+                    {
+                        if(!mappedValuePairs
+                                .get(key).contains(metadataField)) {
+                            mappedValuePairs
+                            .get(key).add(metadataField);
+                        }
+                            
+                    }
+                    else
+                    {
+                        List<String> newval = new ArrayList<String>();
+                        newval.add(metadataField);
+                        mappedValuePairs.put(
+                                key,
+                                newval);
+                    }
+                }
+                
                 // we omit the duplicate validation, allowing multiple
                 // fields definition for
                 // the same metadata and different visibility/type-bind
@@ -774,5 +809,10 @@ public class DCInputsReader
 			}
 		}
 		throw new DCInputsReaderException("No field configuration found!");
+	}
+
+
+	public Map<String, List<String>> getMappedValuePairs() {
+		return mappedValuePairs;
 	}
 }

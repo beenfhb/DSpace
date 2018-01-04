@@ -200,51 +200,42 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                         language = configurationService.getProperty("default.locale");
                     }
                     init(language);
-                    DCInputSet dcInputSet = dcInputsReader.get(language)
-                            .getInputs(item.getOwningCollection().getHandle());
+                    List<DCInputSet> dcInputSets = dcInputsReader.get(language)
+                            .getInputsByCollectionHandle(item.getOwningCollection().getHandle());
 
-                    for (int i = 0; i < dcInputSet.getNumberPages(); i++)
-                    {
-                        DCInput[] dcInput = dcInputSet.getPageRows(i, false,
-                                false);
-                        for (DCInput myInput : dcInput)
-                        {
-                            if (StringUtils.isNotBlank(myInput.getPairsType()))
-                            {
-                                for (IMetadataValue metadatum : item.getMetadata(
-                                        myInput.getSchema(),
-                                        myInput.getElement(),
-                                        myInput.getQualifier(), Item.ANY))
-                                {
-                                    String stored_value = metadatum.getValue();
-                                    String displayVal = myInput
-                                            .getDisplayString(null,
-                                                    stored_value);
-                                    if(StringUtils.isBlank(displayVal)) {
-                                        displayVal = stored_value;
-                                    }
-                                    document.removeField(metadatum.getMetadataField().toString('.')
-                                            + "_authority");
-                                    document.addField(
-                                    		metadatum.getMetadataField().toString('.') + "_authority",
-                                            stored_value);
-                                    document.removeField(metadatum.getMetadataField().toString('.'));
-                                    document.addField(metadatum.getMetadataField().toString('.'),
-                                            displayVal);
-                                    document.addField("valuepairsname_"+myInput.getPairsType(),
-                                            displayVal);
-                                    String unqualifiedField = myInput
-                                            .getSchema() + "."
-                                            + myInput.getElement() + "."
-                                            + Item.ANY;
-                                    buildSearchFilter(document, searchFilters,
-                                            stored_value.toString(),
-                                            metadatum.getMetadataField().toString('.'),
-                                            unqualifiedField, displayVal);
-                                }
-                            }
-                        }
-                    }
+					for (DCInputSet dcInputSet : dcInputSets) {
+						{
+							DCInput[][] dcInputs = dcInputSet.getFields();
+
+							for (DCInput[] dcInput : dcInputs) {
+
+								for (DCInput myInput : dcInput) {
+									if (StringUtils.isNotBlank(myInput.getPairsType())) {
+										for (IMetadataValue metadatum : item.getMetadata(myInput.getSchema(),
+												myInput.getElement(), myInput.getQualifier(), Item.ANY)) {
+											String stored_value = metadatum.getValue();
+											String displayVal = myInput.getDisplayString(null, stored_value);
+											if (StringUtils.isBlank(displayVal)) {
+												displayVal = stored_value;
+											}
+											document.removeField(
+													metadatum.getMetadataField().toString('.') + "_authority");
+											document.addField(metadatum.getMetadataField().toString('.') + "_authority",
+													stored_value);
+											document.removeField(metadatum.getMetadataField().toString('.'));
+											document.addField(metadatum.getMetadataField().toString('.'), displayVal);
+											document.addField("valuepairsname_" + myInput.getPairsType(), displayVal);
+											String unqualifiedField = myInput.getSchema() + "." + myInput.getElement()
+													+ "." + Item.ANY;
+											buildSearchFilter(document, searchFilters, stored_value.toString(),
+													metadatum.getMetadataField().toString('.'), unqualifiedField,
+													displayVal);
+										}
+									}
+								}
+							}
+						}
+					}
                 }
                 catch (Exception e)
                 {
