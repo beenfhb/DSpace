@@ -52,7 +52,8 @@ public class OrcidQueue extends IdentifiableObject {
     
     private String mode;
     
-    @Type(type="org.hibernate.type.TextType")
+    @Lob
+    @Type(type="org.hibernate.type.MaterializedClobType")
     private String fastlookupObjectName;
     
     private String fastlookupUuid;

@@ -65,7 +65,8 @@ public class OrcidHistory extends IdentifiableObject {
     @AttributeOverride(name = "timestamp", column = @Column(name = "lastSuccess"))
     private SingleTimeStampInfo timestampSuccessAttempt;
         
-    @Type(type="org.hibernate.type.TextType")
+    @Lob
+    @Type(type="org.hibernate.type.MaterializedClobType")
     private String responseMessage;
     
     private String putCode;

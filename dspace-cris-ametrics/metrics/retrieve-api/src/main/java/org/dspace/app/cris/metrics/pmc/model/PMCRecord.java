@@ -69,15 +69,18 @@ public class PMCRecord implements Identifiable
     @Column(name = "element")
     private List<String> handles;
 
-    @Type(type="org.hibernate.type.TextType")
+    @Lob
+    @Type(type="org.hibernate.type.MaterializedClobType")
     @Column(name = "title")
     private String title;
 
-    @Type(type="org.hibernate.type.TextType")
+    @Lob
+    @Type(type="org.hibernate.type.MaterializedClobType")
     @Column(name = "authors")
     private String authors;
 
-    @Type(type="org.hibernate.type.TextType")
+    @Lob
+    @Type(type="org.hibernate.type.MaterializedClobType")
     @Column(name = "publicationnote")
     private String publicationNote;
 

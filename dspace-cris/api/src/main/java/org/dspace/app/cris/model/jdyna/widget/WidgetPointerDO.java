@@ -7,25 +7,26 @@
  */
 package org.dspace.app.cris.model.jdyna.widget;
 
-import it.cilea.osd.jdyna.editor.ModelPropertyEditor;
-import it.cilea.osd.jdyna.service.IPersistenceDynaService;
-import it.cilea.osd.jdyna.widget.WidgetPointer;
-
 import java.beans.PropertyEditor;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import org.dspace.app.cris.model.jdyna.editor.PointerPropertyEditor;
 import org.dspace.app.cris.model.jdyna.value.DOPointer;
 import org.hibernate.annotations.Type;
 
+import it.cilea.osd.jdyna.service.IPersistenceDynaService;
+import it.cilea.osd.jdyna.widget.WidgetPointer;
+
 @Entity
 @Table(name = "cris_do_wpointer")
 public class WidgetPointerDO extends WidgetPointer<DOPointer>
 {
 
-	@Type(type="org.hibernate.type.TextType")
+    @Lob
+    @Type(type="org.hibernate.type.MaterializedClobType")
 	private String filterExtended;
 
     public void setFilterExtended(String filterExtended)
