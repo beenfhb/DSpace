@@ -56,7 +56,7 @@ public class CrisMetrics implements Identifiable, HasTimeStampInfo
 
     private double metricCount;
 
-    @Type(type = "org.hibernate.type.StringClobType")
+    @Type(type = "org.hibernate.type.TextType")
     private String remark;
 
     @Transient

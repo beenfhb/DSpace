@@ -25,7 +25,7 @@ import org.hibernate.annotations.Type;
 public class WidgetPointerDO extends WidgetPointer<DOPointer>
 {
 
-	@Type(type="org.hibernate.type.StringClobType")
+	@Type(type="org.hibernate.type.TextType")
 	private String filterExtended;
 
     public void setFilterExtended(String filterExtended)
