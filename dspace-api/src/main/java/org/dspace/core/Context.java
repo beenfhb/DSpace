@@ -186,18 +186,8 @@ public class Context
                     .getServiceByName(null, DBConnection.class);
             if(dbConnection == null)
             {
-                //It appears there is a problem with the database, run the Schema validator
-                DatabaseSchemaValidator schemaValidator = new DSpace().getSingletonService(DatabaseSchemaValidator.class);
-
-                String validationError = schemaValidator == null ? "null" : schemaValidator.getDatabaseSchemaValidationError();
-                String message = "The schema validator returned: " +
-                        validationError;
-
                 log.fatal("Cannot obtain the bean which provides a database connection. " +
-                        "Check previous entries in the dspace.log to find why the db failed to initialize. " + message);
-
-                //Fail fast
-                throw new DatabaseSchemaValidationException(message);
+                        "Check previous entries in the dspace.log to find why the db failed to initialize.");
             }
         }
 
