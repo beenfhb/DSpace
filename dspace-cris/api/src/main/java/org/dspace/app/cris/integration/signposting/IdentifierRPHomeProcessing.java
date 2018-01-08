@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.plugin.signposting.impl;
+package org.dspace.app.cris.integration.signposting;
 
 import java.beans.PropertyEditor;
 import java.text.MessageFormat;

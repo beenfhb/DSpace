@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.plugin.signposting.impl;
+package org.dspace.app.cris.integration.signposting;
 
 import java.beans.PropertyEditor;
 import java.text.MessageFormat;
@@ -22,7 +22,6 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.Context;

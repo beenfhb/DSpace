@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.webui.util.UIUtil;
+import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
@@ -53,7 +53,7 @@ public class IdentifierItemHome implements ItemSignPostingProcessor
                 {
                     if (StringUtils.isNotBlank(metadata))
                     {
-                        String value = UIUtil.encodeBitstreamName(metadata,
+                        String value = Util.encodeBitstreamName(metadata,
                                 Constants.DEFAULT_ENCODING);
                         if (StringUtils.isNotBlank(pattern))
                         {

@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.webui.util.UIUtil;
+import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -54,7 +54,7 @@ public class PublicationBundaryItemHome implements ItemSignPostingProcessor
                         value = value + "/retrieve/" + bit.getID() + "/";
                     }
             
-                    value = value + UIUtil.encodeBitstreamName(bit.getName(), Constants.DEFAULT_ENCODING);                    
+                    value = value + Util.encodeBitstreamName(bit.getName(), Constants.DEFAULT_ENCODING);                    
                     response.addHeader("Link", value + "; rel=\"" + getRelation() +"\"" + "; type=\"" + mime + "\"");    
                 }                
             }

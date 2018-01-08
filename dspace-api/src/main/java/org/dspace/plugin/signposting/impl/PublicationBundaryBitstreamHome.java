@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.webui.util.UIUtil;
+import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Bitstream;
@@ -48,7 +48,7 @@ public class PublicationBundaryBitstreamHome
                 String value = ConfigurationManager.getProperty("dspace.url");
                 String handle = dso.getHandle();
                 value = value + "/handle/";
-                value = value + UIUtil.encodeBitstreamName(handle,
+                value = value + Util.encodeBitstreamName(handle,
                         Constants.DEFAULT_ENCODING);
                 response.addHeader("Link", value + "; rel=\"" + getRelation()
                         + "\"");

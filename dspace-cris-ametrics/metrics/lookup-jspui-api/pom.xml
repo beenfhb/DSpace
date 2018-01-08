@@ -26,13 +26,6 @@
     
 		<dependency>
 			<groupId>org.dspace</groupId>
-			<artifactId>dspace-jspui</artifactId>
-			<type>jar</type>
-			<classifier>classes</classifier>			
-		</dependency>
-
-		<dependency>
-			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-api</artifactId>
 		</dependency>
 		
