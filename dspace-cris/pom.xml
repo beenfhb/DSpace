@@ -16,8 +16,6 @@
 
 	<modules>
 		<module>api</module>
-		<module>jspui-api</module>
-		<module>jspui-webapp</module>
 		<module>webservices</module>
 	</modules>
 

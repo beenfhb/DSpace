@@ -295,10 +295,6 @@
              <groupId>org.dspace</groupId>
 			 <artifactId>dspace-cris-api</artifactId>
          </dependency>
-         <dependency>
-            <groupId>org.dspace</groupId>
-			 <artifactId>dspace-cris-jspui-api</artifactId>
-         </dependency>
          <!-- This dependency ensures DSpace OAI JAR is added to [dspace]/lib/,
              so that the 'dspace oai' launcher.xml command works.  -->     
          <dependency>

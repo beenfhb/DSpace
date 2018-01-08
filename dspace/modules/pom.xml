@@ -40,17 +40,6 @@
     -->
     <profiles>
         <profile>
-            <id>dspace-jspui</id>
-            <activation>
-                <file>
-                    <exists>jspui/pom.xml</exists>
-                </file>
-            </activation>
-            <modules>
-                <module>jspui</module>
-            </modules>
-        </profile>
-        <profile>
             <id>dspace-rdf</id>
             <activation>
                 <file>

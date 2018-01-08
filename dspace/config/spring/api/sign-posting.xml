@@ -11,28 +11,28 @@
 
 	<context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-	<bean id="publicationBoundaryItemSignPosting" class="org.dspace.app.webui.components.signposting.PublicationBundaryItemHome"/>
-	<bean id="publicationBoundaryBitstreamSignPosting" class="org.dspace.app.webui.components.signposting.PublicationBundaryBitstreamHome"/>
+	<bean id="publicationBoundaryItemSignPosting" class="org.dspace.plugin.signposting.impl.PublicationBundaryItemHome"/>
+	<bean id="publicationBoundaryBitstreamSignPosting" class="org.dspace.plugin.signposting.impl.PublicationBundaryBitstreamHome"/>
 	
-	<bean id="identifierBitstreamSignPosting" class="org.dspace.app.webui.components.signposting.IdentifierBitstreamHome">
+	<bean id="identifierBitstreamSignPosting" class="org.dspace.plugin.signposting.impl.IdentifierBitstreamHome">
 		<property name="metadataField" value="dc.identifier.doi" />
 		<property name="pattern" value="https://doi.org/{0}" />
 	</bean>
-	<bean id="identifierItemSignPosting" class="org.dspace.app.webui.components.signposting.IdentifierItemHome">
+	<bean id="identifierItemSignPosting" class="org.dspace.plugin.signposting.impl.IdentifierItemHome">
 		<property name="metadataField" value="dc.identifier.doi" />
 		<property name="pattern" value="https://doi.org/{0}" />
 	</bean>		
 
 <!-- 	
 	Example: use this configuration if metadata is owned
-	<bean id="authorSignPosting" class="org.dspace.app.webui.signposting.AuthorItemHomeProcessing">
+	<bean id="authorSignPosting" class="org.dspace.plugin.signposting.impl.AuthorItemHomeProcessing">
 		<property name="metadataField" value="dc.contributor.author" />
 		<property name="relationHeader" value="author" />
 		<property name="pattern" value="http://orcid.org/{0}" />
 	</bean>
 -->
 	
-	<bean id="authorItemSignPosting" class="org.dspace.app.webui.signposting.AuthorItemHomeProcessing">
+	<bean id="authorItemSignPosting" class="org.dspace.plugin.signposting.impl.AuthorItemHomeProcessing">
 		<property name="applicationService" ref="applicationService"/>
 		<property name="metadataField" value="dc.contributor.author" />
 		<property name="relationHeader" value="author" />
@@ -40,7 +40,7 @@
 		<property name="pattern" value="http://orcid.org/{0}" />
 	</bean>
 
-	<bean id="identifierRPSignPosting" class="org.dspace.app.webui.signposting.IdentifierRPHomeProcessing">
+	<bean id="identifierRPSignPosting" class="org.dspace.plugin.signposting.impl.IdentifierRPHomeProcessing">
 		<property name="applicationService" ref="applicationService"/>
 		<property name="metadataField" value="orcid" />
 		<property name="relationHeader" value="author" />
