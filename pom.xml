@@ -34,13 +34,13 @@
 		<org.jdyna.version>7.0-SNAPSHOT</org.jdyna.version>		
 		<it.cilea.ccommons.version>7.0-SNAPSHOT</it.cilea.ccommons.version>
 		
-		<ckan.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ckan.addon.modules>
+<!-- 		<ckan.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ckan.addon.modules>
 		<iiif.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</iiif.addon.modules>
 		<commons.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</commons.addon.modules>
 		<annoiiif.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</annoiiif.addon.modules>
 		<ocr.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ocr.addon.modules>
 		<docviewer.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</docviewer.addon.modules>		
-		<av.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</av.addon.modules>
+		<av.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</av.addon.modules> -->
 		
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -819,7 +819,7 @@
         </profile>
 
 
-        <profile>
+<!--         <profile>
             <id>addon-ckan</id>
 			<activation>
                 <activeByDefault>true</activeByDefault>
@@ -933,7 +933,7 @@
 		        </dependencies>		                    
             </dependencyManagement>
         </profile>                                
-
+ -->
    </profiles>
 
    <!--
@@ -955,7 +955,7 @@
 			<groupId>org.dspace.modules</groupId>
 			<artifactId>additions</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
+<!-- 			<exclusions>
 				<exclusion>
 					<groupId>it.4science.dspace</groupId>
 					<artifactId>addon-ckan-api</artifactId>
@@ -992,7 +992,7 @@
 					<groupId>it.4science.dspace</groupId>
 					<artifactId>addon-video-jspui</artifactId>
 				</exclusion>
-			</exclusions>
+			</exclusions> -->
 		 </dependency>
          <dependency>
             <groupId>org.dspace</groupId>

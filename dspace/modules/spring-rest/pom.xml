@@ -39,7 +39,7 @@ just adding new jar in the classloader</description>
                 </dependency>
             </dependencies>
         </profile>
-        <profile>
+<!--         <profile>
             <id>addon-ckan</id>
 			<activation>
                 <activeByDefault>true</activeByDefault>
@@ -157,7 +157,7 @@ just adding new jar in the classloader</description>
 				</dependency>
 			</dependencies>
 		</profile>		                
-        
+ -->        
     </profiles>
     
     <build>
