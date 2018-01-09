@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.dspace.content.MetadataSchema;
 import org.dspace.core.Utils;
 import org.slf4j.Logger;
@@ -91,23 +91,12 @@ public class DCInput
     
     /** allowed document types */
     private List<String> typeBind = null;
-    
-    /** parent metadata */
-    private String parent = null;
 
-    private String validation;
-    
     /** 
      * The scope of the input sets, this restricts hidden metadata fields from 
      * view during workflow processing. 
      */
     public static final String WORKFLOW_SCOPE = "workflow";
-    
-    public static final String WORKFLOW_STEP1_SCOPE = "workflow-step1";
-    
-    public static final String WORKFLOW_STEP2_SCOPE = "workflow-step2";
-    
-    public static final String WORKFLOW_STEP3_SCOPE = "workflow-step3";
 
     /** 
      * The scope of the input sets, this restricts hidden metadata fields from 
@@ -183,12 +172,6 @@ public class DCInput
         	}
         }
         
-        parent = fieldMap.get("parent");
-        validation = fieldMap.get("validation");
-        if (StringUtils.isBlank(validation) && "number".equals(inputType))
-        {
-            validation = "\\d+";
-        }
     }
 
     /**
@@ -204,13 +187,7 @@ public class DCInput
      */
     public boolean isVisible(String scope)
     {
-    	boolean visible = false;
-    	if(StringUtils.contains(scope,"workflow")){
-    		visible = StringUtils.equals(visibility,scope) || StringUtils.equals(visibility,WORKFLOW_SCOPE);
-    	}else{
-    		visible = StringUtils.equals(visibility,scope);
-    	}
-        return (visibility == null ||visible);
+        return (visibility == null || visibility.equals(scope));
     }
     
     /**
@@ -414,15 +391,7 @@ public class DCInput
         this.vocabulary = vocabulary;
     }
 
-    public String getParent() {
-		return parent;
-	}
-
-	public void setParent(String parent) {
-		this.parent = parent;
-	}
-
-	/**
+    /**
      * Gets the display string that corresponds to the passed storage string in
      * a particular display-storage pair set.
      * 

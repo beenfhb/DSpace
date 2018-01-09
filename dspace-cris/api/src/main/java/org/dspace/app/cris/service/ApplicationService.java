@@ -125,6 +125,8 @@ public class ApplicationService extends ExtendedTabService
                 cacheManager = CacheManager.create();
                 if (cacheManager != null)
                 {
+                	
+                	cacheManager.setName("DSpaceCRISCache");                	
 					int maxInMemoryObjects = 100;
 //					ConfigurationManager.getIntProperty("cris",
 //							"applicationServiceCache.max-in-memory-objects", 100);

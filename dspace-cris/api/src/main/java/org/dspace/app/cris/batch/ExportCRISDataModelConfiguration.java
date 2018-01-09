@@ -24,7 +24,7 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ImportExportUtils;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
-import org.springframework.orm.hibernate4.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;

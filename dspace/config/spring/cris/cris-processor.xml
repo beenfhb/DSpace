@@ -142,7 +142,7 @@
 		<property name="mapFormatter">
 			<map>
 				<entry key="default">
-					<ref local="defaultNumberFormatter" />
+					<ref bean="defaultNumberFormatter" />
 				</entry>
 			</map>
 		</property>

@@ -8,7 +8,7 @@
     http://www.dspace.org/license/
 
 -->
-<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd">
+<ehcache name="DSpaceServiceCache" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd">
 
     <!-- Sets the path to the directory where cache .data files are created.
 
@@ -20,7 +20,7 @@
          user.dir - User's current working directory
          java.io.tmpdir - Default temp file path -->
 
-    <diskStore path="java.io.tmpdir"/>
+    <diskStore path="java.io.tmpdir/DSpaceServiceCache"/>
 
 
     <!--

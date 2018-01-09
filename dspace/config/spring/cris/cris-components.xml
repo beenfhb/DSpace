@@ -35,9 +35,9 @@
 		
 	<!-- Publication component for RP -->
 	<bean id="publicationlist"
-		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.ItemsConfigurerComponent">
 		<property name="relationConfiguration" ref="relationRPVSItemConfiguration" />
-		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>				
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>				
 		<property name="target" value="org.dspace.app.cris.model.ResearcherPage" />
 		<property name="facets" ref="facetsItemConfiguration" />
 		<property name="types">
@@ -54,7 +54,7 @@
 	</bean>
 
 	<bean id="selectedComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selected" />
 		<property name="facetQuery"><value>relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -63,7 +63,7 @@
 	</bean>
 	
 	<bean id="journalComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="journal" />
 		<property name="facetQuery"><value>dc.type:Article -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -72,7 +72,7 @@
 	</bean>
 	
 	<bean id="conferenceComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="conference" />
 		<property name="facetQuery"><value>resourcetype_authority:conferencematerials -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -81,7 +81,7 @@
 	</bean>
 	
 	<bean id="bookComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="book" />
 		<property name="facetQuery"><value>dc.type:Book -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -90,7 +90,7 @@
 	</bean>
 	
 	<bean id="datasetComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="dataset" />
 		<property name="facetQuery"><value>dc.type:Dataset -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -99,7 +99,7 @@
 	</bean>
 	
 	<bean id="patentComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="patent" />		
 		<property name="facetQuery"><value>dc.type:Patent -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -108,7 +108,7 @@
 	</bean>
 	
 	<bean id="otherComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="other" />
 		<property name="facetQuery"><value>-dc.type:Article -dc.type:Book -(dc.type:Conference_Paper OR dc.type:Presentation) -dc.type:Patent -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -118,7 +118,7 @@
 	
 	<!-- Project list for RP entity -->
 	<bean id="projectlist"
-		class="org.dspace.app.webui.cris.components.CRISPJConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.CRISPJConfigurerComponent">
 		<property name="relationConfiguration" ref="relationRPVSPJConfiguration" />		
 		<property name="target" value="org.dspace.app.cris.model.ResearcherPage" />
 		<property name="facets" ref="facetsPJConfiguration" />
@@ -132,7 +132,7 @@
 	</bean>
 	
 	<bean id="selectedProjectComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selectedproject" />
 		<property name="facetQuery"><value>relationpreferences.crisproject.projects.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -141,7 +141,7 @@
 	</bean>
 	
 	<bean id="investigatoredComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="investigatored" />
 		<property name="facetQuery"><value>crisproject.principalinvestigator_authority:{0} -relationpreferences.crisproject.projects.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -150,7 +150,7 @@
 	</bean>
 	
 	<bean id="coinvestigatoredComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="coinvestigatored" />
 		<property name="facetQuery"><value>crisproject.coinvestigators_authority:{0} -relationpreferences.crisproject.projects.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -174,9 +174,9 @@
 	
 	<!-- Publication list for OU entity -->
 	<bean id="publicationlistforou"
-		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">		
+		class="org.dspace.app.cris.integration.components.ItemsConfigurerComponent">		
 		<property name="relationConfiguration" ref="relationOUVSItemConfiguration" />
-		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>
 		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" />
 		<property name="types">
 			<map>
@@ -192,7 +192,7 @@
 	
 	
 	<bean id="selectedPublicationForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selected" />
 		<property name="facetQuery"><value>relationpreferences.crisou.publications.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -202,7 +202,7 @@
 		
 	
 	<bean id="journalForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="journal" />
 		<property name="facetQuery"><value>dc.type:Article -relationpreferences.crisou.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -211,7 +211,7 @@
 	</bean>
 	
 	<bean id="conferenceForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="conference" />
 		<property name="facetQuery"><value>dc.type:Conference_Paper -relationpreferences.crisou.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -220,7 +220,7 @@
 	</bean>
 	
 	<bean id="bookForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="book" />
 		<property name="facetQuery"><value>dc.type:Book -relationpreferences.crisou.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -229,7 +229,7 @@
 	</bean>
 	
 	<bean id="patentForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="patent" />
 		<property name="facetQuery"><value>dc.type:Patent -relationpreferences.crisou.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -238,7 +238,7 @@
 	</bean>
 	
 	<bean id="otherForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="other" />
 		<property name="facetQuery"><value>-dc.type:Article -(dc.type:Book OR dc.type:Book_Chapter) -(dc.type:Conference_Paper OR dc.type:Presentation) -dc.type:Patent -(dc.type:PG_Thesis OR dc.type:UG_Thesis) -relationpreferences.crisrp.publications.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
@@ -248,9 +248,9 @@
 	
 	<!-- Publication list for OU entity via RP -->
 	<bean id="publicationlistforouviarp"
-		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.ItemsConfigurerComponent">
 		<property name="relationConfiguration" ref="relationOUVSITEMViaRPConfiguration" />		
-		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>
 		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" />
 		<property name="facets" ref="facetsItemConfiguration" />
 		<property name="types">
@@ -262,7 +262,7 @@
 	
 	
 	<bean id="nestedrpPublicationForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="nestedrp" />
 		<property name="facetQuery"><value>*:*</value></property>
 		<property name="order"><value>asc</value></property>
@@ -272,7 +272,7 @@
 	
 	<!-- Person list for OU entity -->
 	<bean id="personslist"
-		class="org.dspace.app.webui.cris.components.CRISRPConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.CRISRPConfigurerComponent">
 		<property name="relationConfiguration" ref="relationOUVSRPConfiguration" />		
 		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" />
 		<property name="facets" ref="facetsRPforComponentConfiguration" />
@@ -285,7 +285,7 @@
 	
 	
 	<bean id="personsForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="persons" />			
 		<property name="facetQuery"><value>*:*</value></property>
 		<property name="order"><value>asc</value></property>
@@ -296,7 +296,7 @@
 		
 	<!-- Project list for OU entity -->
 	<bean id="projectlistforou"
-		class="org.dspace.app.webui.cris.components.CRISOUConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.CRISOUConfigurerComponent">
 		<property name="relationConfiguration" ref="relationOUVSPJConfiguration" />		
 		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" /> 
 		<property name="types">
@@ -308,7 +308,7 @@
 	</bean>
 	
 	<bean id="selectedProjectForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selectedproject" />
 		<property name="facetQuery"><value>relationpreferences.crisou.projects.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -317,7 +317,7 @@
 	</bean>
 	
 	<bean id="agenciesComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="agencies" />
 		<property name="facetQuery"><value>-relationpreferences.crisou.projects.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -327,7 +327,7 @@
 		
 	<!-- Principal Project list for OU entity -->	
 	<bean id="projectlistinvestigatorforou"
-		class="org.dspace.app.webui.cris.components.CRISPJConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.CRISPJConfigurerComponent">
 		<property name="relationConfiguration" ref="relationOUVSPJviaInvestigatorConfiguration" />		
 		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" />
 		<property name="types">
@@ -338,7 +338,7 @@
 	</bean>
 	
 	<bean id="deptProjectForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="deptproject" />
 		<property name="facetQuery"><value>*:*</value></property>
 		<property name="order"><value>asc</value></property>
@@ -348,7 +348,7 @@
 	
 	<!-- Workgroup list for OU entity -->
 	<bean id="organizationslist"
-		class="org.dspace.app.webui.cris.components.CRISOUConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.CRISOUConfigurerComponent">
 		<property name="relationConfiguration" ref="relationOUVSOUConfiguration" />
 		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" />
 		<property name="facets" ref="facetsOUConfiguration"/>
@@ -360,7 +360,7 @@
 	</bean>
 		
 	<bean id="organizationsForOUComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="organizations" />
 		<property name="facetQuery"><value>*:*</value></property>
 		<property name="order"><value>asc</value></property>
@@ -380,9 +380,9 @@
 	
 	<!-- Publication list for Project entity -->
 	<bean id="publicationlistforproject"
-		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.ItemsConfigurerComponent">
 		<property name="relationConfiguration" ref="relationPJVSItemConfiguration" />
-		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>		
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>		
 		<property name="target" value="org.dspace.app.cris.model.Project" />
 		<property name="facets" ref="facetsItemConfiguration"/>
 		<property name="types">
@@ -395,7 +395,7 @@
 	
 	
 	<bean id="selectedPublicationForProjectComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selected" />
 		<property name="facetQuery"><value>relationpreferences.crisproject.publications.selected:{1}</value></property>
 		<property name="order"><value>asc</value></property>
@@ -404,7 +404,7 @@
 	</bean>
 	
 	<bean id="allPublicationForProjectComponent"
-		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="all" />
 		<property name="facetQuery"><value>*:*</value></property>
 		<property name="order"><value>asc</value></property>
@@ -423,9 +423,9 @@
 
 	<!-- Publication list for Journal dynamic entity -->
 	<bean id="publicationlistforjournals"
-		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		class="org.dspace.app.cris.integration.components.ItemsConfigurerComponent">
 		<property name="relationConfiguration" ref="relationJOURNALVSItemConfiguration" />
-		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>		
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>		
 		<property name="target" value="org.dspace.app.cris.model.ResearchObject" />
 		<property name="facets" ref="facetsItemConfiguration"/>		
 		<property name="types">
@@ -436,7 +436,7 @@
 		</property>
 	</bean>
 	
-	<bean id="selectedPublicationForJournalComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+	<bean id="selectedPublicationForJournalComponent" class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selected" />
 		<property name="facetQuery">
 			<value>relationpreferences.crisjournals.publications.selected:{1}
@@ -453,7 +453,7 @@
 		</property>
 	</bean>
 
-	<bean id="allPublicationForJournalComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+	<bean id="allPublicationForJournalComponent" class="org.dspace.app.cris.integration.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="all" />
 		<property name="facetQuery">
 			<value>*:*</value>

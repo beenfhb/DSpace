@@ -311,22 +311,22 @@
 				<property name="applicationDao" ref="applicationDao" />
 				<property name="listenerOnPostUpdate">
 					<list>
-						<ref local="CRISIDListener" />
-						<ref local="crisIndexerListener" />
-						<ref local="nestedIndexerListener" />
-						<ref local="ORCIDListener" />								
+						<ref bean="CRISIDListener" />
+						<ref bean="crisIndexerListener" />
+						<ref bean="nestedIndexerListener" />
+						<ref bean="ORCIDListener" />								
 					</list>
 				</property>
 				<property name="listenerOnPostDelete">
 					<list>
-						<ref local="crisIndexerListener" />
-						<ref local="nestedIndexerListener" />		
+						<ref bean="crisIndexerListener" />
+						<ref bean="nestedIndexerListener" />		
 					</list>
 				</property>
 				<property name="listenerOnPreInsert">
 					<list>
-						<ref local="nestedPositionListener" />
-						<ref local="UUIDListener" />		
+						<ref bean="nestedPositionListener" />
+						<ref bean="UUIDListener" />		
 					</list>
 				</property>				
 			</bean>
@@ -1640,31 +1640,31 @@
 		<property name="eventListeners">
 			<map>
 				<entry key="pre-insert">		
-					<ref local="RPListener" />	
+					<ref bean="RPListener" />	
 				</entry>				
 				<entry key="pre-update">					
-					<ref local="RPListener" />											
+					<ref bean="RPListener" />											
 				</entry>				
 				<entry key="post-load">
 					<list>
-						<ref local="RPListener" />
-						<ref local="rpResourcePolicyListener" />
-						<ref local="ORCIDListener" />																							
+						<ref bean="RPListener" />
+						<ref bean="rpResourcePolicyListener" />
+						<ref bean="ORCIDListener" />																							
 					</list>
 				</entry>
 				<entry key="post-insert">
 					<list>
-						<ref local="rpResourcePolicyListener" />
+						<ref bean="rpResourcePolicyListener" />
 					</list>
 				</entry>
 				<entry key="post-update">	
 					<list>
-						<ref local="rpResourcePolicyListener" />						
+						<ref bean="rpResourcePolicyListener" />						
 					</list>				
 				</entry>				
 				<entry key="post-delete">
 					<list>
-						<ref local="rpResourcePolicyListener" />						
+						<ref bean="rpResourcePolicyListener" />						
 					</list>
 				</entry>				
 			</map>
@@ -1672,7 +1672,7 @@
 	</bean>
 
 	<bean id="sessionFactory"
-		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="configLocation" value="classpath:hibernate/hibernate-cris.cfg.xml" />
 		<property name="hibernateProperties" ref="hibernateProperties" />
@@ -1709,7 +1709,7 @@
 		<property name="indexer" ref="org.dspace.discovery.IndexingService" />
 	</bean>
 	
-	<bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 	

@@ -150,7 +150,7 @@
 	</bean>
 
 	<bean id="commonItemBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 		<property name="componentIdentifier" value="item" />
 		<property name="query"><value>search.resourceid:{0}</value></property>					
 	</bean>
@@ -204,7 +204,7 @@
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	<bean id="commonCollectionSubmittedItemBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 		<property name="filters">
 			<list>
 				<value>search.resourcetype:2</value>
@@ -216,7 +216,7 @@
 	</bean>
 	
 	<bean id="commonCollectionBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 
 		<property name="componentIdentifier" value="collection" />
 		<property name="query"><value>location.coll:{0}</value></property>
@@ -288,7 +288,7 @@
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	<bean id="commonCommunitySubmittedItemBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 		<property name="filters">
 			<list>
 				<value>search.resourcetype:2</value>
@@ -299,7 +299,7 @@
 		<property name="query"><value>location.comm:{0}</value></property>
 	</bean>
 	<bean id="commonCommunityBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 
 		<property name="componentIdentifier" value="community" />
 		<property name="query"><value>location.comm:{0}</value></property>
@@ -362,7 +362,7 @@
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	<bean id="commonSiteSubmittedItemBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 		<property name="filters">
 			<list>
 				<value>search.resourcetype:2</value>
@@ -374,7 +374,7 @@
 	</bean>
 		
 	<bean id="commonSiteBean"
-		class="org.dspace.app.cris.integration.statistics.BeanComponent">
+		class="org.dspace.app.cris.integration.components.BeanComponent">
 		<property name="componentIdentifier" value="site" />
 		<property name="subQueries">
 		<map>

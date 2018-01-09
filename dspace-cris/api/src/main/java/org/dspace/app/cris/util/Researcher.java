@@ -26,7 +26,7 @@ import org.dspace.app.cris.statistics.service.StatSubscribeService;
 import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.utils.DSpace;
 import org.hibernate.SessionFactory;
-import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
 public class Researcher implements EPersonCRISIntegration
 {
