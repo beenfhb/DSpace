@@ -50,7 +50,7 @@
         <jena.version>2.13.0</jena.version>
         <slf4j.version>1.7.22</slf4j.version>
         <hibernate.version>5.2.8.Final</hibernate.version>
-        <spring.version>4.3.6.RELEASE</spring.version>
+        <spring.version>5.0.2.RELEASE</spring.version>
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
@@ -1064,6 +1064,12 @@
          </dependency>
          <dependency>
             <groupId>org.dspace</groupId>
+            <artifactId>dspace-spring-rest</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+         </dependency>         
+         <dependency>
+            <groupId>org.dspace</groupId>
             <artifactId>dspace-solr</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
@@ -1566,7 +1572,11 @@
 			 <artifactId>metrics-retrieve</artifactId>
 			 <version>${project.version}</version>
          </dependency>
-	
+		 <dependency>
+             <groupId>org.dspace</groupId>
+			 <artifactId>metrics-lookup</artifactId>
+			 <version>${project.version}</version>
+         </dependency>	
 		<dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>

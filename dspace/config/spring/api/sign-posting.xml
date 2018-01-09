@@ -25,14 +25,14 @@
 
 <!-- 	
 	Example: use this configuration if metadata is owned
-	<bean id="authorSignPosting" class="org.dspace.plugin.signposting.impl.AuthorItemHomeProcessing">
+	<bean id="authorSignPosting" class="org.dspace.app.cris.integration.signposting.AuthorItemHomeProcessing">
 		<property name="metadataField" value="dc.contributor.author" />
 		<property name="relationHeader" value="author" />
 		<property name="pattern" value="http://orcid.org/{0}" />
 	</bean>
 -->
 	
-	<bean id="authorItemSignPosting" class="org.dspace.plugin.signposting.impl.AuthorItemHomeProcessing">
+	<bean id="authorItemSignPosting" class="org.dspace.app.cris.integration.signposting.AuthorItemHomeProcessing">
 		<property name="applicationService" ref="applicationService"/>
 		<property name="metadataField" value="dc.contributor.author" />
 		<property name="relationHeader" value="author" />
@@ -40,7 +40,7 @@
 		<property name="pattern" value="http://orcid.org/{0}" />
 	</bean>
 
-	<bean id="identifierRPSignPosting" class="org.dspace.plugin.signposting.impl.IdentifierRPHomeProcessing">
+	<bean id="identifierRPSignPosting" class="org.dspace.app.cris.integration.signposting.IdentifierRPHomeProcessing">
 		<property name="applicationService" ref="applicationService"/>
 		<property name="metadataField" value="orcid" />
 		<property name="relationHeader" value="author" />

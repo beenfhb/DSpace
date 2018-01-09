@@ -182,8 +182,7 @@ public class Context
         if(dbConnection == null)
         {
             // Obtain a non-auto-committing connection
-            dbConnection = new DSpace().getServiceManager()
-                    .getServiceByName(null, DBConnection.class);
+            dbConnection = new DSpace().getSingletonService(DBConnection.class);
             if(dbConnection == null)
             {
                 log.fatal("Cannot obtain the bean which provides a database connection. " +

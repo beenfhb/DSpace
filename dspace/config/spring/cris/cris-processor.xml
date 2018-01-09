@@ -12,27 +12,7 @@
 
 	<context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-	<bean class="org.dspace.app.webui.components.TopItemManager"
-		name="citedTopItemManager">
-		<property name="sortCriteria" value="scopus" />
-		<property name="searchService" ref="org.dspace.discovery.SearchService" />
-		<property name="maxResults" value="5" />
-	</bean>
-
-	<bean class="org.dspace.app.webui.components.TopItemManager"
-		name="viewedTopItemManager">
-		<property name="sortCriteria" value="view" />
-		<property name="searchService" ref="org.dspace.discovery.SearchService" />
-		<property name="maxResults" value="5" />
-	</bean>
-
-	<bean class="org.dspace.app.webui.components.TopItemManager"
-		name="downloadedTopItemManager">
-		<property name="sortCriteria" value="download" />
-		<property name="searchService" ref="org.dspace.discovery.SearchService" />
-		<property name="maxResults" value="5" />
-	</bean>
-		
+	
 	<bean class="org.dspace.app.webui.cris.metrics.MetricsCrisHomeProcessor"
 		id="rpHomeProcessor">
 		<property name="configurator" ref="org.dspace.app.webui.cris.metrics.MetricsProcessorConfigurator"/>
@@ -61,12 +41,12 @@
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	
-	<bean class="org.dspace.app.webui.cris.components.ExploreMapProcessors" id="org.dspace.app.webui.cris.components.ExploreMapProcessors">
+	<bean class="org.dspace.app.cris.integration.components.ExploreMapProcessors" id="org.dspace.app.cris.integration.components.ExploreMapProcessors">
 		<property name="processorsMap">
 			<map>
 				<entry key="publications">
 					<list>
-						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
+						<bean class="org.dspace.app.cris.integration.components.BrowseProcessor">
 							<property name="browseNames">
 								<list>
 									<value>itemdept</value>
@@ -78,7 +58,7 @@
 								</list>
 							</property>
 						</bean>
-						<bean class="org.dspace.app.webui.cris.components.TopObjectsProcessor">
+						<bean class="org.dspace.app.cris.integration.components.TopObjectsProcessor">
 							<property name="viewConfiguration" ref="dspaceitemsLayoutView" />
 							<property name="type" value="recentsubmission" />
 							<property name="sortField" value="dateaccessioned_dt" />
@@ -88,7 +68,7 @@
 							</property> -->
  							<property name="num" value="4" />
 						</bean>
-						<bean class="org.dspace.app.webui.cris.components.TopObjectsProcessor">
+						<bean class="org.dspace.app.cris.integration.components.TopObjectsProcessor">
 							<property name="viewConfiguration" ref="dspaceitemsLayoutView" />
 							<property name="type" value="view" />
 							<property name="sortField" value="crismetrics_view" />
@@ -98,7 +78,7 @@
 							</property>
 							<property name="num" value="4" />
 						</bean>
-<!-- 							<bean class="org.dspace.app.webui.cris.components.TopObjectsProcessor">
+<!-- 							<bean class="org.dspace.app.cris.integration.components.TopObjectsProcessor">
 							<property name="viewConfiguration" ref="dspaceitemsLayoutView" />
 							<property name="type" value="cited" />
 							<property name="sortField" value="crismetrics_scopus" />
@@ -107,7 +87,7 @@
 							</property>
  							<property name="num" value="10" />
 						</bean>
-						<bean class="org.dspace.app.webui.cris.components.TopObjectsProcessor">
+						<bean class="org.dspace.app.cris.integration.components.TopObjectsProcessor">
 							<property name="viewConfiguration" ref="dspaceitemsLayoutView" />
 							<property name="type" value="cited" />
 							<property name="sortField" value="crismetrics_scopus" />
@@ -121,7 +101,7 @@
 				</entry>
 				<entry key="researcherprofiles">
 					<list>
-						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
+						<bean class="org.dspace.app.cris.integration.components.BrowseProcessor">
 							<property name="browseNames">
 								<list>
 									<value>rpname</value>
@@ -133,7 +113,7 @@
 				</entry>
 				<entry key="orgunits">
 					<list>
-						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
+						<bean class="org.dspace.app.cris.integration.components.BrowseProcessor">
 							<property name="browseNames">
 								<list>
 									<value>ouname</value>
@@ -144,7 +124,7 @@
 				</entry>
 				<entry key="fundings">
 					<list>
-						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
+						<bean class="org.dspace.app.cris.integration.components.BrowseProcessor">
 							<property name="browseNames">
 								<list>
 									<value>pjtitle</value>

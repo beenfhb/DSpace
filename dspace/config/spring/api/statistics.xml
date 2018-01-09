@@ -98,22 +98,22 @@
 
 	
 	<bean id="rpSelectedObject"
-		class="org.dspace.app.webui.cris.components.statistics.CrisRPStatsDualSelectedComponent">	
+		class="org.dspace.app.cris.integration.statistics.components.CrisRPStatsDualSelectedComponent">	
 		<property name="applicationService" ref="applicationService" />
 	</bean>
 
 	<bean id="pjSelectedObject"
-		class="org.dspace.app.webui.cris.components.statistics.CrisPJStatsDualSelectedComponent">	
+		class="org.dspace.app.cris.integration.statistics.components.CrisPJStatsDualSelectedComponent">	
 		<property name="applicationService" ref="applicationService" />
 	</bean>
 
 	<bean id="ouSelectedObject"
-		class="org.dspace.app.webui.cris.components.statistics.CrisOUStatsDualSelectedComponent">	
+		class="org.dspace.app.cris.integration.statistics.components.CrisOUStatsDualSelectedComponent">	
 		<property name="applicationService" ref="applicationService" />
 	</bean>
 
 	<bean id="doSelectedObject"
-		class="org.dspace.app.webui.cris.components.statistics.CrisDOStatsDualSelectedComponent">	
+		class="org.dspace.app.cris.integration.statistics.components.CrisDOStatsDualSelectedComponent">	
 		<property name="applicationService" ref="applicationService" />
 	</bean>
 	<!-- Components for ITEM -->
@@ -138,19 +138,19 @@
 
 
 	<bean id="statsitem"
-		class="org.dspace.app.webui.cris.components.statistics.StatSelectedObjectComponent">		
+		class="org.dspace.app.cris.integration.statistics.components.StatSelectedObjectComponent">		
 		<property name="relationObjectType" value="2" />		
 	</bean>
 	
 	<bean id="statsbitstreamforitem"
-		class="org.dspace.app.webui.cris.components.statistics.StatBitstreamTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatBitstreamTopObjectComponent">
 		<property name="relationObjectType" value="0" />	
 		<property name="bean" ref="commonItemBean" />
 		<property name="crisSearchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 
 	<bean id="commonItemBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 		<property name="componentIdentifier" value="item" />
 		<property name="query"><value>search.resourceid:{0}</value></property>					
 	</bean>
@@ -180,31 +180,31 @@
 
 
 	<bean id="statscollection"
-		class="org.dspace.app.webui.cris.components.statistics.StatSelectedObjectComponent">				
+		class="org.dspace.app.cris.integration.statistics.components.StatSelectedObjectComponent">				
 		<property name="relationObjectType" value="3" />	
 	</bean>
 	
 	<bean id="statsitemforcollection"
-		class="org.dspace.app.webui.cris.components.statistics.StatItemTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatItemTopObjectComponent">
 		<property name="relationObjectType" value="2" />		
 		<property name="bean" ref="commonCollectionBean" />
 	</bean>
 	
 	<bean id="statsbitstreamforcollection"
-		class="org.dspace.app.webui.cris.components.statistics.StatBitstreamTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatBitstreamTopObjectComponent">
 		<property name="relationObjectType" value="0" />			
 		<property name="bean" ref="commonCollectionBean" />
 		<property name="crisSearchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 		
 	<bean id="statsubmitteditemforcollection"
-		class="org.dspace.app.webui.cris.components.statistics.StatUploadObjectComponent">					
+		class="org.dspace.app.cris.integration.statistics.components.StatUploadObjectComponent">					
 		<property name="relationObjectType" value="3" />			
 		<property name="bean" ref="commonCollectionSubmittedItemBean" />		
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	<bean id="commonCollectionSubmittedItemBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 		<property name="filters">
 			<list>
 				<value>search.resourcetype:2</value>
@@ -216,7 +216,7 @@
 	</bean>
 	
 	<bean id="commonCollectionBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 
 		<property name="componentIdentifier" value="collection" />
 		<property name="query"><value>location.coll:{0}</value></property>
@@ -248,13 +248,13 @@
 	</bean>
 
 	<bean id="statscommunity"
-		class="org.dspace.app.webui.cris.components.statistics.StatSelectedObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatSelectedObjectComponent">
 			
 		<property name="relationObjectType" value="4" />
 	</bean>
 
 	<bean id="statssubcommunity"
-		class="org.dspace.app.webui.cris.components.statistics.StatTopObjectComponent">	
+		class="org.dspace.app.cris.integration.statistics.components.StatTopObjectComponent">	
 		<property name="relationObjectType" value="4" />			
 		<property name="bean" ref="commonCommunityBean" />
 		<property name="fromField" value="search.uniqueid" />
@@ -262,33 +262,33 @@
 	
 	
 	<bean id="statscollectionforcommunity"
-		class="org.dspace.app.webui.cris.components.statistics.StatTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatTopObjectComponent">
 		<property name="relationObjectType" value="3" />			
 		<property name="bean" ref="commonCommunityBean" />
 		<property name="fromField" value="search.uniqueid" />
 	</bean>
 	
 	<bean id="statsitemforcommunity"
-		class="org.dspace.app.webui.cris.components.statistics.StatItemTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatItemTopObjectComponent">
 		<property name="relationObjectType" value="2" />			
 		<property name="bean" ref="commonCommunityBean" />		
 	</bean>
 	
 	<bean id="statsbitstreamforcommunity"
-		class="org.dspace.app.webui.cris.components.statistics.StatBitstreamTopObjectComponent">					
+		class="org.dspace.app.cris.integration.statistics.components.StatBitstreamTopObjectComponent">					
 		<property name="relationObjectType" value="0" />			
 		<property name="bean" ref="commonCommunityBean" />		
 		<property name="crisSearchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	
 	<bean id="statsubmitteditemforcommunity"
-		class="org.dspace.app.webui.cris.components.statistics.StatUploadObjectComponent">					
+		class="org.dspace.app.cris.integration.statistics.components.StatUploadObjectComponent">					
 		<property name="relationObjectType" value="4" />			
 		<property name="bean" ref="commonCommunitySubmittedItemBean" />		
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	<bean id="commonCommunitySubmittedItemBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 		<property name="filters">
 			<list>
 				<value>search.resourcetype:2</value>
@@ -299,7 +299,7 @@
 		<property name="query"><value>location.comm:{0}</value></property>
 	</bean>
 	<bean id="commonCommunityBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 
 		<property name="componentIdentifier" value="community" />
 		<property name="query"><value>location.comm:{0}</value></property>
@@ -331,38 +331,38 @@
 	</bean>
 
 	<bean id="statsitemforsite"
-		class="org.dspace.app.webui.cris.components.statistics.StatItemTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatItemTopObjectComponent">
 		<property name="relationObjectType" value="2" />			
 		<property name="bean" ref="commonSiteBean" />		
 	</bean>
 	
 	<bean id="statsbitstreamforsite"
-		class="org.dspace.app.webui.cris.components.statistics.StatBitstreamTopObjectComponent">					
+		class="org.dspace.app.cris.integration.statistics.components.StatBitstreamTopObjectComponent">					
 		<property name="relationObjectType" value="0" />			
 		<property name="bean" ref="commonSiteBean" />		
 		<property name="crisSearchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	
 <!-- 	<bean id="statscommunityforsite"
-		class="org.dspace.app.webui.cris.components.statistics.StatTopObjectComponent">	
+		class="org.dspace.app.cris.integration.statistics.components.StatTopObjectComponent">	
 		<property name="relationObjectType" value="4" />			
 		<property name="bean" ref="commonSiteBean" />
 	</bean>
 	
 	<bean id="statscollectionforsite"
-		class="org.dspace.app.webui.cris.components.statistics.StatTopObjectComponent">
+		class="org.dspace.app.cris.integration.statistics.components.StatTopObjectComponent">
 		<property name="relationObjectType" value="3" />			
 		<property name="bean" ref="commonSiteBean" />
 	</bean> -->
 	
 	<bean id="statssubmitteditemforsite"
-		class="org.dspace.app.webui.cris.components.statistics.StatUploadObjectComponent">					
+		class="org.dspace.app.cris.integration.statistics.components.StatUploadObjectComponent">					
 		<property name="relationObjectType" value="2" />			
 		<property name="bean" ref="commonSiteSubmittedItemBean" />		
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 	</bean>
 	<bean id="commonSiteSubmittedItemBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 		<property name="filters">
 			<list>
 				<value>search.resourcetype:2</value>
@@ -374,7 +374,7 @@
 	</bean>
 		
 	<bean id="commonSiteBean"
-		class="org.dspace.app.webui.cris.components.BeanComponent">
+		class="org.dspace.app.cris.integration.statistics.BeanComponent">
 		<property name="componentIdentifier" value="site" />
 		<property name="subQueries">
 		<map>
