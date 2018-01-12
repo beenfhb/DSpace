@@ -13,10 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.dspace.app.rest.RestResourceController;
-import org.dspace.app.rest.model.step.SectionData;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * The WorkspaceItem REST Resource

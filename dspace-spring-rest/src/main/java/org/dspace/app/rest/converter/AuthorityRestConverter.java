@@ -10,7 +10,6 @@ package org.dspace.app.rest.converter;
 import org.apache.commons.lang.NotImplementedException;
 import org.dspace.app.rest.model.AuthorityRest;
 import org.dspace.app.rest.utils.AuthorityUtils;
-import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.springframework.stereotype.Component;
 

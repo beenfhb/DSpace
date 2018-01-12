@@ -11,11 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.dspace.app.rest.converter.AuthorityRestConverter;
 import org.dspace.app.rest.model.AuthorityRest;
 import org.dspace.app.rest.model.hateoas.AuthorityResource;
 import org.dspace.app.rest.utils.AuthorityUtils;
-import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.Context;

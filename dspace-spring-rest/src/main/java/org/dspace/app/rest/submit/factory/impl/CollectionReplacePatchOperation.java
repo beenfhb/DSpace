@@ -11,7 +11,6 @@ import java.sql.SQLException;
 
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.content.Collection;
-import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;

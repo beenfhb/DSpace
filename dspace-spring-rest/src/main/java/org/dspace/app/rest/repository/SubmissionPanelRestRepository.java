@@ -10,8 +10,6 @@ package org.dspace.app.rest.repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.ServletException;
-
 import org.dspace.app.rest.converter.SubmissionSectionConverter;
 import org.dspace.app.rest.model.SubmissionDefinitionRest;
 import org.dspace.app.rest.model.SubmissionSectionRest;

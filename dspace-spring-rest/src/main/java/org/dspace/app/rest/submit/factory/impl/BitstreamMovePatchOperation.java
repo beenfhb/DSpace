@@ -7,16 +7,9 @@
  */
 package org.dspace.app.rest.submit.factory.impl;
 
-import java.util.List;
-
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
-import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;

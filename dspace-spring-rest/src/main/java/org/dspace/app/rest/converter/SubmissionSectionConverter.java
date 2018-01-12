@@ -7,8 +7,6 @@
  */
 package org.dspace.app.rest.converter;
 
-import javax.servlet.ServletException;
-
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.SubmissionSectionRest;
 import org.dspace.app.rest.model.SubmissionVisibilityRest;

@@ -14,7 +14,6 @@ import java.util.List;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;

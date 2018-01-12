@@ -9,7 +9,6 @@ package org.dspace.app.rest.model.patch;
 
 import javax.annotation.Nonnull;
 
-import org.springframework.data.rest.webmvc.json.patch.LateObjectEvaluator;
 import org.springframework.data.rest.webmvc.json.patch.PatchException;
 
 import com.fasterxml.jackson.databind.JsonNode;

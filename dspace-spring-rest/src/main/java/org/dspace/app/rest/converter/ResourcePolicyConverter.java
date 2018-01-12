@@ -10,7 +10,6 @@ package org.dspace.app.rest.converter;
 import org.dspace.app.rest.model.ResourcePolicyRest;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.core.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

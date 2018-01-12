@@ -7,8 +7,6 @@
  */
 package org.dspace.app.rest.repository;
 
-import java.io.Serializable;
-
 import org.dspace.app.rest.model.RestModel;
 import org.springframework.hateoas.ResourceSupport;
 

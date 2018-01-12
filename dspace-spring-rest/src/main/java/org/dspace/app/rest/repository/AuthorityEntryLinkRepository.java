@@ -15,7 +15,6 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.app.rest.converter.AuthorityEntryRestConverter;
 import org.dspace.app.rest.model.AuthorityEntryRest;
 import org.dspace.app.rest.model.AuthorityRest;
 import org.dspace.app.rest.model.hateoas.AuthorityEntryResource;

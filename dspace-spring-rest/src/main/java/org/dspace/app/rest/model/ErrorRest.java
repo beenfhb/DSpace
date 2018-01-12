@@ -10,9 +10,6 @@ package org.dspace.app.rest.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 /**
  * Model class to transport error messages and its relative paths
  * 

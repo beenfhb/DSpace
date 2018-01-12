@@ -10,8 +10,6 @@ package org.dspace.app.rest.repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.ServletException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.AccessConditionOptionRest;

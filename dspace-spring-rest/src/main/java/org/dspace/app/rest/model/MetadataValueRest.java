@@ -7,8 +7,6 @@
  */
 package org.dspace.app.rest.model;
 
-import org.springframework.data.annotation.ReadOnlyProperty;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 

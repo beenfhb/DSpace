@@ -11,10 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.dspace.app.rest.RestResourceController;
-import org.dspace.submit.model.AccessConditionOption;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The Upload Section Configuration REST Resource

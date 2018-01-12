@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.dspace.app.rest.model.ResourcePolicyRest;
 import org.dspace.app.rest.model.BitstreamFormatRest;
 import org.dspace.app.rest.model.CheckSumRest;
 import org.dspace.app.rest.model.MetadataValueRest;
+import org.dspace.app.rest.model.ResourcePolicyRest;
 
 public class UploadBitstreamRest extends UploadStatusResponse {
 	

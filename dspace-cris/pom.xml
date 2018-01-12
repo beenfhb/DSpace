@@ -128,18 +128,6 @@
 			<version>${org.jdyna.version}</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>org.jdyna</groupId>
-			<artifactId>jdyna-web-api</artifactId>
-			<version>${org.jdyna.version}</version>
-		</dependency>      
-		
-		<dependency>
-			<groupId>org.jdyna</groupId>
-			<artifactId>jdyna-webmvc-api</artifactId>
-			<version>${org.jdyna.version}</version>
-		</dependency>
-		
 		</dependencies>
 	</dependencyManagement>
 

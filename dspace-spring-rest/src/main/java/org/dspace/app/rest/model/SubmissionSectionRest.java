@@ -10,7 +10,6 @@ package org.dspace.app.rest.model;
 
 import org.dspace.app.rest.RestResourceController;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 

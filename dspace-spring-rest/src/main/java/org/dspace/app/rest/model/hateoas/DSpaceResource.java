@@ -20,9 +20,9 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.BaseObjectRest;
+import org.dspace.app.rest.model.DirectlyAddressableRestModel;
 import org.dspace.app.rest.model.LinkRest;
 import org.dspace.app.rest.model.LinksRest;
-import org.dspace.app.rest.model.DirectlyAddressableRestModel;
 import org.dspace.app.rest.repository.DSpaceRestRepository;
 import org.dspace.app.rest.repository.LinkRestRepository;
 import org.dspace.app.rest.utils.Utils;

@@ -9,7 +9,6 @@ package org.dspace.app.rest.repository;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.dspace.app.rest.converter.AuthorityEntryRestConverter;
 import org.dspace.app.rest.model.AuthorityEntryRest;
 import org.dspace.app.rest.model.AuthorityRest;
 import org.dspace.app.rest.model.hateoas.AuthorityEntryResource;

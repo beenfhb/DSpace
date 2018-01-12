@@ -222,42 +222,6 @@ just adding new jar in the classloader</description>
 		</dependency>
 
 		<dependency>
-			<groupId>org.jdyna</groupId>
-			<artifactId>jdyna-web-api</artifactId>
-			<version>${org.jdyna.version}</version>
-			<exclusions>
-				<exclusion>
-          			<groupId>struts-menu</groupId>
-          			<artifactId>struts-menu</artifactId>
-        		</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>it.cilea</groupId>
-			<artifactId>commons-cilea-webapi</artifactId>
-			<version>${it.cilea.ccommons.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jdyna</groupId>
-			<artifactId>jdyna-webmvc-api</artifactId>
-			<version>${org.jdyna.version}</version>
-			<exclusions>
-				<exclusion>
-          			<groupId>struts-menu</groupId>
-          			<artifactId>struts-menu</artifactId>
-        		</exclusion>
-			</exclusions>			
-		</dependency>
-		<dependency>
-			<groupId>org.jdyna</groupId>
-			<artifactId>jdyna-webmvc-webapp</artifactId>
-			<version>${org.jdyna.version}</version>
-			<type>war</type>
-		</dependency>
-
-		<dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-api</artifactId>
 		</dependency>

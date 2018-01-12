@@ -11,15 +11,11 @@ import java.util.List;
 
 import org.dspace.app.rest.model.ResourcePolicyRest;
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;

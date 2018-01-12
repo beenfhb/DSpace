@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.request.SolrRequestInfo;
+
 
 /**
  * 
