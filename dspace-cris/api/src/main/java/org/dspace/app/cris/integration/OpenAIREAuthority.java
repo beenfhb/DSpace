@@ -85,8 +85,8 @@ public class OpenAIREAuthority extends ProjectAuthority {
 	        
 	        if (statusCode != HttpStatus.SC_OK)
 	        {
-	            throw new RuntimeException("WS call failed: "
-	                    + statusCode);
+	        		log.info("Service "+OPENAIRE_SEARCH_PROJECT_ENDPOINT+" returned status:"+statusCode+"; url:"+uri.toASCIIString() );
+	        		return choices.values;
 	        }
 
 	        
