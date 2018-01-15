@@ -16,7 +16,6 @@
 
 	<modules>
 		<module>api</module>
-		<module>webservices</module>
 	</modules>
 
 	<!--Force UTF-8 encoding during build on all platforms -->

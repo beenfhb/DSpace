@@ -1557,22 +1557,6 @@
 			<artifactId>dspace-cris-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.dspace</groupId>
-			<artifactId>dspace-cris-webservices-api</artifactId>
-			<version>${project.version}</version>			
-		</dependency>
-		<dependency>
-			<groupId>org.dspace</groupId>
-			<artifactId>dspace-cris-webservices-webapp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.dspace</groupId>
-			<artifactId>dspace-cris-webservices-webapp</artifactId>
-			<version>${project.version}</version>
-			<type>war</type>			
-		</dependency>
 		 <dependency>
              <groupId>org.dspace</groupId>
 			 <artifactId>metrics-retrieve</artifactId>

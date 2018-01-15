@@ -227,18 +227,6 @@ just adding new jar in the classloader</description>
 		</dependency>
 
 		<dependency>
-			<groupId>org.dspace</groupId>
-			<artifactId>dspace-cris-webservices-api</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.dspace</groupId>
-			<artifactId>dspace-cris-webservices-webapp</artifactId>
-			<type>war</type>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>com.lowagie</groupId>
 			<artifactId>itext</artifactId>
 			<version>2.1.7</version>
