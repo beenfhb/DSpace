@@ -60,16 +60,16 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
      * {@see org.dspace.core.Constants#Constants Constants}
      */
     @Column(name = "resource_type_id")
-    private int resourceTypeId;
+    private Integer resourceTypeId;
 
     @Column(name = "resource_id")
-    private int resourceId;
+    private Integer resourceId;
     
     /*
      * {@see org.dspace.core.Constants#Constants Constants}
      */
     @Column(name="action_id")
-    private int actionId;
+    private Integer actionId;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
