@@ -215,7 +215,7 @@
 	       <field>
 	         <dc-schema>dc</dc-schema>
 	         <dc-element>subject</dc-element>
-	         <dc-qualifier></dc-qualifier>
+	         <dc-qualifier>other</dc-qualifier>
 	         <!-- An input-type of twobox MUST be marked as repeatable -->
 	         <repeatable>true</repeatable>
 	         <label>Subject Keywords</label>
@@ -225,6 +225,18 @@
 	         <vocabulary>srsc</vocabulary>
 	       </field>
 		</row>
+		<row>
+	       <field>
+	         <dc-schema>dc</dc-schema>
+	         <dc-element>subject</dc-element>
+	         <dc-qualifier></dc-qualifier>
+	         <repeatable>true</repeatable>
+	         <label>Keywords</label>
+	         <input-type>tag</input-type>
+	         <hint>Local controlled vocabulary.</hint>
+	         <required></required>
+	       </field>
+		</row>		
 		<row>
 	       <field>
 	         <dc-schema>dc</dc-schema>

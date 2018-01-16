@@ -37,7 +37,7 @@ dspace.hostname = localhost
 dspace.baseUrl = http://localhost:8080
 
 # The user interface you will be using for DSpace. Common usage is either xmlui or jspui
-dspace.ui = jspui
+dspace.ui =
 
 # Full link your end users will use to access DSpace. In most cases, this will be the baseurl followed by
 # the context path to the UI you are using.
@@ -416,3 +416,10 @@ core-aggregator.enabled = false
 core-aggregator.credentials =
 
 community-list.show.all = true
+
+######## DSPACE 7 ############
+
+submission.default.collection =
+run.single.test-user = false
+
+metadata.extraction.grobid.url =
