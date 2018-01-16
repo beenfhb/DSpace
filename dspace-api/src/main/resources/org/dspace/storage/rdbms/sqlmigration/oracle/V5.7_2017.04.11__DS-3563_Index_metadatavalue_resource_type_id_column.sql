@@ -20,4 +20,5 @@ begin
   when index_not_exists then null;
 end;
 /
-CREATE INDEX metadatavalue_type_id_idx ON metadatavalue (resource_type_id);
+-- The follow line broke upgrade to a fresh DSpace 7 to a DSpace-CRIS 7
+--CREATE INDEX metadatavalue_type_id_idx ON metadatavalue (resource_type_id);

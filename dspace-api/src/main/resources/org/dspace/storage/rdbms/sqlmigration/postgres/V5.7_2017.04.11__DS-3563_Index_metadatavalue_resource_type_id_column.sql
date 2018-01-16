@@ -12,5 +12,5 @@
 -- Create an index on the metadata value resource_type_id column so that it can be searched efficiently.
 
 DROP INDEX IF EXISTS metadatavalue_resource_type_id_idx;
-
-CREATE INDEX metadatavalue_resource_type_id_idx ON metadatavalue (resource_type_id);
+-- The follow line broke upgrade to a fresh DSpace 7 to a DSpace-CRIS 7
+--CREATE INDEX metadatavalue_resource_type_id_idx ON metadatavalue (resource_type_id);

@@ -7,3 +7,5 @@
 --
 
 ALTER TABLE subscription ADD COLUMN community_id integer;
+-- The follow line broke upgrade to a fresh DSpace 7 to a DSpace-CRIS 7
+--ALTER TABLE subscription ADD CONSTRAINT subscription_community_id FOREIGN KEY (community_id) REFERENCES community (community_id) ON UPDATE NO ACTION ON DELETE NO ACTION;
