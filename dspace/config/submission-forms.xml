@@ -171,6 +171,31 @@
 	       </field>
 		</row>
 		<row>
+			<field>
+				<dc-schema>dc</dc-schema>
+				<dc-element>relation</dc-element>
+				<repeatable>true</repeatable>
+				<label>Project</label>
+				<input-type>onebox</input-type>
+				<hint>Enter the name of project, if any, that has produced this
+					publication. </hint>
+				<required></required>
+			</field>
+		</row>		
+		<row>		
+			<field>
+				<dc-schema>dc</dc-schema>
+				<dc-element>relation</dc-element>
+				<dc-qualifier>ispartof</dc-qualifier>
+				<repeatable>false</repeatable>
+				<label>Journal</label>
+				<input-type>onebox</input-type>
+				<hint>Enter the name of the journal where the item has been
+					published, if any.</hint>
+				<required></required>
+			</field>
+		</row>		
+		<row>
 	       <field>
 	         <dc-schema>dc</dc-schema>
 	         <dc-element>identifier</dc-element>
@@ -251,13 +276,13 @@
 		</row>
 		<row>
 	       <field>
-	         <dc-schema>dc</dc-schema>
+			 <dc-schema>dc</dc-schema>
 	         <dc-element>description</dc-element>
 	         <dc-qualifier>sponsorship</dc-qualifier>
-	         <repeatable>false</repeatable>
+	         <repeatable>true</repeatable>
 	         <label>Sponsors</label>
-	         <input-type>textarea</input-type>
-	         <hint>Enter the names of any sponsors and/or funding codes in the box. </hint>
+	         <input-type>onebox</input-type>
+	         <hint>Enter the name of any sponsors. </hint>
 	         <required></required>
 	       </field>
 		</row>
