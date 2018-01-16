@@ -106,12 +106,15 @@ public class WorkspaceItemConverter
 
 					if (stepInstance instanceof AbstractProcessingStep) {
 						// load the JSPStep interface for this step
-						AbstractRestProcessingStep stepProcessing = (AbstractRestProcessingStep) stepClass
-								.newInstance();
-						for(ErrorRest error : stepProcessing.validate(submissionService, obj, stepConfig)) {
-							addError(witem.getErrors(),error);
+						if (stepClass.newInstance() instanceof AbstractRestProcessingStep) {
+							AbstractRestProcessingStep stepProcessing = (AbstractRestProcessingStep) stepClass
+									.newInstance();
+							for (ErrorRest error : stepProcessing.validate(submissionService, obj, stepConfig)) {
+								addError(witem.getErrors(), error);
+							}
+							witem.getSections().put(sections.getId(),
+									stepProcessing.getData(submissionService, obj, stepConfig));
 						}
-						witem.getSections().put(sections.getId(), stepProcessing.getData(submissionService, obj, stepConfig));
 					} else {
 						throw new Exception("The submission step class specified by '"
 								+ stepConfig.getProcessingClassName()
