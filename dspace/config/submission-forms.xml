@@ -44,6 +44,8 @@
 				<hint>Enter the ORCID of the author.</hint>
 				<required></required>
 			</field>
+		</row>
+		<row>
 			<field>
 				<dc-schema>local</dc-schema>
 				<dc-element>contributor</dc-element>
@@ -106,6 +108,7 @@
 	         <input-type>onebox</input-type>
 	         <hint>Enter the main title of the item.</hint>
 	         <required>You must enter a main title for this item.</required>
+             <language value-pairs-name="common_languages">true</language>
 	       </field>
 		</row>
 		<row>
@@ -127,6 +130,7 @@
 	         <dc-qualifier>issued</dc-qualifier>
 	         <repeatable>false</repeatable>
 	         <label>Date of Issue</label>
+	         <style>col-sm-4</style>
 	         <input-type>date</input-type>
 	         <hint>Please give the date of previous publication or public distribution.
 	                        You can leave out the day and/or month if they aren't
@@ -141,6 +145,7 @@
 	         <dc-qualifier></dc-qualifier>
 	         <repeatable>false</repeatable>
 	         <label>Publisher</label>
+			 <style>col-sm-8</style>
 	         <input-type>onebox</input-type>
 	         <hint>Enter the name of the publisher of the previously issued instance of this item.</hint>
 	         <required></required>
@@ -342,6 +347,18 @@
        <displayed-value>ISBN</displayed-value>
        <stored-value>isbn</stored-value>
      </pair>
+	 <pair>
+		<displayed-value>DOI</displayed-value>
+		<stored-value>doi</stored-value>
+	 </pair>
+	 <pair>
+		<displayed-value>PubMed ID</displayed-value>
+		<stored-value>pmid</stored-value>
+	 </pair>
+	 <pair>
+		<displayed-value>arXiv</displayed-value>
+		<stored-value>arxiv</stored-value>
+	 </pair>
    </value-pairs>
 
    <value-pairs value-pairs-name="common_types" dc-term="type">
@@ -484,6 +501,18 @@
        <stored-value>other</stored-value>
      </pair>
    </value-pairs>
+
+
+	<value-pairs value-pairs-name="common_languages" dc-term="language">
+		<pair>
+			<displayed-value>English</displayed-value>
+			<stored-value>en_US</stored-value>
+		</pair>
+		<pair>
+			<displayed-value>Italian</displayed-value>
+			<stored-value>it_IT</stored-value>
+		</pair>
+	</value-pairs>
 
  </form-value-pairs>
 
