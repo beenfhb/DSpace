@@ -100,7 +100,7 @@ public class BrowserScope
      * @param dso       the container object; a Community or Collection
      * @throws BrowseException if browse error
      */
-    public void setBrowseContainer(DSpaceObject dso)
+    public void setBrowseContainer(BrowsableDSpaceObject dso)
         throws BrowseException
     {
         if (dso instanceof Collection)
@@ -113,7 +113,7 @@ public class BrowserScope
         }
         else
         {
-            throw new BrowseException("The container must be a community or a collection");
+//            throw new BrowseException("The container must be a community or a collection");
         }
     }
 

@@ -1884,12 +1884,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             solrQuery.add(property, values.toArray(new String[values.size()]));
         }
 
-        List<String> facetQueries = discoveryQuery.getFacetQueries();
-        for (String facetQuery : facetQueries)
-        {
-            solrQuery.addFacetQuery(facetQuery);
-        }
-        
         List<DiscoverFacetField> facetFields = discoveryQuery.getFacetFields();
         if(0 < facetFields.size())
         {
@@ -2129,7 +2123,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         	String field = transformFacetField(facetFieldConfig, facetField.getName(), true);
 
                         	DiscoverResult.FacetResult facetResult = getDiscoveryFacet(
-									context, facetField, facetValue);
+									context, facetField, facetValue, facetFieldConfig.getType());
                             result.addFacetResult(field, facetResult);
                             result.addFacetFieldResult(field, facetResult);
                         }
@@ -2169,7 +2163,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     if(0 < count)
                     {
                         result.addFacetResult(facetField, new DiscoverResult.FacetResult(filter, name, null, name, count, DiscoveryConfigurationParameters.TYPE_DATE));
-                        result.addFacetQueryResult(name, new DiscoverResult.FacetResult(facetField, name, null, name, count));
+                        result.addFacetQueryResult(name, new DiscoverResult.FacetResult(facetField, name, null, name, count, DiscoveryConfigurationParameters.TYPE_DATE));
                     }
                 }
             }
@@ -2188,7 +2182,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
 	public DiscoverResult.FacetResult getDiscoveryFacet(Context context,
-			FacetField facetField, FacetField.Count facetValue)
+			FacetField facetField, FacetField.Count facetValue, String facetType)
 			throws SQLException {
 		String displayedValue = transformDisplayedValue(context, facetField.getName(), facetValue.getName());
 		String authorityValue = transformAuthorityValue(context, facetField.getName(), facetValue.getName());
@@ -2200,7 +2194,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 		}
 		DiscoverResult.FacetResult facetResult = new DiscoverResult.FacetResult(filterValue,
 		        displayedValue, authorityValue,
-		        sortValue, facetValue.getCount());
+		        sortValue, facetValue.getCount(), facetType);
 		return facetResult;
 	}
 
@@ -2642,7 +2636,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     @Override
-    public FacetYearRange getFacetYearRange(Context context, DSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException {
+    public FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException {
         FacetYearRange result = new FacetYearRange(facet);
         result.calculateRange(context, filterQueries, scope, this);
         return result;

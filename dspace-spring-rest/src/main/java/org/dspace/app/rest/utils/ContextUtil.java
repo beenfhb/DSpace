@@ -55,7 +55,7 @@ public class ContextUtil
      * 
      * @return a context object
      */
-    public static Context obtainContext(ServletRequest request) throws SQLException
+    public static Context obtainContext(ServletRequest request)
     {
         Context context = (Context) request.getAttribute(DSPACE_CONTEXT);
 
@@ -75,7 +75,7 @@ public class ContextUtil
      * @return a DSpace Context Object
      * @throws SQLException 
      */
-    private static Context initializeContext() throws SQLException
+    private static Context initializeContext()
     {
         // Create a new Context
         Context context = new Context();

@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.rest.model.CollectionRest;
 import org.dspace.app.rest.model.LicenseRest;
+import org.dspace.app.rest.model.hateoas.HALResource;
 import org.dspace.app.rest.model.hateoas.LicenseResource;
 import org.dspace.content.Collection;
 import org.dspace.content.service.CollectionService;
@@ -21,7 +22,6 @@ import org.dspace.core.Context;
 import org.dspace.core.service.LicenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.ResourceSupport;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,7 +41,7 @@ public class LicenseRestLinkRepository extends AbstractDSpaceRestRepository
 	LicenseService licenseService;
 	
 	@Override
-	public ResourceSupport wrapResource(LicenseRest model, String... rels) {
+	public HALResource wrapResource(LicenseRest model, String... rels) {
 		return new LicenseResource(model);
 	}
 	

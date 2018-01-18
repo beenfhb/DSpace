@@ -21,6 +21,7 @@ import org.dspace.app.rest.exception.InvalidSearchFacetException;
 import org.dspace.app.rest.exception.InvalidSearchFilterException;
 import org.dspace.app.rest.exception.InvalidSortingException;
 import org.dspace.app.rest.parameter.SearchFilter;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -66,7 +67,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
         pageSizeLimit = configurationService.getIntProperty("rest.search.max.results", 100);
     }
 
-    public DiscoverQuery buildQuery(Context context, DSpaceObject scope,
+    public DiscoverQuery buildQuery(Context context, BrowsableDSpaceObject scope,
                                     DiscoveryConfiguration discoveryConfiguration,
                                     String query, List<SearchFilter> searchFilters,
                                     String dsoType, Pageable page)
@@ -96,7 +97,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
         }
     }
 
-    public DiscoverQuery buildFacetQuery(Context context, DSpaceObject scope,
+    public DiscoverQuery buildFacetQuery(Context context, BrowsableDSpaceObject scope,
                                     DiscoveryConfiguration discoveryConfiguration,
                                     String query, List<SearchFilter> searchFilters,
                                     String dsoType, Pageable page, String facetName)
@@ -122,7 +123,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
         }
     }
 
-    private DiscoverQuery addFacetingForFacets(Context context, DSpaceObject scope, DiscoverQuery queryArgs, DiscoveryConfiguration discoveryConfiguration,
+    private DiscoverQuery addFacetingForFacets(Context context, BrowsableDSpaceObject scope, DiscoverQuery queryArgs, DiscoveryConfiguration discoveryConfiguration,
                                                String facetName, Pageable page) throws InvalidSearchFacetException {
 
         DiscoverySearchFilterFacet facet = discoveryConfiguration.getSidebarFacet(facetName);
@@ -139,7 +140,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
         return queryArgs;
     }
 
-    private void fillFacetIntoQueryArgs(Context context, DSpaceObject scope, DiscoverQuery queryArgs, DiscoverySearchFilterFacet facet, final int pageSize) {
+    private void fillFacetIntoQueryArgs(Context context, BrowsableDSpaceObject scope, DiscoverQuery queryArgs, DiscoverySearchFilterFacet facet, final int pageSize) {
         if (facet.getType().equals(DiscoveryConfigurationParameters.TYPE_DATE)) {
             try {
                 FacetYearRange facetYearRange = searchService.getFacetYearRange(context, scope, facet, queryArgs.getFilterQueries());
@@ -155,7 +156,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
             //Add one to our facet limit to make sure that if we have more then the shown facets that we show our "show more" url
             int facetLimit = pageSize + 1;
             //This should take care of the sorting for us
-            queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), facetLimit, facet.getSortOrderSidebar()));
+            queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), facetLimit, facet.getSortOrderSidebar(), false));
         }
     }
 
@@ -286,7 +287,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
         return filterQueries.toArray(new String[filterQueries.size()]);
     }
 
-    private DiscoverQuery addFaceting(Context context, DSpaceObject scope, DiscoverQuery queryArgs, DiscoveryConfiguration discoveryConfiguration) {
+    private DiscoverQuery addFaceting(Context context, BrowsableDSpaceObject scope, DiscoverQuery queryArgs, DiscoveryConfiguration discoveryConfiguration) {
 
         List<DiscoverySearchFilterFacet> facets = discoveryConfiguration.getSidebarFacets();
 

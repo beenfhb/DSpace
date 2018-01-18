@@ -363,7 +363,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     
     @Override
     public void clearMetadata(Context context, T dso, String schema, String element, String qualifier, String lang) throws SQLException {
-        Iterator<MetadataValue> metadata = dso.getMetadata().iterator();
+        Iterator<IMetadataValue> metadata = dso.getMetadata().iterator();
         while (metadata.hasNext())
         {
         	MetadataValue metadataValue = (MetadataValue)metadata.next();
@@ -379,7 +379,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 
     @Override
     public void removeMetadataValues(Context context, T dso, List<IMetadataValue> values) throws SQLException {
-        Iterator<MetadataValue> metadata = dso.getMetadata().iterator();
+        Iterator<IMetadataValue> metadata = dso.getMetadata().iterator();
         while (metadata.hasNext()) {
         	MetadataValue metadataValue = (MetadataValue)metadata.next();
             if(values.contains(metadataValue))
@@ -529,7 +529,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
              */
                 // A map created to store the latest place for each metadata field
                 Map<MetadataField, Integer> fieldToLastPlace = new HashMap<>();
-                List<MetadataValue> metadataValues = dso.getMetadata();
+                List<IMetadataValue> metadataValues = dso.getMetadata();
                 for (IMetadataValue metadataValue : metadataValues)
                 {
                     //Retrieve & store the place for each metadata value

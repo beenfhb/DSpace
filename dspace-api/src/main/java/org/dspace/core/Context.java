@@ -7,9 +7,24 @@
  */
 package org.dspace.core;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.EmptyStackException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.Stack;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.content.DSpaceObject;
+import org.dspace.content.EPersonCRISIntegration;
+import org.dspace.content.Item;
+import org.dspace.core.exception.DatabaseSchemaValidationException;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -21,10 +36,6 @@ import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.utils.DSpace;
 import org.springframework.util.CollectionUtils;
-
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Class representing the context of a particular DSpace operation. This stores
@@ -50,6 +61,9 @@ public class Context implements AutoCloseable
 
     /** Current user - null means anonymous access */
     private EPerson currentUser;
+
+	/** Current user crisID if any **/
+	private String crisID;
 
     /** Current Locale */
     private Locale currentLocale;
@@ -80,6 +94,20 @@ public class Context implements AutoCloseable
 
     /** Context mode */
     private Mode mode = Mode.READ_WRITE;
+
+    /**
+     * Check to get ItemWrapper on demand {@link Item}
+     */
+    private boolean requiredItemWrapper;
+
+    /** A stack with the history of the requiredItemWrapper check modify */
+    private Stack<Boolean> itemWrapperChangeHistory;
+    
+    /**
+     * A stack with the name of the caller class that modify requiredItemWrapper
+     * system check
+     */
+    private Stack<String> itemWrapperCallHistory;
 
     /** Cache that is only used the context is in READ_ONLY mode */
     private ContextReadOnlyCache readOnlyCache = new ContextReadOnlyCache();
@@ -141,8 +169,7 @@ public class Context implements AutoCloseable
         if(dbConnection == null)
         {
             // Obtain a non-auto-committing connection
-            dbConnection = new DSpace().getServiceManager()
-                    .getServiceByName(null, DBConnection.class);
+        	dbConnection = new DSpace().getSingletonService(DBConnection.class);
             if(dbConnection == null)
             {
                 log.fatal("Cannot obtain the bean which provides a database connection. " +
@@ -154,11 +181,15 @@ public class Context implements AutoCloseable
         currentLocale = I18nUtil.DEFAULTLOCALE;
         extraLogInfo = "";
         ignoreAuth = false;
+        requiredItemWrapper = true;
 
         specialGroups = new ArrayList<>();
 
-        authStateChangeHistory = new Stack<>();
-        authStateClassCallHistory = new Stack<>();
+        authStateChangeHistory = new Stack<Boolean>();
+        authStateClassCallHistory = new Stack<String>();
+        
+        itemWrapperChangeHistory = new Stack<Boolean>();
+        itemWrapperCallHistory = new Stack<String>();
         setMode(this.mode);
     }
 
@@ -185,7 +216,7 @@ public class Context implements AutoCloseable
      * 
      * @return the database connection
      */
-    DBConnection getDBConnection()
+    public DBConnection getDBConnection()
     {
         return dbConnection;
     }
@@ -210,6 +241,16 @@ public class Context implements AutoCloseable
     public void setCurrentUser(EPerson user)
     {
         currentUser = user;
+
+		EPersonCRISIntegration plugin = (EPersonCRISIntegration) CoreServiceFactory.getInstance().getPluginService()
+				.getSinglePlugin(org.dspace.content.EPersonCRISIntegration.class);
+		if (plugin != null) {
+			if (user != null) {
+				crisID = plugin.getResearcher(user.getID());
+			} else {
+				crisID = null;
+			}
+		}
     }
 
     /**
@@ -222,6 +263,10 @@ public class Context implements AutoCloseable
     {
         return currentUser;
     }
+
+	public String getCrisID() {
+		return crisID;
+	}
 
     /**
      * Gets the current Locale
@@ -787,7 +832,7 @@ public class Context implements AutoCloseable
         dbConnection.uncacheEntity(entity);
     }
 
-    public Boolean getCachedAuthorizationResult(DSpaceObject dspaceObject, int action, EPerson eperson) {
+    public Boolean getCachedAuthorizationResult(AuthorizableEntity dspaceObject, int action, EPerson eperson) {
         if(isReadOnly()) {
             return readOnlyCache.getCachedAuthorizationResult(dspaceObject, action, eperson);
         } else {
@@ -795,7 +840,7 @@ public class Context implements AutoCloseable
         }
     }
 
-    public void cacheAuthorizedAction(DSpaceObject dspaceObject, int action, EPerson eperson, Boolean result, ResourcePolicy rp) {
+    public void cacheAuthorizedAction(AuthorizableEntity dspaceObject, int action, EPerson eperson, Boolean result, ResourcePolicy rp) {
         if(isReadOnly()) {
             readOnlyCache.cacheAuthorizedAction(dspaceObject, action, eperson, result);
             try {
@@ -841,4 +886,78 @@ public class Context implements AutoCloseable
     private void reloadContextBoundEntities() throws SQLException {
         currentUser = reloadEntity(currentUser);
     }
+
+
+    public boolean isRequiredItemWrapper()
+    {
+        return requiredItemWrapper;
+    }
+
+    /**
+    * Turn Off the Item Wrapper for this context and store this change
+    * in a history for future use.
+    */
+   public void turnOffItemWrapper()
+   {
+       itemWrapperChangeHistory.push(requiredItemWrapper);
+       if (log.isDebugEnabled())
+       {
+           Thread currThread = Thread.currentThread();
+           StackTraceElement[] stackTrace = currThread.getStackTrace();
+           String caller = stackTrace[stackTrace.length - 1].getClassName();
+
+           itemWrapperCallHistory.push(caller);
+       }
+       requiredItemWrapper = false;
+   }
+   
+   
+   /**
+    * Restore the previous item wrapper system state. If the state was not
+    * changed by the current caller a warning will be displayed in log. Use:
+    * <code>
+    *     mycontext.turnOffItemWrapper();
+    *     some java code that require no item wrapper
+    *     mycontext.restoreItemWrapperState(); 
+        * </code> If Context debug is enabled, the correct sequence calling will be
+    * checked and a warning will be displayed if not.
+    */
+   public void restoreItemWrapperState()
+   {
+       Boolean previousState;
+       try
+       {
+           previousState = itemWrapperChangeHistory.pop();
+       }
+       catch (EmptyStackException ex)
+       {
+           log.warn(LogManager.getHeader(this, "restore_itemwrap_sys_state",
+                   "not previous state info available "
+                           + ex.getLocalizedMessage()));
+           previousState = Boolean.FALSE;
+       }
+       if (log.isDebugEnabled())
+       {
+           Thread currThread = Thread.currentThread();
+           StackTraceElement[] stackTrace = currThread.getStackTrace();
+           String caller = stackTrace[stackTrace.length - 1].getClassName();
+
+           String previousCaller = (String) itemWrapperCallHistory.pop();
+
+           // if previousCaller is not the current caller *only* log a warning
+           if (!previousCaller.equals(caller))
+           {
+               log
+                       .warn(LogManager
+                               .getHeader(
+                                       this,
+                                       "restore_itemwrap_sys_state",
+                                       "Class: "
+                                               + caller
+                                               + " call restore but previous state change made by "
+                                               + previousCaller));
+           }
+       }
+       requiredItemWrapper = previousState.booleanValue();
+   }
 }

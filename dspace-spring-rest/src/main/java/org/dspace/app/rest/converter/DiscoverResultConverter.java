@@ -19,7 +19,7 @@ import org.dspace.app.rest.model.SearchFacetValueRest;
 import org.dspace.app.rest.model.SearchResultEntryRest;
 import org.dspace.app.rest.model.SearchResultsRest;
 import org.dspace.app.rest.parameter.SearchFilter;
-import org.dspace.content.DSpaceObject;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 public class DiscoverResultConverter {
 
     @Autowired
-    private List<DSpaceObjectConverter> converters;
+    private List<BrowsableDSpaceObjectConverter> converters;
 
     private DiscoverFacetValueConverter facetValueConverter = new DiscoverFacetValueConverter();
 
@@ -90,7 +90,7 @@ public class DiscoverResultConverter {
     }
 
     private void addSearchResults(final DiscoverResult searchResult, final SearchResultsRest resultsRest) {
-        for (DSpaceObject dspaceObject : CollectionUtils.emptyIfNull(searchResult.getDspaceObjects())) {
+        for (BrowsableDSpaceObject dspaceObject : CollectionUtils.emptyIfNull(searchResult.getDspaceObjects())) {
             SearchResultEntryRest resultEntry = new SearchResultEntryRest();
 
             //Convert the DSpace Object to its REST model
@@ -108,8 +108,8 @@ public class DiscoverResultConverter {
         }
     }
 
-    private DSpaceObjectRest convertDSpaceObject(final DSpaceObject dspaceObject) {
-        for (DSpaceObjectConverter converter : converters) {
+    private DSpaceObjectRest convertDSpaceObject(final BrowsableDSpaceObject dspaceObject) {
+        for (BrowsableDSpaceObjectConverter converter : converters) {
             if(converter.supportsModel(dspaceObject)) {
                 return converter.fromModel(dspaceObject);
             }

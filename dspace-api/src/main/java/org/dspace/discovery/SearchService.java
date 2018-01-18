@@ -160,5 +160,5 @@ public interface SearchService {
 
     QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
 
-    FacetYearRange getFacetYearRange(Context context, DSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException;
+    FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException;
 }

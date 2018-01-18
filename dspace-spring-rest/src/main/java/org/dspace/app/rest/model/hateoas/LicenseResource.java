@@ -9,7 +9,6 @@ package org.dspace.app.rest.model.hateoas;
 
 import org.dspace.app.rest.model.LicenseRest;
 import org.dspace.app.rest.model.hateoas.annotations.RelNameDSpaceResource;
-import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
@@ -21,13 +20,13 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  *
  */
 @RelNameDSpaceResource(LicenseRest.NAME)
-public class LicenseResource extends ResourceSupport {
+public class LicenseResource extends HALResource {
 
 	@JsonUnwrapped
-	private final LicenseRest data;
+	private LicenseRest data;
 
 	public LicenseResource(LicenseRest entry) {
-		this.data = entry;
+		super(entry);
 	}
 
 	public LicenseRest getData() {

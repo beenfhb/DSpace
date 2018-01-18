@@ -28,7 +28,7 @@ import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -102,7 +102,7 @@ public class SubmissionService {
 	public UploadBitstreamRest buildUploadBitstream(ConfigurationService configurationService, Bitstream source) throws SQLException {
 		UploadBitstreamRest data = new UploadBitstreamRest();
 		
-		for (MetadataValue md : source.getMetadata()) {
+		for (IMetadataValue md : source.getMetadata()) {
 			
 			MetadataValueRest dto = new MetadataValueRest();
 			dto.setAuthority(md.getAuthority());

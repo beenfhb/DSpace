@@ -10,6 +10,7 @@ package org.dspace.app.cris.model;
 import java.beans.PropertyEditor;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -467,5 +468,26 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	@Override
 	public Date getLastModified() {	
 		return getTimeStampInfo().getLastModificationTime();
+	}
+	//TODO
+	public List<IMetadataValue> getMetadata() {		
+		List<IMetadataValue> result = new ArrayList<>();
+		Collection<List<P>> dyna = getAnagrafica4view().values();
+		for (List<P> metadata : dyna) {
+			for (P prop : metadata) {
+				int idx = 0;
+				if (prop.getVisibility() == VisibilityConstants.PUBLIC) {
+					MetadataValueVolatile mresult = new MetadataValueVolatile();
+					mresult.schema = "cris" + getAuthorityPrefix();
+					mresult.element = prop.getTypo().getShortName();
+					mresult.qualifier = "";
+					mresult.setValue(prop.toString());
+					mresult.setPlace(idx);
+					result.add(mresult);
+					idx++;
+				}
+			}
+		}
+		return result;
 	}
 }

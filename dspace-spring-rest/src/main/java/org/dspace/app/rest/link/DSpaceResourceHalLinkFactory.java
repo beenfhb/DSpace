@@ -15,6 +15,7 @@ import java.util.LinkedList;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.RestResourceController;
+import org.dspace.app.rest.model.DirectlyAddressableRestModel;
 import org.dspace.app.rest.model.LinkRest;
 import org.dspace.app.rest.model.RestModel;
 import org.dspace.app.rest.model.hateoas.DSpaceResource;
@@ -37,7 +38,7 @@ public class DSpaceResourceHalLinkFactory extends HalLinkFactory<DSpaceResource,
     private Utils utils;
 
     protected void addLinks(DSpaceResource halResource, Pageable page, LinkedList<Link> list) throws Exception {
-        RestModel data = halResource.getContent();
+    	DirectlyAddressableRestModel data = halResource.getContent();
 
         try {
             for (PropertyDescriptor pd : Introspector.getBeanInfo(data.getClass()).getPropertyDescriptors()) {
@@ -57,7 +58,7 @@ public class DSpaceResourceHalLinkFactory extends HalLinkFactory<DSpaceResource,
                             Object linkedObject = readMethod.invoke(data);
 
                             if(linkedObject instanceof RestModel && linkAnnotation.linkClass().isAssignableFrom(linkedObject.getClass())) {
-                                linkToSubResource = utils.linkToSingleResource((RestModel) linkedObject, name);
+                                linkToSubResource = utils.linkToSingleResource((DirectlyAddressableRestModel) linkedObject, name);
                             }
 
                             if (linkedObject != null || !linkAnnotation.optional()) {
@@ -65,7 +66,7 @@ public class DSpaceResourceHalLinkFactory extends HalLinkFactory<DSpaceResource,
                             }
                         }
 
-                    } else if (RestModel.class.isAssignableFrom(readMethod.getReturnType())) {
+                    } else if (DirectlyAddressableRestModel.class.isAssignableFrom(readMethod.getReturnType())) {
                         Link linkToSubResource = utils.linkToSubResource(data, name);
                         halResource.add(linkToSubResource);
                     }

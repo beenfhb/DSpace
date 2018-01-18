@@ -8,9 +8,14 @@
 package org.dspace.app.rest.utils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -23,6 +28,7 @@ import org.dspace.app.rest.exception.InvalidSearchFacetException;
 import org.dspace.app.rest.exception.InvalidSearchFilterException;
 import org.dspace.app.rest.exception.InvalidSortingException;
 import org.dspace.app.rest.parameter.SearchFilter;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -70,7 +76,7 @@ public class DiscoverQueryBuilderTest {
     private Context context;
 
     @Mock
-    private DSpaceObject scope;
+    private BrowsableDSpaceObject scope;
 
     private DiscoveryConfiguration discoveryConfiguration;
     private String query;
@@ -85,7 +91,7 @@ public class DiscoverQueryBuilderTest {
 
         when(searchService.toSortFieldIndex(any(String.class), any(String.class))).then(invocation -> invocation.getArguments()[0] + "_sort");
 
-        when(searchService.getFacetYearRange(eq(context), any(DSpaceObject.class), any(DiscoverySearchFilterFacet.class), any())).then(invocation
+        when(searchService.getFacetYearRange(eq(context), any(BrowsableDSpaceObject.class), any(DiscoverySearchFilterFacet.class), any())).then(invocation
                 -> new FacetYearRange((DiscoverySearchFilterFacet) invocation.getArguments()[2]));
 
         when(searchService.toFilterQuery(any(Context.class), any(String.class), any(String.class), any(String.class)))
@@ -166,8 +172,8 @@ public class DiscoverQueryBuilderTest {
         assertThat(discoverQuery.getFacetOffset(), is(0));
         assertThat(discoverQuery.getFacetFields(), hasSize(2));
         assertThat(discoverQuery.getFacetFields(), containsInAnyOrder(
-                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 6, DiscoveryConfigurationParameters.SORT.COUNT)),
-                new ReflectionEquals(new DiscoverFacetField("hierarchy", DiscoveryConfigurationParameters.TYPE_HIERARCHICAL, 8, DiscoveryConfigurationParameters.SORT.VALUE))
+                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 6, DiscoveryConfigurationParameters.SORT.COUNT, false)),
+                new ReflectionEquals(new DiscoverFacetField("hierarchy", DiscoveryConfigurationParameters.TYPE_HIERARCHICAL, 8, DiscoveryConfigurationParameters.SORT.VALUE, false))
         ));
         assertThat(discoverQuery.getHitHighlightingFields(), hasSize(2));
         assertThat(discoverQuery.getHitHighlightingFields(), containsInAnyOrder(
@@ -193,8 +199,8 @@ public class DiscoverQueryBuilderTest {
         assertThat(discoverQuery.getFacetOffset(), is(0));
         assertThat(discoverQuery.getFacetFields(), hasSize(2));
         assertThat(discoverQuery.getFacetFields(), containsInAnyOrder(
-                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 6, DiscoveryConfigurationParameters.SORT.COUNT)),
-                new ReflectionEquals(new DiscoverFacetField("hierarchy", DiscoveryConfigurationParameters.TYPE_HIERARCHICAL, 8, DiscoveryConfigurationParameters.SORT.VALUE))
+                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 6, DiscoveryConfigurationParameters.SORT.COUNT, false)),
+                new ReflectionEquals(new DiscoverFacetField("hierarchy", DiscoveryConfigurationParameters.TYPE_HIERARCHICAL, 8, DiscoveryConfigurationParameters.SORT.VALUE, false))
         ));
         assertThat(discoverQuery.getHitHighlightingFields(), hasSize(2));
         assertThat(discoverQuery.getHitHighlightingFields(), containsInAnyOrder(
@@ -222,8 +228,8 @@ public class DiscoverQueryBuilderTest {
         assertThat(discoverQuery.getFacetOffset(), is(0));
         assertThat(discoverQuery.getFacetFields(), hasSize(2));
         assertThat(discoverQuery.getFacetFields(), containsInAnyOrder(
-                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 6, DiscoveryConfigurationParameters.SORT.COUNT)),
-                new ReflectionEquals(new DiscoverFacetField("hierarchy", DiscoveryConfigurationParameters.TYPE_HIERARCHICAL, 8, DiscoveryConfigurationParameters.SORT.VALUE))
+                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 6, DiscoveryConfigurationParameters.SORT.COUNT, false)),
+                new ReflectionEquals(new DiscoverFacetField("hierarchy", DiscoveryConfigurationParameters.TYPE_HIERARCHICAL, 8, DiscoveryConfigurationParameters.SORT.VALUE, false))
         ));
         assertThat(discoverQuery.getHitHighlightingFields(), hasSize(2));
         assertThat(discoverQuery.getHitHighlightingFields(), containsInAnyOrder(
@@ -277,7 +283,7 @@ public class DiscoverQueryBuilderTest {
         assertThat(discoverQuery.getFacetOffset(), is(10));
         assertThat(discoverQuery.getFacetFields(), hasSize(1));
         assertThat(discoverQuery.getFacetFields(), contains(
-                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 11, DiscoveryConfigurationParameters.SORT.COUNT))
+                new ReflectionEquals(new DiscoverFacetField("subject", DiscoveryConfigurationParameters.TYPE_TEXT, 11, DiscoveryConfigurationParameters.SORT.COUNT, false))
         ));
     }
 

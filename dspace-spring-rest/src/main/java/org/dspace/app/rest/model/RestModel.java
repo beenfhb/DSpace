@@ -19,6 +19,10 @@ import org.atteo.evo.inflector.English;
  *
  */
 public interface RestModel extends Serializable {
+	
+	public static final String DISCOVER = "discover";
+	public static final String ROOT = "root";
+	
 	public String getType();
 	
 	@JsonIgnore

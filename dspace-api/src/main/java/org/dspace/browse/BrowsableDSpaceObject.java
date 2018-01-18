@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 
@@ -24,7 +25,9 @@ public interface BrowsableDSpaceObject extends IGlobalSearchResult
 
     public List<IMetadataValue> getMetadata(String schema, String element,
             String qualifier, String lang);
-
+    
+    public List<IMetadataValue> getMetadata();
+    
     public String getMetadata(String field);
     
 	public boolean isDiscoverable();

@@ -59,9 +59,9 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
     @Transient
     private StringBuffer eventDetails = null;
     
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "dSpaceObject", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "dSpaceObject", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = MetadataValue.class)
     @OrderBy("metadataField, place")
-    private List<MetadataValue> metadata = new ArrayList<>();
+    private List<IMetadataValue> metadata = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "dso")
     // Order by is here to ensure that the oldest handle is retrieved first,
@@ -167,21 +167,21 @@ public abstract class DSpaceObject implements Serializable, ReloadableEntity<jav
         return handles;
     }
 
-    public List<MetadataValue> getMetadata() {
+    public List<IMetadataValue> getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(List<MetadataValue> metadata) {
+    public void setMetadata(List<IMetadataValue> metadata) {
         this.metadata = metadata;
     }
 
-    protected void removeMetadata(MetadataValue metadataValue)
+    protected void removeMetadata(IMetadataValue metadataValue)
     {
         setMetadataModified();
         getMetadata().remove(metadataValue);
     }
 
-    protected void removeMetadata(List<MetadataValue> metadataValues)
+    protected void removeMetadata(List<IMetadataValue> metadataValues)
     {
         setMetadataModified();
         getMetadata().removeAll(metadataValues);

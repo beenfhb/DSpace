@@ -314,7 +314,6 @@ public class RestResourceController implements InitializingBean {
 		Class<DirectlyAddressableRestModel> domainClass = repository.getDomainClass();
 		
 		LinkRest linkRest = utils.getLinkRest(rel, domainClass);
-		PagedResources<? extends HALResource> result;
 
 		if (linkRest != null) {
 			LinkRestRepository linkRepository = utils.getLinkResourceRepository(apiCategory, model, linkRest.name());
@@ -373,7 +372,7 @@ public class RestResourceController implements InitializingBean {
 			DSpaceRestRepository<DirectlyAddressableRestModel, ?> resourceRepository = utils
 					.getResourceRepository(fullList.get(0).getCategory(), fullList.get(0).getType());
 			PageImpl<DirectlyAddressableRestModel> pageResult = new PageImpl(fullList.subList(start, end), page, fullList.size());
-			result = assembler.toResource(pageResult.map(resourceRepository::wrapResource));
+			PagedResources<? extends HALResource> result = assembler.toResource(pageResult.map(resourceRepository::wrapResource));
 			return result;
 		} else {
 			return (ResourceSupport) resource.getEmbeddedResources().get(rel);

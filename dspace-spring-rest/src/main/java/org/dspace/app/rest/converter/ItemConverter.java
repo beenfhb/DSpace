@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ItemConverter extends DSpaceObjectConverter<org.dspace.content.Item, org.dspace.app.rest.model.ItemRest> {
+public class ItemConverter extends BrowsableDSpaceObjectConverter<org.dspace.content.Item, org.dspace.app.rest.model.ItemRest> {
 	@Autowired(required = true)
 	private CollectionConverter collectionConverter;
 	@Autowired(required = true)

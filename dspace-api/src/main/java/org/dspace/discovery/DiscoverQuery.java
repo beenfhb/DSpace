@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -398,7 +399,6 @@ public class DiscoverQuery
     	}
         this.viewFields.get(key).add(viewFields);
     }
-}
 
     public void addYearRangeFacet(DiscoverySearchFilterFacet facet, FacetYearRange facetYearRange) {
         if(facetYearRange.isValid()) {
@@ -416,7 +416,7 @@ public class DiscoverQuery
                 //We need a list of our years
                 //We have a date range add faceting for our field
                 //The faceting will automatically be limited to the 10 years in our span due to our filterquery
-                this.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar()));
+                this.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar(), false));
             } else {
                 List<String> facetQueries = buildFacetQueriesWithGap(newestYear, oldestYear, dateFacet, gap, topYear);
                 for (String facetQuery : CollectionUtils.emptyIfNull(facetQueries)) {

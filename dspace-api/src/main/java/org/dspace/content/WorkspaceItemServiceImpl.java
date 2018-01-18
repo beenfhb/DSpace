@@ -265,10 +265,10 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 	public void move(Context context, WorkspaceItem source, Collection fromCollection, Collection toCollection) throws DCInputsReaderException {
 		source.setCollection(toCollection);
 		
-		List<MetadataValue> remove = new ArrayList<>();
+		List<IMetadataValue> remove = new ArrayList<>();
 		List<String> diff = Util.diff(fromCollection, toCollection);
 		for(String toRemove : diff) {
-			for(MetadataValue value : source.getItem().getMetadata()) {
+			for(IMetadataValue value : source.getItem().getMetadata()) {
 				if(value.getMetadataField().toString('.').equals(toRemove)) {
 					remove.add(value);
 				}
