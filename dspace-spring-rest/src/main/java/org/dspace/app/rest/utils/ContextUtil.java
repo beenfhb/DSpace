@@ -7,13 +7,13 @@
  */
 package org.dspace.app.rest.utils;
 
-import java.sql.SQLException;
-
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
+
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import java.sql.SQLException;
 
 /**
  * Miscellaneous UI utility methods methods for managing DSpace context.

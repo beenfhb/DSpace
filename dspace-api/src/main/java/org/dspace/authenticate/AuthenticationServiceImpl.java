@@ -10,12 +10,14 @@ package org.dspace.authenticate;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.authenticate.service.AuthenticationService;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
@@ -112,16 +114,7 @@ public class AuthenticationServiceImpl implements AuthenticationService
                     ret = AuthenticationMethod.NO_SUCH_USER;
                 }
                 if (ret == AuthenticationMethod.SUCCESS) {
-//                    TODO check if is correct uncomment this code                    
-//                    EPerson me = context.getCurrentUser();
-//                    me.setLastActive(new Date());
-//                    try {
-//                        ePersonService.update(context, me);
-//                    } catch (SQLException ex) {
-//                        log.error("Could not update last-active stamp", ex);
-//                    } catch (AuthorizeException ex) {
-//                        log.error("Could not update last-active stamp", ex);
-//                    }
+                    updateLastActiveDate(context);
                     return ret;
                 }
                 if (ret < bestRet) {
@@ -130,6 +123,20 @@ public class AuthenticationServiceImpl implements AuthenticationService
             }
         }
         return bestRet;
+    }
+
+    public void updateLastActiveDate(Context context) {
+        EPerson me = context.getCurrentUser();
+        if(me != null) {
+            me.setLastActive(new Date());
+            try {
+                ePersonService.update(context, me);
+            } catch (SQLException ex) {
+                log.error("Could not update last-active stamp", ex);
+            } catch (AuthorizeException ex) {
+                log.error("Could not update last-active stamp", ex);
+            }
+        }
     }
 
     @Override

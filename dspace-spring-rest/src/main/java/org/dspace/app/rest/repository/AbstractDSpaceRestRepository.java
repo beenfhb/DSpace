@@ -39,14 +39,9 @@ public abstract class AbstractDSpaceRestRepository {
 
 	protected Context obtainContext() {
 		Request currentRequest = requestService.getCurrentRequest();
-		Context context = (Context) currentRequest.getAttribute(ContextUtil.DSPACE_CONTEXT);
-		if (context != null && context.isValid()) {
-			return context;
-		}
-		context = new Context();
-		currentRequest.setAttribute(ContextUtil.DSPACE_CONTEXT, context);
+		Context context = ContextUtil.obtainContext(currentRequest.getServletRequest());
 		setUpTestUser(context);
-		return context;
+        return context;
 	}
 
 	private void setUpTestUser(Context context) {

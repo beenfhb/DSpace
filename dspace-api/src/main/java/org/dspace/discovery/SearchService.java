@@ -17,6 +17,7 @@ import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
+import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 
 /**
  * Search interface that discovery uses
@@ -158,4 +159,6 @@ public interface SearchService {
     String escapeQueryChars(String query);
 
     QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
+
+    FacetYearRange getFacetYearRange(Context context, DSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException;
 }

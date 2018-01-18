@@ -28,6 +28,7 @@ import org.dspace.content.MetadataValue;
  */
 public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends org.dspace.app.rest.model.DSpaceObjectRest>
 		extends DSpaceConverter<M, R> {
+
 	@Override
 	public R fromModel(M obj) {
 		R resource = newInstance();
@@ -53,5 +54,12 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
 		return null;
 	}
 
+	public boolean supportsModel(DSpaceObject object) {
+		return object != null && object.getClass().equals(getModelClass());
+	}
+
 	protected abstract R newInstance();
+
+	protected abstract Class<M> getModelClass();
+
 }

@@ -61,4 +61,9 @@ public class CommunityConverter
 	protected CommunityRest newInstance() {
 		return new CommunityRest();
 	}
+
+	@Override
+	protected Class<org.dspace.content.Community> getModelClass() {
+		return org.dspace.content.Community.class;
+	}
 }

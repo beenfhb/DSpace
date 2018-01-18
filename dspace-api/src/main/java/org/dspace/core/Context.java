@@ -7,36 +7,24 @@
  */
 package org.dspace.core;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.EmptyStackException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.Stack;
-import java.util.UUID;
-
 import org.apache.log4j.Logger;
-import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
-import org.dspace.content.EPersonCRISIntegration;
-import org.dspace.content.Item;
-import org.dspace.core.exception.DatabaseSchemaValidationException;
-import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.content.DSpaceObject;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.EPersonService;
 import org.dspace.event.Dispatcher;
 import org.dspace.event.Event;
 import org.dspace.event.factory.EventServiceFactory;
 import org.dspace.event.service.EventService;
-import org.dspace.services.factory.DSpaceServicesFactoryImpl;
 import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.utils.DSpace;
 import org.springframework.util.CollectionUtils;
+
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Class representing the context of a particular DSpace operation. This stores
@@ -55,15 +43,13 @@ import org.springframework.util.CollectionUtils;
  * 
  * @version $Revision$
  */
-public class Context
+public class Context implements AutoCloseable
 {
     private static final Logger log = Logger.getLogger(Context.class);
+    protected static final AtomicBoolean databaseUpdated = new AtomicBoolean(false);
 
     /** Current user - null means anonymous access */
     private EPerson currentUser;
-
-	/** Current user crisID if any **/
-	private String crisID;
 
     /** Current Locale */
     private Locale currentLocale;
@@ -95,46 +81,17 @@ public class Context
     /** Context mode */
     private Mode mode = Mode.READ_WRITE;
 
-    /**
-     * Check to get ItemWrapper on demand {@link Item}
-     */
-    private boolean requiredItemWrapper;
-
-    /** A stack with the history of the requiredItemWrapper check modify */
-    private Stack<Boolean> itemWrapperChangeHistory;
-    
-    /**
-     * A stack with the name of the caller class that modify requiredItemWrapper
-     * system check
-     */
-    private Stack<String> itemWrapperCallHistory;
-
     /** Cache that is only used the context is in READ_ONLY mode */
     private ContextReadOnlyCache readOnlyCache = new ContextReadOnlyCache();
 
     protected EventService eventService;
 
-    DBConnection dbConnection;
+    private DBConnection dbConnection;
 
     public enum Mode {
         READ_ONLY,
         READ_WRITE,
         BATCH_EDIT
-    }
-
-    static
-    {
-        // Before initializing a Context object, we need to ensure the database
-        // is up-to-date. This ensures any outstanding Flyway migrations are run
-        // PRIOR to Hibernate initializing (occurs when DBConnection is loaded in init() below).
-        try
-        {
-            DatabaseUtils.updateDatabase();
-        }
-        catch(SQLException sqle)
-        {
-            log.fatal("Cannot initialize database via Flyway!", sqle);
-        }
     }
 
     protected Context(EventService eventService, DBConnection dbConnection)  {
@@ -173,8 +130,10 @@ public class Context
      * @throws SQLException
      *                if there was an error obtaining a database connection
      */
-    private void init()
+    protected void init()
     {
+        updateDatabase();
+
         if(eventService == null)
         {
             eventService = EventServiceFactory.getInstance().getEventService();
@@ -182,7 +141,6 @@ public class Context
         if(dbConnection == null)
         {
             // Obtain a non-auto-committing connection
-            // dbConnection = new DSpace().getSingletonService(DBConnection.class);
             dbConnection = new DSpace().getServiceManager()
                     .getServiceByName(null, DBConnection.class);
             if(dbConnection == null)
@@ -196,16 +154,30 @@ public class Context
         currentLocale = I18nUtil.DEFAULTLOCALE;
         extraLogInfo = "";
         ignoreAuth = false;
-        requiredItemWrapper = true;
 
         specialGroups = new ArrayList<>();
 
-        authStateChangeHistory = new Stack<Boolean>();
-        authStateClassCallHistory = new Stack<String>();
-        
-        itemWrapperChangeHistory = new Stack<Boolean>();
-        itemWrapperCallHistory = new Stack<String>();
+        authStateChangeHistory = new Stack<>();
+        authStateClassCallHistory = new Stack<>();
         setMode(this.mode);
+    }
+
+    public static boolean updateDatabase() {
+        //If the database has not been updated yet, update it and remember that.
+        if (databaseUpdated.compareAndSet(false, true)) {
+
+            // Before initializing a Context object, we need to ensure the database
+            // is up-to-date. This ensures any outstanding Flyway migrations are run
+            // PRIOR to Hibernate initializing (occurs when DBConnection is loaded in calling init() method).
+            try {
+                DatabaseUtils.updateDatabase();
+            } catch (SQLException sqle) {
+                log.fatal("Cannot initialize database via Flyway!", sqle);
+                databaseUpdated.set(false);
+            }
+        }
+
+        return databaseUpdated.get();
     }
 
     /**
@@ -213,7 +185,7 @@ public class Context
      * 
      * @return the database connection
      */
-    public DBConnection getDBConnection()
+    DBConnection getDBConnection()
     {
         return dbConnection;
     }
@@ -238,16 +210,6 @@ public class Context
     public void setCurrentUser(EPerson user)
     {
         currentUser = user;
-
-		EPersonCRISIntegration plugin = (EPersonCRISIntegration) CoreServiceFactory.getInstance().getPluginService()
-				.getSinglePlugin(org.dspace.content.EPersonCRISIntegration.class);
-		if (plugin != null) {
-			if (user != null) {
-				crisID = plugin.getResearcher(user.getID());
-			} else {
-				crisID = null;
-			}
-		}
     }
 
     /**
@@ -260,10 +222,6 @@ public class Context
     {
         return currentUser;
     }
-
-	public String getCrisID() {
-		return crisID;
-	}
 
     /**
      * Gets the current Locale
@@ -615,6 +573,13 @@ public class Context
         }
     }
 
+    @Override
+    public void close() {
+        if(isValid()) {
+            abort();
+        }
+    }
+
     /**
      * 
      * Find out if this context is valid. Returns <code>false</code> if this
@@ -822,7 +787,7 @@ public class Context
         dbConnection.uncacheEntity(entity);
     }
 
-    public Boolean getCachedAuthorizationResult(AuthorizableEntity dspaceObject, int action, EPerson eperson) {
+    public Boolean getCachedAuthorizationResult(DSpaceObject dspaceObject, int action, EPerson eperson) {
         if(isReadOnly()) {
             return readOnlyCache.getCachedAuthorizationResult(dspaceObject, action, eperson);
         } else {
@@ -830,7 +795,7 @@ public class Context
         }
     }
 
-    public void cacheAuthorizedAction(AuthorizableEntity dspaceObject, int action, EPerson eperson, Boolean result, ResourcePolicy rp) {
+    public void cacheAuthorizedAction(DSpaceObject dspaceObject, int action, EPerson eperson, Boolean result, ResourcePolicy rp) {
         if(isReadOnly()) {
             readOnlyCache.cacheAuthorizedAction(dspaceObject, action, eperson, result);
             try {
@@ -876,78 +841,4 @@ public class Context
     private void reloadContextBoundEntities() throws SQLException {
         currentUser = reloadEntity(currentUser);
     }
-
-
-    public boolean isRequiredItemWrapper()
-    {
-        return requiredItemWrapper;
-    }
-
-    /**
-    * Turn Off the Item Wrapper for this context and store this change
-    * in a history for future use.
-    */
-   public void turnOffItemWrapper()
-   {
-       itemWrapperChangeHistory.push(requiredItemWrapper);
-       if (log.isDebugEnabled())
-       {
-           Thread currThread = Thread.currentThread();
-           StackTraceElement[] stackTrace = currThread.getStackTrace();
-           String caller = stackTrace[stackTrace.length - 1].getClassName();
-
-           itemWrapperCallHistory.push(caller);
-       }
-       requiredItemWrapper = false;
-   }
-   
-   
-   /**
-    * Restore the previous item wrapper system state. If the state was not
-    * changed by the current caller a warning will be displayed in log. Use:
-    * <code>
-    *     mycontext.turnOffItemWrapper();
-    *     some java code that require no item wrapper
-    *     mycontext.restoreItemWrapperState(); 
-        * </code> If Context debug is enabled, the correct sequence calling will be
-    * checked and a warning will be displayed if not.
-    */
-   public void restoreItemWrapperState()
-   {
-       Boolean previousState;
-       try
-       {
-           previousState = itemWrapperChangeHistory.pop();
-       }
-       catch (EmptyStackException ex)
-       {
-           log.warn(LogManager.getHeader(this, "restore_itemwrap_sys_state",
-                   "not previous state info available "
-                           + ex.getLocalizedMessage()));
-           previousState = Boolean.FALSE;
-       }
-       if (log.isDebugEnabled())
-       {
-           Thread currThread = Thread.currentThread();
-           StackTraceElement[] stackTrace = currThread.getStackTrace();
-           String caller = stackTrace[stackTrace.length - 1].getClassName();
-
-           String previousCaller = (String) itemWrapperCallHistory.pop();
-
-           // if previousCaller is not the current caller *only* log a warning
-           if (!previousCaller.equals(caller))
-           {
-               log
-                       .warn(LogManager
-                               .getHeader(
-                                       this,
-                                       "restore_itemwrap_sys_state",
-                                       "Class: "
-                                               + caller
-                                               + " call restore but previous state change made by "
-                                               + previousCaller));
-           }
-       }
-       requiredItemWrapper = previousState.booleanValue();
-   }
 }

@@ -459,4 +459,8 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 			List<String> values, List<String> authorities, List<Integer> confidences) throws SQLException {
 		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
 	}
+
+    public Long getLastModified(Bitstream bitstream) {
+       return bitstreamStorageService.getLastModified(bitstream);
+    }
 }

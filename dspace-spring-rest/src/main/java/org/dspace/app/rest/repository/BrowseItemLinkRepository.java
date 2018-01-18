@@ -9,7 +9,6 @@ package org.dspace.app.rest.repository;
 
 import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -18,6 +17,7 @@ import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.model.BrowseIndexRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.hateoas.ItemResource;
+import org.dspace.app.rest.utils.ScopeResolver;
 import org.dspace.browse.BrowseEngine;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
@@ -25,8 +25,6 @@ import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.BrowserScope;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.service.CollectionService;
-import org.dspace.content.service.CommunityService;
 import org.dspace.core.Context;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
@@ -56,10 +54,7 @@ public class BrowseItemLinkRepository extends AbstractDSpaceRestRepository
 	ItemRestRepository itemRestRepository;
 
 	@Autowired
-	CollectionService collectionService;
-
-	@Autowired
-	CommunityService communityService;
+	ScopeResolver scopeResolver;
 
 	public Page<ItemRest> listBrowseItems(HttpServletRequest request, String browseName, Pageable pageable, String projection)
 			throws BrowseException, SQLException {
@@ -74,16 +69,10 @@ public class BrowseItemLinkRepository extends AbstractDSpaceRestRepository
 			filterAuthority = request.getParameter("filterAuthority");
 		}
 		Context context = obtainContext();
-		BrowseEngine be = new BrowseEngine(context, context.getCurrentLocale().toString());
+		BrowseEngine be = new BrowseEngine(context);
 		BrowserScope bs = new BrowserScope(context);
-		DSpaceObject scopeObj = null;
-		if (scope != null) {
-			UUID uuid = UUID.fromString(scope);
-			scopeObj = communityService.find(context, uuid);
-			if (scopeObj == null) {
-				scopeObj = collectionService.find(context, uuid);
-			}
-		}
+
+		DSpaceObject scopeObj = scopeResolver.resolveScope(context, scope);
 
 		// process the input, performing some inline validation
 		BrowseIndex bi = null;
@@ -159,7 +148,7 @@ public class BrowseItemLinkRepository extends AbstractDSpaceRestRepository
 		BrowseInfo binfo = be.browse(bs);
 
 		Pageable pageResultInfo = new PageRequest((binfo.getStart() -1) / binfo.getResultsPerPage(), binfo.getResultsPerPage());
-		Page<ItemRest> page = new PageImpl<Item>(binfo.getItemResults(context), pageResultInfo, binfo.getTotal())
+		Page<ItemRest> page = new PageImpl<Item>(binfo.getBrowseItemResults(), pageResultInfo, binfo.getTotal())
 				.map(converter);
 		return page;
 	}

@@ -9,6 +9,8 @@ package org.dspace.app.rest.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.atteo.evo.inflector.English;
 /**
  * A REST resource directly or indirectly (in a collection) exposed must have at
  * least a type attribute to facilitate deserialization
@@ -18,4 +20,10 @@ import java.io.Serializable;
  */
 public interface RestModel extends Serializable {
 	public String getType();
+	
+	@JsonIgnore
+	default public String getTypePlural() {
+		return English.plural(getType());
+	}
+
 }

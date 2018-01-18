@@ -7,6 +7,8 @@
  */
 package org.dspace.discovery;
 
+import static org.dspace.discovery.configuration.DiscoverySortConfiguration.SCORE;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -1932,12 +1934,21 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     solrQuery.setFacetPrefix(field, facetFieldConfig.getPrefix());
                 }
             }
+        }
 
-            if(discoveryQuery.getFacetMinCount() != -1)
-            {
-                solrQuery.setFacetMinCount(discoveryQuery.getFacetMinCount());
-            }
+        List<String> facetQueries = discoveryQuery.getFacetQueries();
+        for (String facetQuery : facetQueries)
+        {
+            solrQuery.addFacetQuery(facetQuery);
+        }
 
+        if (discoveryQuery.getFacetMinCount() != -1)
+        {
+            solrQuery.setFacetMinCount(discoveryQuery.getFacetMinCount());
+        }
+
+        if(CollectionUtils.isNotEmpty(facetFields) || CollectionUtils.isNotEmpty(facetQueries))
+        {
             solrQuery.setParam(FacetParams.FACET_OFFSET, String.valueOf(discoveryQuery.getFacetOffset()));
         }
 
@@ -2157,7 +2168,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     //No need to show empty years
                     if(0 < count)
                     {
-                        result.addFacetResult(facetField, new DiscoverResult.FacetResult(filter, name, null, name, count));
+                        result.addFacetResult(facetField, new DiscoverResult.FacetResult(filter, name, null, name, count, DiscoveryConfigurationParameters.TYPE_DATE));
                         result.addFacetQueryResult(name, new DiscoverResult.FacetResult(facetField, name, null, name, count));
                     }
                 }
@@ -2418,7 +2429,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     @Override
     public String toSortFieldIndex(String metadataField, String type)
     {
-        if(type.equals(DiscoveryConfigurationParameters.TYPE_DATE))
+        if(StringUtils.equalsIgnoreCase(SCORE, metadataField))
+        {
+            return SCORE;
+        }
+        else if (StringUtils.equals(type, DiscoveryConfigurationParameters.TYPE_DATE))
         {
             return metadataField + "_dt";
         }else{
@@ -2624,6 +2639,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         // otherwise you may accidentally BREAK field-based queries (which often
         // rely on special characters to separate the field from the query value)
         return ClientUtils.escapeQueryChars(query);
+    }
+
+    @Override
+    public FacetYearRange getFacetYearRange(Context context, DSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException {
+        FacetYearRange result = new FacetYearRange(facet);
+        result.calculateRange(context, filterQueries, scope, this);
+        return result;
     }
 
 	@Override

@@ -60,19 +60,7 @@ public class SearchUtils {
     {
         DiscoveryConfigurationService configurationService = getConfigurationService();
 
-        DiscoveryConfiguration result = null;
-        if(configurationName == null){
-            result = configurationService.getMap().get("site");
-        }else{
-            result = configurationService.getMap().get(configurationName);
-        }
-
-        if (result == null) {
-            //No specific configuration, get the default one
-            result = configurationService.getMap().get("default");
-        }
-
-        return result;
+        return configurationService.getDiscoveryConfiguration(configurationName);
     }
 
     public static DiscoveryConfigurationService getConfigurationService() {

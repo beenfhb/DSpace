@@ -191,4 +191,12 @@ public interface BitstreamStorageService {
     public void migrate(Context context, Integer assetstoreSource, Integer assetstoreDestination, boolean deleteOld, Integer batchCommitSize) throws IOException, SQLException, AuthorizeException;
 
     public String absolutePath(Context context, Bitstream bitstream) throws IOException;
+
+    /**
+     * Get the last modified timestamp of the file linked to the given bitstream
+     * @param bitstream The bitstream for which to get the last modified timestamp
+     * @return The last modified timestamp in milliseconds
+     */
+    public Long getLastModified(Bitstream bitstream);
+
 }
