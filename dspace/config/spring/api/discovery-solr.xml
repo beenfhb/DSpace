@@ -9,8 +9,6 @@
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-<!--	<bean class="org.dspace.discovery.SolrServiceImpl" id="org.dspace.discovery.SearchService"/> -->
-	<bean class="org.dspace.app.cris.discovery.CrisSearchService" id="org.dspace.discovery.SearchService"/> 
     <bean name='org.dspace.util.MultiFormatDateParser'
           class='org.dspace.util.MultiFormatDateParser'>
         <property name='patterns'>
@@ -47,7 +45,5 @@
             </map>
         </property>
     </bean>
-
-    <alias name="org.dspace.discovery.SearchService" alias="org.dspace.discovery.IndexingService"/>
 
 </beans>

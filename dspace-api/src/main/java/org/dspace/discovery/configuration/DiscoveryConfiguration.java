@@ -112,7 +112,7 @@ public class DiscoveryConfiguration implements InitializingBean{
         return null;
     }
 
-    @Required
+    //@Required D4C-20180119 to retrieve global-configuration need to relax this constraint
     public void setSearchFilters(List<DiscoverySearchFilter> searchFilters) {
         this.searchFilters = searchFilters;
     }
