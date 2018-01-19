@@ -97,7 +97,6 @@ public abstract class DSpaceResource<T extends DirectlyAddressableRestModel> ext
 							Link linkToSubResource = utils.linkToSubResource(data, name);	
 							// no method is specified to retrieve the linked object(s) so check if it is already here
 							if (StringUtils.isBlank(linkAnnotation.method())) {
-								this.add(linkToSubResource);
 								Object linkedObject = readMethod.invoke(data);
 								Object wrapObject = linkedObject;
 								if (linkedObject instanceof DirectlyAddressableRestModel) {
@@ -168,8 +167,6 @@ public abstract class DSpaceResource<T extends DirectlyAddressableRestModel> ext
 							}
 						}
 						else if (DirectlyAddressableRestModel.class.isAssignableFrom(readMethod.getReturnType())) {
-							Link linkToSubResource = utils.linkToSubResource(data, name);
-							this.add(linkToSubResource);
 							DirectlyAddressableRestModel linkedObject = (DirectlyAddressableRestModel) readMethod.invoke(data);
 							if (linkedObject != null) {
 								embedded.put(name,
