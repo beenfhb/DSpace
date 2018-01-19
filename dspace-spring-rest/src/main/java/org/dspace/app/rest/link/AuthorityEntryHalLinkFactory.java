@@ -39,7 +39,7 @@ public class AuthorityEntryHalLinkFactory extends HalLinkFactory<AuthorityEntryR
                         English.plural(AuthorityRest.NAME), entry.getAuthorityName() + "/" + AuthorityRest.ENTRY,
                         entry.getOtherInformation().get(AuthorityUtils.RESERVED_KEYMAP_PARENT), null, null, null)).toUriComponentsBuilder();
 
-                list.add(buildLink(uriComponentsBuilder.build().toString(), AuthorityUtils.RESERVED_KEYMAP_PARENT));
+                list.add(buildLink(AuthorityUtils.RESERVED_KEYMAP_PARENT, uriComponentsBuilder.build().toString()));
             }
         }
     }
