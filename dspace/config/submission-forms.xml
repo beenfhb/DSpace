@@ -21,7 +21,21 @@
  <!-- serves as a 'this field is required' flag.                           -->
 
  <form-definitions>
-
+	<form name="bitstream-metadata">
+	  <row>
+       <field>
+         <dc-schema>dc</dc-schema>
+         <dc-element>title</dc-element>
+         <dc-qualifier></dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Title</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the name of the file.</hint>
+         <required>You must enter a main title for this file.</required>
+       </field>
+      </row> 
+	</form>
+	
 	<form name="traditionalpageone-dc-contributor-author">
 		<row>
 			<field>

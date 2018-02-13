@@ -8,6 +8,7 @@
 package org.dspace.app.util;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,6 +21,10 @@ import javax.xml.parsers.FactoryConfigurationError;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -696,5 +701,22 @@ public class SubmissionConfigReader
         }
         // Didn't find a text node
         return null;
+    }
+    
+    public List<Collection> getCollectionsBySubmissionConfig(Context context, String submitName) throws IllegalStateException, SQLException
+    {
+    	List<Collection> results = new ArrayList<>();
+        // get the submission-map keys
+        for(String handle : collectionToSubmissionConfig.keySet()) {
+        	if(!DEFAULT_COLLECTION.equals(handle)) {
+	        	if(collectionToSubmissionConfig.get(handle).equals(submitName)) {
+	        		DSpaceObject result = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
+	        		if(result!=null) {
+	        			results.add((Collection)result);
+	        		}
+	        	}
+        	}
+        }
+        return results;
     }
 }

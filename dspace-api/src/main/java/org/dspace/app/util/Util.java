@@ -570,7 +570,7 @@ public class Util {
         return issn;
     }
 
-	public static List<String> diff(Collection fromCollection, Collection toCollection) throws DCInputsReaderException {
+	public static List<String> differenceInSubmissionFields(Collection fromCollection, Collection toCollection) throws DCInputsReaderException {
 		DCInputsReader reader = new DCInputsReader();
 		List<DCInputSet> from = reader.getInputsByCollectionHandle(fromCollection.getHandle());
 		List<DCInputSet> to = reader.getInputsByCollectionHandle(toCollection.getHandle());

@@ -92,7 +92,7 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
         HSSFCellStyle headerStyle = wb.createCellStyle();
 
         HSSFFont bold = wb.createFont();
-        bold.setBoldweight((short) 700);
+        bold.setBold(true);
         bold.setColor((short) 0);
 
         headerStyle.setFont(bold);

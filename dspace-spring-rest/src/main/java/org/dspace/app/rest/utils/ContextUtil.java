@@ -62,7 +62,6 @@ public class ContextUtil
         if (context == null)
         {
             context = ContextUtil.initializeContext();
-            
             // Store the context in the request
             request.setAttribute(DSPACE_CONTEXT, context);
         }

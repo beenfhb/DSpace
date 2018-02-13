@@ -33,8 +33,7 @@ public class SubmissionSectionHalLinkFactory extends HalLinkFactory<SubmissionSe
     protected void addLinks(final SubmissionSectionResource halResource, final Pageable pageable, final LinkedList<Link> list) throws Exception{
         SubmissionSectionRest sd = halResource.getContent();
 
-        if(SubmissionStepConfig.INPUT_FORM_STEP_NAME.equals(sd.getSectionType())) {
-
+		if(SubmissionStepConfig.INPUT_FORM_STEP_NAME.equals(sd.getSectionType())) {
             UriComponentsBuilder uriComponentsBuilder = linkTo(getMethodOn(SubmissionFormRest.CATEGORY, SubmissionFormRest.NAME)
                     .findRel(null, SubmissionFormRest.CATEGORY, English.plural(SubmissionFormRest.NAME), sd.getId(), "", null, null, null))
                     .toUriComponentsBuilder();

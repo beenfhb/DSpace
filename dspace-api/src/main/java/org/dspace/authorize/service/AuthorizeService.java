@@ -469,7 +469,7 @@ public interface AuthorizeService {
      * @throws AuthorizeException if authorization error
      */
     public void generateAutomaticPolicies(Context context, Date embargoDate, String reason, AuthorizableEntity dso, Collection owningCollection) throws SQLException, AuthorizeException;
-
+    
     public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson, int type, String rpType) throws SQLException, AuthorizeException;
     
     public ResourcePolicy createResourcePolicy(Context context, AuthorizableEntity dso, Group group, EPerson eperson, int type, String rpType, String rpName, String rpDescription, Date startDate, Date endDate) throws SQLException, AuthorizeException;

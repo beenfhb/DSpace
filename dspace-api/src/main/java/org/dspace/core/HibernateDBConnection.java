@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 
 /**
- * Hibernate implementation of the DBConnection
+ * Hibernate implementation of the DBConnection.
  *
  * @author kevinvandevelde at atmire.com
  */

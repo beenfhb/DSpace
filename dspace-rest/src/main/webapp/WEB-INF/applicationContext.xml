@@ -18,8 +18,8 @@
 
     <!-- Acquires the DSpace Utility Class with initialized Service Manager -->
     <bean id="dspace" class="org.dspace.utils.DSpace"/>
-    
-    <!-- Acquires reference to EventService --> 
+
+    <!-- Acquires reference to EventService -->
     <bean id="dspace.eventService" factory-bean="dspace" factory-method="getEventService"/>
 
     <!-- Inject the Default LoggerUsageEventListener into the EventService  -->
@@ -30,18 +30,16 @@
     </bean>
 
     <!-- Inject the SolrLoggerUsageEventListener into the EventService  -->
+    <!-- 
+    Temporarily commented out SolrLoggerUsageEventListener to get REST API working on master. 
+    This should be uncommented again once DS-3815 is resolved.
+
     <bean class="org.dspace.statistics.SolrLoggerUsageEventListener">
         <property name="eventService" >
             <ref bean="dspace.eventService"/>
         </property>
     </bean>
-
-    <!-- Elastic Search -->
-    <!--<bean class="org.dspace.statistics.ElasticSearchLoggerEventListener">
-        <property name="eventService">
-            <ref bean="dspace.eventService" />
-        </property>
-    </bean>-->
+    -->
 
     <!-- TabFileUsageEventListener -->
     <!-- Uncomment to enable
@@ -52,7 +50,7 @@
     </bean>
     -->
 
-    <!-- 
+    <!--
     Uncomment to enable PassiveUsageEventListener
     <bean class="org.dspace.app.statistics.PassiveUsageEventListener">
         <property name="eventService" >
@@ -60,5 +58,5 @@
         </property>
     </bean>
      -->
-     
+
 </beans>

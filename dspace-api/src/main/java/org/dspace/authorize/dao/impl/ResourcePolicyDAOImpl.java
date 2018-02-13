@@ -32,7 +32,8 @@ import org.hibernate.criterion.Restrictions;
  */
 public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> implements ResourcePolicyDAO
 {
-
+	private static final Logger log = Logger.getLogger(ResourcePolicyDAOImpl.class);
+	
     protected ResourcePolicyDAOImpl()
     {
         super();
