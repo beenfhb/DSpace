@@ -125,8 +125,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 		try {		
 			Context context = obtainContext();
 			EPerson ep = epersonService.find(context, submitterID); 
-			witems = wis.findByEPerson(context, ep);
-			total = witems.size();
+			witems = wis.findByEPerson(context, ep, pageable.getPageSize(), pageable.getOffset());
+			total = wis.countByEPerson(context, ep);
 		} catch (SQLException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}

@@ -28,6 +28,8 @@ import java.util.Map;
 public interface WorkspaceItemDAO extends GenericDAO<WorkspaceItem> {
 
     public List<WorkspaceItem> findByEPerson(Context context, EPerson ep) throws SQLException;
+    
+    public List<WorkspaceItem> findByEPerson(Context context, EPerson ep, Integer limit, Integer offset) throws SQLException;
 
     public List<WorkspaceItem> findByCollection(Context context, Collection c) throws SQLException;
 
@@ -44,4 +46,7 @@ public interface WorkspaceItemDAO extends GenericDAO<WorkspaceItem> {
     int countRows(Context context) throws SQLException;
 
     List<Map.Entry<Integer, Long>> getStageReachedCounts(Context context) throws SQLException;
+
+	public int countRows(Context context, EPerson ep) throws SQLException;
+
 }

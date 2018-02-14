@@ -249,6 +249,14 @@ public abstract class AbstractHibernateDAO<T> implements GenericDAO<T> {
         Iterator<T> result = (Iterator<T>) query.iterate();
         return result;
     }
+    
+    public Iterator<T> iterate(Criteria criteria)
+    {
+        @SuppressWarnings("unchecked")
+        Iterator<T> result = (Iterator<T>) criteria.scroll();
+        return result;
+    }
+
 
     /**
      * How many rows match these criteria?

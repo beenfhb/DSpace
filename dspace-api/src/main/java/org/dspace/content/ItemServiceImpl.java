@@ -220,6 +220,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     public Iterator<Item> findBySubmitter(Context context, EPerson eperson) throws SQLException {
         return itemDAO.findBySubmitter(context, eperson);
     }
+    
+    @Override
+    public List<Item> findBySubmitter(Context context, EPerson eperson, Integer limit, Integer offset) throws SQLException {
+    	return itemDAO.findBySubmitter(context, eperson, limit, offset);
+    }
 
     @Override
     public Iterator<Item> findBySubmitterDateSorted(Context context, EPerson eperson, Integer limit) throws SQLException {
@@ -1347,6 +1352,11 @@ prevent the generation of resource policy entry values with null dspace_object a
 
 	public void setWrapperService(ItemWrapperIntegration wrapperService) {
 		this.wrapperService = wrapperService;
+	}
+
+	@Override
+	public int countBySubmitter(Context context, EPerson ep) throws SQLException {
+		return itemDAO.countItems(context, ep, true, false);
 	}
 
 }
