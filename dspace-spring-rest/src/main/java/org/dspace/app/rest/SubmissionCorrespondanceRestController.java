@@ -144,8 +144,8 @@ public class SubmissionCorrespondanceRestController implements InitializingBean 
 		if (controllers != null) {
 			authorizeService.addPolicy(context, bitMessage, Constants.READ, controllers);
 		}
-		context.complete();
 		notify(context, item, toSet, subject, description);
+		context.commit();
 		context.restoreAuthSystemState();
 	}
 
@@ -168,7 +168,7 @@ public class SubmissionCorrespondanceRestController implements InitializingBean 
 		context.turnOffAuthorisationSystem();
 		bitstreamService.addMetadata(context, bitMessage, "dc", "date", "accessioned", null,
 				new DCDate(new Date()).toString());
-		context.complete();
+		context.commit();
 		context.restoreAuthSystemState();
 	}
 
@@ -189,7 +189,7 @@ public class SubmissionCorrespondanceRestController implements InitializingBean 
 
 		context.turnOffAuthorisationSystem();
 		bitstreamService.clearMetadata(context, bitMessage, "dc", "date", "accessioned", null);
-		context.complete();
+		context.commit();
 		context.restoreAuthSystemState();
 	}
 
@@ -212,10 +212,16 @@ public class SubmissionCorrespondanceRestController implements InitializingBean 
 	}
 
 	private boolean isSubmitter(Context context, Item item) {
+		if(context.getCurrentUser()==null) {
+			return false;
+		}
 		return item.getSubmitter().equals(context.getCurrentUser());
 	}
 
 	private boolean isController(Context context, Item item) throws SQLException {
+		if(context.getCurrentUser()==null) {
+			return false;
+		}
 		if (groupService.isMember(context, "Controllers") || authorizeService.isAdmin(context)) {
 			return true;
 		} else {
