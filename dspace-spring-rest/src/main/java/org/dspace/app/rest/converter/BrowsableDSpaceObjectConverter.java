@@ -14,6 +14,7 @@ import org.dspace.app.rest.model.MetadataEntryRest;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 
 /**
  * 
@@ -39,7 +40,7 @@ public abstract class BrowsableDSpaceObjectConverter<M extends BrowsableDSpaceOb
 		}
 		resource.setName(obj.getName());
 		List<MetadataEntryRest> metadata = new ArrayList<MetadataEntryRest>();
-		for (IMetadataValue mv : obj.getMetadata()) {
+		for (IMetadataValue mv : obj.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
 			MetadataEntryRest me = new MetadataEntryRest();
 			me.setKey(mv.getMetadataField().toString('.'));
 			me.setValue(mv.getValue());

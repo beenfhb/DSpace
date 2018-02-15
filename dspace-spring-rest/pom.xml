@@ -228,6 +228,12 @@
 			during the tomcat startup force the use of the previous version as the jar file 
 			looks corrupted in the maven repository -->
 			<!-- <version>2.5.5.RELEASE</version> -->
+			<exclusions>
+				<exclusion>
+          			<groupId>org.springframework.data</groupId>
+          			<artifactId>spring-data-rest-webmvc</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 
          <!-- Add in Spring Security for AuthN and AuthZ -->
