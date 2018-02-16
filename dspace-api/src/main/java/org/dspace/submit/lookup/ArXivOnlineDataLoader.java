@@ -39,7 +39,7 @@ public class ArXivOnlineDataLoader extends NetworkSubmissionLookupDataLoader
     @Override
     public List<String> getSupportedIdentifiers()
     {
-        return Arrays.asList(new String[] { ARXIV, DOI });
+        return Arrays.asList(new String[] { ARXIV });
     }
 
     public void setSearchProvider(boolean searchProvider)
@@ -60,13 +60,8 @@ public class ArXivOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         List<Record> results = new ArrayList<Record>();
         if (keys != null)
         {
-            Set<String> dois = keys.get(DOI);
             Set<String> arxivids = keys.get(ARXIV);
             List<Record> items = new ArrayList<Record>();
-            if (dois != null && dois.size() > 0)
-            {
-                items.addAll(arXivService.getByDOIs(dois));
-            }
             if (arxivids != null && arxivids.size() > 0)
             {
                 for (String arxivid : arxivids)
