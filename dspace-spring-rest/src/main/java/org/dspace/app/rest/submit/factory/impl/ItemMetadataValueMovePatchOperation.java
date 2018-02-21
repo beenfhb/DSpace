@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.submit.factory.impl;
 
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
@@ -36,7 +37,7 @@ public class ItemMetadataValueMovePatchOperation extends MetadataValueMovePatchO
 	ItemService itemService;
 
 	@Override
-	void move(Context context, Request currentRequest, WorkspaceItem source, String path, String from)
+	void move(Context context, Request currentRequest, InProgressSubmission source, String path, String from)
 			throws Exception {
 		String[] splitTo = getAbsolutePath(path).split("/");
 		

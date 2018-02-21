@@ -17,8 +17,8 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -55,7 +55,7 @@ public class ResourcePolicyReplacePatchOperation extends ReplacePatchOperation<R
 	EPersonService epersonService;
 
 	@Override
-	void replace(Context context, Request currentRequest, WorkspaceItem source, String path, Object value)
+	void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
 			throws Exception {
 		// "path": "/sections/upload/files/0/accessConditions/0"
 		// "abspath": "/files/0/accessConditions/0"

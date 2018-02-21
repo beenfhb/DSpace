@@ -15,7 +15,7 @@ import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.submit.factory.PatchOperationFactory;
 import org.dspace.app.rest.submit.factory.impl.PatchOperation;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.WorkspaceItem;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Context;
 import org.dspace.services.model.Request;
 
@@ -29,7 +29,7 @@ import org.dspace.services.model.Request;
 public class CollectionStep extends org.dspace.submit.step.SelectCollectionStep implements AbstractRestProcessingStep {
 
 	@Override
-	public UUID getData(SubmissionService submissionService, WorkspaceItem obj, SubmissionStepConfig config) {
+	public UUID getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) {
 		if (obj.getCollection() != null) {
 			return obj.getCollection().getID();
 		}
@@ -37,7 +37,7 @@ public class CollectionStep extends org.dspace.submit.step.SelectCollectionStep 
 	}
 
 	@Override
-	public void doPatchProcessing(Context context, Request currentRequest, WorkspaceItem source, Operation op)
+	public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op)
 			throws Exception {
 
 		PatchOperation<String> patchOperation = new PatchOperationFactory().instanceOf(COLLECTION_STEP_OPERATION_ENTRY, op.getOp());

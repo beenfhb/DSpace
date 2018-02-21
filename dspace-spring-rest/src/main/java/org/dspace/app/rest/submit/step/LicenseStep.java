@@ -17,7 +17,7 @@ import org.dspace.app.rest.submit.factory.PatchOperationFactory;
 import org.dspace.app.rest.submit.factory.impl.PatchOperation;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Bitstream;
-import org.dspace.content.WorkspaceItem;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.model.Request;
@@ -33,7 +33,7 @@ public class LicenseStep extends org.dspace.submit.step.LicenseStep implements A
 	private static final String DCTERMS_RIGHTSDATE = "dcterms.accessRights";
 
 	@Override
-	public DataLicense getData(SubmissionService submissionService, WorkspaceItem obj, SubmissionStepConfig config) throws Exception {
+	public DataLicense getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws Exception {
 		DataLicense result = new DataLicense();
 		Bitstream bitstream = bitstreamService.getBitstreamByName(obj.getItem(), Constants.LICENSE_BUNDLE_NAME, Constants.LICENSE_BITSTREAM_NAME);
 		if(bitstream!=null) {
@@ -46,7 +46,7 @@ public class LicenseStep extends org.dspace.submit.step.LicenseStep implements A
 	}
 
 	@Override
-	public void doPatchProcessing(Context context, Request currentRequest, WorkspaceItem source, Operation op) throws Exception {
+	public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op) throws Exception {
         
 		if(op.getPath().endsWith(LICENSE_STEP_OPERATION_ENTRY)) {
 			

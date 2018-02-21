@@ -25,8 +25,8 @@ import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.submit.UploadableStep;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
@@ -50,7 +50,7 @@ public class ExtractMetadataStep extends ExtractionStep implements UploadableSte
 
 	@Override
 	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
-			WorkspaceItem wsi, MultipartFile multipartFile, String extraField) throws IOException {
+			InProgressSubmission wsi, MultipartFile multipartFile, String extraField) throws IOException {
 
 		Item item = wsi.getItem();
 		try {
