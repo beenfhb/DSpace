@@ -35,7 +35,7 @@ public class ClaimedTaskConverter
 		ClaimedTaskRest taskRest = new ClaimedTaskRest();
 		
 		XmlWorkflowItem witem = obj.getWorkflowItem();
-
+		taskRest.setId(obj.getID());
 		taskRest.setWorkflowitem(workflowItemConverter.convert(witem));
 		taskRest.setAction(obj.getActionID());
 		taskRest.setStep(obj.getStepID());

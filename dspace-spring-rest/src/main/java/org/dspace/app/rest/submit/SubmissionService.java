@@ -78,26 +78,21 @@ public class SubmissionService {
 	
 	public WorkspaceItem createWorkspaceItem(Context context, Request request) {
 		WorkspaceItem wsi = null;
-		String collectionUUID = request.getHttpServletRequest().getParameter("collection");
-		if(StringUtils.isBlank(collectionUUID)) 
-		{
-			String uuid = configurationService.getProperty("submission.default.collection");
-			Collection collection = null;
-			try {
-			if(StringUtils.isNotBlank(uuid)) {
+		String uuid = request.getHttpServletRequest().getParameter("collection");
+		if (StringUtils.isBlank(uuid)) {
+			uuid = configurationService.getProperty("submission.default.collection");
+		}
+
+		Collection collection = null;
+		try {
+			if (StringUtils.isNotBlank(uuid)) {
 				collection = collectionService.find(context, UUID.fromString(uuid));
-			}
-			else {
+			} else {
 				collection = collectionService.findAll(context, 1, 0).get(0);
 			}
 			wsi = workspaceItemService.create(context, collection, true);
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-			}
-		}
-		else {
-			//TODO manage setup of default collection in the case WSI it is not null
-			//TODO manage setup of collection discovered into request
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		}
 		return wsi;
 	}
@@ -167,7 +162,9 @@ public class SubmissionService {
 			if (numCharsRead == arr.length) {
 				throw new RuntimeException("Malformed body... too long");
 			}
-			String[] split = buffer.toString().split("\\/api\\/"+WorkspaceItemRest.CATEGORY+"\\/"+WorkspaceItemRest.NAME+"\\/",2);
+			String regex = "\\/api\\/"+WorkspaceItemRest.CATEGORY+"\\/"+English.plural(WorkspaceItemRest.NAME)+"\\/";
+			System.out.println(regex);
+			String[] split = buffer.toString().split(regex,2);
 			if (split.length != 2) {
 				throw new RuntimeException("Malformed body..." + buffer);
 			}

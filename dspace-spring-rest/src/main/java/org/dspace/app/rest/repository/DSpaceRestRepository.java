@@ -179,12 +179,12 @@ extends AbstractDSpaceRestRepository
 		throw new RepositoryMethodNotImplementedException(apiCategory, model);
 	}
 
-	public T action(ID id) {
+	public T action(HttpServletRequest request, ID id) {
 		Context context = obtainContext();
-		return action(context, id);
+		return action(context, request, id);
 	}
 	
-	protected T action(Context context, ID id) {
+	protected T action(Context context, HttpServletRequest request, ID id) {
 		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 

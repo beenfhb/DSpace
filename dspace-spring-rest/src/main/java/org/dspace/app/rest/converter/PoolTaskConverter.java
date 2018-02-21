@@ -35,7 +35,7 @@ public class PoolTaskConverter
 		PoolTaskRest taskRest = new PoolTaskRest();
 		
 		XmlWorkflowItem witem = obj.getWorkflowItem();
-
+		taskRest.setId(obj.getID());
 		taskRest.setWorkflowitem(workflowItemConverter.convert(witem));
 		taskRest.setAction(obj.getActionID());
 		taskRest.setStep(obj.getStepID());

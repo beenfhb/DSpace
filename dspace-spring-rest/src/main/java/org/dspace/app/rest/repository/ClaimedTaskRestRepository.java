@@ -111,17 +111,17 @@ public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskR
 	}
 	
 	@Override
-	protected ClaimedTaskRest action(Context context, Integer id) {
+	protected ClaimedTaskRest action(Context context, HttpServletRequest request, Integer id) {
 		ClaimedTask task = null;
 		try {
 			task = claimedTaskService.find(context, id);
-			XmlWorkflowServiceFactory factory = (XmlWorkflowServiceFactory) XmlWorkflowServiceFactory.getInstance().getWorkflowFactory();
+			XmlWorkflowServiceFactory factory = (XmlWorkflowServiceFactory) XmlWorkflowServiceFactory.getInstance();
 			Workflow workflow = factory.getWorkflowFactory().getWorkflow(task.getWorkflowItem().getCollection());
 			Step step = workflow.getStep(task.getStepID());
 			WorkflowActionConfig currentActionConfig = step.getActionConfig(task.getActionID());
-			workflowService.doState(context, context.getCurrentUser(), (HttpServletRequest) getRequestService().getCurrentRequest(), 
+			workflowService.doState(context, context.getCurrentUser(), request, 
 					task.getWorkflowItem().getID(), workflow, currentActionConfig);
-			workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
+//			workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
 		} catch (SQLException | IOException | WorkflowConfigurationException | AuthorizeException | MessagingException | WorkflowException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}

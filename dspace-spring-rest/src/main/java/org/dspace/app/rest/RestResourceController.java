@@ -398,6 +398,44 @@ public class RestResourceController implements InitializingBean {
 	}	
 
 	/**
+	 * Called in POST, with a json payload, execute an action on a resource 
+     *
+	 * Note that the regular expression in the request mapping accept a number as identifier;
+	 * 
+	 * @param request
+	 * @param apiCategory
+	 * @param model
+	 * @param id
+	 * @param extraField
+	 * @param uploadfile
+	 * @return
+	 * @throws HttpRequestMethodNotSupportedException
+	 */
+	@RequestMapping(method = RequestMethod.POST, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_DIGIT , headers = "content-type=application/json")
+	public ResponseEntity<ResourceSupport> action(HttpServletRequest request,
+			@PathVariable String apiCategory, @PathVariable String model, @PathVariable Integer id) throws HttpRequestMethodNotSupportedException {
+		checkModelPluralForm(apiCategory, model);
+		DSpaceRestRepository<RestAddressableModel, Integer> repository = utils.getResourceRepository(apiCategory, model);
+		
+		RestAddressableModel modelObject = null;
+		try {
+			modelObject = repository.action(request, id);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			return ControllerUtils.toEmptyResponse(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		if (modelObject != null) {
+			DSpaceResource result = repository.wrapResource(modelObject);
+			linkService.addLinks(result);
+			return ControllerUtils.toResponseEntity(HttpStatus.CREATED, null, result);
+		}
+		else {
+			return ControllerUtils.toEmptyResponse(HttpStatus.NO_CONTENT);
+		}
+	}
+	
+	/**
 	 * Called in POST, multipart, upload a resource passed into "file" request parameter 
 	 * 
 	 * Note that the regular expression in the request mapping accept a number as identifier;
