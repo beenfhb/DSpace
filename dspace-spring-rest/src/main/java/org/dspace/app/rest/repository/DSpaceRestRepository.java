@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.rest.exception.PatchBadRequestException;
 import org.dspace.app.rest.exception.PatchUnprocessableEntityException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
+import org.dspace.app.rest.model.PoolTaskRest;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.hateoas.DSpaceResource;
 import org.dspace.app.rest.model.patch.Patch;
@@ -156,8 +157,7 @@ extends AbstractDSpaceRestRepository
 	}
 
 	protected T createAndReturn(Context context) {
-		//nothing default implementation
-		return null;
+		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 
 	public T upload(HttpServletRequest request, String apiCategory, String model, ID id, String extraField, MultipartFile file) throws Exception {
@@ -177,6 +177,15 @@ extends AbstractDSpaceRestRepository
 	
 	protected void patch(Context context, HttpServletRequest request, String apiCategory, String model, ID id, Patch patch) throws RepositoryMethodNotImplementedException, SQLException, AuthorizeException, DCInputsReaderException {
 		throw new RepositoryMethodNotImplementedException(apiCategory, model);
+	}
+
+	public T action(ID id) {
+		Context context = obtainContext();
+		return action(context, id);
+	}
+	
+	protected T action(Context context, ID id) {
+		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 
 }

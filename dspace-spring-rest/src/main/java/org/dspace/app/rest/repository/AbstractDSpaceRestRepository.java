@@ -8,6 +8,7 @@
 package org.dspace.app.rest.repository;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.rest.model.PoolTaskRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.core.Context;
