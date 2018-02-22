@@ -181,7 +181,14 @@ extends AbstractDSpaceRestRepository
 
 	public T action(HttpServletRequest request, ID id) {
 		Context context = obtainContext();
-		return action(context, request, id);
+		T entity = null;
+		try {
+			entity = action(context, request, id);
+			context.commit();
+		} catch (SQLException e) {
+			throw new PatchUnprocessableEntityException(e.getMessage());
+		}
+		return entity;
 	}
 	
 	protected T action(Context context, HttpServletRequest request, ID id) {
