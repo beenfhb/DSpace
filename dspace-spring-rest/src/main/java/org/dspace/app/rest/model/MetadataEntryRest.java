@@ -20,6 +20,10 @@ public class MetadataEntryRest {
 	String value;
 
 	String language;
+	
+	String authority;
+	
+	int confidence;
 
 	public String getKey() {
 		return key;
@@ -43,6 +47,22 @@ public class MetadataEntryRest {
 
 	public void setLanguage(String language) {
 		this.language = language;
+	}
+
+	public String getAuthority() {
+		return authority;
+	}
+
+	public void setAuthority(String authority) {
+		this.authority = authority;
+	}
+
+	public int getConfidence() {
+		return confidence;
+	}
+
+	public void setConfidence(int confidence) {
+		this.confidence = confidence;
 	}
 
 }
