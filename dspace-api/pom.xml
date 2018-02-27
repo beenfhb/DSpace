@@ -458,6 +458,10 @@
             		<artifactId>geronimo-stax-api_1.0_spec</artifactId>
             		<groupId>org.apache.geronimo.specs</groupId>
             	</exclusion>
+            	<exclusion>
+            		<artifactId>stax-api</artifactId>
+            		<groupId>stax</groupId>
+            	</exclusion>
             </exclusions>
         </dependency>
         <dependency>
