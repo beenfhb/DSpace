@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.rest.exception.PatchBadRequestException;
 import org.dspace.app.rest.exception.PatchUnprocessableEntityException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
-import org.dspace.app.rest.model.PoolTaskRest;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.hateoas.DSpaceResource;
 import org.dspace.app.rest.model.patch.Patch;
@@ -104,7 +104,7 @@ extends AbstractDSpaceRestRepository
 			delete(context, id);	
 			context.commit();
 		} catch (Exception e) {
-			throw new PatchUnprocessableEntityException(e.getMessage());
+			throw new UnprocessableEntityException(e.getMessage());
 		}
 	}
 

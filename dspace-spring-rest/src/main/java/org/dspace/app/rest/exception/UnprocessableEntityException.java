@@ -22,5 +22,8 @@ public class UnprocessableEntityException extends RuntimeException {
 	public UnprocessableEntityException() {
 		super("Error during request process or missed a mandatory field");
 	}
-	
+
+	public UnprocessableEntityException(String message) {
+		super(message);
+	}
 }
