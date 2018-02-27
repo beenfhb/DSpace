@@ -412,7 +412,7 @@ public class RestResourceController implements InitializingBean {
 	 * @return
 	 * @throws HttpRequestMethodNotSupportedException
 	 */
-	@RequestMapping(method = RequestMethod.POST, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_DIGIT , headers = "content-type=application/json")
+	@RequestMapping(method = RequestMethod.POST, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_DIGIT , headers = "content-type=application/x-www-form-urlencoded")
 	public ResponseEntity<ResourceSupport> action(HttpServletRequest request,
 			@PathVariable String apiCategory, @PathVariable String model, @PathVariable Integer id) throws HttpRequestMethodNotSupportedException {
 		checkModelPluralForm(apiCategory, model);
