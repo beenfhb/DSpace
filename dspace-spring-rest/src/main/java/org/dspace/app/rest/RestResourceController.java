@@ -31,6 +31,7 @@ import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.RepositoryNotFoundException;
 import org.dspace.app.rest.exception.RepositorySearchMethodNotFoundException;
 import org.dspace.app.rest.exception.RepositorySearchNotFoundException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.link.HalLinkService;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.LinkRest;
@@ -420,7 +421,12 @@ public class RestResourceController implements InitializingBean {
 		RestAddressableModel modelObject = null;
 		try {
 			modelObject = repository.action(request, id);
-		} catch (Exception e) {
+		} 
+		catch (UnprocessableEntityException e) {
+			log.error(e.getMessage(), e);
+			return ControllerUtils.toEmptyResponse(HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+		catch (Exception e) {
 			log.error(e.getMessage(), e);
 			return ControllerUtils.toEmptyResponse(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

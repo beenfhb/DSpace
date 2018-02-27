@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.repository;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
 
@@ -179,19 +180,14 @@ extends AbstractDSpaceRestRepository
 		throw new RepositoryMethodNotImplementedException(apiCategory, model);
 	}
 
-	public T action(HttpServletRequest request, ID id) {
+	public T action(HttpServletRequest request, ID id) throws SQLException, IOException, AuthorizeException {
 		Context context = obtainContext();
-		T entity = null;
-		try {
-			entity = action(context, request, id);
-			context.commit();
-		} catch (SQLException e) {
-			throw new PatchUnprocessableEntityException(e.getMessage());
-		}
+		T entity = action(context, request, id);
+		context.commit();
 		return entity;
 	}
 	
-	protected T action(Context context, HttpServletRequest request, ID id) {
+	protected T action(Context context, HttpServletRequest request, ID id) throws SQLException, IOException, AuthorizeException {
 		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 

@@ -110,7 +110,7 @@ public class PoolTaskRestRepository extends DSpaceRestRepository<PoolTaskRest, I
 	}
 	
 	@Override
-	protected PoolTaskRest action(Context context, HttpServletRequest request, Integer id) {
+	protected PoolTaskRest action(Context context, HttpServletRequest request, Integer id) throws SQLException, IOException, AuthorizeException {
 		PoolTask task = null;
 		try {
 			task = poolTaskService.find(context, id);
@@ -120,8 +120,8 @@ public class PoolTaskRestRepository extends DSpaceRestRepository<PoolTaskRest, I
 			WorkflowActionConfig currentActionConfig = step.getActionConfig(task.getActionID());
 			workflowService.doState(context, context.getCurrentUser(), request, 
 					task.getWorkflowItem().getID(), workflow, currentActionConfig);
-		} catch (SQLException | IOException | WorkflowConfigurationException | AuthorizeException | MessagingException | WorkflowException e) {
-			throw new RuntimeException(e.getMessage(), e);
+		} catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
+			throw new RuntimeException(e.getMessage(), e); 
 		}
 		return null;
 	}

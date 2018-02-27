@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.ClaimedTaskConverter;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ClaimedTaskRest;
 import org.dspace.app.rest.model.PoolTaskRest;
 import org.dspace.app.rest.model.hateoas.ClaimedTaskResource;
@@ -33,6 +34,7 @@ import org.dspace.xmlworkflow.service.WorkflowRequirementsService;
 import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.state.Workflow;
+import org.dspace.xmlworkflow.state.actions.Action;
 import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
@@ -111,19 +113,25 @@ public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskR
 	}
 	
 	@Override
-	protected ClaimedTaskRest action(Context context, HttpServletRequest request, Integer id) {
+	protected ClaimedTaskRest action(Context context, HttpServletRequest request, Integer id)
+			throws SQLException, IOException, AuthorizeException {
 		ClaimedTask task = null;
+		task = claimedTaskService.find(context, id);
+		XmlWorkflowServiceFactory factory = (XmlWorkflowServiceFactory) XmlWorkflowServiceFactory.getInstance();
+		Workflow workflow;
 		try {
-			task = claimedTaskService.find(context, id);
-			XmlWorkflowServiceFactory factory = (XmlWorkflowServiceFactory) XmlWorkflowServiceFactory.getInstance();
-			Workflow workflow = factory.getWorkflowFactory().getWorkflow(task.getWorkflowItem().getCollection());
+			workflow = factory.getWorkflowFactory().getWorkflow(task.getWorkflowItem().getCollection());
+
 			Step step = workflow.getStep(task.getStepID());
 			WorkflowActionConfig currentActionConfig = step.getActionConfig(task.getActionID());
-			workflowService.doState(context, context.getCurrentUser(), request, 
-					task.getWorkflowItem().getID(), workflow, currentActionConfig);
-//			workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
-		} catch (SQLException | IOException | WorkflowConfigurationException | AuthorizeException | MessagingException | WorkflowException e) {
-			throw new RuntimeException(e.getMessage(), e);
+			workflowService.doState(context, context.getCurrentUser(), request, task.getWorkflowItem().getID(),
+					workflow, currentActionConfig);
+			if (!Action.getErrorFields(request).isEmpty()) {
+				throw new UnprocessableEntityException();
+			}
+			// workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
+		} catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
+			throw new RuntimeException(e.getMessage(), e); 
 		}
 		return null;
 	}
