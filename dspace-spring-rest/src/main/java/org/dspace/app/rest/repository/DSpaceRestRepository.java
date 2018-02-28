@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.repository;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.hateoas.Resources;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -146,18 +148,14 @@ extends AbstractDSpaceRestRepository
 
 	public abstract DSpaceResource<T> wrapResource(T model, String... rels);
 
-	public T createAndReturn() {
+	public T createAndReturn() throws SQLException, AuthorizeException {
 		Context context = obtainContext();
 		T entity = createAndReturn(context);		
-		try {
-			context.commit();
-		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
-		}
+		context.commit();
 		return entity;
 	}
 
-	protected T createAndReturn(Context context) {
+	protected T createAndReturn(Context context) throws SQLException, AuthorizeException {
 		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 
@@ -188,6 +186,17 @@ extends AbstractDSpaceRestRepository
 	}
 	
 	protected T action(Context context, HttpServletRequest request, ID id) throws SQLException, IOException, AuthorizeException {
+		throw new RuntimeException("No implementation found; Method not allowed!");
+	}
+
+	public Iterable<T> upload(HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
+		Context context = obtainContext();
+		Iterable<T> entity = upload(context, request, uploadfile);
+		context.commit();
+		return entity;
+	}
+	
+	protected Iterable<T> upload(Context context, HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
 		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 

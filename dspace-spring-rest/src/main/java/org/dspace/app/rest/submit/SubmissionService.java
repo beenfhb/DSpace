@@ -76,7 +76,7 @@ public class SubmissionService {
 	@Autowired(required = true)
 	ResourcePolicyConverter aCConverter; 
 	
-	public WorkspaceItem createWorkspaceItem(Context context, Request request) {
+	public WorkspaceItem createWorkspaceItem(Context context, Request request) throws SQLException, AuthorizeException {
 		WorkspaceItem wsi = null;
 		String uuid = request.getHttpServletRequest().getParameter("collection");
 		if (StringUtils.isBlank(uuid)) {
@@ -84,16 +84,12 @@ public class SubmissionService {
 		}
 
 		Collection collection = null;
-		try {
-			if (StringUtils.isNotBlank(uuid)) {
-				collection = collectionService.find(context, UUID.fromString(uuid));
-			} else {
-				collection = collectionService.findAll(context, 1, 0).get(0);
-			}
-			wsi = workspaceItemService.create(context, collection, true);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		if (StringUtils.isNotBlank(uuid)) {
+			collection = collectionService.find(context, UUID.fromString(uuid));
+		} else {
+			collection = collectionService.findAll(context, 1, 0).get(0);
 		}
+		wsi = workspaceItemService.create(context, collection, true);
 		return wsi;
 	}
 	
