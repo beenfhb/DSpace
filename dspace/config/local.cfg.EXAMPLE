@@ -416,6 +416,5 @@ community-list.show.all = true
 ######## DSPACE 7 ############
 
 submission.default.collection =
-run.single.test-user = false
 
 metadata.extraction.grobid.url =
