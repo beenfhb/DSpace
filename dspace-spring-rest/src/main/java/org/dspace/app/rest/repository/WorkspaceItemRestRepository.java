@@ -345,7 +345,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 	
 	@Override
 	public Iterable<WorkspaceItemRest> upload(Context context, HttpServletRequest request, MultipartFile uploadfile)
-			throws SQLException, FileNotFoundException, IOException {
+			throws SQLException, FileNotFoundException, IOException, AuthorizeException {
 		File file = Utils.getFile(uploadfile, "upload-loader", "filedataloader");
 		List<WorkspaceItemRest> results = new ArrayList<>();
 
@@ -424,7 +424,14 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 					}
 				}
 			}
-
+			
+			//we have to create the workspaceitem to push the file also if nothing found before
+			if(result == null) {
+				WorkspaceItem source = submissionService.createWorkspaceItem(context, getRequestService().getCurrentRequest());
+				result = new ArrayList<>();
+				result.add(source);
+			}
+			
 			//perform upload of bitstream if there is exact one result and convert workspaceitem to entity rest
 			if (result != null && !result.isEmpty()) {
 				for (WorkspaceItem wi : result) {

@@ -189,14 +189,14 @@ extends AbstractDSpaceRestRepository
 		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 
-	public Iterable<T> upload(HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
+	public Iterable<T> upload(HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException, AuthorizeException {
 		Context context = obtainContext();
 		Iterable<T> entity = upload(context, request, uploadfile);
 		context.commit();
 		return entity;
 	}
 	
-	protected Iterable<T> upload(Context context, HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
+	protected Iterable<T> upload(Context context, HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException, AuthorizeException {
 		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 

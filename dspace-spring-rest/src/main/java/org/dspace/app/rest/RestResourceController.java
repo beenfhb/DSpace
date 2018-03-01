@@ -875,7 +875,7 @@ public class RestResourceController implements InitializingBean {
 	
 	@RequestMapping(method = { RequestMethod.POST }, headers = "content-type=multipart/form-data")
 	public <T extends RestAddressableModel> ResponseEntity<ResourceSupport> upload(HttpServletRequest request, @PathVariable String apiCategory, @PathVariable String model,
-			@RequestParam("file") MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
+			@RequestParam("file") MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException, AuthorizeException {
 		
 		checkModelPluralForm(apiCategory, model);
 		DSpaceRestRepository repository = utils.getResourceRepository(apiCategory, model);
