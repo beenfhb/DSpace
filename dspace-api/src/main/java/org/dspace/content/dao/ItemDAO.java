@@ -119,5 +119,9 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item>
     int countItems(Context context, boolean includeArchived, boolean includeWithdrawn) throws SQLException;
 
 	public List<Bundle> findBundlesByName(Context context, Item item, String name) throws SQLException;
+
+	public List<Item> findBySubmitter(Context context, EPerson eperson, Integer limit, Integer offset) throws SQLException;
+	
+	public int countItems(Context context, EPerson submitter, boolean includeArchived, boolean includeWithdrawn) throws SQLException;
     
 }

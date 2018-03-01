@@ -17,6 +17,7 @@ import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamService;
@@ -53,7 +54,7 @@ public class ResourcePolicyAddPatchOperation extends AddPatchOperation<ResourceP
 	EPersonService epersonService;
 	
 	@Override
-	void add(Context context, Request currentRequest, WorkspaceItem source, String path, Object value)
+	void add(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
 			throws Exception {
 		//"path": "/sections/upload/files/0/accessConditions"
 		String[] split = getAbsolutePath(path).split("/");

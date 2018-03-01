@@ -8,6 +8,7 @@
 package org.dspace.app.rest.repository;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.rest.model.PoolTaskRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.core.Context;
@@ -40,47 +41,7 @@ public abstract class AbstractDSpaceRestRepository {
 	protected Context obtainContext() {
 		Request currentRequest = requestService.getCurrentRequest();
 		Context context = ContextUtil.obtainContext(currentRequest.getServletRequest());
-		setUpTestUser(context);
         return context;
-	}
-
-	private void setUpTestUser(Context context) {
-		boolean runSingleUser = DSpaceServicesFactoryImpl.getInstance().getConfigurationService()
-				.getBooleanProperty("run.single.test-user");
-		if (runSingleUser) {
-			context.turnOffAuthorisationSystem();
-			EPerson currentUser = null;
-			try {
-				currentUser = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context,
-						"test-user@mailinator.com");
-				if (currentUser == null) {		
-					EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-					EPerson eperson;
-					try {
-						eperson = ePersonService.findByEmail(context, "test-user@mailinator.com");
-						if (eperson == null) {
-							// This EPerson creation should only happen once
-							log.info("Creating initial EPerson (email=test-user@mailinator.com) for Tests");
-							eperson = ePersonService.create(context);
-							eperson.setFirstName(context, "first");
-							eperson.setLastName(context, "last");
-							eperson.setEmail("test-user@mailinator.com");
-							eperson.setCanLogIn(true);
-							eperson.setLanguage(context, I18nUtil.getDefaultLocale().getLanguage());
-							// actually save the eperson
-							ePersonService.update(context, eperson);
-							context.commit();
-						}
-						currentUser = eperson;
-					} catch (Exception e) {
-						log.error(e.getMessage(), e);
-					}
-				}
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-			}
-			context.setCurrentUser(currentUser);
-		}
 	}
 
 	public RequestService getRequestService() {

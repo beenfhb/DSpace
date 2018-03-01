@@ -26,8 +26,8 @@ import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.model.Request;
@@ -45,7 +45,7 @@ public class UploadStep extends org.dspace.submit.step.UploadStep implements Abs
 	private static final Logger log = Logger.getLogger(UploadStep.class);
 	
 	@Override
-	public DataUpload getData(SubmissionService submissionService, WorkspaceItem obj, SubmissionStepConfig config) throws Exception {
+	public DataUpload getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws Exception {
 
 		DataUpload result = new DataUpload();
 		List<Bundle> bundles = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
@@ -59,7 +59,7 @@ public class UploadStep extends org.dspace.submit.step.UploadStep implements Abs
 	}
 
 	@Override
-	public void doPatchProcessing(Context context, Request currentRequest, WorkspaceItem source, Operation op) throws Exception {
+	public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op) throws Exception {
 		
 		String instance = "";
 		if("remove".equals(op.getOp())) {
@@ -96,7 +96,7 @@ public class UploadStep extends org.dspace.submit.step.UploadStep implements Abs
 	
 	
 	@Override
-	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig, WorkspaceItem wsi,
+	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig, InProgressSubmission wsi,
 			MultipartFile file, String extraField) {
 		
 		Bitstream source = null;

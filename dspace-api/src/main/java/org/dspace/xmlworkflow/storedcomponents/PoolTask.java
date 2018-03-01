@@ -111,7 +111,7 @@ public class PoolTask implements ReloadableEntity<Integer> {
         this.stepId = stepID;
     }
 
-    public String getStepID() throws SQLException {
+    public String getStepID() {
         return stepId;
     }
 

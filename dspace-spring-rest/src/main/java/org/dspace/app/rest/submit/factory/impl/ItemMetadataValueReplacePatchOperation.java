@@ -12,8 +12,8 @@ import java.util.List;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.LateObjectEvaluator;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.services.model.Request;
@@ -51,7 +51,7 @@ public class ItemMetadataValueReplacePatchOperation extends MetadataValueReplace
 	ItemService itemService;
 
 	@Override
-	void replace(Context context, Request currentRequest, WorkspaceItem source, String path, Object value)
+	void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
 			throws Exception {
 		String[] split = getAbsolutePath(path).split("/");
 

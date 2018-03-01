@@ -13,6 +13,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.core.Context;
@@ -22,6 +23,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
@@ -307,5 +309,29 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
             query.setParameter("text_value", name);
         }
         return query.list();
+	}
+
+	@Override
+	public List<Item> findBySubmitter(Context context, EPerson eperson, Integer limit, Integer offset)
+			throws SQLException {
+		Criteria criteria = createCriteria(context, Item.class);
+        criteria.addOrder(Order.asc("lastModified"));
+        criteria.add(Restrictions.eq("inArchive", true));
+        criteria.add(Restrictions.eq("withdrawn", false));
+        criteria.add(Restrictions.eq("submitter.id", eperson.getID()));
+        criteria.setFirstResult(offset);
+        criteria.setMaxResults(limit);
+        return list(criteria);
+	}
+
+	@Override
+	public int countItems(Context context, EPerson submitter, boolean includeArchived, boolean includeWithdrawn)
+			throws SQLException {
+        Query query = createQuery(context, "SELECT count(*) FROM Item i join i.submitter submitter WHERE i.inArchive=:in_archive AND i.withdrawn=:withdrawn AND submitter = :submitter");
+        query.setParameter("submitter", submitter);
+        query.setParameter("in_archive", includeArchived);
+        query.setParameter("withdrawn", includeWithdrawn);
+        return count(query); 
+
 	}
 }

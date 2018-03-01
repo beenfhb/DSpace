@@ -15,8 +15,8 @@ import org.dspace.app.rest.model.patch.LateObjectEvaluator;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -40,7 +40,7 @@ public class BitstreamMetadataValueReplacePatchOperation extends MetadataValueRe
 	ItemService itemService;
 
 	@Override
-	void replace(Context context, Request currentRequest, WorkspaceItem source, String path, Object value)
+	void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
 			throws Exception {
 		//"path": "/sections/upload/files/0/metadata/dc.title/2"
 		//"abspath": "/files/0/metadata/dc.title/2"

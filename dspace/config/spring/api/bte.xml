@@ -26,6 +26,7 @@
 				<entry key="csv" value-ref="csvDataLoader" />
 				<entry key="tsv" value-ref="tsvDataLoader" />
 				<entry key="oai" value-ref="oaipmhDataLoader" />
+				<!-- <entry key="grobid" value-ref="grobidDataLoader" /> -->
 			</map>
 		</property>
 		
@@ -127,6 +128,7 @@
 	            <entry key="endnote" value-ref="endnoteDataLoader"/>
 	            <entry key="csv" value-ref="csvDataLoader"/>
 	            <entry key="tsv" value-ref="tsvDataLoader"/>
+	            <!-- <entry key="grobid" value-ref="grobidDataLoader" /> -->
 			</map>
 	    </property>
 	</bean>
@@ -1024,5 +1026,22 @@
 		<property name="sourceIdMetadata" value="dc.identifier.isi" />
 		<property name="providerName" value="wos" />		
 	</bean>
-	
+
+
+	<bean id="grobidDataLoader" class="org.dspace.submit.extraction.GrobidFileDataLoader">
+		<property name="url" value="${metadata.extraction.grobid.url}"/>
+		<property name="fieldMap">
+			<map>
+				<entry key="analytictitle" value="title" />
+				<entry key="analyticname" value="authors" />
+				<entry key="monogrtitle" value="journal" />
+				<entry key="publicationStmtdatepublished" value="issued" />
+				<entry key="ISSN" value="jissn" />
+				<entry key="ISBN" value="pisbn" />
+				<entry key="DOI" value="doi" />
+				<entry key="profileDescsabstractparagraph" value="abstract" />
+				<entry key="profileDescskeywordsterm" value="allkeywords" />
+			</map>
+		</property>
+	</bean>	
 </beans>

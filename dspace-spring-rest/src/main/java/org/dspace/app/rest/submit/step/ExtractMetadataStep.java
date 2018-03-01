@@ -7,13 +7,8 @@
  */
 package org.dspace.app.rest.submit.step;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -24,12 +19,11 @@ import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.repository.WorkspaceItemRestRepository;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.submit.UploadableStep;
+import org.dspace.app.rest.utils.Utils;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-import org.dspace.core.Utils;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.extraction.MetadataExtractor;
 import org.dspace.submit.step.ExtractionStep;
@@ -50,7 +44,7 @@ public class ExtractMetadataStep extends ExtractionStep implements UploadableSte
 
 	@Override
 	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
-			WorkspaceItem wsi, MultipartFile multipartFile, String extraField) throws IOException {
+			InProgressSubmission wsi, MultipartFile multipartFile, String extraField) throws IOException {
 
 		Item item = wsi.getItem();
 		try {
@@ -63,7 +57,7 @@ public class ExtractMetadataStep extends ExtractionStep implements UploadableSte
 				if (extractor.getExtensions().contains(FilenameUtils.getExtension(multipartFile.getOriginalFilename()))) {
 
 					if (file == null) {
-						file = getFile(stepConfig, multipartFile);
+						file = Utils.getFile(multipartFile, "submissionlookup-loader", stepConfig.getId());
 					}
 
 					FileDataLoader fdl = (FileDataLoader) dataLoader;
@@ -84,24 +78,6 @@ public class ExtractMetadataStep extends ExtractionStep implements UploadableSte
 			return result;
 		}
 		return null;
-	}
-
-	private File getFile(SubmissionStepConfig stepConfig, MultipartFile multipartFile)
-			throws IOException, FileNotFoundException {
-		// TODO after change item-submission into
-		String tempDir = (ConfigurationManager.getProperty("upload.temp.dir") != null)
-				? ConfigurationManager.getProperty("upload.temp.dir") : System.getProperty("java.io.tmpdir");
-		File uploadDir = new File(tempDir);
-		if (!uploadDir.exists()) {
-			if (!uploadDir.mkdir()) {
-				uploadDir = null;
-			}
-		}
-		File file = File.createTempFile("submissionlookup-loader-" + stepConfig.getId(), ".temp", uploadDir);
-		InputStream io = new BufferedInputStream(multipartFile.getInputStream());
-		BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-		Utils.bufferedCopy(io, out);
-		return file;
 	}
 
 	public RecordSet convertFields(RecordSet recordSet, Map<String, String> fieldMap) {

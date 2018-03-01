@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.repository;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
 
@@ -16,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.rest.exception.PatchBadRequestException;
 import org.dspace.app.rest.exception.PatchUnprocessableEntityException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.hateoas.DSpaceResource;
 import org.dspace.app.rest.model.patch.Patch;
@@ -26,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.hateoas.Resources;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -102,7 +106,7 @@ extends AbstractDSpaceRestRepository
 			delete(context, id);	
 			context.commit();
 		} catch (Exception e) {
-			throw new PatchUnprocessableEntityException(e.getMessage());
+			throw new UnprocessableEntityException(e.getMessage());
 		}
 	}
 
@@ -144,20 +148,15 @@ extends AbstractDSpaceRestRepository
 
 	public abstract DSpaceResource<T> wrapResource(T model, String... rels);
 
-	public T createAndReturn() {
+	public T createAndReturn() throws SQLException, AuthorizeException {
 		Context context = obtainContext();
 		T entity = createAndReturn(context);		
-		try {
-			context.commit();
-		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
-		}
+		context.commit();
 		return entity;
 	}
 
-	protected T createAndReturn(Context context) {
-		//nothing default implementation
-		return null;
+	protected T createAndReturn(Context context) throws SQLException, AuthorizeException {
+		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 
 	public T upload(HttpServletRequest request, String apiCategory, String model, ID id, String extraField, MultipartFile file) throws Exception {
@@ -177,6 +176,28 @@ extends AbstractDSpaceRestRepository
 	
 	protected void patch(Context context, HttpServletRequest request, String apiCategory, String model, ID id, Patch patch) throws RepositoryMethodNotImplementedException, SQLException, AuthorizeException, DCInputsReaderException {
 		throw new RepositoryMethodNotImplementedException(apiCategory, model);
+	}
+
+	public T action(HttpServletRequest request, ID id) throws SQLException, IOException, AuthorizeException {
+		Context context = obtainContext();
+		T entity = action(context, request, id);
+		context.commit();
+		return entity;
+	}
+	
+	protected T action(Context context, HttpServletRequest request, ID id) throws SQLException, IOException, AuthorizeException {
+		throw new RuntimeException("No implementation found; Method not allowed!");
+	}
+
+	public Iterable<T> upload(HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
+		Context context = obtainContext();
+		Iterable<T> entity = upload(context, request, uploadfile);
+		context.commit();
+		return entity;
+	}
+	
+	protected Iterable<T> upload(Context context, HttpServletRequest request, MultipartFile uploadfile) throws SQLException, FileNotFoundException, IOException {
+		throw new RuntimeException("No implementation found; Method not allowed!");
 	}
 
 }

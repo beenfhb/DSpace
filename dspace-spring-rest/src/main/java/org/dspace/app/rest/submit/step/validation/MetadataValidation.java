@@ -22,7 +22,7 @@ import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.IMetadataValue;
-import org.dspace.content.WorkspaceItem;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 
@@ -53,7 +53,7 @@ public class MetadataValidation extends AbstractValidation {
 	private MetadataAuthorityService metadataAuthorityService;
 
 	@Override
-	public List<ErrorRest> validate(SubmissionService submissionService, WorkspaceItem obj,
+	public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,
 			SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
 
 		DCInputSet inputConfig = getInputReader().getInputsByFormName(config.getId());

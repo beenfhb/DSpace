@@ -10,6 +10,7 @@ package org.dspace.app.rest.converter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.MetadataEntryRest;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
@@ -45,6 +46,10 @@ public abstract class BrowsableDSpaceObjectConverter<M extends BrowsableDSpaceOb
 			me.setKey(mv.getMetadataField().toString('.'));
 			me.setValue(mv.getValue());
 			me.setLanguage(mv.getLanguage());
+			if(StringUtils.isNotBlank(mv.getAuthority())) {
+				me.setAuthority(mv.getAuthority());
+				me.setConfidence(mv.getConfidence());
+			}
 			metadata.add(me);
 		}
 		resource.setMetadata(metadata);

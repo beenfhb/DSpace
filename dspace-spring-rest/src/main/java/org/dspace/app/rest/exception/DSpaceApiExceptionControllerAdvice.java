@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.nimbusds.jose.JOSEException;
+
 /**
  * This Controller advice will handle all exceptions thrown by the DSpace API module
  *
@@ -36,9 +38,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionHandler{
 
+    @ExceptionHandler(JOSEException.class)
+    protected void handleInvalidTokenException(HttpServletRequest request, HttpServletResponse response, Exception ex) throws IOException {
+        sendErrorResponse(request, response, ex, ex.getMessage(), HttpServletResponse.SC_UNAUTHORIZED);
+    }
+	
     @ExceptionHandler(AuthorizeException.class)
     protected void handleAuthorizeException(HttpServletRequest request, HttpServletResponse response, Exception ex) throws IOException {
-        sendErrorResponse(request, response, ex, ex.getMessage(), HttpServletResponse.SC_UNAUTHORIZED);
+        sendErrorResponse(request, response, ex, ex.getMessage(), HttpServletResponse.SC_FORBIDDEN);
     }
 
     @ExceptionHandler(SQLException.class)

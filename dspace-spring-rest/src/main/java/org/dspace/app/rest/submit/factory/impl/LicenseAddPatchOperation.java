@@ -8,6 +8,7 @@
 package org.dspace.app.rest.submit.factory.impl;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.LicenseUtils;
 import org.dspace.content.WorkspaceItem;
@@ -50,7 +51,7 @@ public class LicenseAddPatchOperation extends AddPatchOperation<String> {
 	}
 
 	@Override
-	void add(Context context, Request currentRequest, WorkspaceItem source, String path, Object value)
+	void add(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
 			throws Exception {
 		
 		Boolean grant = BooleanUtils.toBooleanObject((String)value);

@@ -43,7 +43,7 @@ public class PubmedOnlineDataLoader extends NetworkSubmissionLookupDataLoader
     @Override
     public List<String> getSupportedIdentifiers()
     {
-        return Arrays.asList(new String[] { PUBMED, DOI });
+        return Arrays.asList(new String[] { PUBMED });
     }
 
     public void setSearchProvider(boolean searchProvider)
@@ -62,10 +62,8 @@ public class PubmedOnlineDataLoader extends NetworkSubmissionLookupDataLoader
             Map<String, Set<String>> keys) throws HttpException, IOException
     {
         Set<String> pmids = keys != null ? keys.get(PUBMED) : null;
-        Set<String> dois = keys != null ? keys.get(DOI) : null;
         List<Record> results = new ArrayList<Record>();
-        if (pmids != null && pmids.size() > 0
-                && (dois == null || dois.size() == 0))
+        if (pmids != null && pmids.size() > 0)
         {
             for (String pmid : pmids)
             {
@@ -83,41 +81,6 @@ public class PubmedOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                     results.add(convertFields(p));
             }
         }
-        else if (dois != null && dois.size() > 0
-                && (pmids == null || pmids.size() == 0))
-        {
-            StringBuffer query = new StringBuffer();
-            for (String d : dois)
-            {
-                if (query.length() > 0)
-                {
-                    query.append(" OR ");
-                }
-                query.append(d).append("[AI]");
-            }
-
-            List<Record> pubmedResults = pubmedService.search(query.toString());
-            for (Record p : pubmedResults)
-            {
-                results.add(convertFields(p));
-            }
-        }
-        else if (dois != null && dois.size() > 0 && pmids != null
-                && pmids.size() > 0)
-        {
-            // EKT:ToDo: support list of dois and pmids in the search method of
-            // pubmedService
-            List<Record> pubmedResults = pubmedService.search(dois.iterator()
-                    .next(), pmids.iterator().next());
-            if (pubmedResults != null)
-            {
-                for (Record p : pubmedResults)
-                {
-                    results.add(convertFields(p));
-                }
-            }
-        }
-
         return results;
     }
 

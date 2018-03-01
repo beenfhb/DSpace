@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.submit;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +25,10 @@ import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.CheckSumRest;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.ResourcePolicyRest;
+import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.model.step.UploadBitstreamRest;
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
@@ -37,6 +41,10 @@ import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
+import org.dspace.workflow.WorkflowException;
+import org.dspace.workflow.WorkflowItemService;
+import org.dspace.workflow.WorkflowService;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,35 +66,30 @@ public class SubmissionService {
 	@Autowired
 	protected WorkspaceItemService workspaceItemService;
 	@Autowired
+	protected WorkflowItemService workflowItemService;
+	@Autowired
+	protected WorkflowService<XmlWorkflowItem> workflowService;
+	@Autowired
 	private RequestService requestService;
 	@Autowired(required = true)
 	BitstreamFormatConverter bfConverter;
 	@Autowired(required = true)
 	ResourcePolicyConverter aCConverter; 
 	
-	public WorkspaceItem createWorkspaceItem(Context context, Request request) {
+	public WorkspaceItem createWorkspaceItem(Context context, Request request) throws SQLException, AuthorizeException {
 		WorkspaceItem wsi = null;
-		String collectionUUID = request.getHttpServletRequest().getParameter("collection");
-		if(StringUtils.isBlank(collectionUUID)) 
-		{
-			String uuid = configurationService.getProperty("submission.default.collection");
-			Collection collection = null;
-			try {
-			if(StringUtils.isNotBlank(uuid)) {
-				collection = collectionService.find(context, UUID.fromString(uuid));
-			}
-			else {
-				collection = collectionService.findAll(context, 1, 0).get(0);
-			}
-			wsi = workspaceItemService.create(context, collection, true);
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-			}
+		String uuid = request.getHttpServletRequest().getParameter("collection");
+		if (StringUtils.isBlank(uuid)) {
+			uuid = configurationService.getProperty("submission.default.collection");
 		}
-		else {
-			//TODO manage setup of default collection in the case WSI it is not null
-			//TODO manage setup of collection discovered into request
+
+		Collection collection = null;
+		if (StringUtils.isNotBlank(uuid)) {
+			collection = collectionService.find(context, UUID.fromString(uuid));
+		} else {
+			collection = collectionService.findAll(context, 1, 0).get(0);
 		}
+		wsi = workspaceItemService.create(context, collection, true);
 		return wsi;
 	}
 	
@@ -141,6 +144,45 @@ public class SubmissionService {
 		data.setSizeBytes(source.getSize());
 		data.setUrl(configurationService.getProperty("dspace.url")+"/api/"+BitstreamRest.CATEGORY +"/"+ English.plural(BitstreamRest.NAME) + "/" + source.getID() + "/content");
 		return data;
+	}
+
+	public XmlWorkflowItem createWorkflowItem(Context context, Request currentRequest) throws SQLException, AuthorizeException, WorkflowException {
+		Reader reader = null;
+		XmlWorkflowItem wi = null;
+		try {
+			reader = currentRequest.getHttpServletRequest().getReader();
+			char[] arr = new char[1024];
+			StringBuilder buffer = new StringBuilder();
+			int numCharsRead = reader.read(arr, 0, arr.length);
+			buffer.append(arr, 0, numCharsRead);
+			if (numCharsRead == arr.length) {
+				throw new RuntimeException("Malformed body... too long");
+			}
+			String regex = "\\/api\\/"+WorkspaceItemRest.CATEGORY+"\\/"+English.plural(WorkspaceItemRest.NAME)+"\\/";
+			System.out.println(regex);
+			String[] split = buffer.toString().split(regex,2);
+			if (split.length != 2) {
+				throw new RuntimeException("Malformed body..." + buffer);
+			}
+			WorkspaceItem wsi = workspaceItemService.find(context, Integer.parseInt(split[1]));
+			wi = workflowService.start(context, wsi);
+		} catch (IOException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
+		finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e.getMessage(), e);
+				}
+			}
+		}
+		return wi;
+	}
+
+	public void saveWorkflowItem(Context context, XmlWorkflowItem source) throws SQLException, AuthorizeException {
+		workflowItemService.update(context, source);
 	}
 	
 }
