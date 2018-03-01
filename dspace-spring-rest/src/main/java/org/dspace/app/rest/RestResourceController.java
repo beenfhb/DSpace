@@ -881,12 +881,13 @@ public class RestResourceController implements InitializingBean {
 		DSpaceRestRepository repository = utils.getResourceRepository(apiCategory, model);
 		
 		Iterable<RestAddressableModel> content = repository.upload(request, uploadfile);
+		
 		List<DSpaceResource> resources = new ArrayList<>(); 
 		for(RestAddressableModel modelObject : content) {
 			DSpaceResource result = repository.wrapResource(modelObject);
 			linkService.addLinks(result);
 			resources.add(result);
 		}
-		return ControllerUtils.toResponseEntity(HttpStatus.OK, null, new Resources(resources));
+		return ControllerUtils.toResponseEntity(HttpStatus.OK, null, Resources.wrap(resources));
 	}
 }
