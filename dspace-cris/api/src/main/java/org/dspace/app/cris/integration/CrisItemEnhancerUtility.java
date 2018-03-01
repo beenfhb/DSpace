@@ -122,7 +122,7 @@ public class CrisItemEnhancerUtility {
 
 	private static List<String[]> getCrisMetadata(Item item, CrisItemEnhancer enh, String qualifier) {
 		List<String> mdList = enh.getMetadata();
-		Set<String> validAuthorities = new HashSet<String>();
+		List<String> validAuthorities = new ArrayList<String>();
 		MetadataAuthorityService mam = ContentAuthorityServiceFactory.getInstance().getMetadataAuthorityService();
 
 		for (String md : mdList) {
@@ -193,7 +193,7 @@ public class CrisItemEnhancerUtility {
 					PropertyEditor editor = prop.getTypo().getRendering().getPropertyEditor(as);
 					editor.setValue(prop.getObject());
 
-					result.add(new String[] { editor.getAsText(), null });
+					result.add(new String[] { editor.getAsText(), aCrisObject.getCrisID() });
 				}
 			}
 		}
