@@ -943,7 +943,12 @@ public class ImportCRISDataModelConfiguration
 				String decoratorShortName = "decorator" + shortName;
                 ctx.registerBeanDefinition(decoratorShortName,
                         builderDNTP.getBeanDefinition());
-
+                try {
+                	ctx.refresh();
+                }
+                catch(Exception ex) {
+                	//no message
+                }
 				DATNO dntp = ctx.getBean(classDATNO);				
 				applicationService.saveOrUpdate(classDATNO, dntp);
 
@@ -1253,7 +1258,12 @@ public class ImportCRISDataModelConfiguration
 		builderPD.getBeanDefinition().setAttribute("id", decoratorShortName);
         ctx.registerBeanDefinition(decoratorShortName,
                 builderDecorator.getBeanDefinition());
-
+        try {
+        	ctx.refresh();
+        }
+        catch(Exception ex) {
+        	//no message
+        }
 		DPD dtp = ctx.getBean(decoratorShortName, classDPD);
 		applicationService.saveOrUpdate(classDPD, dtp);
 		return dtp;
