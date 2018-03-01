@@ -55,6 +55,7 @@ import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
 import org.dspace.submit.lookup.SubmissionLookupService;
+import org.dspace.submit.model.UploadConfiguration;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.dspace.submit.util.SubmissionLookupDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -361,8 +362,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 				collection = collectionService.findAll(context, 1, 0).get(0);
 			}
 
-			String formName = submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle())
-					.getSubmissionName();
+			SubmissionConfig submissionConfig = submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle());
+					
 
 			List<ItemSubmissionLookupDTO> tmpResult = new ArrayList<ItemSubmissionLookupDTO>();
 
@@ -383,6 +384,10 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 						transformationEngine1.transform(new TransformationSpec());
 						log.debug("BTE transformation finished!");
 						tmpResult.addAll(outputGenerator.getDtoList());
+						if(!tmpResult.isEmpty()) {
+							//exit with the results founded on the first data provided
+							break;
+						}
 					} catch (BadTransformationSpec e1) {
 						log.error(e1.getMessage(), e1);
 					} catch (MalformedSourceException e1) {
@@ -390,35 +395,79 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 					} 
 				}
 			}
-
+			
 			List<WorkspaceItem> result = null;
 
-			TransformationEngine transformationEngine2 = submissionLookupService.getPhase2TransformationEngine();
-			if (transformationEngine2 != null) {
-				SubmissionItemDataLoader dataLoader = (SubmissionItemDataLoader) transformationEngine2.getDataLoader();
-				dataLoader.setDtoList(tmpResult);
-				// dataLoader.setProviders()
+			//try to ingest workspaceitems
+			if (!tmpResult.isEmpty()) {
+				TransformationEngine transformationEngine2 = submissionLookupService.getPhase2TransformationEngine();
+				if (transformationEngine2 != null) {
+					SubmissionItemDataLoader dataLoader = (SubmissionItemDataLoader) transformationEngine2
+							.getDataLoader();
+					dataLoader.setDtoList(tmpResult);
+					// dataLoader.setProviders()
 
-				DSpaceWorkspaceItemOutputGenerator outputGenerator = (DSpaceWorkspaceItemOutputGenerator) transformationEngine2
-						.getOutputGenerator();
-				outputGenerator.setCollection(collection);
-				outputGenerator.setContext(context);
-				outputGenerator.setFormName(formName);
-				outputGenerator.setDto(tmpResult.get(0));
+					DSpaceWorkspaceItemOutputGenerator outputGenerator = (DSpaceWorkspaceItemOutputGenerator) transformationEngine2
+							.getOutputGenerator();
+					outputGenerator.setCollection(collection);
+					outputGenerator.setContext(context);
+					outputGenerator.setFormName(submissionConfig.getSubmissionName());
+					outputGenerator.setDto(tmpResult.get(0));
 
-				try {
-					transformationEngine2.transform(new TransformationSpec());
-					result = outputGenerator.getWitems();
-				} catch (BadTransformationSpec e1) {
-					e1.printStackTrace();
-				} catch (MalformedSourceException e1) {
-					e1.printStackTrace();
+					try {
+						transformationEngine2.transform(new TransformationSpec());
+						result = outputGenerator.getWitems();
+					} catch (BadTransformationSpec e1) {
+						e1.printStackTrace();
+					} catch (MalformedSourceException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 
-			if (result != null) {
+			//perform upload of bitstream if there is exact one result and convert workspaceitem to entity rest
+			if (result != null && !result.isEmpty()) {
 				for (WorkspaceItem wi : result) {
-					results.add(converter.convert(wi));
+					
+					List<ErrorRest> errors = new ArrayList<ErrorRest>();
+					
+					//load bitstream into bundle ORIGINAL only if there is one result (approximately this is the right behaviour for pdf file but not for other bibliographic format e.g. bibtex)
+					if(result.size()==1) {
+						
+						for (int i = 0; i < submissionConfig.getNumberOfSteps(); i++) {
+							SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
+
+							ClassLoader loader = this.getClass().getClassLoader();
+							Class stepClass;
+							try {
+								stepClass = loader.loadClass(stepConfig.getProcessingClassName());
+
+								Object stepInstance = stepClass.newInstance();
+								if (UploadableStep.class.isAssignableFrom(stepClass)) {
+									UploadableStep uploadableStep = (UploadableStep) stepInstance;
+									ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, wi,
+											uploadfile, file.getAbsolutePath());
+									if (err != null) {
+										errors.add(err);
+									}
+								}
+
+							} catch (Exception e) {
+								log.error(e.getMessage(), e);
+							}
+						}
+					}
+					WorkspaceItemRest wsi = converter.convert(wi);
+					if(result.size()==1) {
+						if(errors.isEmpty()) {
+							wsi.setStatus(true);	
+						}
+						else {
+							wsi.setStatus(false);
+							wsi.getErrors().addAll(errors);
+						}
+					}
+					results.add(wsi);
 				}
 			}
 		} finally {
