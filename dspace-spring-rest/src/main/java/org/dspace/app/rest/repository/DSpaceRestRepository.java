@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.hateoas.Resources;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -148,15 +149,15 @@ extends AbstractDSpaceRestRepository
 
 	public abstract DSpaceResource<T> wrapResource(T model, String... rels);
 
-	public T createAndReturn() throws SQLException, AuthorizeException {
+	public T createAndReturn() throws SQLException, AuthorizeException, HttpRequestMethodNotSupportedException {
 		Context context = obtainContext();
 		T entity = createAndReturn(context);		
 		context.commit();
 		return entity;
 	}
 
-	protected T createAndReturn(Context context) throws SQLException, AuthorizeException {
-		throw new RuntimeException("No implementation found; Method not allowed!");
+	protected T createAndReturn(Context context) throws SQLException, AuthorizeException, HttpRequestMethodNotSupportedException {
+		throw new HttpRequestMethodNotSupportedException(RequestMethod.POST.toString());
 	}
 
 	public T upload(HttpServletRequest request, String apiCategory, String model, ID id, String extraField, MultipartFile file) throws Exception {

@@ -143,7 +143,11 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
 			source = submissionService.createWorkflowItem(context, getRequestService().getCurrentRequest());
 		} catch (SQLException | AuthorizeException | WorkflowException e) {
 			throw new RuntimeException(e.getMessage(), e);
-		}		
+		}
+        //if the item go directly in published status we have to manage a status code 204 with no content
+		if(source.getItem().isArchived()) {
+			return null;
+		}
 		return converter.convert(source);		
 	}
 
