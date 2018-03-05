@@ -114,7 +114,7 @@ public class WorkflowItemConverter
 						witem.getSections().put(sections.getId(),
 								stepProcessing.getData(submissionService, obj, stepConfig));
 					} else {
-						throw new Exception("The submission step class specified by '"
+						log.warn("The submission step class specified by '"
 								+ stepConfig.getProcessingClassName()
 								+ "' does not extend the class org.dspace.app.rest.submit.AbstractRestProcessingStep!"
 								+ " Therefore it cannot be used by the Configurable Submission as the <processing-class>!");
