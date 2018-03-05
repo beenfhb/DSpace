@@ -13,7 +13,10 @@ import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
 import gr.ekt.bte.exceptions.MalformedSourceException;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -30,7 +33,12 @@ import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.FormatIdentifier;
+import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -128,6 +136,8 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
         String uuidLookup = request.getParameter("iuuid");
         String fuuidLookup = request.getParameter("fuuid");
         String fPath = request.getParameter("filePath");
+        String fName = StringUtils.isNotBlank(request.getParameter("filename") )? request.getParameter("filename"): StringUtils.substringAfterLast(fPath, FileSystems.getDefault().getSeparator());
+        
         String uuid_batch = request.getParameter("iuuid_batch");
         
         boolean forceEmpty = Util.getBoolParameter(request, "forceEmpty");
@@ -288,6 +298,20 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
             if (result != null && result.size() > 0)
             {
                 // update Submission Information with this Workspace Item
+            	WorkspaceItem wsi= result.iterator().next();
+            	if(StringUtils.isNotBlank(fPath)){
+            		File file = new File(fPath);
+            		if(file.exists()){
+            			Item item = wsi.getItem();
+            			Bundle b = item.createBundle("ORIGINAL");
+            			Bitstream bit = b.createBitstream(new FileInputStream(fPath));
+            			bit.setName(fName);
+            			bit.setSource(fPath);
+            			bit.setFormat(FormatIdentifier.guessFormat(context, bit));
+            	
+            			file.delete();
+            		}
+            	}
                 subInfo.setSubmissionItem(result.iterator().next());
             }
 

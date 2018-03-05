@@ -186,7 +186,8 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 					<input type="hidden" id="collectionid" name="collectionid" value=""/>
 					<input type="hidden" id="iuuid_batch" name="iuuid_batch" value=""/>
 					<input type="hidden" id="colid_batch" name="colid_batch" value=""/>
-					<input type="hidden" id="filePath" name="filePath" value=""/>					
+					<input type="hidden" id="filePath" name="filePath" value=""/>
+					<input type="hidden" id="filename" name="filename" value=""/>					
 				</form>
 			</div>
 	      </div>

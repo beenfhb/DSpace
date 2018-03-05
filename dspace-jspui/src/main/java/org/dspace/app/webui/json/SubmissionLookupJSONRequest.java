@@ -221,13 +221,15 @@ public class SubmissionLookupJSONRequest extends JSONRequest
             // Parse the request
             Map<String, String> valueMap = new HashMap<String, String>();
             InputStream io = null;
-
+            
             // Parse the request
             List<FileItem> iter;
+            String filepath = null;
             String filename = null;
             boolean skipPreview = false;
             try
             {
+            	
                 iter = upload.parseRequest(req);
                 for (FileItem item : iter)
                 {
@@ -279,7 +281,8 @@ public class SubmissionLookupJSONRequest extends JSONRequest
                 Utils.bufferedCopy(io, out);
                 dataLoader.setFile(file.getAbsolutePath(),
                         valueMap.get("provider_loader"));
-                filename = file.getAbsolutePath();
+                filepath = file.getAbsolutePath();
+                filename = valueMap.containsKey("filename") ? valueMap.get("filename") :"";
                 skipPreview = valueMap.containsKey("skip_loader")? valueMap.get("skip_loader") .equals("true") :false;
                 try
                 {
@@ -307,8 +310,6 @@ public class SubmissionLookupJSONRequest extends JSONRequest
                 {
                     if(!valueMap.get("provider_loader").equals("pdf") || !skipPreview){
                     	file.delete();
-                    }else{
-                    	filename = file.getAbsolutePath();
                     }
                 }
             }
@@ -330,7 +331,8 @@ public class SubmissionLookupJSONRequest extends JSONRequest
             JsonElement tree = json.toJsonTree(dto);
             JsonObject jo = new JsonObject();
             jo.add("result", tree);
-            jo.addProperty("filePath",filename);
+            jo.addProperty("filePath",filepath);
+            jo.addProperty("filename",filename);
             resp.setContentType("text/plain");
 //            if you works in localhost mode and use IE10 to debug the feature uncomment the follow line
 //            resp.setHeader("Access-Control-Allow-Origin","*");
