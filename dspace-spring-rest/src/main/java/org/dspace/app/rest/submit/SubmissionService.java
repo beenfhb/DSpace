@@ -21,6 +21,8 @@ import org.apache.log4j.Logger;
 import org.atteo.evo.inflector.English;
 import org.dspace.app.rest.converter.BitstreamFormatConverter;
 import org.dspace.app.rest.converter.ResourcePolicyConverter;
+import org.dspace.app.rest.converter.WorkspaceItemConverter;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BitstreamRest;
 import org.dspace.app.rest.model.CheckSumRest;
 import org.dspace.app.rest.model.MetadataValueRest;
@@ -75,6 +77,8 @@ public class SubmissionService {
 	BitstreamFormatConverter bfConverter;
 	@Autowired(required = true)
 	ResourcePolicyConverter aCConverter; 
+	@Autowired
+	WorkspaceItemConverter workspaceItemConverter;
 	
 	public WorkspaceItem createWorkspaceItem(Context context, Request request) throws SQLException, AuthorizeException {
 		WorkspaceItem wsi = null;
@@ -165,6 +169,11 @@ public class SubmissionService {
 				throw new RuntimeException("Malformed body..." + buffer);
 			}
 			WorkspaceItem wsi = workspaceItemService.find(context, Integer.parseInt(split[1]));
+			
+			if(!workspaceItemConverter.convert(wsi).getErrors().isEmpty()) {
+				throw new UnprocessableEntityException("Start workflow failed due to validation error on workspaceitem");
+			}
+			
 			wi = workflowService.start(context, wsi);
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e);

@@ -27,4 +27,9 @@
 		<property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
 		<property name="uploadConfigurationService" ref="uploadConfigurationService"/>
     </bean>
+    
+    <bean name="licenseValidation" class="org.dspace.app.rest.submit.step.validation.LicenseValidation" scope="prototype">
+		<property name="name" value="license"/>
+		<property name="bitstreamService" ref="org.dspace.content.BitstreamServiceImpl"/>
+    </bean>    
 </beans>
