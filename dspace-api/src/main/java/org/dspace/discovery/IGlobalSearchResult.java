@@ -7,12 +7,12 @@
  */
 package org.dspace.discovery;
 
+import java.io.Serializable;
 import java.util.List;
-import java.util.UUID;
 
 import org.dspace.content.IMetadataValue;
 
-public interface IGlobalSearchResult {
+public interface IGlobalSearchResult<PK extends Serializable> {
 
 	public String getHandle();
 	
@@ -24,7 +24,7 @@ public interface IGlobalSearchResult {
 	
 	public int getType();
 	
-	public UUID getID();
+	public PK getID();
 	
 	public boolean isWithdrawn();
 

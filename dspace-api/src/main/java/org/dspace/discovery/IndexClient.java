@@ -65,7 +65,7 @@ public class IndexClient {
         Context context = new Context(Context.Mode.READ_ONLY);
         context.turnOffAuthorisationSystem();
 
-        String usage = "org.dspace.discovery.IndexClient [-cbhf] | [-r <handle>] | [-i <handle>] or nothing to update/clean an existing index.";
+        String usage = "org.dspace.discovery.IndexClient [-cbhf] | [-r <handle>] | [-i <handle>] | [-item_uuid <uuid>] or nothing to update/clean an existing index.";
         Options options = new Options();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine line = null;
@@ -76,6 +76,13 @@ public class IndexClient {
             .withDescription(
                 "remove an Item, Collection or Community from index based on its handle")
             .create("r"));
+        
+        options.addOption(OptionBuilder
+                .withArgName("item uuid to index")
+                .hasArg(true)
+                .withDescription(
+                    "add an Item based on its uuid")
+                .create("item_uuid"));
 
         options.addOption(OptionBuilder
             .withArgName("handle to add or update")
@@ -173,6 +180,10 @@ public class IndexClient {
         	log.info("Updating and Cleaning a specific Index");
             String optionValue = line.getOptionValue("t");			
             indexer.updateIndex(context, true, Integer.valueOf(optionValue));
+        } else if (line.hasOption("item_uuid")) {         	
+        	String itemUUID = line.getOptionValue("item_uuid");
+        	Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(itemUUID));
+        	indexer.indexContent(context, item, line.hasOption("f"));
         } else if (line.hasOption("u")) {         	
         	String optionValue = line.getOptionValue("u");
 			String[] identifiers = optionValue.split("\\s*,\\s*");

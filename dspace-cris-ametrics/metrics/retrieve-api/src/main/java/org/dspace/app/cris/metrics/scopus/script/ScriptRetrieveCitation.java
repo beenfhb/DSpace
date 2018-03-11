@@ -175,7 +175,7 @@ public class ScriptRetrieveCitation {
                 log.info(LogManager.getHeader(null, "retrieve_citation_scopus",
                         "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
 				// for each item check
-				for (BrowsableDSpaceObject dso : qresp.getDspaceObjects()) {
+				for (BrowsableDSpaceObject<UUID> dso : qresp.getDspaceObjects()) {
 
 					List<SearchDocument> list = qresp.getSearchDocument(dso);
 					for (SearchDocument doc : list) {
@@ -221,7 +221,7 @@ public class ScriptRetrieveCitation {
 
 	}
 
-	private static boolean buildCiting(BrowsableDSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
+	private static boolean buildCiting(BrowsableDSpaceObject<UUID> dso, ScopusResponse response) throws SQLException, AuthorizeException {
         CrisMetrics citation = response.getCitation();
         if (!response.isError())
         {

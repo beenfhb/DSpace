@@ -40,6 +40,15 @@ public class Constants
     /** Type of individual eperson objects */
     public static final int EPERSON = 7;
 
+    /** Type of workspace item objects */
+    public static final int WORKSPACEITEM = 8;
+    
+    /** Type of pool task workflow objects */
+    public static final int WORKFLOW_POOL = 9;
+
+    /** Type of pool task workflow objects */
+    public static final int WORKFLOW_CLAIMED = 10;
+
     /**
      * lets you look up type names from the type IDs
      */

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
@@ -55,7 +56,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name="community")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
-public class Community extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
+public class Community extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID>
 {
     /** log4j category */
     private static final Logger log = Logger.getLogger(Community.class);

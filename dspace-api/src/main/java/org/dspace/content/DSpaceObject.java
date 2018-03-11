@@ -46,7 +46,7 @@ import org.springframework.aop.support.AopUtils;
 @Entity
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(name = "dspaceobject")
-public abstract class DSpaceObject implements Serializable, ReloadableEntity<java.util.UUID>, IGlobalSearchResult, UsageEventEntity, AuthorizableEntity, RootObject
+public abstract class DSpaceObject implements Serializable, ReloadableEntity<java.util.UUID>, IGlobalSearchResult<UUID>, UsageEventEntity, AuthorizableEntity, RootObject
 {
     @Id
     @GeneratedValue(generator = "system-uuid")

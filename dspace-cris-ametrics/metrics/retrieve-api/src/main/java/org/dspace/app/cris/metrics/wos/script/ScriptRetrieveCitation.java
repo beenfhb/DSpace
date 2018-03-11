@@ -214,7 +214,7 @@ public class ScriptRetrieveCitation
                         if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 1)
                             break all;
 
-                        UUID itemID = dso.getID();
+                        UUID itemID = (UUID) dso.getID();
 
                         if (isCheckRequired(itemID))
                         {

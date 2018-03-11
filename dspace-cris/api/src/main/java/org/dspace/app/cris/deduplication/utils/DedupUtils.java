@@ -301,7 +301,7 @@ public class DedupUtils
                 signatureType, resourceType, itemID);
 
         boolean found = false;
-        for (BrowsableDSpaceObject item : dsi.getItems())
+        for (BrowsableDSpaceObject<UUID> item : dsi.getItems())
         {
             if(item!=null) {
                 if (item.getID() == itemID)
@@ -313,7 +313,7 @@ public class DedupUtils
         }
         if (found && dsi.getNumItems() > 1)
         {
-            for (BrowsableDSpaceObject item : dsi.getItems())
+            for (BrowsableDSpaceObject<UUID> item : dsi.getItems())
             {
                 if (item != null)
                 {

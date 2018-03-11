@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.converter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import org.dspace.content.Item;
  * @param <R>
  *            the Class in the DSpace REST data model
  */
-public abstract class BrowsableDSpaceObjectConverter<M extends BrowsableDSpaceObject, R extends org.dspace.app.rest.model.DSpaceObjectRest>
+public abstract class BrowsableDSpaceObjectConverter<M extends BrowsableDSpaceObject<? extends Serializable>, R extends org.dspace.app.rest.model.DSpaceObjectRest>
 		extends DSpaceConverter<M, R> {
 
 	@Override

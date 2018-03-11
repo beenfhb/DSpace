@@ -43,6 +43,7 @@ import org.dspace.discovery.SolrServiceIndexPlugin;
 import org.dspace.discovery.SolrServiceSearchPlugin;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.services.ConfigurationService;
+import org.dspace.util.ItemUtils;
 
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedProperty;
@@ -201,7 +202,7 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                     }
                     init(language);
                     List<DCInputSet> dcInputSets = dcInputsReader.get(language)
-                            .getInputsByCollectionHandle(item.getOwningCollection().getHandle());
+                            .getInputsByCollectionHandle(ItemUtils.getItemOwningCollection(context, item).getHandle());
 
 					for (DCInputSet dcInputSet : dcInputSets) {
 						{

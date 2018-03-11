@@ -36,8 +36,8 @@ public class IndexEventConsumer implements Consumer {
     // collect Items, Collections, Communities that need indexing
     private Set<UsageEventEntity> objectsToUpdate = null;
 
-    // handles to delete since IDs are not useful by now.
-    private Set<String> handlesToDelete = null;
+    // unique search IDs to delete
+    private Set<String> uniqueIdsToDelete = null;
 
     IndexingService indexer = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(IndexingService.class.getName(),IndexingService.class);
 
@@ -58,7 +58,7 @@ public class IndexEventConsumer implements Consumer {
 
         if (objectsToUpdate == null) {
             objectsToUpdate = new HashSet<UsageEventEntity>();
-            handlesToDelete = new HashSet<String>();
+            uniqueIdsToDelete = new HashSet<String>();
         }
 
         int st = event.getSubjectType();
@@ -130,14 +130,14 @@ public class IndexEventConsumer implements Consumer {
                 break;
 
             case Event.DELETE:
-                String detail = event.getDetail();
-                if (detail == null)
+                if (event.getSubjectType() == -1 || event.getSubjectID() == null)
                 {
-                    log.warn("got null detail on DELETE event, skipping it.");
+                    log.warn("got null subject type and/or ID on DELETE event, skipping it.");
                 }
                 else {
+                	String detail = event.getSubjectType() + "-" + event.getSubjectID().toString();
                     log.debug("consume() adding event to delete queue: " + event.toString());
-                    handlesToDelete.add(detail);
+                    uniqueIdsToDelete.add(detail);
                 }
                 break;
             default:
@@ -158,7 +158,7 @@ public class IndexEventConsumer implements Consumer {
     @Override
     public void end(Context ctx) throws Exception {
 
-        if (objectsToUpdate != null && handlesToDelete != null) {
+        if (objectsToUpdate != null && uniqueIdsToDelete != null) {
 
             // update the changed Items not deleted because they were on create list
             for (UsageEventEntity iu : objectsToUpdate) {
@@ -169,7 +169,7 @@ public class IndexEventConsumer implements Consumer {
             	//if there are problem with lazy during indexing uncomment follow line and check DS-3660: Fix discovery reindex on metadata change
             	//iu = ctx.reloadEntity(iu);
                 String hdl = iu.getHandle();
-                if (hdl != null && !handlesToDelete.contains(hdl)) {
+                if (hdl != null && !uniqueIdsToDelete.contains(hdl)) {
                     try {
                         indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true);
                         log.debug("Indexed "
@@ -183,7 +183,7 @@ public class IndexEventConsumer implements Consumer {
                 }
             }
 
-            for (String hdl : handlesToDelete) {
+            for (String hdl : uniqueIdsToDelete) {
                 try {
                     indexer.unIndexContent(ctx, hdl, true);
                     if (log.isDebugEnabled())
@@ -201,7 +201,7 @@ public class IndexEventConsumer implements Consumer {
 
         // "free" the resources
         objectsToUpdate = null;
-        handlesToDelete = null;
+        uniqueIdsToDelete = null;
     }
 
     @Override

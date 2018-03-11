@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -41,7 +42,6 @@ import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.proxy.HibernateProxyHelper;
@@ -62,7 +62,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="item")
-public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
+public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID>
 {
 	
     /** log4j logger */

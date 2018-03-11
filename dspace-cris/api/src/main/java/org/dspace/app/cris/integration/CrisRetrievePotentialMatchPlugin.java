@@ -101,7 +101,7 @@ public class CrisRetrievePotentialMatchPlugin implements
                 BrowseInfo binfo = be.browse(scope);
                 log.debug("Find " + binfo.getResultCount()
                         + "item(s) in browsing...");
-                for (BrowsableDSpaceObject bitem : binfo.getBrowseItemResults())
+                for (BrowsableDSpaceObject<UUID> bitem : binfo.getBrowseItemResults())
                 {
                     if (!invalidIds.contains(bitem.getID()))
                     {

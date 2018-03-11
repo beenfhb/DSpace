@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
@@ -57,7 +58,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name="collection")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
-public class Collection extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
+public class Collection extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID>
 {
 
     @Column(name="collection_id", insertable = false, updatable = false)

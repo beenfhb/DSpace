@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -47,7 +48,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="bitstream")
-public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject
+public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID>
 {
     /** log4j logger */
     private static Logger log = Logger.getLogger(Bitstream.class);

@@ -39,11 +39,11 @@ public interface IndexingService {
     void unIndexContent(Context context, BrowsableDSpaceObject dso, boolean commit)
             throws SQLException, IOException;
     
-    void unIndexContent(Context context, String handle)
-            throws SQLException, IOException;
+    void unIndexContent(Context context, String uniqueSearchID)
+            throws IOException;
 
-    void unIndexContent(Context context, String handle, boolean commit)
-            throws SQLException, IOException;
+    void unIndexContent(Context context, String uniqueSearchID, boolean commit)
+            throws IOException;
 
     void reIndexContent(Context context, BrowsableDSpaceObject dso)
             throws SQLException, IOException;
