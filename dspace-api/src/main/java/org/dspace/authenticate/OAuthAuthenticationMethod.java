@@ -245,8 +245,4 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
         }
     }
 
-    @Override
-    public String loginPageTitle(Context context) {
-        return "org.dspace.authenticate.OAuthAuthentication.title";
-    }
 }
