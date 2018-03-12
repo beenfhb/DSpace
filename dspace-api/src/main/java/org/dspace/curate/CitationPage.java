@@ -7,6 +7,17 @@
  */
 package org.dspace.curate;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.*;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.core.Context;
+import org.dspace.disseminate.factory.DisseminateServiceFactory;
+import org.dspace.disseminate.service.CitationDocumentService;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -154,9 +165,9 @@ public class CitationPage extends AbstractCurationTask {
                             + bitstream.getName() + " is citable.");
                     try {
                         //Create the cited document
-                        File citedDocument = citationDocument.makeCitedDocument(Curator.curationContext(), bitstream);
+                        Pair<InputStream, Long> citedDocument = citationDocument.makeCitedDocument(Curator.curationContext(), bitstream);
                         //Add the cited document to the approiate bundle
-                        this.addCitedPageToItem(citedDocument, bundle, pBundle,
+                        this.addCitedPageToItem(citedDocument.getLeft(), bundle, pBundle,
                                 dBundle, displayMap, item, bitstream);
                     } catch (Exception e) {
                         //Could be many things, but nothing that should be
@@ -191,7 +202,7 @@ public class CitationPage extends AbstractCurationTask {
      * A helper function for {@link CitationPage#performItem(Item)}. This function takes in the
      * cited document as a File and adds it to DSpace properly.
      *
-     * @param citedTemp The temporary File that is the cited document.
+     * @param citedDoc The inputstream that is the cited document.
      * @param bundle The bundle the cited file is from.
      * @param pBundle The preservation bundle. The original document should be
      * put in here if it is not already.
@@ -204,7 +215,7 @@ public class CitationPage extends AbstractCurationTask {
      * @throws AuthorizeException if authorization error
      * @throws IOException if IO error
      */
-    protected void addCitedPageToItem(File citedTemp, Bundle bundle, Bundle pBundle,
+    protected void addCitedPageToItem(InputStream citedDoc, Bundle bundle, Bundle pBundle,
                                     Bundle dBundle, Map<String,Bitstream> displayMap, Item item,
                                     Bitstream bitstream) throws SQLException, AuthorizeException, IOException {
         //If we are modifying a file that is not in the
@@ -222,12 +233,11 @@ public class CitationPage extends AbstractCurationTask {
         //Create an input stream form the temporary file
         //that is the cited document and create a
         //bitstream from it.
-        InputStream inp = new FileInputStream(citedTemp);
         if (displayMap.containsKey(bitstream.getName())) {
             bundleService.removeBitstream(context, dBundle, displayMap.get(bitstream.getName()));
         }
-        Bitstream citedBitstream = bitstreamService.create(context, dBundle, inp);
-        inp.close(); //Close up the temporary InputStream
+        Bitstream citedBitstream = bitstreamService.create(context, dBundle, citedDoc);
+        citedDoc.close(); //Close up the temporary InputStream
 
         //Setup a good name for our bitstream and make
         //it the same format as the source document.
