@@ -170,7 +170,8 @@ public class RetrieveCitationInPMC
 				log.info(LogManager.getHeader(null, "retrieve_citation_pubmed",
                         "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
 				int docWorked = 0;
-				internal: for (BrowsableDSpaceObject dso : qresp.getDspaceObjects()) {					
+				internal: for (BrowsableDSpaceObject genDSO : qresp.getDspaceObjects()) {					
+					BrowsableDSpaceObject<UUID> dso = (BrowsableDSpaceObject<UUID>) genDSO;
 					List<SearchDocument> list = qresp.getSearchDocument(dso);
 					for (SearchDocument doc : list) {
 						if (maxItemToWork != 0 && itemWorked == maxItemToWork) {

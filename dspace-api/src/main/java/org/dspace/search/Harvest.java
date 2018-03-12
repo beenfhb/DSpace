@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -144,7 +145,7 @@ public class Harvest
             Iterator<BrowsableDSpaceObject> dsoIterator = discoverResult.getDspaceObjects().iterator();
             while (dsoIterator.hasNext() && ((limit == 0) || (itemCounter < limit)))
             {
-            	BrowsableDSpaceObject dso = dsoIterator.next();
+            	BrowsableDSpaceObject<UUID> dso = (BrowsableDSpaceObject<UUID>) dsoIterator.next();
                 HarvestedItemInfo itemInfo = new HarvestedItemInfo();
                 itemInfo.context = context;
                 itemInfo.handle = dso.getHandle();

@@ -36,7 +36,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "site")
-public class Site extends DSpaceObject implements BrowsableDSpaceObject
+public class Site extends DSpaceObject implements BrowsableDSpaceObject<UUID>
 {
 
     @Transient

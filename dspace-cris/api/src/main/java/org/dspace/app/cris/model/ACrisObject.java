@@ -50,8 +50,8 @@ import it.cilea.osd.jdyna.model.Property;
 
 @MappedSuperclass
 public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-		implements AuthorizableEntity, ICrisObject<P, TP>, BrowsableDSpaceObject,
-		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult, UsageEventEntity, RootObject {
+		implements AuthorizableEntity, ICrisObject<P, TP>, BrowsableDSpaceObject<UUID>,
+		IExportableDynamicObject<TP, P, ACrisObject<P, TP, NP, NTP, ACNO, ATNO>>, Cloneable, IGlobalSearchResult<UUID>, UsageEventEntity, RootObject {
 
 	@Transient
 	private Map<String, Object> extraInfo = new HashMap<>();

@@ -23,9 +23,9 @@ import org.dspace.discovery.SearchServiceException;
 public interface DedupService
 {
 
-    public void indexContent(Context ctx, BrowsableDSpaceObject dso, boolean force) throws SearchServiceException;
+    public void indexContent(Context ctx, BrowsableDSpaceObject<UUID> dso, boolean force) throws SearchServiceException;
 
-    public void unIndexContent(Context context, BrowsableDSpaceObject dso);
+    public void unIndexContent(Context context, BrowsableDSpaceObject<UUID> dso);
 
     public QueryResponse find(String query, String... filters) throws SearchServiceException;
 

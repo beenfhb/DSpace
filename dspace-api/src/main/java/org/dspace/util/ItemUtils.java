@@ -29,6 +29,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
+import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 public class ItemUtils
@@ -42,6 +43,24 @@ public class ItemUtils
     public final static int ARCHIVE = 2;
     public final static int WITHDRAWN = 3;
     
+    public static Collection getItemOwningCollection(Context context, Item item) throws SQLException {
+    	if (item.getOwningCollection() != null) {
+    		return item.getOwningCollection();
+    	}
+    	else {
+    		WorkspaceItem wsi = ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(context, item);
+    		if (wsi != null) {
+    			return wsi.getCollection();
+    		}
+	    	else {
+	    		WorkflowItem wfi = WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(context, item);
+	    		if (wfi != null) {
+	    			return wfi.getCollection();	
+	    		}
+	    	}
+    	}
+    	return null;
+    }
     
     public static int getItemStatus(Context context, Item item)
             throws SQLException

@@ -1,5 +1,6 @@
 package org.dspace.app.cris.statistics.plugin;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,14 +30,14 @@ public class IndicatorMetadataSumBuilder<ACO extends BrowsableDSpaceObject> exte
                         ? mapValueComputed.get(this.getName())
                         : 0;
                                 
-        BrowsableDSpaceObject object = null;
+        BrowsableDSpaceObject<? extends Serializable> object = null;
         if (resourceType >= CrisConstants.RP_TYPE_ID)
         {
-            object = (BrowsableDSpaceObject)applicationService.getEntityByUUID(uuid);
+            object = (BrowsableDSpaceObject<? extends Serializable>)applicationService.getEntityByUUID(uuid);
         }
         else
         {
-            object = (BrowsableDSpaceObject)DSpaceObject.find(context, resourceType, resourceId);
+            object = (BrowsableDSpaceObject<? extends Serializable>)DSpaceObject.find(context, resourceType, resourceId);
 
         }
 

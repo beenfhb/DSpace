@@ -230,7 +230,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void indexContent(Context ctx, BrowsableDSpaceObject iu, boolean force)
+    public void indexContent(Context ctx, BrowsableDSpaceObject<UUID> iu, boolean force)
             throws SearchServiceException
     {
 

@@ -7,6 +7,7 @@
  */
 package org.dspace.browse;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +18,9 @@ import javax.persistence.Transient;
 import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
-public class BrowseDSpaceObject
+public class BrowseDSpaceObject<PK extends Serializable>
 {
-    private BrowsableDSpaceObject browseObject;
+    private BrowsableDSpaceObject<PK> browseObject;
 
     @Transient
 	public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
@@ -67,7 +68,7 @@ public class BrowseDSpaceObject
 		return extraInfo;
 	}
 	
-	public UUID getID() {
+	public PK getID() {
 		return browseObject.getID();
 	}
 	

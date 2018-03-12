@@ -193,7 +193,7 @@ public class RelationPreferenceService
         }
         String previousState = null;
         int previousPriority = 0;
-        BrowsableDSpaceObject dso = null;
+        BrowsableDSpaceObject<UUID> dso = null;
         if (isItemID)
         {
             try

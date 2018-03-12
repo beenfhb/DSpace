@@ -12,6 +12,7 @@ import static org.dspace.discovery.configuration.DiscoverySortConfiguration.SCOR
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -82,6 +83,7 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.RootObject;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -90,6 +92,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -114,6 +117,15 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.util.MultiFormatDateParser;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowService;
+import org.dspace.xmlworkflow.service.XmlWorkflowService;
+import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
+import org.dspace.xmlworkflow.storedcomponents.PoolTask;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
+import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
+import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
+import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -146,6 +158,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     protected static final String LAST_INDEXED_FIELD = "SolrIndexer.lastIndexed";
     protected static final String HANDLE_FIELD = "handle";
+    protected static final String RESOURCE_UNIQUE_ID = "search.uniqueid";
     protected static final String RESOURCE_TYPE_FIELD = "search.resourcetype";
     protected static final String RESOURCE_ID_FIELD = "search.resourceid";
 
@@ -172,6 +185,15 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     protected HandleService handleService;
     @Autowired(required = true)
     protected MetadataAuthorityService metadataAuthorityService;
+    @Autowired(required = true)
+    protected WorkspaceItemService workspaceItemService;
+    @Autowired(required = true)
+    protected XmlWorkflowItemService workflowItemService;
+    @Autowired(required = true)
+	protected ClaimedTaskService claimedTaskService;
+    @Autowired(required = true)
+    protected PoolTaskService poolTaskService;
+	
 
     /**
      * Non-Static SolrServer for processing indexing events.
@@ -253,14 +275,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     public void indexContent(Context context, BrowsableDSpaceObject dso,
                              boolean force) throws SQLException {
 
-        String handle = dso.getHandle();
-
-        if (handle == null)
-        {
-            handle = dso.findHandle(context);
-        }
-
         try {
+        	String uuid = dso.getID().toString();
             switch (dso.getType())
             {
                 case Constants.ITEM:
@@ -271,10 +287,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                          * If the item is in the repository now, add it to the index
                          */
                     	if (force
-                            || requiresIndexing(handle,
+                            || requiresIndexing(dso.getUniqueIndexID(),
                                     ((Item) dso).getLastModified()))
                         {
-                            unIndexContent(context, handle);
+                            unIndexContent(context, dso);
                             buildDocument(context, (Item) dso);
                         }
                     } else {
@@ -282,19 +298,25 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                          * Make sure the item is not in the index if it is not in
                          * archive or withwrawn.
                          */
-                    	unIndexContent(context, handle);
-                        log.info("Removed Item: " + handle + " from Index");
+                    	unIndexContent(context, dso);
+                        log.info("Removed Item: " + uuid + " from Index");
+                        
+                        /**
+                         * reindex any workflow tasks associated with the item
+                         */
+                        deleteItemTasks(context, (Item) dso);
+                        indexItemTasks(context, (Item) dso);
                     }
                     break;
 
                 case Constants.COLLECTION:
                     buildDocument(context, (Collection) dso);
-                    log.info("Wrote Collection: " + handle + " to Index");
+                    log.info("Wrote Collection: " + uuid + " to Index");
                     break;
 
                 case Constants.COMMUNITY:
                     buildDocument(context, (Community) dso);
-                    log.info("Wrote Community: " + handle + " to Index");
+                    log.info("Wrote Community: " + uuid + " to Index");
                     break;
 
                 default:
@@ -339,7 +361,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             {
                 return;
             }
-            String uniqueID = dso.getType()+"-"+dso.getID();
+            String uniqueID = dso.getUniqueIndexID();
             getSolr().deleteById(uniqueID);
             if(commit)
             {
@@ -354,29 +376,27 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     /**
      * Unindex a Document in the Lucene index.
      * @param context the dspace context
-     * @param handle the handle of the object to be deleted
+     * @param uniqueID the search uniqueID of the document to be deleted
      * @throws IOException if IO error
-     * @throws SQLException if database error
      */
     @Override
-    public void unIndexContent(Context context, String handle) throws IOException, SQLException {
-        unIndexContent(context, handle, false);
+    public void unIndexContent(Context context, String searchUniqueID) throws IOException {
+        unIndexContent(context, searchUniqueID, false);
     }
 
     /**
      * Unindex a Document in the Lucene Index.
      * @param context the dspace context
-     * @param handle the handle of the object to be deleted
-     * @throws SQLException if database error
+     * @param uniqueID the search uniqueID of the document to be deleted
      * @throws IOException if IO error
      */
     @Override
-    public void unIndexContent(Context context, String handle, boolean commit)
-            throws SQLException, IOException {
+    public void unIndexContent(Context context, String searchUniqueID, boolean commit)
+            throws IOException {
 
         try {
             if(getSolr() != null){
-                getSolr().deleteByQuery(HANDLE_FIELD + ":\"" + handle + "\"");
+                getSolr().deleteById(searchUniqueID);
                 if(commit)
                 {
                     getSolr().commit();
@@ -521,6 +541,14 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             for(Item item : ImmutableList.copyOf(items)) {
                 ids.add(item.getID());
             }
+            
+            for (WorkspaceItem wsi : workspaceItemService.findAll(context)) {
+            	ids.add(wsi.getItem().getID());
+            }
+            
+            for (WorkflowItem wfi : workflowItemService.findAll(context)) {
+            	ids.add(wfi.getItem().getID());
+            }
         }
         List<UUID>[] arrayIDList = Util.splitList(ids, numThreads);
         List<IndexerThread> threads = new ArrayList<IndexerThread>();
@@ -602,18 +630,18 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
                     SolrDocument doc = (SolrDocument) iter.next();
 
-                    String handle = (String) doc.getFieldValue(HANDLE_FIELD);
+                    String uniqueID = (String) doc.getFieldValue(RESOURCE_UNIQUE_ID);
                     
                     BrowsableDSpaceObject o = findDSpaceObject(context, doc);
 
                     if (o == null)
                     {
-                        log.info("Deleting: " + handle);
+                        log.info("Deleting: " + uniqueID);
                         /*
                          * Use IndexWriter to delete, its easier to manage
                          * write.lock
                          */
-                        unIndexContent(context, handle);
+                        unIndexContent(context, uniqueID);
                     }
                     else
                     {
@@ -742,7 +770,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         boolean inIndex = false;
 
         SolrQuery query = new SolrQuery();
-        query.setQuery(HANDLE_FIELD + ":" + handle);
+        query.setQuery(RESOURCE_UNIQUE_ID + ":" + handle);
         // Specify that we ONLY want the LAST_INDEXED_FIELD returned in the field list (fl)
         query.setFields(LAST_INDEXED_FIELD);
         QueryResponse rsp;
@@ -1121,6 +1149,25 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         doc.addField("withdrawn", item.isWithdrawn());
         doc.addField("discoverable", item.isDiscoverable());
         doc.addField("lastModified", item.getLastModified());
+        if (item.getSubmitter() != null) {
+        	doc.addField("submitter", item.getSubmitter().getID());
+        }
+        
+        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
+        addDiscoveryFields(doc, context, item, discoveryConfigurations);
+        
+        // write the index and close the inputstreamreaders
+        try {
+            writeDocument(doc, new FullTextContentStreams(context, item));
+            log.info("Wrote Item: " + handle + " to Index");
+        } catch (RuntimeException e)
+        {
+            log.error("Error while writing item to discovery index: " + handle + " message:"+ e.getMessage(), e);
+        }
+    }
+    
+    protected void addDiscoveryFields(SolrInputDocument doc, Context context, Item item, List<DiscoveryConfiguration> discoveryConfigurations)
+            throws SQLException, IOException {
 
         //Keep a list of our sort values which we added, sort values can only be added once
         List<String> sortFieldsAdded = new ArrayList<String>();
@@ -1128,15 +1175,22 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         
         Set<String> hitHighlightingFields = new HashSet<String>();
         try {
-            List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
-
             //A map used to save each sidebarFacet config by the metadata fields
             searchFilters = new HashMap<String, List<DiscoverySearchFilter>>();
             Map<String, DiscoverySortFieldConfiguration> sortFields = new HashMap<String, DiscoverySortFieldConfiguration>();
             Map<String, DiscoveryRecentSubmissionsConfiguration> recentSubmissionsConfigurationMap = new HashMap<String, DiscoveryRecentSubmissionsConfiguration>();
             Set<String> moreLikeThisFields = new HashSet<String>();
+            
+            // some configuration are returned multiple times, skip them to save CPU cycles
+            Set<String> appliedConf = new HashSet<String>();
             for (DiscoveryConfiguration discoveryConfiguration : discoveryConfigurations)
             {
+            	if (appliedConf.contains(discoveryConfiguration.getId())) {
+            		continue;
+            	}
+            	else {
+            		appliedConf.add(discoveryConfiguration.getId());
+            	}
                 for (int i = 0; i < discoveryConfiguration.getSearchFilters().size(); i++)
                 {
                     DiscoverySearchFilter discoverySearchFilter = discoveryConfiguration.getSearchFilters().get(i);
@@ -1601,18 +1655,90 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         {
             solrServiceIndexPlugin.additionalIndex(context, item, doc, searchFilters);
         }
-
-        // write the index and close the inputstreamreaders
-        try {
-            writeDocument(doc, new FullTextContentStreams(context, item));
-            log.info("Wrote Item: " + handle + " to Index");
-        } catch (RuntimeException e)
-        {
-            log.error("Error while writing item to discovery index: " + handle + " message:"+ e.getMessage(), e);
-        }
     }
 
-    /**
+    private void deleteItemTasks(Context context, Item item) throws SolrServerException, IOException {
+    	getSolr().deleteByQuery("workflow.item:\""+item.getID().toString()+"\"");
+    }
+    
+    private void indexItemTasks(Context context, Item item) throws SQLException, IOException, SolrServerException {
+    	XmlWorkflowItem workflowItem = workflowItemService.findByItem(context, item);
+    	if (workflowItem == null) {
+    		WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
+    		if (workspaceItem == null) {
+    			// mmm... it could be a template item, skip it
+    			return;
+    		}
+    		// workspaceitem
+    		List<String> locations = getCollectionLocations(context, workspaceItem.getCollection());
+	        SolrInputDocument doc = new SolrInputDocument();
+	
+	        doc.addField("lastModified", item.getLastModified());
+	        if (workspaceItem.getSubmitter() != null) {
+	        	doc.addField("submitter", workspaceItem.getSubmitter().getID());
+	        }
+	    	
+	        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(workspaceItem);
+	        addDiscoveryFields(doc, context, item, discoveryConfigurations);
+	        addBasicInfoToDocument(doc, Constants.WORKSPACEITEM, workspaceItem.getID(), null,
+	                locations);
+	        getSolr().add(doc);
+    	}
+    	else {
+	    	// so it is an item in the workflow
+    		// get the location string (for searching by collection & community)
+	        List<String> locations = getCollectionLocations(context, workflowItem.getCollection());
+	        SolrInputDocument doc = new SolrInputDocument();
+	
+	        doc.addField("lastModified", item.getLastModified());
+	        if (workflowItem.getSubmitter() != null) {
+	        	doc.addField("submitter", workflowItem.getSubmitter().getID());
+	        }
+	    	
+	        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(workflowItem);
+	        addDiscoveryFields(doc, context, item, discoveryConfigurations);
+	        
+	    	List<ClaimedTask> claimedTasks = claimedTaskService.find(context, workflowItem);
+	    	List<PoolTask> pools = poolTaskService.find(context, workflowItem);
+	    	
+	    	List<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
+	    	
+	    	if (claimedTasks != null) {
+	    		for (ClaimedTask claimedTask : claimedTasks) {
+	    			SolrInputDocument claimDoc = doc.deepCopy();
+	    			addBasicInfoToDocument(claimDoc, Constants.WORKFLOW_CLAIMED, claimedTask.getID(), null,
+	    	                locations);
+	    			claimDoc.addField("workflow.action", claimedTask.getActionID());
+	    			claimDoc.addField("workflow.step", claimedTask.getStepID());
+	    			claimDoc.addField("workflow.owner", claimedTask.getOwner().getID());
+	    			docs.add(claimDoc);
+	    		}
+	    	}
+	    	
+	    	if (pools != null) {
+	    		for (PoolTask poolTask : pools) {
+	    			SolrInputDocument claimDoc = doc.deepCopy();
+	    			addBasicInfoToDocument(claimDoc, Constants.WORKFLOW_POOL, poolTask.getID(), null,
+	    	                locations);
+	    			claimDoc.addField("workflow.action", poolTask.getActionID());
+	    			claimDoc.addField("workflow.step", poolTask.getStepID());
+	    			claimDoc.addField("workflow.owner", poolTask.getEperson().getID());
+	    			claimDoc.addField("workflow.group", poolTask.getGroup().getID());
+	    			docs.add(claimDoc);
+	    		}
+	    	}
+	    	
+	    	if (docs.size() > 0) {
+	    		getSolr().add(docs);
+	    	}
+	    	else {
+	    		// no tasks found?!?
+	    		log.error("No tasks found for workflowitem " + workflowItem.getID());
+	    	}
+    	}
+	}
+
+	/**
      * Create Lucene document with all the shared fields initialized.
      *
      * @param type      Type of DSpace Object
@@ -1624,14 +1750,20 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                                             List<String> locations)
     {
         SolrInputDocument doc = new SolrInputDocument();
-
+        addBasicInfoToDocument(doc, type, id, handle, locations);
+        return doc;
+    }
+        
+    private void addBasicInfoToDocument(SolrInputDocument doc, int type, Serializable id, String handle,
+                List<String> locations)
+    {
         // want to be able to check when last updated
         // (not tokenized, but it is indexed)
         doc.addField(LAST_INDEXED_FIELD, new Date());
 
         // New fields to weaken the dependence on handles, and allow for faster
         // list display
-        doc.addField("search.uniqueid", type+"-"+id);
+		doc.addField(RESOURCE_UNIQUE_ID, type + "-" + id);
         doc.addField(RESOURCE_TYPE_FIELD, Integer.toString(type));
         doc.addField(RESOURCE_ID_FIELD, id.toString());
 
@@ -1659,8 +1791,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 }
             }
         }
-
-        return doc;
     }
 
     /**
@@ -2677,15 +2807,17 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 				for (UUID id : itemids) {
 				    try {				        
 				        Item item = itemService.find(context, id);
-				        indexContent(context, item, force);				        
+				        indexContent(context, item, force);
+				        context.uncacheEntity(item);
 				    }
 				    catch(Exception ex) {
-				        System.out.println("ERROR: identifier item:" + id + " identifier thread:"+ head);
+				        log.error("ERROR: identifier item:" + id + " identifier thread:"+ head);
 				    }
 				    System.out.println(head + ":" + (idx++) + " / " + size);				    
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				log.error(e.getMessage(), e);
 			} finally {
 				if (context != null) {
 					context.abort();

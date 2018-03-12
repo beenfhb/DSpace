@@ -29,10 +29,10 @@ public class CrisConstants {
     
     public static final String CFG_MODULE = "cris";
     public static final String CFG_NETWORK_MODULE = "network";
-	public static final int CRIS_TYPE_ID_START = 9;
-	public static final int RP_TYPE_ID = 9;
-	public static final int PROJECT_TYPE_ID = 10;
-	public static final int OU_TYPE_ID = 11;
+	public static final int CRIS_TYPE_ID_START = 100;
+	public static final int RP_TYPE_ID = 100;
+	public static final int PROJECT_TYPE_ID = 101;
+	public static final int OU_TYPE_ID = 102;
     public static final int NRP_TYPE_ID = 109;
     public static final int NPROJECT_TYPE_ID = 110;
     public static final int NOU_TYPE_ID = 111;

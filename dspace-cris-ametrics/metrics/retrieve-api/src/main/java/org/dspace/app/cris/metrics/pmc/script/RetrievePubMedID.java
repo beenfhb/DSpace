@@ -74,7 +74,7 @@ public class RetrievePubMedID
                                 + " items"));
                 for (SearchDocument doc : list)
                 {
-                    UUID itemID = dso.getID();
+                    UUID itemID = (UUID) dso.getID();
                     if (isCheckRequired(itemID))
                     {
                         List<String> dois = doc

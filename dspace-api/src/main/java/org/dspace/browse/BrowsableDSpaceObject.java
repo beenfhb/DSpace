@@ -7,17 +7,17 @@
  */
 package org.dspace.browse;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import org.dspace.content.IMetadataValue;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 
-public interface BrowsableDSpaceObject extends IGlobalSearchResult
+public interface BrowsableDSpaceObject<PK extends Serializable> extends IGlobalSearchResult<PK>
 {
 	public Map<String, Object> getExtraInfo();
 
@@ -43,4 +43,8 @@ public interface BrowsableDSpaceObject extends IGlobalSearchResult
 	public String getMetadataFirstValue(String schema, String element, String qualifier, String language);
 	
 	public Date getLastModified();
+	
+	default String getUniqueIndexID() {
+		return getType() + "-" + getID().toString(); 
+	}
 }
