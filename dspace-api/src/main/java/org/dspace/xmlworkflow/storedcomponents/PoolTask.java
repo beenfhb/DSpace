@@ -7,6 +7,9 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.IMetadataValue;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
@@ -14,6 +17,9 @@ import org.dspace.eperson.Group;
 
 import javax.persistence.*;
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Pool task representing the database representation of a pool task for a step and an eperson
@@ -25,7 +31,7 @@ import java.sql.SQLException;
  */
 @Entity
 @Table(name="cwf_pooltask")
-public class PoolTask implements ReloadableEntity<Integer> {
+public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
 
     @Id
     @Column(name="pooltask_id")
@@ -122,4 +128,96 @@ public class PoolTask implements ReloadableEntity<Integer> {
     public String getActionID(){
         return this.actionId;
     }
+
+	@Override
+	public String getHandle() {
+		return null;
+	}
+
+	@Override
+	public List<String> getMetadataValue(String mdString) {
+		return workflowItem.getItem().getMetadataValue(mdString);
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+		return workflowItem.getItem().getMetadataValueInDCFormat(mdString);
+	}
+
+	@Override
+	public String getTypeText() {
+		return "pooltask";
+	}
+
+	@Override
+	public int getType() {
+		return Constants.WORKFLOW_POOL;
+	}
+
+	@Override
+	public boolean isWithdrawn() {
+		return false;
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		return null;
+	}
+
+	@Override
+	public boolean isArchived() {
+		return false;
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return workflowItem.getItem().getMetadata(schema, element, qualifier, lang);
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata() {
+		return workflowItem.getItem().getMetadata();
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return workflowItem.getItem().getMetadata(field);
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return false;
+	}
+
+	@Override
+	public String getName() {
+		return workflowItem.getItem().getName();
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return null;
+	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return false;
+	}
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return workflowItem.getItem().getMetadataFirstValue(schema, element, qualifier, language);
+	}
+
+	@Override
+	public Date getLastModified() {
+		return workflowItem.getItem().getLastModified();
+	}
+    
+    
 }

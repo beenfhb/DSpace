@@ -10,7 +10,9 @@ package org.dspace.content;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,7 +30,9 @@ import javax.persistence.Table;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
@@ -44,7 +48,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name = "workspaceitem")
-public class WorkspaceItem implements InProgressSubmission, Serializable, ReloadableEntity<Integer>
+public class WorkspaceItem implements InProgressSubmission, Serializable, ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer>
 {
 
     @Id
@@ -276,5 +280,95 @@ public class WorkspaceItem implements InProgressSubmission, Serializable, Reload
 				context.abort();
 			}
 		}
+	}
+	
+	@Override
+	public String getHandle() {
+		return null;
+	}
+
+	@Override
+	public List<String> getMetadataValue(String mdString) {
+		return item.getMetadataValue(mdString);
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+		return item.getMetadataValueInDCFormat(mdString);
+	}
+
+	@Override
+	public String getTypeText() {
+		return "pooltask";
+	}
+
+	@Override
+	public int getType() {
+		return Constants.WORKFLOW_POOL;
+	}
+
+	@Override
+	public boolean isWithdrawn() {
+		return false;
+	}
+
+	@Override
+	public Map<String, Object> getExtraInfo() {
+		return null;
+	}
+
+	@Override
+	public boolean isArchived() {
+		return false;
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+		return item.getMetadata(schema, element, qualifier, lang);
+	}
+
+	@Override
+	public List<IMetadataValue> getMetadata() {
+		return item.getMetadata();
+	}
+
+	@Override
+	public String getMetadata(String field) {
+		return item.getMetadata(field);
+	}
+
+	@Override
+	public boolean isDiscoverable() {
+		return false;
+	}
+
+	@Override
+	public String getName() {
+		return item.getName();
+	}
+
+	@Override
+	public String findHandle(Context context) throws SQLException {
+		return null;
+	}
+
+	@Override
+	public boolean haveHierarchy() {
+		return false;
+	}
+
+	@Override
+	public BrowsableDSpaceObject getParentObject() {
+		return null;
+	}
+
+	@Override
+	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+		return item.getMetadataFirstValue(schema, element, qualifier, language);
+	}
+
+	@Override
+	public Date getLastModified() {
+		return item.getLastModified();
 	}
 }

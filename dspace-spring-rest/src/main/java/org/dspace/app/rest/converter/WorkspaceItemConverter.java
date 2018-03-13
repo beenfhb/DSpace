@@ -23,8 +23,8 @@ import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.eperson.EPerson;
-import org.dspace.submit.AbstractProcessingStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +37,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class WorkspaceItemConverter
-		extends DSpaceConverter<org.dspace.content.WorkspaceItem, org.dspace.app.rest.model.WorkspaceItemRest> {
+		extends DSpaceConverter<org.dspace.content.WorkspaceItem, org.dspace.app.rest.model.WorkspaceItemRest> 
+	implements BrowsableDSpaceObjectConverter<org.dspace.content.WorkspaceItem, org.dspace.app.rest.model.WorkspaceItemRest> {
 
 	private static final Logger log = Logger.getLogger(WorkspaceItemConverter.class);
 
@@ -151,5 +152,10 @@ public class WorkspaceItemConverter
 		if(!found) {			
 			errors.add(toAdd);
 		}
+	}
+	
+	@Override
+	public boolean supportsModel(Object object) {
+		return object instanceof WorkspaceItem;
 	}
 }

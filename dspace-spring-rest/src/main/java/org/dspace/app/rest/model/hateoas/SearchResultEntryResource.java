@@ -7,7 +7,7 @@
  */
 package org.dspace.app.rest.model.hateoas;
 
-import org.dspace.app.rest.model.DSpaceObjectRest;
+import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.SearchResultEntryRest;
 import org.dspace.app.rest.repository.DSpaceRestRepository;
 import org.dspace.app.rest.utils.Utils;
@@ -27,7 +27,7 @@ public class SearchResultEntryResource extends HALResource<SearchResultEntryRest
 
     private void addEmbeds(final SearchResultEntryRest data, final Utils utils) {
 
-        DSpaceObjectRest dspaceObject = data.getDspaceObject();
+        RestAddressableModel dspaceObject = data.getRObject();
 
         if(dspaceObject != null) {
             DSpaceRestRepository resourceRepository = utils.getResourceRepository(dspaceObject.getCategory(), dspaceObject.getType());

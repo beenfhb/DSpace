@@ -14,6 +14,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.rest.model.DSpaceObjectRest;
+import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.SearchFacetEntryRest;
 import org.dspace.app.rest.model.SearchFacetValueRest;
 import org.dspace.app.rest.model.SearchResultEntryRest;
@@ -94,7 +95,7 @@ public class DiscoverResultConverter {
             SearchResultEntryRest resultEntry = new SearchResultEntryRest();
 
             //Convert the DSpace Object to its REST model
-            resultEntry.setDspaceObject(convertDSpaceObject(dspaceObject));
+            resultEntry.setRObject(convertDSpaceObject(dspaceObject));
 
             //Add hit highlighting for this DSO if present
             DiscoverResult.DSpaceObjectHighlightResult highlightedResults = searchResult.getHighlightedResults(dspaceObject);
@@ -108,10 +109,10 @@ public class DiscoverResultConverter {
         }
     }
 
-    private DSpaceObjectRest convertDSpaceObject(final BrowsableDSpaceObject dspaceObject) {
-        for (BrowsableDSpaceObjectConverter converter : converters) {
+    private RestAddressableModel convertDSpaceObject(final Object dspaceObject) {
+        for (BrowsableDSpaceObjectConverter<Object, RestAddressableModel> converter : converters) {
             if(converter.supportsModel(dspaceObject)) {
-                return converter.fromModel(dspaceObject);
+                return converter.convert(dspaceObject);
             }
         }
         return null;

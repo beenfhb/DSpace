@@ -23,7 +23,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ClaimedTaskConverter
-		extends DSpaceConverter<ClaimedTask, org.dspace.app.rest.model.ClaimedTaskRest> {
+		extends DSpaceConverter<ClaimedTask, org.dspace.app.rest.model.ClaimedTaskRest> 
+		implements BrowsableDSpaceObjectConverter<ClaimedTask, org.dspace.app.rest.model.ClaimedTaskRest>  {
 
 	private static final Logger log = Logger.getLogger(ClaimedTaskConverter.class);
 
@@ -45,6 +46,11 @@ public class ClaimedTaskConverter
 	@Override
 	public ClaimedTask toModel(ClaimedTaskRest obj) {
 		return null;
+	}
+	
+	@Override
+	public boolean supportsModel(Object object) {
+		return object instanceof ClaimedTask;
 	}
 
 }

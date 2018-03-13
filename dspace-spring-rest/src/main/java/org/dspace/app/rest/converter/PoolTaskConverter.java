@@ -23,7 +23,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PoolTaskConverter
-		extends DSpaceConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest> {
+		extends DSpaceConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest>
+		implements BrowsableDSpaceObjectConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest> {
 
 	private static final Logger log = Logger.getLogger(PoolTaskConverter.class);
 
@@ -47,4 +48,8 @@ public class PoolTaskConverter
 		return null;
 	}
 
+	@Override
+	public boolean supportsModel(Object object) {
+		return object instanceof PoolTask;
+	}
 }
