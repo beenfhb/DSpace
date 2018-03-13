@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -1661,6 +1663,16 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     	getSolr().deleteByQuery("workflow.item:\""+item.getID().toString()+"\"");
     }
     
+	private void addFacetIndex(SolrInputDocument document, String field,
+			String authority, String fvalue) {
+
+		String acvalue = fvalue+SolrServiceImpl.AUTHORITY_SEPARATOR+authority;
+		document.addField(field + "_filter", acvalue);
+		document.addField(field + "_authority", authority);
+		document.addField(field + "_ac", fvalue);		
+	}
+
+    
     private void indexItemTasks(Context context, Item item) throws SQLException, IOException, SolrServerException {
     	XmlWorkflowItem workflowItem = workflowItemService.findByItem(context, item);
     	if (workflowItem == null) {
@@ -1692,7 +1704,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	
 	        doc.addField("lastModified", item.getLastModified());
 	        if (workflowItem.getSubmitter() != null) {
-	        	doc.addField("submitter", workflowItem.getSubmitter().getID());
+	        	addFacetIndex(doc, "submitter", workflowItem.getSubmitter().getID().toString(), workflowItem.getSubmitter().getFirstName());
 	        }
 	    	
 	        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(workflowItem);
