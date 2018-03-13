@@ -1037,11 +1037,6 @@
          </dependency>
          <dependency>
             <groupId>org.dspace</groupId>
-            <artifactId>metrics-lookup</artifactId>
-            <version>${project.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.dspace</groupId>
             <artifactId>dspace-services</artifactId>
 			<version>${project.version}</version>
          </dependency>

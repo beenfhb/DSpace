@@ -218,11 +218,6 @@ just adding new jar in the classloader</description>
 
 		<dependency>
 			<groupId>org.dspace</groupId>
-			<artifactId>metrics-lookup</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-api</artifactId>
 		</dependency>
 
