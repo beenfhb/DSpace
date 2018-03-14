@@ -113,6 +113,7 @@ import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.handle.service.HandleService;
@@ -121,13 +122,21 @@ import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.util.MultiFormatDateParser;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowService;
+import org.dspace.xmlworkflow.RoleMembers;
+import org.dspace.xmlworkflow.WorkflowConfigurationException;
+import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
+import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.service.XmlWorkflowService;
+import org.dspace.xmlworkflow.state.Step;
+import org.dspace.xmlworkflow.state.Workflow;
+import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
+import org.restlet.engine.security.RoleMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -195,7 +204,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	protected ClaimedTaskService claimedTaskService;
     @Autowired(required = true)
     protected PoolTaskService poolTaskService;
-	
+    @Autowired(required = true)
+    protected XmlWorkflowFactory workflowFactory;
 
     /**
      * Non-Static SolrServer for processing indexing events.
@@ -1673,7 +1683,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	}
 
     
-    private void indexItemTasks(Context context, Item item) throws SQLException, IOException, SolrServerException {
+    private void indexItemTasks(Context context, Item item) throws SQLException, IOException, SolrServerException, WorkflowConfigurationException {
     	XmlWorkflowItem workflowItem = workflowItemService.findByItem(context, item);
     	if (workflowItem == null) {
     		WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
@@ -1702,9 +1712,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	        List<String> locations = getCollectionLocations(context, workflowItem.getCollection());
 	        SolrInputDocument doc = new SolrInputDocument();
 	
+	        doc.addField("workflow.item", item.getID());
 	        doc.addField("lastModified", item.getLastModified());
 	        if (workflowItem.getSubmitter() != null) {
-	        	addFacetIndex(doc, "submitter", workflowItem.getSubmitter().getID().toString(), workflowItem.getSubmitter().getFirstName());
+	        	addFacetIndex(doc, "submitter", workflowItem.getSubmitter().getID().toString(), workflowItem.getSubmitter().getFullName());
 	        }
 	    	
 	        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(workflowItem);
@@ -1723,6 +1734,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    			claimDoc.addField("workflow.action", claimedTask.getActionID());
 	    			claimDoc.addField("workflow.step", claimedTask.getStepID());
 	    			claimDoc.addField("workflow.owner", claimedTask.getOwner().getID());
+	    			addFacetIndex(claimDoc, "action", claimedTask.getActionID(), claimedTask.getActionID());
+                    addFacetIndex(claimDoc, "task", claimedTask.getStepID(), claimedTask.getStepID());
+	    			addFacetIndex(claimDoc, "controller", claimedTask.getOwner().getID().toString(), claimedTask.getOwner().getFullName());
 	    			docs.add(claimDoc);
 	    		}
 	    	}
@@ -1736,6 +1750,27 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    			claimDoc.addField("workflow.step", poolTask.getStepID());
 	    			claimDoc.addField("workflow.owner", poolTask.getEperson().getID());
 	    			claimDoc.addField("workflow.group", poolTask.getGroup().getID());
+                    addFacetIndex(claimDoc, "action", poolTask.getActionID(), poolTask.getActionID());
+                    addFacetIndex(claimDoc, "task", poolTask.getStepID(), poolTask.getStepID());
+                        
+                    //get unique members from task role
+                    Workflow workflow = workflowFactory.getWorkflow(workflowItem.getCollection());
+                    Step owningStep = workflow.getStep(poolTask.getStepID());
+                    WorkflowActionConfig actionConfig = owningStep.getActionConfig(poolTask.getActionID());
+
+                    RoleMembers allroleMembers = owningStep.getRole().getMembers(context, workflowItem);
+                    // Create pooled tasks for each member of our group
+                    if (allroleMembers != null
+                            && (allroleMembers.getGroups().size() > 0 || allroleMembers.getEPersons().size() > 0)) {
+                        for(EPerson ep : allroleMembers.getAllUniqueMembers(context)) {
+                            addFacetIndex(claimDoc, "controller", ep.getID().toString(),
+                                    poolTask.getGroup().getName());
+                        }
+                    } else
+                        log.info(LogManager.getHeader(context, "warning while indexing controllers",
+                                "No group or person was found for the following roleid: "
+                                        + actionConfig.getStep().getRole().getId()));
+  
 	    			docs.add(claimDoc);
 	    		}
 	    	}
