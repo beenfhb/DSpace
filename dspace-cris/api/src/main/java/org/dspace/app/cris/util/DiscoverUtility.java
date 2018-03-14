@@ -102,6 +102,8 @@ public class DiscoverUtility
             String configurationName, boolean enableFacet)
     {
         DiscoverQuery queryArgs = new DiscoverQuery();
+        queryArgs.setDiscoveryConfigurationName(configurationName);
+        
         DiscoveryConfiguration discoveryConfiguration = SearchUtils
                 .getDiscoveryConfigurationByName(configurationName);
 

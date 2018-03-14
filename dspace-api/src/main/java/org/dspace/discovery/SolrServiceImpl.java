@@ -182,6 +182,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     public static final String VARIANTS_STORE_SEPARATOR = "###";
 
+    private static final String REGEX = "\\S+(?:\\s*\\|\\|\\|(\\s*\\S+))+";
+    
     @Autowired(required = true)
     protected ContentServiceFactory contentServiceFactory;
     @Autowired(required = true)
@@ -1704,6 +1706,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	        addDiscoveryFields(doc, context, item, discoveryConfigurations);
 	        addBasicInfoToDocument(doc, Constants.WORKSPACEITEM, workspaceItem.getID(), null,
 	                locations);
+	        
+            String acvalue = ConfigurationManager.getProperty(
+                    "cris", "facet.namedtype.workspace");                                 
+            String fvalue = acvalue;
+            addNamedResourceTypeIndex(doc, acvalue, fvalue);
+            
 	        getSolr().add(doc);
     	}
     	else {
@@ -1736,8 +1744,14 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    			claimDoc.addField("workflow.owner", claimedTask.getOwner().getID());
 	    			addFacetIndex(claimDoc, "action", claimedTask.getActionID(), claimedTask.getActionID());
                     addFacetIndex(claimDoc, "task", claimedTask.getStepID(), claimedTask.getStepID());
-	    			addFacetIndex(claimDoc, "controller", claimedTask.getOwner().getID().toString(), claimedTask.getOwner().getFullName());
-	    			docs.add(claimDoc);
+	    			addFacetIndex(claimDoc, "controller", "e"+claimedTask.getOwner().getID().toString(), claimedTask.getOwner().getFullName());
+	    			
+	    	        String acvalue = ConfigurationManager.getProperty(
+	    	                "cris", "facet.namedtype.workflow.claimed");	    	                        
+	    	        String fvalue = acvalue;
+	    	        addNamedResourceTypeIndex(claimDoc, acvalue, fvalue);
+
+	    	        docs.add(claimDoc);
 	    		}
 	    	}
 	    	
@@ -1752,28 +1766,31 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    			claimDoc.addField("workflow.group", poolTask.getGroup().getID());
                     addFacetIndex(claimDoc, "action", poolTask.getActionID(), poolTask.getActionID());
                     addFacetIndex(claimDoc, "task", poolTask.getStepID(), poolTask.getStepID());
-                        
-                    //get unique members from task role
-                    Workflow workflow = workflowFactory.getWorkflow(workflowItem.getCollection());
-                    Step owningStep = workflow.getStep(poolTask.getStepID());
-                    WorkflowActionConfig actionConfig = owningStep.getActionConfig(poolTask.getActionID());
 
-                    RoleMembers allroleMembers = owningStep.getRole().getMembers(context, workflowItem);
-                    // Create pooled tasks for each member of our group
-                    if (allroleMembers != null
-                            && (allroleMembers.getGroups().size() > 0 || allroleMembers.getEPersons().size() > 0)) {
-                        for(EPerson ep : allroleMembers.getAllUniqueMembers(context)) {
-                            addFacetIndex(claimDoc, "controller", ep.getID().toString(),
-                                    poolTask.getGroup().getName());
-                        }
-                    } else
-                        log.info(LogManager.getHeader(context, "warning while indexing controllers",
-                                "No group or person was found for the following roleid: "
-                                        + actionConfig.getStep().getRole().getId()));
-  
-	    			docs.add(claimDoc);
+                    if(poolTask.getEperson()!=null) {
+                        addFacetIndex(claimDoc, "controller", "e"+poolTask.getEperson().getID().toString(), poolTask.getEperson().getFullName());    
+                    }
+                    if(poolTask.getGroup()!=null) {
+                        addFacetIndex(claimDoc, "controller", "g"+poolTask.getGroup().getID().toString(), poolTask.getGroup().getName());
+                    }
+                    
+                    String acvalue = ConfigurationManager.getProperty(
+                            "cris", "facet.namedtype.workflow.pooled");                                 
+                    String fvalue = acvalue;
+                    addNamedResourceTypeIndex(claimDoc, acvalue, fvalue);
+                    docs.add(claimDoc);
 	    		}
 	    	}
+	    	
+	    	
+            String acvalue = ConfigurationManager.getProperty(
+                    "cris", "facet.namedtype.workflow.item");                                 
+            String fvalue = acvalue;
+            addNamedResourceTypeIndex(doc, acvalue, fvalue);
+            
+	    	addBasicInfoToDocument(doc, Constants.WORKFLOWITEM, workflowItem.getID(), null,
+                    locations);
+	    	docs.add(doc);
 	    	
 	    	if (docs.size() > 0) {
 	    		getSolr().add(docs);
@@ -2872,5 +2889,25 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 			}
 		}
 	}
-	
+
+    private void addNamedResourceTypeIndex(SolrInputDocument document, String acvalue, String fvalue) {
+
+        document.addField("namedresourcetype_filter", acvalue);
+
+        String[] avalues = acvalue.split(SolrServiceImpl.AUTHORITY_SEPARATOR);
+        acvalue = avalues[0];
+
+        String avalue = avalues[1];
+        document.addField("namedresourcetype_authority", avalue);
+        document.addField("namedresourcetype_group", avalue);
+        document.addField("namedresourcetype_ac", acvalue);
+
+        Pattern pattern = Pattern.compile(REGEX);
+        Matcher matcher = pattern.matcher(acvalue);
+        if (matcher.matches()) {
+            fvalue = matcher.group(1);
+        }
+
+        document.addField("namedresourcetype_keyword", fvalue);
+    }
 }

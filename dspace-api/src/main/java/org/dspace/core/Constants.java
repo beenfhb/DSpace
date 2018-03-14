@@ -42,12 +42,15 @@ public class Constants
 
     /** Type of workspace item objects */
     public static final int WORKSPACEITEM = 8;
+
+    /** Type of workflow item objects */
+    public static final int WORKFLOWITEM = 9;
     
     /** Type of pool task workflow objects */
-    public static final int WORKFLOW_POOL = 9;
+    public static final int WORKFLOW_POOL = 10;
 
     /** Type of pool task workflow objects */
-    public static final int WORKFLOW_CLAIMED = 10;
+    public static final int WORKFLOW_CLAIMED = 11;
 
     /**
      * lets you look up type names from the type IDs

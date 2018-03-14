@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrInputDocument;
@@ -115,8 +116,28 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                             .getServiceManager().getServiceByName(SearchService.class.getName(), SearchService.class)
                             .createLocationQueryForAdministrableItems(context));
                 }
-                
+
                 solrQuery.addFilterQuery(resourceQuery.toString());
+                
+                if(StringUtils.isNotBlank(discoveryQuery.getDiscoveryConfigurationName())) {
+                    if(discoveryQuery.getDiscoveryConfigurationName().startsWith("workspace")) {
+                        //insert filter by submitter
+                        solrQuery.addFilterQuery("submitter:" + currentUser.getID());
+                    }
+                    
+                    if(discoveryQuery.getDiscoveryConfigurationName().startsWith("workflow")) {
+                        //insert filter by controllers
+                        StringBuilder controllerQuery = new StringBuilder();
+                        controllerQuery.append("controller:(e" + currentUser.getID());
+                        for (Group group : groups) {
+                            if (!group.isNotRelevant()) {
+                                controllerQuery.append(" OR g").append(group.getID());
+                            }
+                        }
+                        controllerQuery.append(")");
+                        solrQuery.addFilterQuery(controllerQuery.toString());
+                    }
+                }
             }
         } catch (SQLException e) {
             log.error(LogManager.getHeader(context, "Error while adding resource policy information to query", ""), e);

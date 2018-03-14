@@ -64,6 +64,8 @@ public class DiscoverQuery
     
     private Map<String, List<DiscoverViewField>> viewFields;
     
+    private String discoveryConfigurationName;
+    
     public DiscoverQuery()
     {
         // Initialize all our lists
@@ -452,5 +454,13 @@ public class DiscoverQuery
 
     private int getTopYear(int newestYear, int gap) {
         return (int) (Math.ceil((float) (newestYear) / gap) * gap);
+    }
+
+    public String getDiscoveryConfigurationName() {
+        return discoveryConfigurationName;
+    }
+
+    public void setDiscoveryConfigurationName(String discoveryConfigurationName) {
+        this.discoveryConfigurationName = discoveryConfigurationName;
     }
 }
