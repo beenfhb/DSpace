@@ -184,11 +184,6 @@
 			<artifactId>dspace-cris-api</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.dspace</groupId>
-			<artifactId>metrics-lookup</artifactId>
-		</dependency>
-		
     </dependencies>
 
 </project>
