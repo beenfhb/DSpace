@@ -1798,7 +1798,7 @@
 		<property name="defaultFilterQueries">
 			<list>
 				<!--Only find items, communities and collections -->
-				<value>search.resourcetype:2 OR search.resourcetype:[8 TO 10]</value>
+				<value>search.resourcetype:2 OR search.resourcetype:[8 TO 9]</value>
 			</list>
 		</property>
         <!-- When true a "did you mean" example will be displayed, value can be true or false -->
@@ -1937,7 +1937,7 @@
 		<property name="defaultFilterQueries">
 			<list>
 				<!--Only find items, communities and collections -->
-				<value>search.resourcetype:[9 TO 10]</value>
+				<value>search.resourcetype:[10 TO 11]</value>
 			</list>
 		</property>
         <!-- When true a "did you mean" example will be displayed, value can be true or false -->
