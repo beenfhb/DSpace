@@ -181,6 +181,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
 
     private DiscoverQuery buildBaseQueryForConfiguration(DiscoveryConfiguration discoveryConfiguration) {
         DiscoverQuery queryArgs = new DiscoverQuery();
+        queryArgs.setDiscoveryConfigurationName(discoveryConfiguration.getId());
         queryArgs.addFilterQueries(discoveryConfiguration.getDefaultFilterQueries()
                 .toArray(new String[discoveryConfiguration.getDefaultFilterQueries().size()]));
         return queryArgs;

@@ -19,6 +19,7 @@ import org.dspace.app.cris.model.ACrisObjectWithTypeSupport;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceImpl;
@@ -85,13 +86,17 @@ public class ResourceTypeSolrIndexer implements CrisServiceIndexPlugin,
 						+ StringUtils.deleteWhitespace(dso.getTypeText().toLowerCase()));
 		String fvalue = acvalue;
 		addResourceTypeIndex(document, acvalue, fvalue);
-
-		acvalue = ConfigurationManager.getProperty(
-                CrisConstants.CFG_MODULE, "facet.namedtype.item");
-		if(StringUtils.isNotBlank(acvalue)) {
-		    fvalue = acvalue;
-		    addNamedResourceTypeIndex(document, acvalue, fvalue);
-		}
+		
+        if (dso instanceof Item) {
+            Item item = (Item) dso;
+            if (item.isArchived()) {
+                acvalue = ConfigurationManager.getProperty(CrisConstants.CFG_MODULE, "facet.namedtype.item");
+                if (StringUtils.isNotBlank(acvalue)) {
+                    fvalue = acvalue;
+                    addNamedResourceTypeIndex(document, acvalue, fvalue);
+                }
+            }
+        }
 	}
 
 	private void addResourceTypeIndex(SolrInputDocument document,

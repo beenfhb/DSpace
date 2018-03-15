@@ -1699,7 +1699,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	
 	        doc.addField("lastModified", item.getLastModified());
 	        if (workspaceItem.getSubmitter() != null) {
-	        	doc.addField("submitter", workspaceItem.getSubmitter().getID());
+	        	doc.addField("read", "ws"+workspaceItem.getSubmitter().getID());
 	        }
 	    	
 	        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(workspaceItem);
@@ -1742,9 +1742,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    			claimDoc.addField("workflow.action", claimedTask.getActionID());
 	    			claimDoc.addField("workflow.step", claimedTask.getStepID());
 	    			claimDoc.addField("workflow.owner", claimedTask.getOwner().getID());
+	    			claimDoc.addField("read", "we"+claimedTask.getOwner().getID().toString());
+	    			
 	    			addFacetIndex(claimDoc, "action", claimedTask.getActionID(), claimedTask.getActionID());
                     addFacetIndex(claimDoc, "task", claimedTask.getStepID(), claimedTask.getStepID());
-	    			addFacetIndex(claimDoc, "controller", "e"+claimedTask.getOwner().getID().toString(), claimedTask.getOwner().getFullName());
+                    
 	    			
 	    	        String acvalue = ConfigurationManager.getProperty(
 	    	                "cris", "facet.namedtype.workflow.claimed");	    	                        
@@ -1768,10 +1770,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     addFacetIndex(claimDoc, "task", poolTask.getStepID(), poolTask.getStepID());
 
                     if(poolTask.getEperson()!=null) {
-                        addFacetIndex(claimDoc, "controller", "e"+poolTask.getEperson().getID().toString(), poolTask.getEperson().getFullName());    
+                        claimDoc.addField("read", "we"+poolTask.getEperson().getID().toString());    
                     }
                     if(poolTask.getGroup()!=null) {
-                        addFacetIndex(claimDoc, "controller", "g"+poolTask.getGroup().getID().toString(), poolTask.getGroup().getName());
+                        claimDoc.addField("read", "wg"+poolTask.getGroup().getID().toString());
                     }
                     
                     String acvalue = ConfigurationManager.getProperty(
@@ -1790,6 +1792,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             
 	    	addBasicInfoToDocument(doc, Constants.WORKFLOWITEM, workflowItem.getID(), null,
                     locations);
+            if (workflowItem.getSubmitter() != null) {
+                doc.addField("read", "ws" + workflowItem.getSubmitter().getID());
+            }
 	    	docs.add(doc);
 	    	
 	    	if (docs.size() > 0) {

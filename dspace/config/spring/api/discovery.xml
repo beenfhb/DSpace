@@ -1676,7 +1676,6 @@
 		<!--Which sidebar facets are to be displayed -->
 		<property name="sidebarFacets">
 			<list>
-				<ref bean="searchFilterSubmitter" />
 				<ref bean="searchFilterObjectNamedType" />
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterIssued" />
@@ -1686,7 +1685,6 @@
 		<!--The search filters which can be used on the discovery search page -->
 		<property name="searchFilters">
 			<list>
-				<ref bean="searchFilterSubmitter" />
 				<ref bean="searchFilterObjectNamedType" />
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterIssued" />
@@ -1813,8 +1811,6 @@
 		<!--Which sidebar facets are to be displayed -->
 		<property name="sidebarFacets">
 			<list>
-				<ref bean="searchFilterSubmitter" />
-				<ref bean="searchFilterController" />
 				<ref bean="searchFilterObjectNamedType" />
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterIssued" />
@@ -1824,8 +1820,6 @@
 		<!--The search filters which can be used on the discovery search page -->
 		<property name="searchFilters">
 			<list>
-				<ref bean="searchFilterSubmitter" />
-				<ref bean="searchFilterController" />
 				<ref bean="searchFilterObjectNamedType" />
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterIssued" />
@@ -2022,26 +2016,6 @@
 		</property>
 	</bean>
 	
-	<bean id="searchFilterSubmitter"
-		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-		<property name="indexFieldName" value="submitter" />
-		<property name="metadataFields">
-			<list>
-				<value>placeholder.placeholder.placeholder</value>
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="searchFilterController"
-		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-		<property name="indexFieldName" value="controller" />
-		<property name="metadataFields">
-			<list>
-				<value>placeholder.placeholder.placeholder</value>
-			</list>
-		</property>
-	</bean>	
-
 	<bean id="searchFilterTitle"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilter">
 		<property name="indexFieldName" value="title" />
