@@ -7,6 +7,8 @@
  */
 package org.dspace.content.service;
 
+import java.util.UUID;
+
 import org.dspace.content.EditItem;
 
 /**
@@ -16,7 +18,7 @@ import org.dspace.content.EditItem;
  * @author Pascarelli Luigi Andrea (luigiandrea.pascarelli at 4science dot it)
  *
  */
-public interface EditItemService extends InProgressSubmissionService<EditItem>
+public interface EditItemService extends InProgressSubmissionService<EditItem, UUID>
 {
     
 }

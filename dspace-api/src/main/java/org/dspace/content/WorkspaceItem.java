@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.dspace.authorize.AuthorizeException;
@@ -50,6 +52,9 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Table(name = "workspaceitem")
 public class WorkspaceItem implements InProgressSubmission, Serializable, ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer>
 {
+    
+    @Transient
+    public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
 
     @Id
     @Column(name = "workspace_item_id", unique = true, nullable = false)
@@ -299,12 +304,12 @@ public class WorkspaceItem implements InProgressSubmission, Serializable, Reload
 
 	@Override
 	public String getTypeText() {
-		return "pooltask";
+		return "workspaceitem";
 	}
 
 	@Override
 	public int getType() {
-		return Constants.WORKFLOW_POOL;
+		return Constants.WORKSPACEITEM;
 	}
 
 	@Override
@@ -314,7 +319,7 @@ public class WorkspaceItem implements InProgressSubmission, Serializable, Reload
 
 	@Override
 	public Map<String, Object> getExtraInfo() {
-		return null;
+		return extraInfo;
 	}
 
 	@Override

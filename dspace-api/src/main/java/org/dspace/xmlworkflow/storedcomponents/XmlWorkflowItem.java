@@ -7,18 +7,36 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-
-import javax.persistence.*;
-import java.sql.SQLException;
 
 /**
  * Class representing an item going through the workflow process in DSpace
@@ -30,8 +48,11 @@ import java.sql.SQLException;
  */
 @Entity
 @Table(name="cwf_workflowitem")
-public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer> {
+public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
 
+    @Transient
+    public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
+    
     @Id
     @Column(name="workflowitem_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="cwf_workflowitem_seq")
@@ -158,4 +179,94 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer> 
 		// FIXME
 		return 0;
 	}
+    @Override
+    public String getHandle() {
+        return null;
+    }
+
+    @Override
+    public List<String> getMetadataValue(String mdString) {
+        return item.getMetadataValue(mdString);
+    }
+
+    @Override
+    public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+        return item.getMetadataValueInDCFormat(mdString);
+    }
+
+    @Override
+    public String getTypeText() {
+        return "workflowitem";
+    }
+
+    @Override
+    public int getType() {
+        return Constants.WORKFLOWITEM;
+    }
+
+    @Override
+    public boolean isWithdrawn() {
+        return false;
+    }
+
+    @Override
+    public Map<String, Object> getExtraInfo() {
+        return extraInfo;
+    }
+
+    @Override
+    public boolean isArchived() {
+        return false;
+    }
+
+    @Override
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+        return item.getMetadata(schema, element, qualifier, lang);
+    }
+
+    @Override
+    public List<IMetadataValue> getMetadata() {
+        return item.getMetadata();
+    }
+
+    @Override
+    public String getMetadata(String field) {
+        return item.getMetadata(field);
+    }
+
+    @Override
+    public boolean isDiscoverable() {
+        return false;
+    }
+
+    @Override
+    public String getName() {
+        return item.getName();
+    }
+
+    @Override
+    public String findHandle(Context context) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public boolean haveHierarchy() {
+        return false;
+    }
+
+    @Override
+    public BrowsableDSpaceObject getParentObject() {
+        return null;
+    }
+
+    @Override
+    public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+        return item.getMetadataFirstValue(schema, element, qualifier, language);
+    }
+
+    @Override
+    public Date getLastModified() {
+        return item.getLastModified();
+    }
+
 }

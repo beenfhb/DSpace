@@ -143,7 +143,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
     private void fillFacetIntoQueryArgs(Context context, BrowsableDSpaceObject scope, DiscoverQuery queryArgs, DiscoverySearchFilterFacet facet, final int pageSize) {
         if (facet.getType().equals(DiscoveryConfigurationParameters.TYPE_DATE)) {
             try {
-                FacetYearRange facetYearRange = searchService.getFacetYearRange(context, scope, facet, queryArgs.getFilterQueries());
+                FacetYearRange facetYearRange = searchService.getFacetYearRange(context, scope, facet, queryArgs.getFilterQueries(), queryArgs);
 
                 queryArgs.addYearRangeFacet(facet, facetYearRange);
 

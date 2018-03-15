@@ -65,7 +65,7 @@ public class BasicWorkflowItemServiceImpl implements BasicWorkflowItemService {
     }
 
     @Override
-    public BasicWorkflowItem find(Context context, int id) throws SQLException {
+    public BasicWorkflowItem find(Context context, Integer id) throws SQLException {
         BasicWorkflowItem workflowItem = workflowItemDAO.findByID(context, BasicWorkflowItem.class, id);
 
         if (workflowItem == null)

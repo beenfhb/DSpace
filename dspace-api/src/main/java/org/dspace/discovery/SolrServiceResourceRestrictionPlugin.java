@@ -78,12 +78,6 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                 context.uncacheEntity(resourcePolicy);
             }
             
-            if(dso instanceof Item) {
-                Item item = (Item)dso;
-                String fieldValue = "s" + item.getSubmitter().getID();
-                document.addField("read", fieldValue);
-            }
-
         } catch (SQLException e) {
             log.error(LogManager.getHeader(context, "Error while indexing resource policies", "DSpace object: (id " + dso.getID() + " type " + dso.getType() + ")"));
         }
@@ -99,27 +93,27 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                 // Retrieve all the groups the current user is a member of !
                 Set<Group> groups = groupService.allMemberGroupsSet(context, currentUser);
                 
-//                if (currentUser != null) {
-//                    if (StringUtils.isNotBlank(discoveryQuery.getDiscoveryConfigurationName())) {
-//                        if (discoveryQuery.getDiscoveryConfigurationName().startsWith("workspace")) {
-//                            // insert filter by submitter
-//                            solrQuery.addFilterQuery("read:(s" + currentUser.getID() + " OR ws" + currentUser.getID()+")");
-//                            isInProgessSubmission = true;
-//                        } else  if (discoveryQuery.getDiscoveryConfigurationName().startsWith("workflow")) {
-//                            // insert filter by controllers
-//                            StringBuilder controllerQuery = new StringBuilder();
-//                            controllerQuery.append("read:(we" + currentUser.getID());
-//                            for (Group group : groups) {
-//                                if (!group.isNotRelevant()) {
-//                                    controllerQuery.append(" OR wg").append(group.getID());
-//                                }
-//                            }
-//                            controllerQuery.append(")");
-//                            solrQuery.addFilterQuery(controllerQuery.toString());
-//                            isInProgessSubmission = true;
-//                        }
-//                    }
-//                }
+                if (currentUser != null) {
+                    if (StringUtils.isNotBlank(discoveryQuery.getDiscoveryConfigurationName())) {
+                        if (discoveryQuery.getDiscoveryConfigurationName().startsWith("workspace")) {
+                            // insert filter by submitter
+                            solrQuery.addFilterQuery("read:(e" + currentUser.getID() + " OR ws" + currentUser.getID()+")");
+                            isInProgessSubmission = true;
+                        } else  if (discoveryQuery.getDiscoveryConfigurationName().startsWith("workflow")) {
+                            // insert filter by controllers
+                            StringBuilder controllerQuery = new StringBuilder();
+                            controllerQuery.append("read:(we" + currentUser.getID());
+                            for (Group group : groups) {
+                                if (!group.isNotRelevant()) {
+                                    controllerQuery.append(" OR wg").append(group.getID());
+                                }
+                            }
+                            controllerQuery.append(")");
+                            solrQuery.addFilterQuery(controllerQuery.toString());
+                            isInProgessSubmission = true;
+                        }
+                    }
+                }
     	        
                 if (!isInProgessSubmission) {
                     StringBuilder resourceQuery = new StringBuilder();

@@ -91,7 +91,7 @@ public class DiscoverQueryBuilderTest {
 
         when(searchService.toSortFieldIndex(any(String.class), any(String.class))).then(invocation -> invocation.getArguments()[0] + "_sort");
 
-        when(searchService.getFacetYearRange(eq(context), any(BrowsableDSpaceObject.class), any(DiscoverySearchFilterFacet.class), any())).then(invocation
+        when(searchService.getFacetYearRange(eq(context), any(BrowsableDSpaceObject.class), any(DiscoverySearchFilterFacet.class), any(), any(DiscoverQuery.class))).then(invocation
                 -> new FacetYearRange((DiscoverySearchFilterFacet) invocation.getArguments()[2]));
 
         when(searchService.toFilterQuery(any(Context.class), any(String.class), any(String.class), any(String.class)))

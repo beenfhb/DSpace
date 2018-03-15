@@ -18,6 +18,7 @@ import org.dspace.eperson.Group;
 import javax.persistence.*;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,9 @@ import java.util.Map;
 @Table(name="cwf_pooltask")
 public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
 
+    @Transient
+    public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
+    
     @Id
     @Column(name="pooltask_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="cwf_pooltask_seq")
@@ -161,7 +165,7 @@ public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObjec
 
 	@Override
 	public Map<String, Object> getExtraInfo() {
-		return null;
+		return extraInfo;
 	}
 
 	@Override

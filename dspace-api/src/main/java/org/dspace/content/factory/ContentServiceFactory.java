@@ -13,6 +13,7 @@ import org.dspace.content.InProgressSubmission;
 import org.dspace.content.RootObject;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.*;
+import org.dspace.core.Constants;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
@@ -72,6 +73,19 @@ public abstract class ContentServiceFactory {
         {
             return WorkflowServiceFactory.getInstance().getWorkflowItemService();
         }
+    }
+    
+    public InProgressSubmissionService getInProgressSubmissionService(Integer type)
+    {
+        if(Constants.WORKSPACEITEM == type) {
+            return getWorkspaceItemService();
+        }
+        else {
+            if(Constants.WORKFLOWITEM <= type) {
+                return WorkflowServiceFactory.getInstance().getWorkflowItemService();
+            }
+        }
+        return getEditItemService();
     }
     
     public <T extends RootObject> RootEntityService<T> getRootObjectService(T dso)

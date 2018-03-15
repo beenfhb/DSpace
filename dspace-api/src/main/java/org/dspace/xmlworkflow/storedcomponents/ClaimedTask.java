@@ -16,6 +16,7 @@ import org.dspace.eperson.EPerson;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,9 @@ import javax.persistence.*;
 @Table(name="cwf_claimtask")
 public class ClaimedTask implements ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
 
-
+    @Transient
+    public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
+    
     @Id
     @Column(name="claimtask_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="cwf_claimtask_seq")
@@ -149,7 +152,7 @@ public class ClaimedTask implements ReloadableEntity<Integer>, BrowsableDSpaceOb
 
 	@Override
 	public Map<String, Object> getExtraInfo() {
-		return null;
+		return extraInfo;
 	}
 
 	@Override

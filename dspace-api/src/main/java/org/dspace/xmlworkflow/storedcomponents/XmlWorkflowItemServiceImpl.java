@@ -70,7 +70,7 @@ public class XmlWorkflowItemServiceImpl implements XmlWorkflowItemService {
     }
 
     @Override
-    public XmlWorkflowItem find(Context context, int id) throws SQLException {
+    public XmlWorkflowItem find(Context context, Integer id) throws SQLException {
         XmlWorkflowItem workflowItem = xmlWorkflowItemDAO.findByID(context, XmlWorkflowItem.class, id);
 
 

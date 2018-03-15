@@ -1708,7 +1708,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	                locations);
 	        
             String acvalue = ConfigurationManager.getProperty(
-                    "cris", "facet.namedtype.workspace");                                 
+                    "cris", "facet.namedtype.workspace");
+            if(StringUtils.isBlank(acvalue)) {
+                acvalue = workspaceItem.getTypeText(); 
+            }
             String fvalue = acvalue;
             addNamedResourceTypeIndex(doc, acvalue, fvalue);
             
@@ -1749,7 +1752,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     
 	    			
 	    	        String acvalue = ConfigurationManager.getProperty(
-	    	                "cris", "facet.namedtype.workflow.claimed");	    	                        
+	    	                "cris", "facet.namedtype.workflow.claimed");
+	                if(StringUtils.isBlank(acvalue)) {
+	                    acvalue = claimedTask.getTypeText(); 
+	                }
 	    	        String fvalue = acvalue;
 	    	        addNamedResourceTypeIndex(claimDoc, acvalue, fvalue);
 
@@ -1777,7 +1783,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     }
                     
                     String acvalue = ConfigurationManager.getProperty(
-                            "cris", "facet.namedtype.workflow.pooled");                                 
+                            "cris", "facet.namedtype.workflow.pooled");
+                    if(StringUtils.isBlank(acvalue)) {
+                        acvalue = poolTask.getTypeText(); 
+                    }
                     String fvalue = acvalue;
                     addNamedResourceTypeIndex(claimDoc, acvalue, fvalue);
                     docs.add(claimDoc);
@@ -1786,7 +1795,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    	
 	    	
             String acvalue = ConfigurationManager.getProperty(
-                    "cris", "facet.namedtype.workflow.item");                                 
+                    "cris", "facet.namedtype.workflow.item");    
+            if(StringUtils.isBlank(acvalue)) {
+                acvalue = workflowItem.getTypeText(); 
+            }            
             String fvalue = acvalue;
             addNamedResourceTypeIndex(doc, acvalue, fvalue);
             
@@ -2399,12 +2411,19 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     protected BrowsableDSpaceObject findDSpaceObject(Context context, SolrDocument doc) throws SQLException {
         Integer type = (Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD);
-        UUID id = UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD));
+        Object id = doc.getFirstValue(RESOURCE_ID_FIELD);
         String handle = (String) doc.getFirstValue(HANDLE_FIELD);
         BrowsableDSpaceObject o = null;
         if (type != null && id != null)
         {
-            o = (BrowsableDSpaceObject)contentServiceFactory.getDSpaceObjectService(type).find(context, id);
+            if(Constants.WORKSPACEITEM <= type && type <= Constants.WORKFLOW_CLAIMED) {
+                Integer intId = Integer.parseInt((String)id);
+                o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, intId);
+            }
+            else {
+                UUID uid = UUID.fromString((String)id);
+                o = (BrowsableDSpaceObject)contentServiceFactory.getDSpaceObjectService(type).find(context, uid);
+            }
         } else if (handle != null)
         {
             o = (BrowsableDSpaceObject)handleService.resolveToObject(context, handle);
@@ -2835,9 +2854,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     @Override
-    public FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException {
+    public FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope, DiscoverySearchFilterFacet facet, List<String> filterQueries, DiscoverQuery parentQuery) throws SearchServiceException {
         FacetYearRange result = new FacetYearRange(facet);
-        result.calculateRange(context, filterQueries, scope, this);
+        result.calculateRange(context, filterQueries, scope, this, parentQuery);
         return result;
     }
 

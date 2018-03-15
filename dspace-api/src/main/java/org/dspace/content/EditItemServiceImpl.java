@@ -8,7 +8,9 @@
 package org.dspace.content;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
@@ -54,5 +56,9 @@ public class EditItemServiceImpl implements EditItemService {
 		
 	}
 
+    @Override
+    public EditItem find(Context context, UUID id) throws SQLException {
+        return new EditItem(context, getItemService().find(context, id));
+    }
 
 }
