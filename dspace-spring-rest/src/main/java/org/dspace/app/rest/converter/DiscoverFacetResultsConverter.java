@@ -87,6 +87,8 @@ public class DiscoverFacetResultsConverter {
 
         if (!facetResults.isEmpty()) {
             facetEntryRest.setFacetType(facetResults.get(0).getFieldType());
+        } else {
+            facetEntryRest.setFacetType(field.getType());
         }
 
         facetEntryRest.setFacetLimit(field.getFacetLimit());

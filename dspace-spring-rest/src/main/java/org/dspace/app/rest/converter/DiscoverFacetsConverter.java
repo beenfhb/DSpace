@@ -39,7 +39,7 @@ public class DiscoverFacetsConverter {
     }
 
 
-    private void addFacetValues(final DiscoverResult searchResult, final SearchResultsRest searchResultsRest, final DiscoveryConfiguration configuration) {
+    public void addFacetValues(final DiscoverResult searchResult, final SearchResultsRest searchResultsRest, final DiscoveryConfiguration configuration) {
 
         List<DiscoverySearchFilterFacet> facets = configuration.getSidebarFacets();
         for (DiscoverySearchFilterFacet field : CollectionUtils.emptyIfNull(facets)) {
@@ -49,7 +49,7 @@ public class DiscoverFacetsConverter {
             SearchFacetEntryRest facetEntry = new SearchFacetEntryRest(field.getIndexFieldName());
             int valueCount = 0;
             facetEntry.setFacetLimit(field.getFacetLimit());
-
+            facetEntry.setFacetType(field.getType());
             for (DiscoverResult.FacetResult value : CollectionUtils.emptyIfNull(facetValues)) {
                 //The discover results contains max facetLimit + 1 values. If we reach the "+1", indicate that there are
                 //more results available.

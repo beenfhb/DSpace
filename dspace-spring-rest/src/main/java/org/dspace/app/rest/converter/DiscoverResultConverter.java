@@ -38,9 +38,9 @@ public class DiscoverResultConverter {
 
     @Autowired
     private List<BrowsableDSpaceObjectConverter> converters;
-
-    private DiscoverFacetValueConverter facetValueConverter = new DiscoverFacetValueConverter();
-
+    @Autowired
+    private DiscoverFacetsConverter facetConverter;
+    
     public SearchResultsRest convert(final Context context, final String query, final String dsoType, final String configurationName, final String scope,
                                      final List<SearchFilter> searchFilters, final Pageable page, final DiscoverResult searchResult, final DiscoveryConfiguration configuration) {
 
@@ -58,36 +58,7 @@ public class DiscoverResultConverter {
     }
 
     private void addFacetValues(final DiscoverResult searchResult, final SearchResultsRest resultsRest, final DiscoveryConfiguration configuration) {
-
-        List<DiscoverySearchFilterFacet> facets = configuration.getSidebarFacets();
-        for (DiscoverySearchFilterFacet field : CollectionUtils.emptyIfNull(facets)) {
-            List<DiscoverResult.FacetResult> facetValues = searchResult.getFacetResult(field);
-
-            SearchFacetEntryRest facetEntry = new SearchFacetEntryRest(field.getIndexFieldName());
-            int valueCount = 0;
-            facetEntry.setHasMore(false);
-            facetEntry.setFacetLimit(field.getFacetLimit());
-
-            for (DiscoverResult.FacetResult value : CollectionUtils.emptyIfNull(facetValues)) {
-                //The discover results contains max facetLimit + 1 values. If we reach the "+1", indicate that there are
-                //more results available.
-                if(valueCount < field.getFacetLimit()) {
-                    SearchFacetValueRest valueRest = facetValueConverter.convert(value);
-
-                    facetEntry.addValue(valueRest);
-                } else {
-                    facetEntry.setHasMore(true);
-                }
-
-                if(StringUtils.isBlank(facetEntry.getFacetType())) {
-                    facetEntry.setFacetType(value.getFieldType());
-                }
-
-                valueCount++;
-            }
-
-            resultsRest.addFacetEntry(facetEntry);
-        }
+        facetConverter.addFacetValues(searchResult, resultsRest, configuration);
     }
 
     private void addSearchResults(final DiscoverResult searchResult, final SearchResultsRest resultsRest) {
