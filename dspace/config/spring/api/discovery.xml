@@ -1815,6 +1815,7 @@
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterIssued" />
 				<ref bean="searchFilterSubmitted" />
+				<ref bean="searchFilterSubmitter" />				
 			</list>
 		</property>
 		<!--The search filters which can be used on the discovery search page -->
@@ -2009,6 +2010,16 @@
 	<bean id="searchFilterObjectNamedType"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
 		<property name="indexFieldName" value="namedresourcetype" />
+		<property name="metadataFields">
+			<list>
+				<value>placeholder.placeholder.placeholder</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="searchFilterSubmitter"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="submitter" />
 		<property name="metadataFields">
 			<list>
 				<value>placeholder.placeholder.placeholder</value>
