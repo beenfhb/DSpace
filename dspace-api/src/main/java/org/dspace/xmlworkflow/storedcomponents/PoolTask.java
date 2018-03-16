@@ -210,7 +210,7 @@ public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObjec
 
 	@Override
 	public BrowsableDSpaceObject getParentObject() {
-		return null;
+		return getWorkflowItem();
 	}
 
 	@Override

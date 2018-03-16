@@ -256,7 +256,7 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>,
 
     @Override
     public BrowsableDSpaceObject getParentObject() {
-        return null;
+        return getItem();
     }
 
     @Override

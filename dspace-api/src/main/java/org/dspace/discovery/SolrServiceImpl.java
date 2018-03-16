@@ -2419,6 +2419,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             if(Constants.WORKSPACEITEM <= type && type <= Constants.WORKFLOW_CLAIMED) {
                 Integer intId = Integer.parseInt((String)id);
                 o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, intId);
+                if(Constants.WORKFLOWITEM == type) {
+                    o = o.getParentObject();
+                }
             }
             else {
                 UUID uid = UUID.fromString((String)id);

@@ -197,7 +197,7 @@ public class ClaimedTask implements ReloadableEntity<Integer>, BrowsableDSpaceOb
 
 	@Override
 	public BrowsableDSpaceObject getParentObject() {
-		return null;
+		return getWorkflowItem();
 	}
 
 	@Override
