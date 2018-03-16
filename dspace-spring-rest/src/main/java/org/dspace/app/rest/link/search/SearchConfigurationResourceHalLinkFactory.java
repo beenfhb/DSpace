@@ -30,7 +30,7 @@ public class SearchConfigurationResourceHalLinkFactory extends HalLinkFactory<Se
         if(data != null){
 
             list.add(buildLink(Link.REL_SELF, getMethodOn()
-                    .getSearchConfiguration(data.getScope(), data.getConfigurationName())));
+                    .getSearchConfiguration(data.getScope(), data.getConfiguration())));
 
             list.add(buildLink("objects", getMethodOn().getSearchObjects(null, null, null, null, null, null)));
             list.add(buildLink("facets", getMethodOn().getFacets(null, null, null, null, null)));

@@ -28,7 +28,10 @@ public abstract class DiscoveryResultsRest extends BaseObjectRest<String>{
     private SearchResultsRest.Sorting sort;
     @JsonIgnore
     private String dsoType;
-
+    @JsonIgnore
+    private List<SearchFilter> searchFilters;
+    private String configuration;
+    
     public String getCategory() {
         return CATEGORY;
     }
@@ -94,15 +97,13 @@ public abstract class DiscoveryResultsRest extends BaseObjectRest<String>{
     }
 
 
-    public String getConfigurationName() {
-        return configurationName;
+    public String getConfiguration() {
+        return configuration;
     }
 
-    public void setConfigurationName(final String configurationName) {
-        this.configurationName = configurationName;
+    public void setConfiguration(final String configurationName) {
+        this.configuration = configurationName;
     }
-
-    private String configurationName;
 
     public void setSearchFilters(final List<SearchFilter> searchFilters){
         this.searchFilters = searchFilters;
@@ -112,6 +113,5 @@ public abstract class DiscoveryResultsRest extends BaseObjectRest<String>{
         return searchFilters;
     }
 
-    @JsonIgnore
-    private List<SearchFilter> searchFilters;
+
 }

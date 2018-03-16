@@ -24,7 +24,7 @@ public class DiscoverFacetConfigurationConverter {
     public FacetConfigurationRest convert(final String configurationName, final String scope, DiscoveryConfiguration configuration){
         FacetConfigurationRest facetConfigurationRest = new FacetConfigurationRest();
 
-        facetConfigurationRest.setConfigurationName(configurationName);
+        facetConfigurationRest.setConfiguration(configurationName);
         facetConfigurationRest.setScope(scope);
 
         if(configuration != null){

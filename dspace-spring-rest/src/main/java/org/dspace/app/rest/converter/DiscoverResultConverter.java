@@ -94,7 +94,7 @@ public class DiscoverResultConverter {
     private void setRequestInformation(final Context context, final String query, final String dsoType, final String configurationName, final String scope,
                                        final List<SearchFilter> searchFilters, final Pageable page, final SearchResultsRest resultsRest) {
         resultsRest.setQuery(query);
-        resultsRest.setConfigurationName(configurationName);
+        resultsRest.setConfiguration(configurationName);
         resultsRest.setDsoType(dsoType);
 
         resultsRest.setScope(scope);
