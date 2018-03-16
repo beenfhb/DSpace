@@ -245,6 +245,13 @@ just adding new jar in the classloader</description>
         <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-spring-rest</artifactId>            
+			<type>jar</type>
+            <classifier>classes</classifier>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-spring-rest</artifactId>            
             <type>war</type>
         </dependency>
 	</dependencies>
