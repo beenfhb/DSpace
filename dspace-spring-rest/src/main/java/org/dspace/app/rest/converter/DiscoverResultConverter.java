@@ -40,6 +40,8 @@ public class DiscoverResultConverter {
     private List<BrowsableDSpaceObjectConverter> converters;
     @Autowired
     private DiscoverFacetsConverter facetConverter;
+    @Autowired
+    private SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter;
     
     public SearchResultsRest convert(final Context context, final String query, final String dsoType, final String configurationName, final String scope,
                                      final List<SearchFilter> searchFilters, final Pageable page, final DiscoverResult searchResult, final DiscoveryConfiguration configuration) {
@@ -101,7 +103,6 @@ public class DiscoverResultConverter {
             Sort.Order order = page.getSort().iterator().next();
             resultsRest.setSort(order.getProperty(), order.getDirection().name());
         }
-        SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter = new SearchFilterToAppliedFilterConverter();
         for (SearchFilter searchFilter : CollectionUtils.emptyIfNull(searchFilters)) {
 
             resultsRest.addAppliedFilter(searchFilterToAppliedFilterConverter.convertSearchFilter(context, searchFilter));
