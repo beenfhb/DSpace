@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.BitstreamRest;
+import org.dspace.app.rest.model.SearchResultsRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.MultipartFileSender;
 import org.dspace.authorize.AuthorizeException;
@@ -32,7 +34,9 @@ import org.dspace.core.Context;
 import org.dspace.disseminate.service.CitationDocumentService;
 import org.dspace.services.EventService;
 import org.dspace.usage.UsageEvent;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -57,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/" + BitstreamRest.CATEGORY + "/" + BitstreamRest.PLURAL_NAME
 		+ "/{uuid:[0-9a-fxA-FX]{8}-[0-9a-fxA-FX]{4}-[0-9a-fxA-FX]{4}-[0-9a-fxA-FX]{4}-[0-9a-fxA-FX]{12}}/content")
-public class BitstreamContentRestController {
+public class BitstreamContentRestController implements InitializingBean {
 
 	private static final Logger log = Logger.getLogger(BitstreamContentRestController.class);
 
@@ -76,6 +80,9 @@ public class BitstreamContentRestController {
 	@Autowired
 	private CitationDocumentService citationDocumentService;
 
+    @Autowired
+    private DiscoverableEndpointsService discoverableEndpointsService;
+    
 	@RequestMapping(method = {RequestMethod.GET, RequestMethod.HEAD})
 	public void retrieve(@PathVariable UUID uuid, HttpServletResponse response,
 											 HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
@@ -184,4 +191,9 @@ public class BitstreamContentRestController {
 		return responseCode.equals(Response.Status.Family.SUCCESSFUL)
 				|| responseCode.equals(Response.Status.Family.REDIRECTION);
 	}
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        discoverableEndpointsService.register(this, Arrays.asList(new Link("/api/" + BitstreamRest.CATEGORY + "/" + BitstreamRest.PLURAL_NAME)));
+    }
 }
