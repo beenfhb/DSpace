@@ -1770,15 +1770,15 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    	                locations);
 	    			claimDoc.addField("workflow.action", poolTask.getActionID());
 	    			claimDoc.addField("workflow.step", poolTask.getStepID());
-	    			claimDoc.addField("workflow.owner", poolTask.getEperson().getID());
-	    			claimDoc.addField("workflow.group", poolTask.getGroup().getID());
                     addFacetIndex(claimDoc, "action", poolTask.getActionID(), poolTask.getActionID());
                     addFacetIndex(claimDoc, "task", poolTask.getStepID(), poolTask.getStepID());
 
                     if(poolTask.getEperson()!=null) {
+                        claimDoc.addField("workflow.owner", poolTask.getEperson().getID());
                         claimDoc.addField("read", "we"+poolTask.getEperson().getID().toString());    
                     }
                     if(poolTask.getGroup()!=null) {
+                        claimDoc.addField("workflow.group", poolTask.getGroup().getID());
                         claimDoc.addField("read", "wg"+poolTask.getGroup().getID().toString());
                     }
                     
