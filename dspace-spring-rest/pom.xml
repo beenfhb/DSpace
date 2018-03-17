@@ -32,6 +32,32 @@
        <!-- <springdata.commons>1.13.0.RELEASE</springdata.commons> -->
    </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                    <!-- Filter the web.xml (needed for IDE compatibility/debugging) -->
+                    <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <!--Exclude license check for XMLUI files which don't need it-->
+                    <excludes>
+                        <exclude>**/static/reports/spin.js</exclude>
+                        <exclude>**/static/reports/README.md</exclude>
+                        <exclude>**/*.xsd</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <!-- If Unit Testing is enabled, then setup the Unit Test Environment.
      See also the 'skiptests' profile in Parent POM. -->
