@@ -232,6 +232,16 @@ just adding new jar in the classloader</description>
 		<dependency>
 			<groupId>org.dspace</groupId>
 			<artifactId>dspace-cris-api</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+          			<groupId>com.fasterxml</groupId>
+          			<artifactId>classmate</artifactId>
+        		</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
