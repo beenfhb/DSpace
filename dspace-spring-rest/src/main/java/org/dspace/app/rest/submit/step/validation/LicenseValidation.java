@@ -20,7 +20,6 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
-import org.dspace.submit.model.UploadConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -43,11 +42,19 @@ public class LicenseValidation extends AbstractValidation {
 			SubmissionStepConfig config) throws DCInputsReaderException, SQLException {
 		
 		Bitstream bitstream = bitstreamService.getBitstreamByName(obj.getItem(), Constants.LICENSE_BUNDLE_NAME, Constants.LICENSE_BITSTREAM_NAME);
-		if(bitstream!=null) {
+		if(bitstream==null) {
 			addError(ERROR_VALIDATION_LICENSEREQUIRED, "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
 					+ config.getId());			
 		}
 		return getErrors();
 	}
+
+    public BitstreamService getBitstreamService() {
+        return bitstreamService;
+    }
+
+    public void setBitstreamService(BitstreamService bitstreamService) {
+        this.bitstreamService = bitstreamService;
+    }
 
 }

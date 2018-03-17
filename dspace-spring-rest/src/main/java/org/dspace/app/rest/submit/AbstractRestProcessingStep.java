@@ -14,7 +14,6 @@ import java.util.List;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.submit.step.validation.Validation;
-import org.dspace.app.rest.submit.step.validation.ValidationService;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Context;
@@ -37,8 +36,6 @@ public interface AbstractRestProcessingStep extends ListenerProcessingStep {
 	public static final String UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY = "accessConditions";
 	public static final String LICENSE_STEP_OPERATION_ENTRY = "granted";
 	
-	public ValidationService validationService = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("validationService", ValidationService.class);
-	
 	public static final String UPLOAD_STEP_METADATA_PATH = "metadata";
 	
 	public <T extends Serializable> T getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws Exception;
@@ -47,7 +44,7 @@ public interface AbstractRestProcessingStep extends ListenerProcessingStep {
 	{
 		List<ErrorRest> errors = new ArrayList<ErrorRest>();
 				
-		List<Validation> validations = validationService.getValidations(); 
+		List<Validation> validations = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(Validation.class); 
 		if(validations != null) {
 			for(Validation validation : validations) {
 				if(validation.getName().equals(config.getType())) {
