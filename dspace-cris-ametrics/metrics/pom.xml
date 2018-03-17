@@ -15,7 +15,6 @@
     
     <modules>
         <module>retrieve-api</module>
-        <module>lookup-jspui-api</module>        
     </modules>
 
    <!--Force UTF-8 encoding during build on all platforms-->
