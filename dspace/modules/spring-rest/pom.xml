@@ -204,6 +204,19 @@ just adding new jar in the classloader</description>
                             <targetPath>WEB-INF/classes</targetPath>
                         </resource>
                     </webResources>
+                    <overlays>
+                        <!--
+                           the priority of overlays is determined here
+                           1.) default: anything in the current project has highest
+                           2.) anything defined here has precedence in the order defined
+                           3.) any war found transitively in the dependencies will be applied
+                           next. the order is unpredictable.
+                        -->
+                        <overlay>
+                            <groupId>org.dspace</groupId>
+                            <artifactId>dspace-spring-rest</artifactId>
+                        </overlay>
+                    </overlays>                    
                 </configuration>
                 <executions>
                     <execution>
@@ -245,15 +258,15 @@ just adding new jar in the classloader</description>
         <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-spring-rest</artifactId>            
-			<type>jar</type>
-            <classifier>classes</classifier>
+            <type>war</type>
         </dependency>
         
         <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-spring-rest</artifactId>            
-            <type>war</type>
-        </dependency>
+			<type>jar</type>
+            <classifier>classes</classifier>
+        </dependency>        
 	</dependencies>
 
 </project>
