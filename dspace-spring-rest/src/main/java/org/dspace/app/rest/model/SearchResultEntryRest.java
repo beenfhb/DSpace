@@ -24,7 +24,6 @@ public class SearchResultEntryRest implements RestAddressableModel {
 
     private Map<String, List<String>> hitHighlights;
 
-    @JsonIgnore
     private RestAddressableModel rObject;
 
     @JsonIgnore
@@ -56,6 +55,7 @@ public class SearchResultEntryRest implements RestAddressableModel {
         this.hitHighlights = hitHighlights;
     }
 
+    @JsonIgnore
     public RestAddressableModel getRObject() {
         return rObject;
     }

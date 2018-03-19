@@ -17,7 +17,7 @@ import org.dspace.app.rest.utils.Utils;
  */
 public class SearchResultEntryResource extends HALResource<SearchResultEntryRest> {
 
-    public static final String DSPACE_OBJECT_LINK = "dspaceObject";
+    public static final String R_OBJECT_LINK = "rObject";
 
     public SearchResultEntryResource(final SearchResultEntryRest data, final Utils utils) {
         super(data);
@@ -31,7 +31,7 @@ public class SearchResultEntryResource extends HALResource<SearchResultEntryRest
 
         if(dspaceObject != null) {
             DSpaceRestRepository resourceRepository = utils.getResourceRepository(dspaceObject.getCategory(), dspaceObject.getType());
-            embedResource(DSPACE_OBJECT_LINK, resourceRepository.wrapResource(dspaceObject));
+            embedResource(R_OBJECT_LINK, resourceRepository.wrapResource(dspaceObject));
         }
 
     }

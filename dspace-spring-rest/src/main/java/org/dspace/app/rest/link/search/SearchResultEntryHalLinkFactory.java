@@ -32,7 +32,7 @@ public class SearchResultEntryHalLinkFactory extends DiscoveryRestHalLinkFactory
         SearchResultEntryRest data = halResource.getContent();
 
         if(data != null && data.getRObject() != null) {
-            list.add(utils.linkToSingleResource(data.getRObject(), SearchResultEntryResource.DSPACE_OBJECT_LINK));
+            list.add(utils.linkToSingleResource(data.getRObject(), SearchResultEntryResource.R_OBJECT_LINK));
         }
     }
 
