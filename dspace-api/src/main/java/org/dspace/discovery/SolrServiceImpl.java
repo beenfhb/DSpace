@@ -2416,16 +2416,27 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         BrowsableDSpaceObject o = null;
         if (type != null && id != null)
         {
-            if(type >= Constants.WORKSPACEITEM && type <= Constants.WORKFLOW_CLAIMED) {
-                Integer intId = Integer.parseInt((String)id);
-                o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, intId);
-                if(Constants.WORKFLOWITEM == type) {
-                    o = o.getParentObject();
-                }
-            }
-            else {
-                UUID uid = UUID.fromString((String)id);
-                o = (BrowsableDSpaceObject)contentServiceFactory.getDSpaceObjectService(type).find(context, uid);
+            switch (type) {
+                case Constants.WORKSPACEITEM:
+                    Integer wsiId = Integer.parseInt((String)id);
+                    o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, wsiId);
+                    break;
+                case Constants.WORKFLOWITEM:
+                    Integer wfiId = Integer.parseInt((String)id);
+                    o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, wfiId);
+                    break;                    
+                case Constants.WORKFLOW_POOL:
+                    Integer wfpId = Integer.parseInt((String)id);
+                    o = poolTaskService.find(context, wfpId);
+                    break;
+                case Constants.WORKFLOW_CLAIMED:
+                    Integer wfcId = Integer.parseInt((String)id);
+                    o = claimedTaskService.find(context, wfcId);
+                    break;                    
+                default:
+                    UUID uid = UUID.fromString((String)id);
+                    o = (BrowsableDSpaceObject)contentServiceFactory.getDSpaceObjectService(type).find(context, uid);
+                    break;
             }
         } else if (handle != null)
         {
