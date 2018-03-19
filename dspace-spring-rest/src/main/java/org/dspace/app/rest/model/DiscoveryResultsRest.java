@@ -101,8 +101,8 @@ public abstract class DiscoveryResultsRest extends BaseObjectRest<String>{
         return configuration;
     }
 
-    public void setConfiguration(final String configurationName) {
-        this.configuration = configurationName;
+    public void setConfiguration(final String configuration) {
+        this.configuration = configuration;
     }
 
     public void setSearchFilters(final List<SearchFilter> searchFilters){

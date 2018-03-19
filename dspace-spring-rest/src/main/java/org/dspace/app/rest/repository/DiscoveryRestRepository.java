@@ -77,43 +77,43 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
     @Autowired
     private DiscoverFacetsConverter discoverFacetsConverter;
 
-    public SearchConfigurationRest getSearchConfiguration(final String dsoScope, final String configurationName) {
+    public SearchConfigurationRest getSearchConfiguration(final String dsoScope, final String configuration) {
         Context context = obtainContext();
 
         BrowsableDSpaceObject scopeObject = scopeResolver.resolveScope(context, dsoScope);
-        DiscoveryConfiguration configuration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configurationName, scopeObject);
+        DiscoveryConfiguration discoveryConfiguration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
-        return discoverConfigurationConverter.convert(configuration);
+        return discoverConfigurationConverter.convert(discoveryConfiguration);
     }
 
-    public SearchResultsRest getSearchObjects(final String query, final String dsoType, final String dsoScope, final String configurationName,
+    public SearchResultsRest getSearchObjects(final String query, final String dsoType, final String dsoScope, final String configuration,
                                               final List<SearchFilter> searchFilters, final Pageable page) throws InvalidRequestException {
         Context context = obtainContext();
 
         BrowsableDSpaceObject scopeObject = scopeResolver.resolveScope(context, dsoScope);
-        DiscoveryConfiguration configuration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configurationName, scopeObject);
+        DiscoveryConfiguration discoveryConfiguration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
         DiscoverResult searchResult = null;
         DiscoverQuery discoverQuery = null;
 
         try {
-            discoverQuery = queryBuilder.buildQuery(context, scopeObject, configuration, query, searchFilters, dsoType, page);
+            discoverQuery = queryBuilder.buildQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoType, page);
             searchResult = searchService.search(context, scopeObject, discoverQuery);
 
         } catch (SearchServiceException e) {
             log.error("Error while searching with Discovery", e);
         }
 
-        return discoverResultConverter.convert(context, query, dsoType, configurationName, dsoScope, searchFilters, page, searchResult, configuration);
+        return discoverResultConverter.convert(context, query, dsoType, configuration, dsoScope, searchFilters, page, searchResult, discoveryConfiguration);
     }
 
-    public FacetConfigurationRest getFacetsConfiguration(final String dsoScope, final String configurationName) {
+    public FacetConfigurationRest getFacetsConfiguration(final String dsoScope, final String configuration) {
         Context context = obtainContext();
 
         BrowsableDSpaceObject scopeObject = scopeResolver.resolveScope(context, dsoScope);
-        DiscoveryConfiguration configuration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configurationName, scopeObject);
+        DiscoveryConfiguration discoveryConfiguration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
-        return discoverFacetConfigurationConverter.convert(configurationName, dsoScope, configuration);
+        return discoverFacetConfigurationConverter.convert(configuration, dsoScope, discoveryConfiguration);
     }
 
     public SearchSupportRest getSearchSupport() {
@@ -142,25 +142,25 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         return facetResultsRest;
     }
 
-    public SearchResultsRest getAllFacets(String query, String dsoType, String dsoScope, String configurationName, List<SearchFilter> searchFilters) throws InvalidRequestException{
+    public SearchResultsRest getAllFacets(String query, String dsoType, String dsoScope, String configuration, List<SearchFilter> searchFilters) throws InvalidRequestException{
 
         Context context = obtainContext();
         Pageable page = new PageRequest(1,1);
         BrowsableDSpaceObject scopeObject = scopeResolver.resolveScope(context, dsoScope);
-        DiscoveryConfiguration configuration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configurationName, scopeObject);
+        DiscoveryConfiguration discoveryConfiguration = searchConfigurationService.getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
         DiscoverResult searchResult = null;
         DiscoverQuery discoverQuery = null;
 
         try {
-            discoverQuery = queryBuilder.buildQuery(context, scopeObject, configuration, query, searchFilters, dsoType, page);
+            discoverQuery = queryBuilder.buildQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoType, page);
             searchResult = searchService.search(context, scopeObject, discoverQuery);
 
         } catch (SearchServiceException e) {
             log.error("Error while searching with Discovery", e);
         }
 
-        SearchResultsRest searchResultsRest = discoverFacetsConverter.convert(context, query, dsoType, configurationName, dsoScope, searchFilters, page, configuration, searchResult);
+        SearchResultsRest searchResultsRest = discoverFacetsConverter.convert(context, query, dsoType, configuration, dsoScope, searchFilters, page, discoveryConfiguration, searchResult);
 
         return searchResultsRest;
 

@@ -28,12 +28,12 @@ public class DiscoverFacetsConverter {
     private DiscoverFacetValueConverter facetValueConverter = new DiscoverFacetValueConverter();
 
 
-    public SearchResultsRest convert(Context context, String query, String dsoType, String configurationName, String dsoScope, List<SearchFilter> searchFilters, final Pageable page, DiscoveryConfiguration configuration, DiscoverResult searchResult) {
+    public SearchResultsRest convert(Context context, String query, String dsoType, String configuration, String dsoScope, List<SearchFilter> searchFilters, final Pageable page, DiscoveryConfiguration discoveryConfiguration, DiscoverResult searchResult) {
 
         SearchResultsRest searchResultsRest = new SearchResultsRest();
 
-        setRequestInformation(context, query, dsoType, configurationName, dsoScope, searchFilters, page, searchResultsRest);
-        addFacetValues(searchResult, searchResultsRest, configuration);
+        setRequestInformation(context, query, dsoType, configuration, dsoScope, searchFilters, page, searchResultsRest);
+        addFacetValues(searchResult, searchResultsRest, discoveryConfiguration);
 
         return searchResultsRest;
     }
@@ -71,10 +71,10 @@ public class DiscoverFacetsConverter {
         }
     }
 
-    private void setRequestInformation(final Context context, final String query, final String dsoType, final String configurationName, final String scope,
+    private void setRequestInformation(final Context context, final String query, final String dsoType, final String configuration, final String scope,
                                        final List<SearchFilter> searchFilters, final Pageable page, final SearchResultsRest resultsRest) {
         resultsRest.setQuery(query);
-        resultsRest.setConfiguration(configurationName);
+        resultsRest.setConfiguration(configuration);
         resultsRest.setDsoType(dsoType);
         resultsRest.setSort(SearchResultsRest.Sorting.fromPage(page));
 

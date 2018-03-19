@@ -43,16 +43,16 @@ public class DiscoverResultConverter {
     @Autowired
     private SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter;
     
-    public SearchResultsRest convert(final Context context, final String query, final String dsoType, final String configurationName, final String scope,
-                                     final List<SearchFilter> searchFilters, final Pageable page, final DiscoverResult searchResult, final DiscoveryConfiguration configuration) {
+    public SearchResultsRest convert(final Context context, final String query, final String dsoType, final String configuration, final String scope,
+                                     final List<SearchFilter> searchFilters, final Pageable page, final DiscoverResult searchResult, final DiscoveryConfiguration discoveryConfiguration) {
 
         SearchResultsRest resultsRest = new SearchResultsRest();
 
-        setRequestInformation(context, query, dsoType, configurationName, scope, searchFilters, page, resultsRest);
+        setRequestInformation(context, query, dsoType, configuration, scope, searchFilters, page, resultsRest);
 
         addSearchResults(searchResult, resultsRest);
 
-        addFacetValues(searchResult, resultsRest, configuration);
+        addFacetValues(searchResult, resultsRest, discoveryConfiguration);
 
         resultsRest.setTotalNumberOfResults(searchResult.getTotalSearchResults());
 
@@ -91,10 +91,10 @@ public class DiscoverResultConverter {
         return null;
     }
 
-    private void setRequestInformation(final Context context, final String query, final String dsoType, final String configurationName, final String scope,
+    private void setRequestInformation(final Context context, final String query, final String dsoType, final String configuration, final String scope,
                                        final List<SearchFilter> searchFilters, final Pageable page, final SearchResultsRest resultsRest) {
         resultsRest.setQuery(query);
-        resultsRest.setConfiguration(configurationName);
+        resultsRest.setConfiguration(configuration);
         resultsRest.setDsoType(dsoType);
 
         resultsRest.setScope(scope);

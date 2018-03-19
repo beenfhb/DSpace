@@ -54,8 +54,8 @@ public class FacetConfigurationRest extends BaseObjectRest<String> {
         return configuration;
     }
 
-    public void setConfiguration(String configurationName){
-        this.configuration = configurationName;
+    public void setConfiguration(String configuration){
+        this.configuration = configuration;
     }
 
     public List<SearchFacetEntryRest> getSidebarFacets(){ return sidebarFacets;}

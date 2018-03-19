@@ -36,7 +36,7 @@ public class DiscoverFacetConfigurationConverterTest{
     @Mock
     private DiscoveryConfiguration discoveryConfiguration;
 
-    private String configurationName = "default";
+    private String configuration = "default";
     private String scopeObject = "ba9e1c83-8144-4e9c-9d58-bb97be573b46";
 
     public void populateDiscoveryConfigurationWithEmptyList(){
@@ -46,13 +46,13 @@ public class DiscoverFacetConfigurationConverterTest{
     @Test
     public void testReturnType() throws Exception{
         populateDiscoveryConfigurationWithEmptyList();
-        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configurationName, scopeObject, discoveryConfiguration);
+        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configuration, scopeObject, discoveryConfiguration);
         assertTrue(facetConfigurationRest.getSidebarFacets().isEmpty());
         assertEquals(FacetConfigurationRest.class, facetConfigurationRest.getClass());
     }
     @Test
     public void testConvertWithNullParamter() throws Exception{
-        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configurationName, scopeObject, null);
+        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configuration, scopeObject, null);
         assertNotNull(facetConfigurationRest);
         assertTrue(facetConfigurationRest.getSidebarFacets().isEmpty());
     }
@@ -67,7 +67,7 @@ public class DiscoverFacetConfigurationConverterTest{
 
         when(discoveryConfiguration.getSidebarFacets()).thenReturn(discoverySearchFilterFacets);
 
-        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configurationName, scopeObject, discoveryConfiguration);
+        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configuration, scopeObject, discoveryConfiguration);
 
         assertNotNull(facetConfigurationRest);
         assertTrue(!facetConfigurationRest.getSidebarFacets().isEmpty());
@@ -80,7 +80,7 @@ public class DiscoverFacetConfigurationConverterTest{
 
         when(discoveryConfiguration.getSidebarFacets()).thenReturn(new LinkedList<DiscoverySearchFilterFacet>());
 
-        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configurationName, scopeObject, discoveryConfiguration);
+        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configuration, scopeObject, discoveryConfiguration);
 
         assertNotNull(facetConfigurationRest);
         assertTrue(facetConfigurationRest.getSidebarFacets().isEmpty());
@@ -91,7 +91,7 @@ public class DiscoverFacetConfigurationConverterTest{
 
         when(discoveryConfiguration.getSidebarFacets()).thenReturn(null);
 
-        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configurationName, scopeObject, discoveryConfiguration);
+        facetConfigurationRest = discoverFacetConfigurationConverter.convert(configuration, scopeObject, discoveryConfiguration);
 
         assertNotNull(facetConfigurationRest);
         assertTrue(facetConfigurationRest.getSidebarFacets().isEmpty());
