@@ -14,6 +14,22 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.EPersonService;
+import org.dspace.services.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.stereotype.Component;
+
 import com.nimbusds.jose.CompressionAlgorithm;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
@@ -32,21 +48,6 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.util.DateUtils;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-import org.dspace.eperson.service.EPersonService;
-import org.dspace.services.ConfigurationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.keygen.BytesKeyGenerator;
-import org.springframework.security.crypto.keygen.KeyGenerators;
-import org.springframework.stereotype.Component;
 
 /**
  * Class responsible for creating and parsing JWTs, supports both JWS and JWE
