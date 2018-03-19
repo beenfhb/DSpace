@@ -2419,11 +2419,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             switch (type) {
                 case Constants.WORKSPACEITEM:
                     Integer wsiId = Integer.parseInt((String)id);
-                    o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, wsiId);
+                    o = (BrowsableDSpaceObject)workspaceItemService.find(context, wsiId);
                     break;
                 case Constants.WORKFLOWITEM:
                     Integer wfiId = Integer.parseInt((String)id);
-                    o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, wfiId);
+                    o = (BrowsableDSpaceObject)workflowItemService.find(context, wfiId);
                     break;                    
                 case Constants.WORKFLOW_POOL:
                     Integer wfpId = Integer.parseInt((String)id);

@@ -77,15 +77,14 @@ public abstract class ContentServiceFactory {
     
     public InProgressSubmissionService getInProgressSubmissionService(Integer type)
     {
-        if(Constants.WORKSPACEITEM == type) {
-            return getWorkspaceItemService();
-        }
-        else {
-            if(Constants.WORKFLOWITEM <= type) {
+        switch (type) {
+            case Constants.WORKSPACEITEM:
+                return getWorkspaceItemService();
+            case Constants.WORKFLOWITEM:
                 return WorkflowServiceFactory.getInstance().getWorkflowItemService();
-            }
+            default:
+                return getEditItemService();
         }
-        return getEditItemService();
     }
     
     public <T extends RootObject> RootEntityService<T> getRootObjectService(T dso)
