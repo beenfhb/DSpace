@@ -2416,7 +2416,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         BrowsableDSpaceObject o = null;
         if (type != null && id != null)
         {
-            if(Constants.WORKSPACEITEM <= type && type <= Constants.WORKFLOW_CLAIMED) {
+            if(type >= Constants.WORKSPACEITEM && type <= Constants.WORKFLOW_CLAIMED) {
                 Integer intId = Integer.parseInt((String)id);
                 o = (BrowsableDSpaceObject)contentServiceFactory.getInProgressSubmissionService(type).find(context, intId);
                 if(Constants.WORKFLOWITEM == type) {
@@ -2437,6 +2437,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         	for (String f : doc.getFieldNames()) {
         		o.getExtraInfo().put(f, doc.getFirstValue(f));
         	}
+        }
+        if(o == null) {
+            log.warn("Not able to retrieve object RESOURCE_ID:" + id + " - RESOURCE_TYPE_ID:" + type + " - HANDLE:" + handle);
         }
         return o;
     }
