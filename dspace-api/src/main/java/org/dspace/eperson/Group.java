@@ -285,7 +285,11 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
 	}
     
 	public boolean isNotRelevant() {
-        return getMetadataValue(MetadataSchema.GROUP_SCHEMA +".notrelevant")!=null;
+	    List<String> ee = getMetadataValue(MetadataSchema.GROUP_SCHEMA +".notrelevant");
+	    if(ee != null && !ee.isEmpty()) {
+	        return true;
+	    }
+	    return false;
     }
     
 	@Override
