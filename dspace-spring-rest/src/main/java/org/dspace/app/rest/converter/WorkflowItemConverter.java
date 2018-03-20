@@ -37,7 +37,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class WorkflowItemConverter
-		extends DSpaceConverter<XmlWorkflowItem, org.dspace.app.rest.model.WorkflowItemRest> {
+		extends DSpaceConverter<XmlWorkflowItem, org.dspace.app.rest.model.WorkflowItemRest>
+		implements BrowsableDSpaceObjectConverter<XmlWorkflowItem, org.dspace.app.rest.model.WorkflowItemRest> {
 
 	private static final Logger log = Logger.getLogger(WorkflowItemConverter.class);
 
@@ -151,5 +152,10 @@ public class WorkflowItemConverter
 		if(!found) {			
 			errors.add(toAdd);
 		}
+	}
+	
+	@Override
+	public boolean supportsModel(Object object) {
+		return object instanceof XmlWorkflowItem;
 	}
 }
