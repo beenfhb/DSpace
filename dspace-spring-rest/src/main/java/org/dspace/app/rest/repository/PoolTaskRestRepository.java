@@ -122,7 +122,7 @@ public class PoolTaskRestRepository extends DSpaceRestRepository<PoolTaskRest, I
 			WorkflowActionConfig currentActionConfig = step.getActionConfig(task.getActionID());
 			workflowService.doState(context, context.getCurrentUser(), request, 
 					task.getWorkflowItem().getID(), workflow, currentActionConfig);
-            context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, task.getWorkflowItem().getItem().getID(),
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, task.getWorkflowItem().getItem().getID(),
                     null, itemService.getIdentifiers(context, task.getWorkflowItem().getItem())));
 		} catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
 			throw new RuntimeException(e.getMessage(), e); 

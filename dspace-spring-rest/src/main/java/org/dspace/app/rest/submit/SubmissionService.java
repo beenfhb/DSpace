@@ -100,7 +100,7 @@ public class SubmissionService {
 		}
 		wsi = workspaceItemService.create(context, collection, true);
 		
-        context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, wsi.getItem().getID(),
+        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, wsi.getItem().getID(),
                 null, itemService.getIdentifiers(context, wsi.getItem())));
 		return wsi;
 	}
@@ -182,7 +182,7 @@ public class SubmissionService {
 			}
 			
 			wi = workflowService.start(context, wsi);
-            context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, wi.getItem().getID(),
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, wi.getItem().getID(),
                     null, itemService.getIdentifiers(context, wi.getItem())));
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e);

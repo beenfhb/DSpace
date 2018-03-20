@@ -39,6 +39,7 @@ import org.dspace.xmlworkflow.state.Workflow;
 import org.dspace.xmlworkflow.state.actions.Action;
 import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -132,7 +133,7 @@ public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskR
 				throw new UnprocessableEntityException();
 			}
 			// workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
-            context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, task.getWorkflowItem().getItem().getID(),
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, task.getWorkflowItem().getItem().getID(),
                     null, itemService.getIdentifiers(context, task.getWorkflowItem().getItem())));
 		} catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
 			throw new RuntimeException(e.getMessage(), e); 
@@ -145,8 +146,11 @@ public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskR
 		ClaimedTask task = null;
 		try {
 			task = claimedTaskService.find(context, id);
-			workflowService.deleteClaimedTask(context, task.getWorkflowItem(), task);
-			workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
+			XmlWorkflowItem workflowItem = task.getWorkflowItem();
+            workflowService.deleteClaimedTask(context, workflowItem, task);
+			workflowRequirementsService.removeClaimedUser(context, workflowItem, task.getOwner(), task.getStepID());
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, workflowItem.getItem().getID(),
+                    null, itemService.getIdentifiers(context, workflowItem.getItem())));
 		} catch (SQLException | IOException | WorkflowConfigurationException | AuthorizeException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}

@@ -35,9 +35,11 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonServiceImpl;
+import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.workflow.WorkflowException;
@@ -322,6 +324,8 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
 		}
 		try {
 			wfs.abort(context, witem, context.getCurrentUser());
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, witem.getItem().getID(),
+                    null, itemService.getIdentifiers(context, witem.getItem())));
 		} catch (SQLException | AuthorizeException | IOException e) {
 			log.error(e.getMessage(), e);
 		}

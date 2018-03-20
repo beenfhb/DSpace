@@ -140,19 +140,6 @@ public class IndexEventConsumer implements Consumer {
                     uniqueIdsToDelete.add(detail);
                 }
                 break;
-            case Event.UPDATE_FORCE:
-                if (subject == null)
-                {
-                    log.warn(event.getEventTypeAsString() + " event, could not get object for "
-                            + event.getSubjectTypeAsString() + " id="
-                            + String.valueOf(event.getSubjectID())
-                            + ", perhaps it has been deleted.");
-                }
-                else {
-                    log.debug("consume() update force event to update queue: " + event.toString());
-                    objectsToUpdate.add(subject);
-                }
-                break;
             default:
                 log
                         .warn("IndexConsumer should not have been given a event of type="
@@ -182,7 +169,7 @@ public class IndexEventConsumer implements Consumer {
             	//if there are problem with lazy during indexing uncomment follow line and check DS-3660: Fix discovery reindex on metadata change
             	//iu = ctx.reloadEntity(iu);
                 String hdl = iu.getHandle();
-                if (hdl != null && !uniqueIdsToDelete.contains(hdl)) {
+                if (!uniqueIdsToDelete.contains(hdl)) {
                     try {
                         indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true);
                         log.debug("Indexed "
