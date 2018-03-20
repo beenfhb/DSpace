@@ -90,6 +90,10 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
                 {
                     for (ResourcePolicy rp : rps)
                     {
+                    	if (rp.getGroup() == null) {
+                    		// skip policies referred to single individual 
+                    		continue;
+                    	}
                         if (Group.ANONYMOUS.equals(rp.getGroup().getName()))
                         {
                             if (rp.isDateValid())
