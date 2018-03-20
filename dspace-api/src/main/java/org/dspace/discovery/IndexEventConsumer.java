@@ -140,6 +140,19 @@ public class IndexEventConsumer implements Consumer {
                     uniqueIdsToDelete.add(detail);
                 }
                 break;
+            case Event.UPDATE_FORCE:
+                if (subject == null)
+                {
+                    log.warn(event.getEventTypeAsString() + " event, could not get object for "
+                            + event.getSubjectTypeAsString() + " id="
+                            + String.valueOf(event.getSubjectID())
+                            + ", perhaps it has been deleted.");
+                }
+                else {
+                    log.debug("consume() update force event to update queue: " + event.toString());
+                    objectsToUpdate.add(subject);
+                }
+                break;
             default:
                 log
                         .warn("IndexConsumer should not have been given a event of type="

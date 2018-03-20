@@ -2448,8 +2448,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         	for (String f : doc.getFieldNames()) {
         		o.getExtraInfo().put(f, doc.getFirstValue(f));
         	}
-        }
-        if(o == null) {
+        } else {
             log.warn("Not able to retrieve object RESOURCE_ID:" + id + " - RESOURCE_TYPE_ID:" + type + " - HANDLE:" + handle);
         }
         return o;

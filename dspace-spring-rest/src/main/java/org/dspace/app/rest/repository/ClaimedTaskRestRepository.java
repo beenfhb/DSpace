@@ -24,9 +24,11 @@ import org.dspace.app.rest.model.PoolTaskRest;
 import org.dspace.app.rest.model.hateoas.ClaimedTaskResource;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.event.Event;
 import org.dspace.workflow.WorkflowException;
 import org.dspace.xmlworkflow.WorkflowConfigurationException;
 import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
@@ -130,6 +132,8 @@ public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskR
 				throw new UnprocessableEntityException();
 			}
 			// workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
+            context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, task.getWorkflowItem().getItem().getID(),
+                    null, itemService.getIdentifiers(context, task.getWorkflowItem().getItem())));
 		} catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
 			throw new RuntimeException(e.getMessage(), e); 
 		}

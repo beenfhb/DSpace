@@ -37,9 +37,12 @@ import org.dspace.content.Collection;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
@@ -79,6 +82,8 @@ public class SubmissionService {
 	ResourcePolicyConverter aCConverter; 
 	@Autowired
 	WorkspaceItemConverter workspaceItemConverter;
+	@Autowired
+	protected ItemService itemService;
 	
 	public WorkspaceItem createWorkspaceItem(Context context, Request request) throws SQLException, AuthorizeException {
 		WorkspaceItem wsi = null;
@@ -94,6 +99,9 @@ public class SubmissionService {
 			collection = collectionService.findAll(context, 1, 0).get(0);
 		}
 		wsi = workspaceItemService.create(context, collection, true);
+		
+        context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, wsi.getItem().getID(),
+                null, itemService.getIdentifiers(context, wsi.getItem())));
 		return wsi;
 	}
 	
@@ -163,7 +171,6 @@ public class SubmissionService {
 				throw new RuntimeException("Malformed body... too long");
 			}
 			String regex = "\\/api\\/"+WorkspaceItemRest.CATEGORY+"\\/"+English.plural(WorkspaceItemRest.NAME)+"\\/";
-			System.out.println(regex);
 			String[] split = buffer.toString().split(regex,2);
 			if (split.length != 2) {
 				throw new RuntimeException("Malformed body..." + buffer);
@@ -175,6 +182,8 @@ public class SubmissionService {
 			}
 			
 			wi = workflowService.start(context, wsi);
+            context.addEvent(new Event(Event.UPDATE_FORCE, Constants.ITEM, wi.getItem().getID(),
+                    null, itemService.getIdentifiers(context, wi.getItem())));
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
