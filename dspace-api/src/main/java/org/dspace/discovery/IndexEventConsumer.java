@@ -171,7 +171,7 @@ public class IndexEventConsumer implements Consumer {
                 String hdl = iu.getHandle();
                 if (!uniqueIdsToDelete.contains(hdl)) {
                     try {
-                        indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true);
+                        indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true, true);
                         log.debug("Indexed "
                                 + Constants.typeText[iu.getType()]
                                 + ", id=" + String.valueOf(iu.getID())
