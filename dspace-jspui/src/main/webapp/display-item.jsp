@@ -76,8 +76,6 @@
     String handle = item.getHandle();
     Context context = UIUtil.obtainContext(request);
     
-    // get the doi if the item has one
-    String doi = (String) request.getAttribute("doi");
     // get the preferred identifier (as URL)
     String preferredIdentifier = (String) request.getAttribute("preferred_identifier");
     // get the latestVersionIdentifier
