@@ -18,7 +18,7 @@ import org.dspace.app.cris.model.Project;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
-
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import it.cilea.osd.jdyna.model.ANestedObjectWithTypeSupport;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedProperty;
@@ -70,8 +70,9 @@ public abstract class AFormDynamicRGController<P extends Property<TP>, TP extend
         Project grant = getApplicationService().get(
                     Project.class, id);
         Context context = UIUtil.obtainContext(request);        
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))        
+        if (CrisAuthorizeManager.isAdmin(context, grant))
         {
+            reference.put("isAdmin", new Boolean(true));
             reference.put("grant_page_menu", new Boolean(true));
             reference.put("project", grant);         
         }

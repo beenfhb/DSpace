@@ -9,6 +9,7 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -131,4 +132,38 @@ public class CrisAuthorizeManager
         return result;
     }
 
+    
+    public static <T extends ACrisObject> boolean isAdmin(
+            Context context, T crisObject) throws SQLException 
+    {
+        // check admin authorization
+        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+        {
+            return true;
+        }
+
+        String crisObjectTypeText = crisObject.getTypeText();
+        EPerson currUser = context.getCurrentUser();        
+        String groupName = ConfigurationManager.getProperty("cris", "admin" + crisObjectTypeText);
+        if(StringUtils.isBlank(groupName)) {
+            groupName = "Administrator "+crisObjectTypeText;
+        }
+        Group group = EPersonServiceFactory.getInstance().getGroupService().findByName(context, groupName);
+        if (group != null)
+        {
+            if (currUser == null)
+            {
+                boolean isMember = EPersonServiceFactory.getInstance().getGroupService().isMember(context, Group.ADMIN);
+                if (isMember)
+                {
+                    return true;
+                }
+            }
+            if (EPersonServiceFactory.getInstance().getGroupService().isMember(context, group))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

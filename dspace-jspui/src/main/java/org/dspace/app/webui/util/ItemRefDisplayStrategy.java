@@ -7,6 +7,7 @@
  */
 package org.dspace.app.webui.util;
 
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
@@ -16,9 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.IMetadataValue;
+import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 
-public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
+public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy implements IAtomicDisplayStrategy
 {
 	/** log4j category */
     private static Logger log = Logger.getLogger(ItemRefDisplayStrategy.class);
@@ -45,7 +47,11 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
         StringBuffer sb = new StringBuffer();
         for (int j = 0; j < loopLimit; j++)
         {
-            sb.append(getDisplayForValue(hrq, field, metadataArray.get(j).getValue(), metadataArray.get(j).getAuthority(), itemid));
+            try {
+				sb.append(getDisplayForValue(UIUtil.obtainContext(hrq), hrq, field, metadataArray.get(j).getValue(), metadataArray.get(j).getAuthority(), metadataArray.get(j).getLanguage(), -1, itemid, viewFull, browseType, disableCrossLinks, emph));
+			} catch (SQLException e) {
+				log.warn(e.getMessage());
+			}
             if (j < (loopLimit - 1))
             {
                 if (colIdx != null) // we are showing metadata in a table row
@@ -88,7 +94,9 @@ public class ItemRefDisplayStrategy extends ASimpleDisplayStrategy
         return metadata;
     }
     
-    private String getDisplayForValue(HttpServletRequest hrq, String field, String value, String authority, UUID itemid)
+    @Override
+    public String getDisplayForValue(Context context, HttpServletRequest hrq, String field, String value, String authority, String language, int confidence, UUID itemid, boolean viewFull, String browseType,
+            boolean disableCrossLinks, boolean emph)
     {
     	if (StringUtils.isEmpty(authority)) return value;
         StringBuffer sb = new StringBuffer();

@@ -241,10 +241,11 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpace
             }
             return facetresults.get(0).getCount();
         }
-
         catch (Exception ex)
         {
-            log.error(ex.getMessage(), ex);
+            if(log.isDebugEnabled()) {
+                log.error(ex.getMessage(), ex);
+            }
         }
         return -1;
     }

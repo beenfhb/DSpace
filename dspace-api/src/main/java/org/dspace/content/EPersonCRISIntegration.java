@@ -9,7 +9,17 @@ package org.dspace.content;
 
 import java.util.UUID;
 
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.dspace.content.authority.Choices;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+
 public interface EPersonCRISIntegration
 {
     public String getResearcher(UUID epersonID);
+    
+    public List<Choices> getMatches(Context context, HttpServletRequest request, EPerson eperson);
 }

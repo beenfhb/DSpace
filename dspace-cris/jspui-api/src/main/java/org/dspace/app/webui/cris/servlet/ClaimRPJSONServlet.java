@@ -25,7 +25,9 @@ import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchService;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.utils.DSpace;
 
 import com.google.gson.JsonObject;
@@ -95,13 +97,66 @@ public class ClaimRPJSONServlet extends JSONRequest{
 	public void doJSONRequest(Context context, HttpServletRequest req,
 			HttpServletResponse resp) throws AuthorizeException, IOException {
 
-
+	    int status =0;
+	    
 		String mail = req.getParameter("mailUser");
 		String rpKey = req.getParameter("rpKey");
 		boolean claimEnabled = ConfigurationManager.getBooleanProperty("cris", "rp.claim.enabled");
+		boolean isSelfClaimed = false;
+        EPerson currUser = context.getCurrentUser();
+        
+        String nameGroupSelfClaim = ConfigurationManager.getProperty("cris",
+                "rp.claim.group.name");
+        if (StringUtils.isNotBlank(nameGroupSelfClaim))
+        {
+            Group selfClaimGroup;
+            try
+            {
+            	GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+                selfClaimGroup = groupService.findByName(context,
+                        nameGroupSelfClaim);
+                if (groupService.isMember(context, selfClaimGroup))
+                {
+                    isSelfClaimed = true;
+                }
+            }
+            catch (SQLException e)
+            {
+                status = -1;
+                log.error(e.getMessage(), e);
+            }
+
+        }
 		
-		int status =0;
-		if(claimEnabled && StringUtils.isNotBlank(mail) && StringUtils.isNotBlank(rpKey)){
+        if (claimEnabled && (isSelfClaimed || currUser != null)
+                && StringUtils.isNotBlank(rpKey))
+        {
+            try
+            {
+                ApplicationService applicationservice = new DSpace()
+                        .getServiceManager().getServiceByName(
+                                "applicationService", ApplicationService.class);
+
+                ResearcherPage r = applicationservice.getEntityByCrisId(rpKey,
+                        ResearcherPage.class);
+                if (r.getEpersonID() == null)
+                {
+                    r.setEpersonID(currUser.getID());
+                    applicationservice.saveOrUpdate(ResearcherPage.class, r);                    
+                }
+                else
+                {
+                    status = -1;
+                }
+            }
+            catch (Exception e)
+            {
+                status = -1;
+                log.error(e.getMessage(), e);
+            }
+
+        }
+        else if(!isSelfClaimed && claimEnabled && StringUtils.isNotBlank(mail) && StringUtils.isNotBlank(rpKey)){
 			status = validateCreateEperson(context, mail, rpKey);
 		}
         JsonObject jo = new JsonObject();

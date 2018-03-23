@@ -39,14 +39,15 @@ import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 import org.springframework.web.servlet.ModelAndView;
@@ -68,6 +69,14 @@ public class ResearcherPageDetailsController
         SimpleDynaController<RPProperty, RPPropertiesDefinition, BoxResearcherPage, TabResearcherPage>
 {
 
+    /** log4j category */
+    private static Logger log = Logger
+            .getLogger(ResearcherPageDetailsController.class);
+
+    private CrisSubscribeService subscribeService;
+    
+    private List<ICrisHomeProcessor<ResearcherPage>> processors;
+
     public ResearcherPageDetailsController(
             Class<RPAdditionalFieldStorage> anagraficaObjectClass,
             Class<RPPropertiesDefinition> classTP,
@@ -77,18 +86,6 @@ public class ResearcherPageDetailsController
         super(anagraficaObjectClass, classTP, classT, classH);
     }
 
-    /** log4j category */
-    private static Logger log = Logger
-            .getLogger(ResearcherPageDetailsController.class);
-
-    private CrisSubscribeService subscribeService;
-    
-    private List<ICrisHomeProcessor<ResearcherPage>> processors;
-    
-    public void setSubscribeService(CrisSubscribeService rpSubscribeService)
-    {
-        this.subscribeService = rpSubscribeService;
-    }
 
     @Override
     public ModelAndView handleDetails(HttpServletRequest request,
@@ -126,6 +123,8 @@ public class ResearcherPageDetailsController
 
         Context context = UIUtil.obtainContext(request);
         EPerson currUser = context.getCurrentUser();
+        
+        model.put("selfClaimRP", new Boolean(false));
         if(currUser != null) {
             model.put("isLoggedIn", new Boolean(true));
             ResearcherPage rp = ((ApplicationService) applicationService).getResearcherPageByEPersonId(currUser.getID());
@@ -136,13 +135,25 @@ public class ResearcherPageDetailsController
             }else
             {
             	model.put("userHasRP", new Boolean(false));
+                String nameGroupSelfClaim = ConfigurationManager.getProperty("cris",
+                        "rp.claim.group.name");
+                if (StringUtils.isNotBlank(nameGroupSelfClaim))
+                {
+                	GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+                    Group selfClaimGroup = groupService.findByName(context,
+                            nameGroupSelfClaim);
+                    if (groupService.isMember(context, selfClaimGroup))
+                    {
+                        model.put("selfClaimRP", new Boolean(true));
+                    }
+                }
             }
         }
         else {
             model.put("isLoggedIn", new Boolean(false));
         }
         
-        boolean isAdmin = AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
+        boolean isAdmin = CrisAuthorizeManager.isAdmin(context,researcher);
       
         
         if (isAdmin
@@ -175,14 +186,14 @@ public class ResearcherPageDetailsController
                 // Log the error
                 log.info(LogManager
                         .getHeader(context, "authorize_error",
-                                "Only system administrator can access to disabled researcher page"));
+                                "Only administrator can access to disabled researcher page"));
 
                 JSPManager
                         .showAuthorizeError(
                                 request,
                                 response,
                                 new AuthorizeException(
-                                        "Only system administrator can access to disabled researcher page"));
+                                        "Only administrator can access to disabled researcher page"));
             }
             return null;
         }
@@ -388,4 +399,8 @@ public class ResearcherPageDetailsController
         return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearcherPage.class, RPPropertiesDefinition.class, extractEntityId(request), box);        
     }
 
+    public void setSubscribeService(CrisSubscribeService rpSubscribeService)
+    {
+        this.subscribeService = rpSubscribeService;
+    }
 }

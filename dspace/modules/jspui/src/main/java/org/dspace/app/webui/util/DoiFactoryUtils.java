@@ -126,12 +126,12 @@ public class DoiFactoryUtils {
 			Context context) throws SQLException {
 		List<Item> resultsItems = new ArrayList<Item>();
 		if (docs != null) {
-
+		    
+		    
 			for (SolrDocument doc : docs) {
 				UUID resourceId = UUID.fromString((String) doc
 						.getFieldValue("search.resourceid"));
 				resultsItems.add(ContentServiceFactory.getInstance().getItemService().find(context, resourceId));
-
 			}
 		}
 		return resultsItems;

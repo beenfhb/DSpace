@@ -230,13 +230,21 @@ public class DescribeStep extends AbstractProcessingStep
                 continue;
             }
 
-            String qualifier = inputs[i].getQualifier();
-	        if (inputs[i].getInputType().equals("qualdrop_value"))
-	        {
-	        	qualifier = Item.ANY;
-	        }
-		        
-            itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
+            if (inputs[i].getInputType().equals("qualdrop_value"))
+            {
+                @SuppressWarnings("unchecked") // This cast is correct
+                List<String> pairs = inputs[i].getPairs();
+                for (int j = 0; j < pairs.size(); j += 2)
+                {
+                    String qualifier = pairs.get(j+1);
+                    itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
+                }
+            }
+            else
+            {
+                String qualifier = inputs[i].getQualifier();
+                itemService.clearMetadata(context, item, inputs[i].getSchema(), inputs[i].getElement(), qualifier, Item.ANY);
+            }
         }
 
         // Clear required-field errors first since missing authority
@@ -373,7 +381,8 @@ public class DescribeStep extends AbstractProcessingStep
             {
                 // Do not check the required attribute if it is not visible or not allowed for the document type
 
-                if (!subInfo.isEditing() && !( inputs[i].isVisible(scope) && inputs[i].isAllowedFor(documentType) ) )
+				if (!(subInfo.isEditing() && inputs[i].isAllowedFor(documentType))
+						&& !(inputs[i].isVisible(scope) && inputs[i].isAllowedFor(documentType)))
                 {
                     continue;
                 }

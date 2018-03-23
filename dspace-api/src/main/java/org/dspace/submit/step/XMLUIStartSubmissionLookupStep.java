@@ -38,7 +38,6 @@ public class XMLUIStartSubmissionLookupStep extends AbstractProcessingStep {
 
     private static String publicationUrl = null;
     private static Logger log = Logger.getLogger(XMLUIStartSubmissionLookupStep.class);
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     @Override
     public int doProcessing(Context context, HttpServletRequest request, HttpServletResponse response, SubmissionInfo subInfo) throws ServletException, IOException, AuthorizeException, SQLException {

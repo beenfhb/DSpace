@@ -96,7 +96,7 @@ public class CrisRPAdvancedDisplayStrategy extends ItemCrisRefDisplayStrategy {
 			buildBrowseLink(hrq, viewFull, browseType, metadataArray, minConfidence, otherMetadata, disableCrossLinks, sb, j);
 			if (StringUtils.isNotBlank(metadataArray.get(j).getAuthority())
 					&& metadataArray.get(j).getConfidence() >= minConfidence) {
-				buildAuthority(hrq, metadataArray, publicPath, sb, j);
+				buildAuthority(hrq, metadataArray.get(j).getValue(), metadataArray.get(j).getAuthority(), itemId, publicPath, sb);
 			}
 			if (j < (loopLimit - 1)) {
 				if (colIdx != null) // we are showing metadata in a table row

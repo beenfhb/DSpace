@@ -72,17 +72,25 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
         String email = null;
         EPerson eperson = null;
         
-        String orcid = (String) request.getAttribute("orcid");
-        String token = (String) request.getAttribute("access_token");
-        String scope = (String) request.getAttribute("scope");
+
 //        String refreshToken = (String) request.getAttribute("refresh_token");
-        if (request == null||orcid==null)
+        if (request == null)
         {
             return BAD_ARGS;
         }
         
+
+        String orcid = (String) request.getAttribute("orcid");
+        if(orcid== null ){
+        	return BAD_ARGS;
+        }
+
         EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         List<EPerson> epersons = ePersonService.search(context, orcid);
+
+        String token = (String) request.getAttribute("access_token");
+        String scope = (String) request.getAttribute("scope");        
+        
         
         if(epersons != null && epersons.size() > 1) {
             log.error("Fail to authorize user with orcid: "+orcid + " email:" + email + " - Multiple Users found");

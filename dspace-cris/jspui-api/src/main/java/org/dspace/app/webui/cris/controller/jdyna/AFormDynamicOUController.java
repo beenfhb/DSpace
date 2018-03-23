@@ -18,7 +18,7 @@ import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
-
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import it.cilea.osd.jdyna.model.ANestedObjectWithTypeSupport;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedProperty;
@@ -67,14 +67,15 @@ public abstract class AFormDynamicOUController<P extends Property<TP>, TP extend
         
         String id_s = request.getParameter("id");
         Integer id = Integer.parseInt(id_s);
-        OrganizationUnit researcher = getApplicationService().get(
+        OrganizationUnit ou = getApplicationService().get(
                     OrganizationUnit.class, id);
         Context context = UIUtil.obtainContext(request);
         
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+        if (CrisAuthorizeManager.isAdmin(context, ou))
         {
+            reference.put("isAdmin", new Boolean(true));
             reference.put("ou_page_menu", new Boolean(true));
-            reference.put("organizationunit", researcher);         
+            reference.put("organizationunit", ou);         
         }
         
         reference.put("specificPartPath", getSpecificPartPath());      

@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
@@ -71,12 +72,13 @@ public abstract class AFormDynamicRPController<P extends Property<TP>, TP extend
         Integer id = Integer.parseInt(id_s);
         ResearcherPage researcher = getApplicationService().get(
                     ResearcherPage.class, id);
-        Context context = UIUtil.obtainContext(request);
-        EPerson currUser = context.getCurrentUser();
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context) 
+        Context context = UIUtil.obtainContext(request);        
+                EPerson currUser = context.getCurrentUser();
+        if (CrisAuthorizeManager.isAdmin(context, researcher) 
                 || (researcher.getEpersonID()!=null && currUser != null && researcher.getEpersonID().equals(
                         currUser.getID())))
         {
+            reference.put("isAdmin", new Boolean(true));
             reference.put("researcher_page_menu", new Boolean(true));
             reference.put("researcher", researcher);         
         }

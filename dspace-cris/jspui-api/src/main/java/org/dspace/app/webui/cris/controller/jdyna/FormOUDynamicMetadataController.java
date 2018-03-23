@@ -31,6 +31,7 @@ import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -66,12 +67,9 @@ public class FormOUDynamicMetadataController
 
         // check admin authorization
         boolean isAdmin = false;
-        Context context = UIUtil.obtainContext(request);
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-        {
-            isAdmin = true;
+        if(map.containsKey("isAdmin")) {
+            isAdmin = (Boolean)map.get("isAdmin");
         }
-
         // collection of edit tabs (all edit tabs created on system associate to
         // visibility)
         List<EditTabOrganizationUnit> tabs = getApplicationService()
@@ -158,20 +156,19 @@ public class FormOUDynamicMetadataController
         String paramId = request.getParameter("id");
 
         Integer id = null;
-        Boolean isAdmin = false;
         if (paramId != null)
         {
             id = Integer.parseInt(paramId);
         }
         OrganizationUnit grant = getApplicationService().get(OrganizationUnit.class, id);
         Context context = UIUtil.obtainContext(request);
-        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-        {
-            throw new AuthorizeException("Only system admin can edit");
-        }
-        else
+        Boolean isAdmin = false;
+        if (CrisAuthorizeManager.isAdmin(context, grant))
         {
             isAdmin = true;
+        }
+        else {
+            throw new AuthorizeException("Only system admin can edit");
         }
 
         Integer areaId;

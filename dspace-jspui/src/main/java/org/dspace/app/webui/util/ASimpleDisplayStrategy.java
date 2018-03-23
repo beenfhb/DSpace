@@ -88,4 +88,5 @@ public abstract class ASimpleDisplayStrategy extends SelfNamedPlugin implements
         return getMetadataDisplay(hrq, limit, viewFull, browseType, colIdx, item.getID(),
                 field, metadataArray, disableCrossLinks, emph);
 	}
+	
 }

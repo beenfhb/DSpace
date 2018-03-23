@@ -102,8 +102,10 @@ public class ProjectDetailsController
             model.put("isLoggedIn", new Boolean(false));
         }
         
+        
+        boolean isAdmin = CrisAuthorizeManager.isAdmin(context,grant);
         if ((grant.getStatus() == null || grant.getStatus().booleanValue() == false)
-                && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+                && !isAdmin)
         {
             
             if (currUser != null
@@ -113,19 +115,19 @@ public class ProjectDetailsController
                 // Log the error
                 log.info(LogManager
                         .getHeader(context, "authorize_error",
-                                "Only system administrator can access to disabled researcher page"));
+                                "Only administrator can access to disabled researcher page"));
 
                 JSPManager
                         .showAuthorizeError(
                                 request,
                                 response,
                                 new AuthorizeException(
-                                        "Only system administrator can access to disabled researcher page"));
+                                        "Only administrator can access to disabled researcher page"));
             }
             return null;
         }
 
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+        if (isAdmin)
         {
             model.put("grant_page_menu", new Boolean(true));
         }

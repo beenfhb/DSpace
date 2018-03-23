@@ -32,6 +32,7 @@ import org.dspace.app.cris.model.jdyna.EditTabDynamicObject;
 import org.dspace.app.cris.model.jdyna.TabDynamicObject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -67,10 +68,8 @@ public class FormDODynamicMetadataController
 
         // check admin authorization
         boolean isAdmin = false;
-        Context context = UIUtil.obtainContext(request);
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-        {
-            isAdmin = true;
+        if(map.containsKey("isAdmin")) {
+            isAdmin = (Boolean)map.get("isAdmin");
         }
         
         DynamicAnagraficaObjectDTO object = (DynamicAnagraficaObjectDTO)command;        
@@ -161,7 +160,6 @@ public class FormDODynamicMetadataController
         String paramId = request.getParameter("id");
 
         Integer id = null;
-        Boolean isAdmin = false;
         if (paramId != null)
         {
             id = Integer.parseInt(paramId);
@@ -169,13 +167,13 @@ public class FormDODynamicMetadataController
         ResearchObject entity = getApplicationService().get(ResearchObject.class,
                 id);
         Context context = UIUtil.obtainContext(request);
-        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-        {
-            throw new AuthorizeException("Only system admin can edit");
-        }
-        else
+        Boolean isAdmin = false;
+        if (CrisAuthorizeManager.isAdmin(context, entity))
         {
             isAdmin = true;
+        }
+        else {
+            throw new AuthorizeException("Only system admin can edit");
         }
 
         Integer areaId;

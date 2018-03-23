@@ -115,6 +115,7 @@ submissionLookupShowResult = function(info, suffixID){
 	for (var i=0;i<info.result.length;i++)
 	{
 		var bt = j('<button class="btn btn-info" type="button">').append(j('#jsseedetailsbuttonmessage').text());
+		var checkbox = j('<input type="checkbox" id="checkresult'+i+'" class="checkresult" name="checkresult" value="'+info.result[i].uuid+'" />');
 		var par = j('<p class="sl-result">');
 		var divImg = j('<div class="submission-lookup-providers">');
 		par.append(divImg);
@@ -124,10 +125,12 @@ submissionLookupShowResult = function(info, suffixID){
 			divImg.append(j('<img class="img-thumbnail" src="'+dspaceContextPath+'/image/submission-lookup-small-'+prov+'.jpg">'));
 		}	
 		par
+				.append(checkbox)
 				.append(j('<span class="sl-result-title">').text(info.result[i].title))
 				.append(j('<span class="sl-result-authors">').text(info.result[i].authors))
 				.append(j('<span class="sl-result-date">').text(info.result[i].issued))
 				.append(bt);
+
 		j('#result-list').append(par);
 		bt.button();
 		bt.data({uuid: info.result[i].uuid});
@@ -135,6 +138,47 @@ submissionLookupShowResult = function(info, suffixID){
 			submissionLookupDetails(this, suffixID);
 		});
 	}
+	
+	j('#checkallresults').click(function(){
+		if( j("#checkallresults").is(':checked') ){
+	       j(".checkresult").prop("checked",true);
+        }else{
+	       j(".checkresult").prop("checked",false);                       
+        }
+	});
+	
+	j('#identifier-submission-button').click(function(){
+		var recordsChecked = [];
+		var warnCol = false;
+		j('#no-record').hide();
+		j('#no-collection').hide();
+		jQuery('.sl-result input:checkbox:checked').map(function(){
+			recordsChecked.push(j(this).val());
+			
+			var colid = jQuery('#select-collection-identifier').val();
+			if( colid <= 0 || colid == null){
+				warnCol = true;
+				j('#no-collection').show();
+				return false;
+			}
+			jQuery('#collectionid').val(colid);
+		});
+		if (recordsChecked.length>0 && !warnCol)
+		{
+			jQuery('#iuuid').val(recordsChecked[0]);
+			
+			var iuuids = recordsChecked.slice(1).join(";");
+			j('#iuuid_batch').val(iuuids);
+			j('#form-submission').submit();
+		}
+		else if(recordsChecked.length ==0){
+			j('#no-record').show();
+			
+		}else{
+			j('#no-collection').show();
+		}
+	});	
+
 }
 
 submissionLookupShowDetails = function(info){
@@ -206,6 +250,9 @@ submissionLookupFile = function(form){
 	var suuid = j('<input type="hidden" name="s_uuid" value="'+suuidVal+'">');
 	var collectionidVal = j('#select-collection-file').val();
 	var collectionid = j('<input type="hidden" name="collectionid" value="'+collectionidVal+'">');
+	var fileNameVal= j('#file_upload').val();
+	fileNameVal = fileNameVal.slice(fileNameVal.lastIndexOf("\\")+1);
+	var filename=j('<input type="hidden" name="filename" value="'+fileNameVal +'"/>');
 	var preview_loader = "";
 	if(j('#preview_loader').is (':checked')) {
 		preview_loader = j('<input type="hidden" name="skip_loader" value="false">');
@@ -257,6 +304,8 @@ submissionLookupFile = function(form){
 						j('#collectionid').val(json.result[index].collectionid);
 						j('#suuid').val(json.result[index].uuid);
 						j('#fuuid').val(iindex);
+						j('#filePath').val(json.filePath);
+						j('#filename').val(json.filename);
 						j('#form-submission').submit();						
 						return false;
 					}
@@ -279,6 +328,7 @@ submissionLookupFile = function(form){
         j(form).append(collectionid);
         j(form).append(preview_loader);
         j(form).append(provider_loader);
+        j(form).append(filename);
 	    // Submit the form...
 	    form.submit();
 	 

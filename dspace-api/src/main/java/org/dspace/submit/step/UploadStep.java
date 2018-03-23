@@ -99,8 +99,6 @@ public class UploadStep extends AbstractProcessingStep
     /** is the upload required? */
     protected boolean fileRequired = configurationService.getBooleanProperty("webui.submit.upload.required", true);
 
-    protected BitstreamFormatService bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
-
     /**
      * Do any processing of the information input by the user, and/or perform
      * step processing (if no user interaction required)

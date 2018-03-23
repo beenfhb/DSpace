@@ -20,19 +20,23 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.webui.util.IAtomicDisplayStrategy;
 import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.utils.DSpace;
 
-public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
+public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy, IAtomicDisplayStrategy
 {
 
+    private String myName;
+    
 	/**
 	 * log4j category
 	 */
@@ -42,6 +46,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
     private ApplicationService applicationService = new DSpace()
             .getServiceManager()
 			.getServiceByName("applicationService", ApplicationService.class);
+    
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, UUID colIdx, String field,
@@ -49,9 +54,28 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
             boolean disableCrossLinks, boolean emph)
     {
     	ACrisObject crisObject = (ACrisObject)item;
-		String metadata = internalDisplay(hrq, metadataArray, crisObject);
-		return metadata;
+    	
+        boolean truncated = false;
+        int loopLimit = metadataArray.size();
+        if (limit != -1)
+        {
+            loopLimit = (limit > metadataArray.size() ? metadataArray.size()
+                    : limit);
+            truncated = (limit < metadataArray.size());
+        }
+
+        StringBuffer sb = new StringBuffer();
+        
+        if(metadataArray != null && metadataArray.size() > 0) {
+            for (int j = 0; j < loopLimit; j++)
+            {        	
+            	sb.append(internalDisplay(hrq, metadataArray.get(j).getValue(), crisObject));
+            }
+            return sb.toString();
+        }
+        return "N/D";
 	}
+    
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
             boolean viewFull, String browseType, UUID colIdx, String field,
@@ -65,7 +89,9 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
             {
                 ACrisObject entityByCrisId = applicationService
                         .getEntityByCrisId(authority);
-                return internalDisplay(hrq, metadataArray, entityByCrisId);
+                if(metadataArray != null && metadataArray.size() > 0) {
+                    return internalDisplay(hrq, metadataArray.get(0).getValue(), entityByCrisId);
+                }
             } else {
                 return metadataArray.get(0).getValue();
             }
@@ -100,15 +126,18 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
     {
 
 		ACrisObject crisObject = (ACrisObject) item;
-		String metadata = internalDisplay(hrq, metadataArray, crisObject);
-		return metadata;
+		if(metadataArray != null && metadataArray.size() > 0) {
+		    String metadata = internalDisplay(hrq, metadataArray.get(0).getValue(), crisObject);
+		    return metadata;
+        }
+        return "N/D";
 	}
 	
     private String internalDisplay(HttpServletRequest hrq,
-            List<IMetadataValue> metadataArray, ACrisObject crisObject)
+            String value, ACrisObject crisObject)
     {
         String metadata = "N/A";
-        if (metadataArray != null && metadataArray.size() > 0)
+        if (StringUtils.isNotBlank(value))
         {
 			try 
 			{
@@ -191,7 +220,7 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
                     }
                 }
                 metadata = startLink;
-                metadata += Utils.addEntities(metadataArray.get(0).getValue());
+                metadata += Utils.addEntities(value);
                 metadata += "&nbsp;";
                 metadata += icon;
                 metadata += endLink;
@@ -203,5 +232,31 @@ public class CrisRefDisplayStrategy implements IDisplayMetadataValueStrategy
         }
         return metadata;
     }
+
+    @Override
+    public String getPluginInstanceName()
+    {
+        return myName;
+    }
+    
+    @Override
+    public void setPluginInstanceName(String name)
+    {
+        this.myName = name;
+    }
+
+	@Override
+	public String getDisplayForValue(Context context, HttpServletRequest hrq, String field, String value,
+			String authority, String language, int confidence, UUID itemid, boolean viewFull, String browseType,
+			boolean disableCrossLinks, boolean emph) {
+        if (StringUtils.isNotBlank(authority))
+        {
+            ACrisObject entityByCrisId = applicationService
+                    .getEntityByCrisId(authority);
+            return internalDisplay(hrq, value, entityByCrisId);
+        } else {
+            return value;
+        }
+	}
 
 }

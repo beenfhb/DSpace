@@ -103,8 +103,9 @@ public class DynamicObjectDetailsController
             model.put("isLoggedIn", new Boolean(false));
         }
         
+        boolean isAdmin = CrisAuthorizeManager.isAdmin(context,dyn);
         if ((dyn.getStatus() == null || dyn.getStatus().booleanValue() == false)
-                && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+                && !isAdmin)
         {
             
             if (currUser != null
@@ -126,7 +127,7 @@ public class DynamicObjectDetailsController
             return null;
         }
 
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+        if (isAdmin)
         {
             model.put("do_page_menu", new Boolean(true));
         }

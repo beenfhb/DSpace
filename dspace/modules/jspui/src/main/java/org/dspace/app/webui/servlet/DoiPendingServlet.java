@@ -90,7 +90,7 @@ public class DoiPendingServlet extends DSpaceServlet
         {
             if (submit == EXCLUDE_ALL)
             {
-                QueryResponse rsp = searchPending(orderfield, ascending);
+                QueryResponse rsp = searchPending(orderfield, ascending, Integer.MAX_VALUE, 0);
                 List<Item> items = DoiFactoryUtils.getItemsFromSolrResult(
                         rsp.getResults(), context);
                 try
@@ -128,14 +128,19 @@ public class DoiPendingServlet extends DSpaceServlet
             log.error(e.getMessage(), new RuntimeException(e));
         }
 
-        QueryResponse rsp = searchPending(orderfield, ascending);
-
+        int start = UIUtil.getIntParameter(request, "start") != -1 ? UIUtil
+                .getIntParameter(request, "start") : 0;
+                
+        QueryResponse rsp = searchPending(orderfield, ascending, rpp, start);
+        Long total = countPending(orderfield, ascending);
+        
         List<Item> results = DoiFactoryUtils.getItemsFromSolrResult(
                 rsp.getResults(), context);
+		
         Map<UUID, List<String>> doi2items = new HashMap<UUID, List<String>>();
         if (results != null && !results.isEmpty())
         {
-
+            
             for (Item real : results)
             {
                 List<Object[]> rows = getHibernateSession(context).createSQLQuery(
@@ -159,18 +164,18 @@ public class DoiPendingServlet extends DSpaceServlet
                     	doi2items.put(real.getID(), rr);
                     }
                 }
+                
             }
         }
 
-        // total number of pages
-        int start = UIUtil.getIntParameter(request, "start") != -1 ? UIUtil
-                .getIntParameter(request, "start") : 0;
+
         int pageTotal = 0;
 
         if (doi2items != null)
         {
-            pageTotal = (int) (1 + ((doi2items.size() - 1) / rpp));
+            pageTotal = (int) (1 + ((total - 1) / rpp));
         }
+        
         // current page being displayed
         int pageCurrent = 1 + (start / rpp);
 
@@ -187,7 +192,7 @@ public class DoiPendingServlet extends DSpaceServlet
         request.setAttribute("pagelast", new Integer(pageLast));
         request.setAttribute("pagefirst", new Integer(pageFirst));
         request.setAttribute("start", start);
-        request.setAttribute("total", results.size());
+        request.setAttribute("total", total);
         request.setAttribute("rpp", rpp);
         JSPManager.showJSP(request, response, "/doi/checkerDoiPendings.jsp");
 
@@ -213,6 +218,7 @@ public class DoiPendingServlet extends DSpaceServlet
     private void deletePendings(Context context, List<Item> items)
             throws SQLException, AuthorizeException, SearchServiceException
     {
+        int index = 0;
         for (Item i : items)
         {
 
@@ -227,17 +233,24 @@ public class DoiPendingServlet extends DSpaceServlet
         indexer.commit();
     }
 
-    private QueryResponse searchPending(String orderfield, boolean ascending)
+    private QueryResponse searchPending(String orderfield, boolean ascending, int rpp, int start)
     {
         String query = ConfigurationManager.getProperty("doi.pending.query");
 
+        // can't start earlier than 0 in the results!
+        if (start < 0)
+        {
+            start = 0;
+        }
+        
         QueryResponse rsp = null;
         try
         {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery(query);
             DoiFactoryUtils.prepareDefaultSolrQuery(solrQuery);
-            solrQuery.setRows(Integer.MAX_VALUE);
+            solrQuery.setStart(start);
+            solrQuery.setRows(rpp);
             if (orderfield == null)
             {
                 orderfield = "score";
@@ -252,6 +265,29 @@ public class DoiPendingServlet extends DSpaceServlet
             log.error(e.getMessage(), e);
         }
         return rsp;
+    }
+    
+    private Long countPending(String orderfield, boolean ascending)
+    {
+        String query = ConfigurationManager.getProperty("doi.pending.query");
+
+        QueryResponse rsp = null;
+        try
+        {
+            SolrQuery solrQuery = new SolrQuery();
+            solrQuery.setQuery(query);
+            DoiFactoryUtils.prepareDefaultSolrQuery(solrQuery);
+            solrQuery.setRows(0);
+            rsp = searcher.search(solrQuery);
+            if(rsp!=null && rsp.getResults()!=null) {
+                return rsp.getResults().getNumFound();
+            }
+        }
+        catch (SearchServiceException e)
+        {
+            log.error(e.getMessage(), e);
+        }
+        return new Long(0);
     }
 
     protected static Session getHibernateSession(Context context) throws SQLException {

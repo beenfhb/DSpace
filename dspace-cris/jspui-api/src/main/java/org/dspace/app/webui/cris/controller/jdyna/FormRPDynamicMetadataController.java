@@ -31,6 +31,7 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -69,9 +70,8 @@ public class FormRPDynamicMetadataController
         // check admin authorization
         boolean isAdmin = false;
         Context context = UIUtil.obtainContext(request);
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-        {
-            isAdmin = true;
+        if(map.containsKey("isAdmin")) {
+            isAdmin = (Boolean)map.get("isAdmin");
         }
 
         // collection of edit tabs (all edit tabs created on system associate to
@@ -193,7 +193,7 @@ public class FormRPDynamicMetadataController
         String paramId = request.getParameter("id");
 
         Integer id = null;
-        Boolean isAdmin = false;
+
         if (paramId != null)
         {
             id = Integer.parseInt(paramId);
@@ -201,18 +201,23 @@ public class FormRPDynamicMetadataController
         ResearcherPage researcher = getApplicationService().get(
                 ResearcherPage.class, id);
         Context context = UIUtil.obtainContext(request);
+        
+        Boolean isAdmin = false;
+        if (CrisAuthorizeManager.isAdmin(context, researcher))
+        {
+            isAdmin = true;
+        }
+        
+        
         EPerson currentUser = context.getCurrentUser();
-        if ((currentUser==null || (researcher.getEpersonID()!=null && !currentUser.getID().equals(researcher.getEpersonID())))
-               && !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+        if ((currentUser==null || (researcher.getEpersonID()!=null && currentUser.getID()!=researcher.getEpersonID()))
+               && !isAdmin)
         {
             throw new AuthorizeException(
                     "Only system admin can edit not personal researcher page");
         }
 
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-        {
-            isAdmin = true;
-        }
+
 
         Integer areaId;
         if (paramTabId == null)

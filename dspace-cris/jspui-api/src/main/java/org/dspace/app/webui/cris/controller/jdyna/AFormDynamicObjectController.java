@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.ResearchObject;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.Context;
 
 import it.cilea.osd.jdyna.model.ANestedObjectWithTypeSupport;
@@ -72,8 +72,9 @@ public abstract class AFormDynamicObjectController<P extends Property<TP>, TP ex
                     ResearchObject.class, id);
         Context context = UIUtil.obtainContext(request);
         
-        if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
+        if (CrisAuthorizeManager.isAdmin(context, entity))
         {
+            reference.put("isAdmin", new Boolean(true));
             reference.put("do_page_menu", new Boolean(true));
             reference.put("entity", entity);         
         }

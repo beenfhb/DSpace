@@ -22,6 +22,8 @@
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
 
 <%@ page import="org.dspace.content.Collection" %>
+<%@ page import="org.dspace.app.util.CollectionUtils" %>
+<%@ page import="org.dspace.app.util.CollectionsTree" %>
 <%@ page import="java.lang.Boolean" %>
 <%@ page import="java.util.*" %>
 
@@ -39,6 +41,7 @@
     //get collections to choose from
     List<Collection> collections =
         (List<Collection>) request.getAttribute("collections");
+    CollectionsTree tree= CollectionUtils.getCollectionsTree(collections, false);
 
     //get collection id from the collection home
 	Object collection_id_object = request.getAttribute("collection_id");
@@ -64,6 +67,37 @@
     List<String> identifiers = (List<String>) request.getAttribute("identifiers");
     String uuid = (String) request.getAttribute("s_uuid");
 %>
+ 
+<%!
+void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tree ) 
+		throws java.io.IOException {
+	if(tree==null){
+		return;
+	}
+	if (tree.getCurrent() != null)
+	{
+		out.print("<optgroup label=\""+tree.getCurrent().getName()+"\">");
+	}
+	if (tree.getCollections() != null){
+		for (Collection col : tree.getCollections())
+		{
+			out.print("<option value=\""+col.getID()+"\">"+col.getName()+"</option>");	
+		}
+	}
+	if (tree.getSubTree() != null)
+	{
+		for (CollectionsTree subTree: tree.getSubTree())
+		{
+			generateCollectionTree(out, subTree);
+		}
+	}
+	if (tree.getCurrent() != null)
+	{
+		out.print("</optgroup>");
+	}
+}
+%>
+
 <c:set var="dspace.layout.head" scope="request">
 	<style type="text/css">
 		
@@ -160,7 +194,9 @@
 					<input type="hidden" id="suuid" name="suuid" value="<%= uuid %>"/>
 					<input type="hidden" id="collectionid" name="collectionid" value=""/>
 					<input type="hidden" id="iuuid_batch" name="iuuid_batch" value=""/>
-					<input type="hidden" id="colid_batch" name="colid_batch" value=""/>					
+					<input type="hidden" id="colid_batch" name="colid_batch" value=""/>
+					<input type="hidden" id="filePath" name="filePath" value=""/>
+					<input type="hidden" id="filename" name="filename" value=""/>					
 				</form>
 			</div>
 	      </div>
@@ -285,6 +321,7 @@
 		<input type="hidden" id="iuuid-loader" name="iuuid" value=""/>
 		<input type="hidden" id="fuuid-loader" name="fuuid" value=""/>
 		<input type="hidden" id="collectionid-loader" name="collectionid" value=""/>
+		
 	<p class="help-block"><fmt:message key="jsp.submit.start-lookup-submission.byfile.hints"/></p>
 	
 	<div class="form-group">
@@ -343,6 +380,25 @@
 			<p class="alert alert-warning"><fmt:message key="jsp.submit.start-lookup-submission.noresult"/></p>
 			<div id="no_result_manual_submission"></div>
 		</div>
+		
+		<form class="form-horizontal" id="form-submission-identifiers" action="" method="post">
+			<div class="form-group">
+				<label for="select-collection-manual" class="col-sm-2 control-label"><fmt:message key="jsp.submit.start-lookup-submission.select.collection.label"/></label>
+				<div class="col-sm-7">
+						<dspace:selectcollection klass="form-control" id="select-collection-identifier" collection="<%= collection_id %>"/>
+				</div>
+				<button class="btn btn-success" id="identifier-submission-button" type="button"><fmt:message key="jsp.submit.general.submit"/> </button>
+				</div>
+			<input type="hidden" id="iuuid" name="iuuid" value=""/>
+			<input type="hidden" id="fuuid" name="fuuid" value=""/>
+			<input type="hidden" id="suuid" name="suuid" value="<%= uuid %>"/>
+			<input type="hidden" id="collectionid" name="collectionid" value=""/>
+			<input type="hidden" id="iuuid_batch" name="iuuid_batch" value=""/>
+			<input type="hidden" id="filePath" name="filePath" value=""/>
+		</form>
+		<input type="checkbox" id="checkallresults" name="checkallresults"><fmt:message key="jsp.submit.start-lookup-submission.js.checkallresults"/>
+		<h4 id="no-record" class="label label-warning" style="display:none"><fmt:message key="jsp.submit.start-lookup-submission.norecordselected" /></h4>
+		<h4 id="no-collection" class="label label-warning" style="display:none"><fmt:message key="jsp.submit.start-lookup-submission.nocollectionselected" /></h4>
 		<div id="result-list"></div>
 	</div>
 <% 
@@ -501,6 +557,19 @@
     			j('#no-collection-warn').modal('show');
    			}
     	});
+    	j('#manual-submission-button').click(function(event){
+    		var colman = j('#select-collection-manual').val();
+    		if (colman != -1)
+    		{
+    			j('#collectionid').val(colman);
+    			j('#form-submission').submit();
+    		}
+    		else
+   			{
+    			j('#no-collection-warn').modal('show');
+   			}
+    	});
+   	
     	j('#lookup_idenfifiers').click(function(){
     		submissionLookupIdentifiers(j('input.submission-lookup-identifier'));
     	});
