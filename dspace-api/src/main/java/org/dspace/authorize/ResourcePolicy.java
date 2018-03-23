@@ -62,8 +62,9 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     @Column(name = "resource_type_id")
     private int resourceTypeId;
 
+    //TODO resourceId contains only identifier for CRIS object, maybe move authorization into CrisAuthorizeManager
     @Column(name = "resource_id")
-    private int resourceId;
+    private Integer resourceId;
     
     /*
      * {@see org.dspace.core.Constants#Constants Constants}
@@ -369,11 +370,11 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
 		this.resourceTypeId = resourceTypeId;
 	}
 
-	public int getResourceId() {
+	public Integer getResourceId() {
 		return resourceId;
 	}
 
-	public void setResourceId(int resourceId) {
+	public void setResourceId(Integer resourceId) {
 		this.resourceId = resourceId;
 	}
 
