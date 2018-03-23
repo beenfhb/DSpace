@@ -115,7 +115,7 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
     public Iterator<Item> findBySubmitterDateSorted(Context context, EPerson eperson, Integer limit) throws SQLException;
 
     /**
-     * Get all the items in this collection. The order is indeterminate.
+     * Get all the archived items in this collection. The order is indeterminate.
      *
      * @param context DSpace context object
      * @param collection Collection (parent)
@@ -125,7 +125,7 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
     public Iterator<Item> findByCollection(Context context, Collection collection) throws SQLException;
 
     /**
-     * Get all the items in this collection. The order is indeterminate.
+     * Get all the archived items in this collection. The order is indeterminate.
      *
      * @param context DSpace context object
      * @param collection Collection (parent)
@@ -147,7 +147,7 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
             throws SQLException;
 
     /**
-     * Get all the items in this collection. The order is indeterminate.
+     * Get all the items (including private and withdrawn) in this collection. The order is indeterminate.
      *
      * @param context DSpace context object
      * @param collection Collection (parent)
@@ -155,6 +155,18 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
      * @throws SQLException if database error
      */
     public Iterator<Item> findAllByCollection(Context context, Collection collection) throws SQLException;
+
+    /**
+     * Get all the items (including private and withdrawn) in this collection. The order is indeterminate.
+     *
+     * @param context DSpace context object
+     * @param collection Collection (parent)
+     * @return an iterator over the items in the collection.
+     * @param limit limited number of items
+     * @param offset offset value
+     * @throws SQLException if database error
+     */
+    public Iterator<Item> findAllByCollection(Context context, Collection collection, Integer limit, Integer offset) throws SQLException;
 
     /**
      * See whether this Item is contained by a given Collection.
@@ -527,6 +539,16 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
     public int countItems(Context context, Collection collection) throws SQLException;
 
     /**
+     * counts all items in the given collection including withdrawn items
+     *
+     * @param context DSpace context object
+     * @param collection Collection
+     * @return total items
+     * @throws SQLException if database error
+     */
+    public int countAllItems(Context context, Collection collection) throws SQLException;
+    
+    /**
      * Find all Items modified since a Date.
      *
      * @param context context
@@ -547,6 +569,16 @@ public interface ItemService extends DSpaceObjectService<Item>, DSpaceObjectLega
      */
     public int countItems(Context context, Community community) throws SQLException;
 
+    /**
+     * counts all items in the given community including withdrawn
+     *
+     * @param context DSpace context object
+     * @param community Community
+     * @return total items
+     * @throws SQLException if database error
+     */
+    public int countAllItems(Context context, Community community) throws SQLException;
+    
     /**
      * counts all items 
      *
