@@ -289,7 +289,7 @@ public class WorkspaceItem implements InProgressSubmission, Serializable, Reload
 	
 	@Override
 	public String getHandle() {
-		return null;
+		return getType() + "-" + getID();
 	}
 
 	@Override

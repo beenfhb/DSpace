@@ -135,7 +135,10 @@ public class IndexEventConsumer implements Consumer {
                     log.warn("got null subject type and/or ID on DELETE event, skipping it.");
                 }
                 else {
-                	String detail = event.getSubjectType() + "-" + event.getSubjectID().toString();
+                    String detail = event.getSubjectType() + "-" + event.getSubjectID().toString();
+                    if(Constants.WORKSPACEITEM == event.getSubjectType()) {
+                        detail = event.getDetail();
+                    }                	
                     log.debug("consume() adding event to delete queue: " + event.toString());
                     uniqueIdsToDelete.add(detail);
                 }

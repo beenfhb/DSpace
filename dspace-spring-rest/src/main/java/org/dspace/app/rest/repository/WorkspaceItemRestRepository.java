@@ -45,9 +45,11 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonServiceImpl;
+import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator;
@@ -337,6 +339,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 		}
 		try {
 			wis.deleteAll(context, witem);
+	        context.addEvent(new Event(Event.DELETE, Constants.WORKSPACEITEM, witem.getItem().getID(),
+	                witem.getHandle(), null));
 		} catch (SQLException | AuthorizeException | IOException e) {
 			log.error(e.getMessage(), e);
 		}
