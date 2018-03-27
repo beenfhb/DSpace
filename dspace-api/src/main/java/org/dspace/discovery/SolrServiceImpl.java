@@ -2418,19 +2418,19 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         {
             switch (type) {
                 case Constants.WORKSPACEITEM:
-                    Integer wsiId = Integer.parseInt((String)id);
+                    Integer wsiId = (Integer)id;
                     o = (BrowsableDSpaceObject)workspaceItemService.find(context, wsiId);
                     break;
                 case Constants.WORKFLOWITEM:
-                    Integer wfiId = Integer.parseInt((String)id);
+                    Integer wfiId = (Integer)id;
                     o = (BrowsableDSpaceObject)workflowItemService.find(context, wfiId);
                     break;                    
                 case Constants.WORKFLOW_POOL:
-                    Integer wfpId = Integer.parseInt((String)id);
+                    Integer wfpId = (Integer)id;
                     o = poolTaskService.find(context, wfpId);
                     break;
                 case Constants.WORKFLOW_CLAIMED:
-                    Integer wfcId = Integer.parseInt((String)id);
+                    Integer wfcId = (Integer)id;
                     o = claimedTaskService.find(context, wfcId);
                     break;                    
                 default:
