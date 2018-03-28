@@ -9,8 +9,12 @@ package org.dspace.content;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,6 +34,7 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -45,7 +50,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name="bundle")
-public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
+public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID>
 {
     /** log4j logger */
     private static Logger log = Logger.getLogger(Bundle.class);
@@ -279,4 +284,44 @@ public class Bundle extends DSpaceObject implements DSpaceObjectLegacySupport
 		}
 		return null;
 	}
+
+    @Override
+    public Map<String, Object> getExtraInfo() {
+        return new HashMap<>();
+    }
+
+    @Override
+    public boolean isArchived() {
+        return false;
+    }
+
+    @Override
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+        return getBundleService().getMetadata(this, schema, element, qualifier, lang);
+    }
+
+    @Override
+    public String getMetadata(String field) {
+        return getBundleService().getMetadata(this, field);
+    }
+
+    @Override
+    public boolean isDiscoverable() {
+        return false;
+    }
+
+    @Override
+    public String findHandle(Context context) throws SQLException {
+        return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+    }
+
+    @Override
+    public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+        return getBundleService().getMetadataFirstValue(this, schema, element, qualifier, language);
+    }
+
+    @Override
+    public Date getLastModified() {
+        return new Date();
+    }
 }
