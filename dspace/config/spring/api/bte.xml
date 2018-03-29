@@ -1035,7 +1035,7 @@
 				<entry key="analytictitle" value="title" />
 				<entry key="analyticname" value="authors" />
 				<entry key="monogrtitle" value="journal" />
-				<entry key="publicationStmtdatepublished" value="issued" />
+				<entry key="publicationstmtdatepublished" value="issued" />
 				<entry key="ISSN" value="jissn" />
 				<entry key="ISBN" value="pisbn" />
 				<entry key="DOI" value="doi" />
