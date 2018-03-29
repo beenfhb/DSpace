@@ -305,6 +305,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                                     ((Item) dso).getLastModified()))
                         {
                             unIndexContent(context, dso);
+                            deleteInProgressSubmissionItem(context, (Item) dso);
                             buildDocument(context, (Item) dso);
                         }
                     } else {
@@ -316,10 +317,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         log.info("Removed Item: " + uuid + " from Index");
                         
                         /**
-                         * reindex any workflow tasks associated with the item
+                         * reindex any in progress submission tasks associated with the item
                          */
-                        deleteItemTasks(context, (Item) dso);
-                        indexItemTasks(context, (Item) dso);
+                        deleteInProgressSubmissionItem(context, (Item) dso);
+                        indexInProgressSubmissionItem(context, (Item) dso);
                     }
                     break;
 
@@ -596,7 +597,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         {
             try
             {
-                getSolr().deleteByQuery("search.resourcetype:[2 TO 4]");
+                getSolr().deleteByQuery("search.resourcetype:["+Constants.ITEM+" TO "+Constants.WORKFLOW_CLAIMED+"]");
             }
             catch (Exception e)
             {
@@ -608,6 +609,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             cleanIndex(false, Constants.ITEM);
             cleanIndex(false, Constants.COLLECTION);
             cleanIndex(false, Constants.COMMUNITY);
+            cleanIndex(false, Constants.WORKSPACEITEM);
+            cleanIndex(false, Constants.WORKFLOW_POOL);
+            cleanIndex(false, Constants.WORKFLOW_CLAIMED);
+            cleanIndex(false, Constants.WORKFLOWITEM);
         }
     }
 
@@ -1671,8 +1676,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
     }
 
-    private void deleteItemTasks(Context context, Item item) throws SolrServerException, IOException {
-    	getSolr().deleteByQuery("workflow.item:\""+item.getID().toString()+"\"");
+    private void deleteInProgressSubmissionItem(Context context, Item item) throws SolrServerException, IOException {
+    	getSolr().deleteByQuery("inprogress.item:\""+item.getID().toString()+"\"");
     }
     
 	private void addFacetIndex(SolrInputDocument document, String field,
@@ -1685,7 +1690,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	}
 
     
-    private void indexItemTasks(Context context, Item item) throws SQLException, IOException, SolrServerException, WorkflowConfigurationException {
+    private void indexInProgressSubmissionItem(Context context, Item item) throws SQLException, IOException, SolrServerException, WorkflowConfigurationException {
     	XmlWorkflowItem workflowItem = workflowItemService.findByItem(context, item);
     	if (workflowItem == null) {
     		WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
@@ -1714,6 +1719,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             }
             String fvalue = acvalue;
             addNamedResourceTypeIndex(doc, acvalue, fvalue);
+            doc.addField("inprogress.item", item.getID());
             
 	        getSolr().add(doc);
     	}
@@ -1723,7 +1729,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	        List<String> locations = getCollectionLocations(context, workflowItem.getCollection());
 	        SolrInputDocument doc = new SolrInputDocument();
 	
-	        doc.addField("workflow.item", item.getID());
+	        doc.addField("inprogress.item", item.getID());
 	        doc.addField("lastModified", item.getLastModified());
 	        if (workflowItem.getSubmitter() != null) {
 	        	addFacetIndex(doc, "submitter", workflowItem.getSubmitter().getID().toString(), workflowItem.getSubmitter().getFullName());
