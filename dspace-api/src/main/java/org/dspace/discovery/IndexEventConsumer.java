@@ -62,7 +62,7 @@ public class IndexEventConsumer implements Consumer {
         }
 
         int st = event.getSubjectType();
-        if (!(st == Constants.WORKSPACEITEM || st == Constants.ITEM || st == Constants.BUNDLE
+        if (!(st == Constants.ITEM || st == Constants.BUNDLE
                 || st == Constants.COLLECTION || st == Constants.COMMUNITY)) {
             log
                     .warn("IndexConsumer should not have been given this kind of Subject in an event, skipping: "
@@ -136,9 +136,6 @@ public class IndexEventConsumer implements Consumer {
                 }
                 else {
                     String detail = event.getSubjectType() + "-" + event.getSubjectID().toString();
-                    if(Constants.WORKSPACEITEM == event.getSubjectType()) {
-                        detail = event.getDetail();
-                    }                	
                     log.debug("consume() adding event to delete queue: " + event.toString());
                     uniqueIdsToDelete.add(detail);
                 }

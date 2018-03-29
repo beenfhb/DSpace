@@ -183,8 +183,6 @@ public class SubmissionService {
 			
 			wi = workflowService.start(context, wsi);
 			
-	        context.addEvent(new Event(Event.DELETE, Constants.WORKSPACEITEM, wsi.getItem().getID(),
-	                    wsi.getHandle(), itemService.getIdentifiers(context, wi.getItem())));
             context.addEvent(new Event(Event.MODIFY, Constants.ITEM, wi.getItem().getID(),
                     null, itemService.getIdentifiers(context, wi.getItem())));
 		} catch (IOException e) {
