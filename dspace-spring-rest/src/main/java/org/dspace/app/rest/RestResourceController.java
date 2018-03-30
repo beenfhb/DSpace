@@ -825,6 +825,10 @@ public class RestResourceController implements InitializingBean {
 			resources.forEach(linkService::addLinks);
 			result = assembler.toResource(resources, link);
 		} else {
+		    T modelObject = (T) searchResult;
+		    if (modelObject == null) {
+		        throw new ResourceNotFoundException(apiCategory + "." + model + " with method: " + searchMethodName + " not found resource");
+		    }
 			DSpaceResource<T> dsResource = repository.wrapResource((T) searchResult);
 			linkService.addLinks(dsResource);
 			result = dsResource;
