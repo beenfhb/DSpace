@@ -305,21 +305,19 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                                     ((Item) dso).getLastModified()))
                         {
                             unIndexContent(context, dso);
-                            deleteInProgressSubmissionItem(context, (Item) dso);
                             buildDocument(context, (Item) dso);
                         }
                     } else {
                         /**
                          * Make sure the item is not in the index if it is not in
-                         * archive or withwrawn.
+                         * archive or withdrawn.
                          */
                     	unIndexContent(context, dso);
                         log.info("Removed Item: " + uuid + " from Index");
                         
                         /**
                          * reindex any in progress submission tasks associated with the item
-                         */
-                        deleteInProgressSubmissionItem(context, (Item) dso);
+                         */                        
                         indexInProgressSubmissionItem(context, (Item) dso);
                     }
                     break;
@@ -378,6 +376,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             }
             String uniqueID = dso.getUniqueIndexID();
             getSolr().deleteById(uniqueID);
+            if(Constants.ITEM == dso.getType()) {
+                deleteInProgressSubmissionByItemID(uniqueID);
+            }
             if(commit)
             {
                 getSolr().commit();
@@ -412,6 +413,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         try {
             if(getSolr() != null){
                 getSolr().deleteById(searchUniqueID);
+                if(searchUniqueID.startsWith(Constants.ITEM+"-")) {
+                    deleteInProgressSubmissionByItemID(searchUniqueID);
+                }
                 if(commit)
                 {
                     getSolr().commit();
@@ -1677,7 +1681,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     private void deleteInProgressSubmissionItem(Context context, Item item) throws SolrServerException, IOException {
-    	getSolr().deleteByQuery("inprogress.item:\""+item.getID().toString()+"\"");
+    	deleteInProgressSubmissionByItemID(item.getID().toString());
+    }
+
+    private void deleteInProgressSubmissionByItemID(String itemID) throws SolrServerException, IOException {
+        getSolr().deleteByQuery("inprogress.item:\""+itemID+"\"");
     }
     
 	private void addFacetIndex(SolrInputDocument document, String field,

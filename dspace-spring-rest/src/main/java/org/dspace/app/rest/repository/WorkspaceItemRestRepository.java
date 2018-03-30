@@ -339,7 +339,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 		}
 		try {
 			wis.deleteAll(context, witem);
-            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, witem.getItem().getID(),
+            context.addEvent(new Event(Event.DELETE, Constants.ITEM, witem.getItem().getID(),
                     null, itemService.getIdentifiers(context, witem.getItem())));
 		} catch (SQLException | AuthorizeException | IOException e) {
 			log.error(e.getMessage(), e);
