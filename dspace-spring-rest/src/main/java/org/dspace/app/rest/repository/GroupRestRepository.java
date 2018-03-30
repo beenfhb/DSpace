@@ -11,10 +11,14 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.GroupConverter;
 import org.dspace.app.rest.model.GroupRest;
+import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.hateoas.GroupResource;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
@@ -22,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,6 +70,21 @@ public class GroupRestRepository extends DSpaceRestRepository<GroupRest, UUID> {
 		Page<GroupRest> page = new PageImpl<Group>(groups, pageable, total).map(converter);
 		return page;
 	}
+	
+    @SearchRestMethod(name = "isMemberOf")
+    public GroupRest isMemberOf(String groupName) {
+        Group group = null;
+        try {
+            Context context = obtainContext();
+            group = gs.isMember(context, groupName)?gs.findByName(context, groupName):null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        if (group == null) {
+            return null;
+        }
+        return converter.fromModel(group);
+    }
 	
 	@Override
 	public Class<GroupRest> getDomainClass() {
