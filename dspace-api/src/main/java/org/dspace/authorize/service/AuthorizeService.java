@@ -323,6 +323,19 @@ public interface AuthorizeService {
      * @throws SQLException if there's a database problem
      */
     public List<ResourcePolicy> getPoliciesActionFilter(Context c, AuthorizableEntity o, int actionID) throws SQLException;
+    
+
+    /**
+     * Return a list of policies for an object that match the action except the record labeled with the rpType
+     *
+     * @param c context
+     * @param o AuthorizableEntity policies relate to
+     * @param actionID action (defined in class Constants)
+     * @param rpType the resource policy type
+     * @return list of resource policies
+     * @throws SQLException if there's a database problem
+     */
+    public List<ResourcePolicy> getPoliciesActionFilterExceptRpType(Context c, AuthorizableEntity o, int actionID, String rpType) throws SQLException;
 
     /**
      * Add policies to an object to match those from a previous object

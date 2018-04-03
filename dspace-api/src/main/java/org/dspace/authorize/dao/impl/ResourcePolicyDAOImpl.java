@@ -183,4 +183,16 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         query.setParameter("rptype", type);
         query.executeUpdate();
     }
+
+    @Override
+    public List<ResourcePolicy> findByDSoAndActionExceptRpType(Context context, AuthorizableEntity dso, int action,
+            String rpType) throws SQLException {
+        Criteria criteria = createCriteria(context, ResourcePolicy.class);
+        criteria.add(Restrictions.and(
+                Restrictions.eq("dSpaceObject", dso),
+                Restrictions.eq("actionId", action)
+        ));
+        criteria.add(Restrictions.and(Restrictions.not(Restrictions.eq("rpType", rpType))));
+        return list(criteria);
+    }
 }

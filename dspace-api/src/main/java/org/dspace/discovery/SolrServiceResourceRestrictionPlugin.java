@@ -60,7 +60,7 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
     @Override
     public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
         try {
-            List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, dso, Constants.READ);
+            List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilterExceptRpType(context, dso, Constants.READ, ResourcePolicy.TYPE_WORKFLOW);
             for (ResourcePolicy resourcePolicy : policies) {
                 String fieldValue;
                 if(resourcePolicy.getGroup() != null){

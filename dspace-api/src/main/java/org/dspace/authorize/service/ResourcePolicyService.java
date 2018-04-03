@@ -70,4 +70,6 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
 
     public void removeDsoAndTypeNotEqualsToPolicies(Context c, AuthorizableEntity o, String type) throws SQLException, AuthorizeException;
 
+    public List<ResourcePolicy> findExceptRpType(Context c, AuthorizableEntity o, int actionID, String rpType) throws SQLException;
+
 }
